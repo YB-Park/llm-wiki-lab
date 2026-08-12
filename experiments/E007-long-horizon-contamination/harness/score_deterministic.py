@@ -30,11 +30,30 @@ def contains_signal(text: str, signal: str) -> bool:
     return normalize_text(signal) in normalize_text(text)
 
 
+def _loads_transport_json(candidate: str) -> Any:
+    """Parse JSON with one narrowly scoped LLM-transport tolerance.
+
+    Models sometimes emit a literal newline/tab/control character inside a quoted JSON
+    string even when instructed to return JSON-only. Python's default JSON decoder rejects
+    those characters. Retrying with ``strict=False`` accepts only that class of control
+    characters; it does not repair missing quotes, commas, braces, or other malformed
+    structure. This prevents a serialization quirk from becoming a semantic failure while
+    keeping genuinely malformed JSON loud.
+    """
+    try:
+        return json.loads(candidate)
+    except json.JSONDecodeError as exc:
+        if not exc.msg.startswith("Invalid control character"):
+            raise
+        return json.loads(candidate, strict=False)
+
+
 def extract_json_object(text: str) -> dict[str, Any]:
     """Parse a JSON object, tolerating one outer Markdown code fence or light chatter.
 
     The prompt requires JSON-only output. Tolerance here prevents transport formatting from
-    being treated as a semantic failure, while malformed/ambiguous JSON still fails loudly.
+    being treated as a semantic failure. A literal control character inside a quoted string
+    is accepted as a narrow transport fallback; malformed/ambiguous JSON still fails loudly.
     """
     stripped = text.strip()
     if stripped.startswith("```") and stripped.endswith("```"):
@@ -43,14 +62,14 @@ def extract_json_object(text: str) -> dict[str, Any]:
             stripped = "\n".join(lines[1:-1]).strip()
 
     try:
-        parsed = json.loads(stripped)
+        parsed = _loads_transport_json(stripped)
     except json.JSONDecodeError:
         start = stripped.find("{")
         end = stripped.rfind("}")
         if start == -1 or end == -1 or end <= start:
             raise ValueError("response does not contain a parseable JSON object")
         try:
-            parsed = json.loads(stripped[start : end + 1])
+            parsed = _loads_transport_json(stripped[start : end + 1])
         except json.JSONDecodeError as exc:
             raise ValueError(f"response JSON is malformed: {exc}") from exc
 
