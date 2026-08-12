@@ -36,6 +36,8 @@ jobs:
             experiments/E007-long-horizon-contamination/harness/validate_corpus.py \
             experiments/E007-long-horizon-contamination/harness/score_deterministic.py \
             experiments/E007-long-horizon-contamination/harness/copilot_cli.py \
+            experiments/E007-long-horizon-contamination/harness/preflight_copilot.py \
+            experiments/E007-long-horizon-contamination/harness/handoff_summary.py \
             experiments/E007-long-horizon-contamination/harness/run_e007.py
 
       - name: Smoke-test deterministic scorer
@@ -58,3 +60,21 @@ jobs:
           assert result['all_passed'], result
           assert result['passed_count'] == 3, result
           PY
+
+      - name: Smoke-test compact handoff without telemetry
+        run: |
+          mkdir -p /tmp/e007-fake/scores
+          cat > /tmp/e007-fake/run-config.json <<'JSON'
+          {"condition":"C2","model":"test-model","max_wave":0}
+          JSON
+          cat > /tmp/e007-fake/summary.json <<'JSON'
+          {"waves":[{"wave":0}]}
+          JSON
+          cat > /tmp/e007-fake/scores/W00-primary-deterministic.json <<'JSON'
+          {"scores":[{"query_id":"QX","passed":true}],"passed_count":1,"failed_count":0,"all_passed":true}
+          JSON
+          python3 experiments/E007-long-horizon-contamination/harness/handoff_summary.py \
+            --run-dir /tmp/e007-fake > /tmp/e007-handoff.txt
+          grep -q '^E007-HANDOFF-v0$' /tmp/e007-handoff.txt
+          grep -q 'det=1/1 failed=-' /tmp/e007-handoff.txt
+          grep -q 'tokens=unavailable' /tmp/e007-handoff.txt
