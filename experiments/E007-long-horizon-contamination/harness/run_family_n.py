@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from copilot_cli import cli_version
+from cost_metrics import analyze_cost
 from handoff_summary import write_handoff
 from run_e007 import RUNS, run_condition
 from structural_metrics import analyze_run
@@ -32,6 +33,13 @@ def write_json(path: Path, payload: Any) -> None:
 
 def run_is_complete(run_dir: Path) -> bool:
     return (run_dir / "summary.json").exists()
+
+
+def ensure_posthoc_measurements(run_dir: Path) -> None:
+    structure = analyze_run(run_dir)
+    write_json(run_dir / "structural-metrics.json", structure)
+    cost = analyze_cost(run_dir)
+    write_json(run_dir / "cost-metrics.json", cost)
 
 
 def main() -> None:
@@ -69,6 +77,7 @@ def main() -> None:
         run_dir = args.run_root / run_id
 
         if run_is_complete(run_dir):
+            ensure_posthoc_measurements(run_dir)
             print(f"SKIP complete {run_id}")
             continue
 
@@ -90,8 +99,7 @@ def main() -> None:
             max_wave=max_wave,
         )
 
-        structure = analyze_run(run_dir)
-        write_json(run_dir / "structural-metrics.json", structure)
+        ensure_posthoc_measurements(run_dir)
         handoff = write_handoff(run_dir)
         print(handoff, end="")
         print(f"DONE {run_id}")
