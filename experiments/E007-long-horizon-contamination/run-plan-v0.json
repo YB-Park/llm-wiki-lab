@@ -1,0 +1,27 @@
+{
+  "experiment": "E007",
+  "family": "N-natural",
+  "plan_version": "v0",
+  "repetitions_per_condition": 3,
+  "conditions": ["C0", "C1", "C2", "C3", "C4"],
+  "model": "gpt-5.6-luna",
+  "max_wave": 5,
+  "order_seed_label": "E007-C-v0-2026-08-12",
+  "runs": [
+    {"sequence": 1, "condition": "C0", "rep": 3, "run_id": "C0-r03"},
+    {"sequence": 2, "condition": "C4", "rep": 3, "run_id": "C4-r03"},
+    {"sequence": 3, "condition": "C2", "rep": 1, "run_id": "C2-r01"},
+    {"sequence": 4, "condition": "C4", "rep": 2, "run_id": "C4-r02"},
+    {"sequence": 5, "condition": "C1", "rep": 1, "run_id": "C1-r01"},
+    {"sequence": 6, "condition": "C3", "rep": 3, "run_id": "C3-r03"},
+    {"sequence": 7, "condition": "C2", "rep": 2, "run_id": "C2-r02"},
+    {"sequence": 8, "condition": "C1", "rep": 2, "run_id": "C1-r02"},
+    {"sequence": 9, "condition": "C3", "rep": 2, "run_id": "C3-r02"},
+    {"sequence": 10, "condition": "C1", "rep": 3, "run_id": "C1-r03"},
+    {"sequence": 11, "condition": "C0", "rep": 2, "run_id": "C0-r02"},
+    {"sequence": 12, "condition": "C3", "rep": 1, "run_id": "C3-r01"},
+    {"sequence": 13, "condition": "C4", "rep": 1, "run_id": "C4-r01"},
+    {"sequence": 14, "condition": "C2", "rep": 3, "run_id": "C2-r03"},
+    {"sequence": 15, "condition": "C0", "rep": 1, "run_id": "C0-r01"}
+  ]
+}
