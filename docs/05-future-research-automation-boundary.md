@@ -21,6 +21,19 @@ A system can fail even with good wiki semantics if it:
 
 The target environment is currently VS Code + GitHub Copilot, but the questions should remain general enough to compare other IDE/agent environments later.
 
+## Known real-environment constraints
+
+These are deployment inputs, not architecture decisions:
+
+- The intended day-to-day environment is a managed corporate network using VS Code + GitHub Copilot.
+- ChatGPT is unavailable from that corporate network.
+- Direct GitHub push from that corporate network is unavailable.
+- Therefore experiment/reporting workflows must not depend on copying large transcripts to ChatGPT or pushing run artifacts directly from the execution environment.
+- A practical experiment harness should be able to emit a **small sanitized handoff summary** that can be manually transferred when necessary; raw prompts, responses, telemetry, and sensitive artifacts should remain local.
+- GPT-5.6 Luna is a **candidate**, not an adopted policy, for high-volume wiki maintenance because a lightweight/low-cost model may be sufficient for drafting, organization, consolidation, and routine verification. Actual model choice must be tested for quality and measured using the effective pricing/credit conditions of the real corporate Copilot environment at experiment time.
+
+A relevant adjacent design reference is the user's `over-the-luna` project. Its principles such as **parallelize thinking; serialize mutation**, bounded evidence-triggered recovery, compact context handoffs, and visible human escalation are useful hypotheses for future Wiki automation experiments, but are not imported as policy here.
+
 ## Questions to investigate deeply later
 
 ### Integration surface
