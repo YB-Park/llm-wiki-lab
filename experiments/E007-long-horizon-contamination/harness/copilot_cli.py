@@ -11,6 +11,7 @@ import argparse
 import datetime as dt
 import json
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -54,12 +55,28 @@ def cli_version() -> str:
     return (proc.stdout or proc.stderr).strip()
 
 
+def cli_help_text(exe: str) -> str:
+    """Return the flags actually exposed by this local CLI/account combination."""
+    proc = subprocess.run([exe, "help"], text=True, capture_output=True, check=False, timeout=30)
+    return f"{proc.stdout}\n{proc.stderr}"
+
+
+def help_has_flag(help_text: str, flag: str) -> bool:
+    # Require a token boundary so --no-remote does not accidentally match
+    # --no-remote-export (or vice versa).
+    return re.search(rf"(?<![A-Za-z0-9_-]){re.escape(flag)}(?![A-Za-z0-9_-])", help_text) is not None
+
+
 def run_prompt(*, prompt: str, model: str, run_dir: Path, timeout_seconds: int = 900) -> dict[str, Any]:
     """Run one isolated prompt and return metadata plus final response text.
 
     GitHub documents --silent as the scripting-oriented mode that emits only the
     agent response. We keep telemetry separate in the OTel file so the response
     parser is not coupled to Copilot CLI's JSONL event representation.
+
+    Remote-session opt-out flags are capability-detected because GitHub documents
+    them as account/feature dependent. Their absence must not make a local text-only
+    experiment fail; if present, we use them explicitly.
     """
     if not model or model.lower() == "auto":
         raise ValueError("E007 requires a concrete pinned model; 'auto' is not allowed for scored runs")
@@ -92,13 +109,19 @@ def run_prompt(*, prompt: str, model: str, run_dir: Path, timeout_seconds: int =
         "--stream=off",
         "--no-ask-user",
         "--no-custom-instructions",
-        "--no-remote",
-        "--no-remote-export",
         "--disable-builtin-mcps",
         "--no-color",
         "--no-experimental",
         f"--share={transcript_path}",
     ]
+
+    local_help = cli_help_text(exe)
+    remote_opt_out_flags: list[str] = []
+    for flag in ("--no-remote", "--no-remote-export"):
+        if help_has_flag(local_help, flag):
+            command.append(flag)
+            remote_opt_out_flags.append(flag)
+
     for tool in EXCLUDED_TOOLS:
         command.append(f"--excluded-tools={tool}")
 
@@ -128,6 +151,7 @@ def run_prompt(*, prompt: str, model: str, run_dir: Path, timeout_seconds: int =
         "mcp_tool_cache": False,
         "no_custom_instructions": True,
         "no_experimental": True,
+        "remote_opt_out_flags_supported_and_used": remote_opt_out_flags,
         "otel_content_capture": False,
         "response_file": response_path.name,
         "otel_file": otel_path.name,
