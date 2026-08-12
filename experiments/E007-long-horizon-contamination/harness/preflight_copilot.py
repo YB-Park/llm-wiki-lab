@@ -3,6 +3,9 @@
 
 This uses unrelated synthetic facts so it validates authentication, response capture,
 JSON parsing, and OpenTelemetry without revealing any E007 comparative result.
+
+Default stdout is intentionally tiny because the target corporate network cannot use
+ChatGPT or GitHub push. Use --json only when detailed sanitized diagnostics are needed.
 """
 
 from __future__ import annotations
@@ -81,7 +84,7 @@ def summarize_otel(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {"otel_file_exists": False, "attributes": {}}
 
-    for lineno, line in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
+    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
         if not line.strip():
             continue
         try:
@@ -112,9 +115,38 @@ def validate_preflight_answer(text: str) -> dict[str, Any]:
     return {"passed": not mismatches, "mismatches": mismatches, "parsed_response": payload}
 
 
+def short_values(attributes: dict[str, list[Any]], key: str) -> str:
+    values = attributes.get(key, [])
+    if not values:
+        return "?"
+    return ",".join(str(v) for v in values)
+
+
+def compact_handoff(summary: dict[str, Any]) -> str:
+    attrs = summary["otel_attributes"]
+    resolved = short_values(attrs, "gen_ai.response.model")
+    input_tokens = short_values(attrs, "gen_ai.usage.input_tokens")
+    output_tokens = short_values(attrs, "gen_ai.usage.output_tokens")
+    cost = short_values(attrs, "github.copilot.cost")
+    aiu = short_values(attrs, "github.copilot.aiu")
+    status = "PASS" if summary["response_contract_passed"] and summary["return_code"] == 0 else "FAIL"
+    otel = "yes" if summary["otel_file_exists"] else "no"
+    return "\n".join(
+        [
+            "PREFLIGHT-HANDOFF-v0",
+            (
+                f"status={status} requested={summary['requested_model']} resolved={resolved} "
+                f"cli={summary['copilot_cli_version']} wall_s={summary['wall_seconds']:.2f}"
+            ),
+            f"otel={otel} in={input_tokens} out={output_tokens} cost={cost} aiu={aiu}",
+        ]
+    ) + "\n"
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run one non-scored Copilot CLI infrastructure preflight")
     parser.add_argument("--model", required=True, help="Concrete Copilot model string; do not use auto")
+    parser.add_argument("--json", action="store_true", help="Print detailed sanitized JSON instead of 3-line handoff")
     args = parser.parse_args()
 
     stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -124,8 +156,6 @@ def main() -> None:
     answer_check = validate_preflight_answer(str(result["response"]))
     otel = summarize_otel(run_dir / "otel.jsonl")
 
-    # This stdout is intentionally a sanitized summary suitable for pasting into an issue/chat.
-    # Do not paste raw otel.jsonl; it may contain pseudonymous telemetry identifiers.
     summary = {
         "preflight": "E007-non-scored",
         "requested_model": args.model,
@@ -136,10 +166,19 @@ def main() -> None:
         "response_mismatches": answer_check["mismatches"],
         "otel_file_exists": otel["otel_file_exists"],
         "otel_attributes": otel["attributes"],
-        "local_artifact_dir": str(run_dir),
-        "note": "Raw local artifacts are gitignored; share this sanitized summary, not raw OTel.",
+        "note": "Raw local artifacts are gitignored. Transfer only this sanitized handoff unless deeper debugging is needed.",
     }
-    print(json.dumps(summary, indent=2, ensure_ascii=False))
+
+    handoff = compact_handoff(summary)
+    (run_dir / "handoff.txt").write_text(handoff, encoding="utf-8")
+    (run_dir / "handoff.json").write_text(
+        json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+
+    if args.json:
+        print(json.dumps(summary, indent=2, ensure_ascii=False))
+    else:
+        print(handoff, end="")
 
 
 if __name__ == "__main__":
