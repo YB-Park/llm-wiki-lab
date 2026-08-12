@@ -1,0 +1,55 @@
+{
+  "corpus_id": "C-v0",
+  "status": "frozen-design-before-first-run",
+  "created_at": "2026-08-12",
+  "fictional": true,
+  "wave_count": 6,
+  "source_count": 18,
+  "query_count": 30,
+  "waves": [
+    {
+      "wave": 0,
+      "purpose": "initial clean state with exact facts and confusable entities",
+      "sources": ["S001", "S002", "S003"]
+    },
+    {
+      "wave": 1,
+      "purpose": "reinforcement, additional exact details, and lexical distractors",
+      "sources": ["S004", "S005", "S006"]
+    },
+    {
+      "wave": 2,
+      "purpose": "legitimate temporal changes",
+      "sources": ["S007", "S008", "S009"]
+    },
+    {
+      "wave": 3,
+      "purpose": "correction and unresolved disagreement",
+      "sources": ["S010", "S011", "S012"]
+    },
+    {
+      "wave": 4,
+      "purpose": "long-range dependency and integration decisions",
+      "sources": ["S013", "S014", "S015"]
+    },
+    {
+      "wave": 5,
+      "purpose": "rename/split pressure and delayed-probe opportunity",
+      "sources": ["S016", "S017", "S018"]
+    }
+  ],
+  "query_classes": [
+    "local_exact",
+    "global_synthesis",
+    "multi_hop",
+    "temporal",
+    "provenance",
+    "negative_uncertainty_delayed"
+  ],
+  "rules": {
+    "three_sources_per_wave": true,
+    "no_source_changes_after_first_scored_run": true,
+    "ground_truth_hidden_from_maintenance_models": true,
+    "query_rubrics_hidden_from_maintenance_models": true
+  }
+}
