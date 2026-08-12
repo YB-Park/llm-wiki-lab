@@ -1,15 +1,19 @@
-name: Validate experiment corpus
+name: Validate E007 experiment
 
 on:
   push:
     paths:
       - 'experiments/E007-long-horizon-contamination/corpus/**'
-      - 'experiments/E007-long-horizon-contamination/harness/validate_corpus.py'
+      - 'experiments/E007-long-horizon-contamination/harness/**'
+      - 'experiments/E007-long-horizon-contamination/prompts/**'
+      - 'experiments/E007-long-horizon-contamination/condition-protocol-v0.md'
       - '.github/workflows/validate-experiment-corpus.yml'
   pull_request:
     paths:
       - 'experiments/E007-long-horizon-contamination/corpus/**'
-      - 'experiments/E007-long-horizon-contamination/harness/validate_corpus.py'
+      - 'experiments/E007-long-horizon-contamination/harness/**'
+      - 'experiments/E007-long-horizon-contamination/prompts/**'
+      - 'experiments/E007-long-horizon-contamination/condition-protocol-v0.md'
       - '.github/workflows/validate-experiment-corpus.yml'
   workflow_dispatch:
 
@@ -17,11 +21,40 @@ permissions:
   contents: read
 
 jobs:
-  validate-corpus:
+  validate-e007:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
 
-      - name: Validate Corpus C v0
+      - name: Validate Corpus C v0 and regression manifest
         run: python3 experiments/E007-long-horizon-contamination/harness/validate_corpus.py
+
+      - name: Compile Python harness
+        run: |
+          python3 -m py_compile \
+            experiments/E007-long-horizon-contamination/harness/validate_corpus.py \
+            experiments/E007-long-horizon-contamination/harness/score_deterministic.py \
+            experiments/E007-long-horizon-contamination/harness/copilot_cli.py \
+            experiments/E007-long-horizon-contamination/harness/run_e007.py
+
+      - name: Smoke-test deterministic scorer
+        run: |
+          cat > /tmp/e007-answer.json <<'JSON'
+          {
+            "answers": [
+              {"query_id":"Q002","answer":"The limit is 4 GB and the flag is batch_prefetch.","source_ids":[],"uncertainty":"none"},
+              {"query_id":"Q023","answer":"BluePeak reports 300 ms while the internal audit reports 335 ms.","source_ids":["S011","S012"],"uncertainty":"disputed"},
+              {"query_id":"Q026","answer":"No source establishes a recall improvement; it is unsupported.","source_ids":["S013"],"uncertainty":"unsupported"}
+            ]
+          }
+          JSON
+          python3 experiments/E007-long-horizon-contamination/harness/score_deterministic.py \
+            /tmp/e007-answer.json --query-id Q002 --query-id Q023 --query-id Q026 \
+            --output /tmp/e007-score.json
+          python3 - <<'PY'
+          import json
+          result = json.load(open('/tmp/e007-score.json'))
+          assert result['all_passed'], result
+          assert result['passed_count'] == 3, result
+          PY
