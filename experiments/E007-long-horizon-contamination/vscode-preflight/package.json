@@ -1,0 +1,31 @@
+{
+  "name": "llm-wiki-lab-e007-vscode-preflight",
+  "displayName": "LLM Wiki Lab E007 Preflight",
+  "description": "Local-only VS Code Language Model API probe for E007 model availability and Luna viability.",
+  "version": "0.0.1",
+  "private": true,
+  "publisher": "llm-wiki-lab",
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:llmWikiLab.e007.listCopilotModels",
+    "onCommand:llmWikiLab.e007.preflightLuna"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "llmWikiLab.e007.listCopilotModels",
+        "title": "LLM Wiki Lab: List Copilot Models"
+      },
+      {
+        "command": "llmWikiLab.e007.preflightLuna",
+        "title": "LLM Wiki Lab: Run Luna Preflight"
+      }
+    ]
+  }
+}
