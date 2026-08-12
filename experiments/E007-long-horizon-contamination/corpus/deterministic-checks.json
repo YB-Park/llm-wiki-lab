@@ -1,0 +1,29 @@
+{
+  "version": "C-v0-deterministic-v0",
+  "purpose": "Machine-scored rules for E007 regression-eligible query classes. These rules are evaluator-only and must not be shown to maintenance/query models.",
+  "checks": {
+    "Q001": {"answer_all": ["northstar systems", "mina choi"]},
+    "Q002": {"answer_all": ["4 gb", "batch_prefetch"]},
+    "Q003": {"answer_all": ["postgresql"]},
+    "Q004": {"answer_all": ["orchid-3", "10 minute"]},
+    "Q005": {"answer_all": ["postgresql", "orchid-3", "astr1"]},
+
+    "Q016": {"answer_all": ["sqlite", "postgresql", "march 1", "march 10"]},
+    "Q017": {"answer_all": ["30 minute", "10 minute", "march 7", "march 9"]},
+    "Q018": {"answer_all": ["420", "450", "correction"]},
+    "Q019": {"answer_all": ["aster", "aurora", "may 31", "june 2"]},
+    "Q020": {"answer_all": ["orchid-2", "orchid-3", "march 19", "march 21"]},
+
+    "Q021": {"required_source_ids": ["S001"]},
+    "Q022": {"answer_all": ["310", "astra"], "required_source_ids": ["S006"]},
+    "Q023": {"answer_all": ["300", "335"], "required_source_ids": ["S011", "S012"]},
+    "Q024": {"required_source_ids": ["S015"]},
+    "Q025": {"required_source_ids": ["S004", "S007", "S013"]},
+
+    "Q026": {"answer_any": ["unsupported", "unknown", "no source", "not established", "does not claim", "no evidence"], "uncertainty_in": ["unknown", "unsupported"]},
+    "Q027": {"answer_all": ["300", "335"], "answer_any": ["disputed", "unresolved", "no single", "not definitive", "conflict"], "uncertainty_in": ["disputed", "ambiguous"]},
+    "Q028": {"answer_all": ["astr1"]},
+    "Q029": {"answer_all": ["768"]},
+    "Q030": {"answer_all": ["astr-1"], "answer_any": ["unrelated", "not the same", "different", "astronomy", "telescope"]}
+  }
+}
