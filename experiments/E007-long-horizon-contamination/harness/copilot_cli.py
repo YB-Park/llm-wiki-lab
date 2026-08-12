@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 # Use --excluded-tools rather than permission denial: the experiment does not merely
-# deny execution, it removes tool capabilities that could change the model's input.
+# deny execution, it removes built-in tool capabilities that could change model input.
 EXCLUDED_TOOLS = (
     "bash",
     "powershell",
@@ -80,6 +80,7 @@ def run_prompt(*, prompt: str, model: str, run_dir: Path, timeout_seconds: int =
     env["COPILOT_OTEL_FILE_EXPORTER_PATH"] = str(otel_path)
     env["OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"] = "false"
     env["OTEL_SERVICE_NAME"] = "llm-wiki-lab-e007"
+    env["COPILOT_MCP_TOOL_CACHE"] = "false"
 
     command = [
         exe,
@@ -93,6 +94,7 @@ def run_prompt(*, prompt: str, model: str, run_dir: Path, timeout_seconds: int =
         "--no-custom-instructions",
         "--no-remote",
         "--no-remote-export",
+        "--disable-builtin-mcps",
         "--no-color",
         "--no-experimental",
         f"--share={transcript_path}",
@@ -122,6 +124,8 @@ def run_prompt(*, prompt: str, model: str, run_dir: Path, timeout_seconds: int =
         "wall_seconds": (ended - started).total_seconds(),
         "return_code": proc.returncode,
         "excluded_tools": list(EXCLUDED_TOOLS),
+        "builtin_mcps_disabled": True,
+        "mcp_tool_cache": False,
         "no_custom_instructions": True,
         "no_experimental": True,
         "otel_content_capture": False,
