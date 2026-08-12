@@ -57,7 +57,7 @@ function validateAnswer(payload) {
 async function selectLuna(models) {
   const candidates = models.filter((model) => {
     const haystack = `${model.name} ${model.id} ${model.family} ${model.version}`.toLowerCase();
-    return haystack.includes('luna') || haystack.includes('5.6');
+    return haystack.includes('luna');
   });
 
   if (candidates.length === 0) {
