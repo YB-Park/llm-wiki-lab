@@ -1,0 +1,16 @@
+# OS / Python
+.DS_Store
+__pycache__/
+*.py[cod]
+
+# Raw experiment runs are local by default.
+# They may contain Copilot telemetry metadata (including pseudonymous identifiers)
+# and large prompt/response artifacts. Commit only sanitized aggregate results.
+experiments/**/runs/**
+
+# Local experiment scratch / preflight artifacts
+experiments/**/.local/**
+
+# Generic telemetry/log outputs if created outside ignored run directories
+*.otel.jsonl
+otel.jsonl
