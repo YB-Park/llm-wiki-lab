@@ -51,6 +51,7 @@ jobs:
             experiments/E007-long-horizon-contamination/harness/score_deterministic.py \
             experiments/E007-long-horizon-contamination/harness/copilot_cli.py \
             experiments/E007-long-horizon-contamination/harness/preflight_copilot.py \
+            experiments/E007-long-horizon-contamination/harness/full_harness_preflight.py \
             experiments/E007-long-horizon-contamination/harness/handoff_summary.py \
             experiments/E007-long-horizon-contamination/harness/structural_metrics.py \
             experiments/E007-long-horizon-contamination/harness/cost_metrics.py \
