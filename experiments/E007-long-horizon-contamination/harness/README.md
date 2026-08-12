@@ -1,19 +1,20 @@
 # E007 Harness
 
-Status: implementation scaffold; no scored runs yet
+Status: **ready for the first scored Family N block after one non-scored full-harness rehearsal**
+
+## Research boundary
+
+E007 is testing knowledge-state maintenance policies, not Copilot skill or model ranking.
+
+GPT-5.6 Luna and Copilot CLI are frozen **experimental equipment** for the first block so that policy differences are easier to interpret. Production model/provider decisions belong later.
+
+The project-level objective remains to find the minimum architecture and operating discipline that lets useful understanding compound faster than error and maintenance debt.
 
 ## Why Copilot CLI
 
 The target daily environment is VS Code + GitHub Copilot, but manual chat UI interaction is difficult to repeat and measure consistently.
 
-E007 therefore uses **Copilot CLI as a controlled model adapter** while reserving native VS Code workflow/automation questions for later experiments such as E010.
-
-Official references:
-
-- https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-programmatic-reference
-- https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference
-- https://docs.github.com/en/copilot/reference/ai-models/supported-models
-- https://docs.github.com/en/copilot/reference/copilot-billing/models-and-pricing
+E007 therefore uses **Copilot CLI as a controlled text-in/text-out adapter** while reserving native VS Code workflow/automation questions for later experiments such as E010.
 
 ## Real execution environment
 
@@ -24,117 +25,139 @@ Known constraints:
 - VS Code + GitHub Copilot are the permitted AI/development surface.
 - ChatGPT is not reachable from the corporate network.
 - GitHub push is not available from the corporate network.
-- Large raw experiment artifacts therefore cannot be handed back through ChatGPT or pushed directly from the execution environment.
+- Raw experiment artifacts therefore remain local.
+- Only compact sanitized handoff text should need to leave the environment.
 
-The harness must support a **manual-transfer-safe compact handoff**. Raw prompts, responses, wiki states, and telemetry remain local. Only a few sanitized aggregate lines should need to leave the environment.
+## Frozen first-block profile
 
-## Model policy
+See `../execution-profile-v0.md`, `../repetition-plan-v0.md`, and `../run-plan-v0.json`.
 
-`--model` is required for scored runs. Do not use Copilot Auto because model routing would become an uncontrolled experimental variable.
+- adapter: non-interactive Copilot CLI
+- model: `gpt-5.6-luna`
+- observed target CLI: `GitHub Copilot CLI 1.0.35`
+- OTel: enabled, message-content capture disabled
+- model auto-routing: forbidden
+- repo/user custom instructions: disabled
+- workspace/web/shell/memory-style tools: excluded from scored calls
+- repetitions: 3 per condition, 15 total runs in frozen interleaved order
 
-**GPT-5.6 Luna is the current primary candidate, not yet a frozen decision.** The rationale is operational: wiki maintenance is likely to involve many drafting, consolidation, checking, and query calls, so a lightweight low-cost model that is sufficiently capable could materially change the cost/quality frontier.
-
-As of 2026-08-12, GitHub's public pricing lists GPT-5.6 Luna default-tier input at **$0.20 / 1M tokens** (with separate cached-input, cache-write, and output prices). Pricing and enterprise effective cost can change; every scored run family should record the actual model/config and use the effective runtime billing/credit conditions rather than assuming this historical number remains current.
-
-Do not mix model comparison into E007. Once a concrete Luna model string/config works in the actual corporate Copilot environment, freeze it for the run family. Cross-model replication can be a later experiment.
+Do not intentionally update the CLI, switch models, reorder runs, or tune prompts mid-block.
 
 ## Experimental isolation principles
 
 A scored call should:
 
-1. pin a concrete model with `--model` — never `auto`,
-2. use `--no-ask-user`,
-3. use `--no-custom-instructions` so repo/user instructions do not silently alter conditions,
-4. exclude workspace/web/agent tools unless a condition explicitly tests them,
-5. behave as a pure text-in/text-out semantic transformation,
-6. store the exact prompt and raw response locally,
-7. keep raw OpenTelemetry local,
-8. preserve CLI version and requested model in run metadata,
-9. expose only aggregate/sanitized handoff data outside the run directory.
+1. pin a concrete model — never `auto`,
+2. disable user interaction/custom instructions,
+3. exclude workspace/web/agent tools unless a condition explicitly tests them,
+4. behave as a pure text-in/text-out semantic transformation,
+5. store exact prompt and raw response locally,
+6. keep raw OTel local,
+7. preserve CLI version and requested/resolved model metadata,
+8. expose only aggregate/sanitized handoff data outside the run directory.
 
-## Why tools are excluded
+## Telemetry and cost
 
-E007 is testing knowledge-state maintenance policies, not agent tool skill.
+Each isolated call writes OTel locally. The harness also records explicit prompt/response payload sizes.
 
-If one condition can inspect arbitrary workspace files, web sources, persistent Copilot memory, MCP state, or shell state, experimental inputs are no longer controlled. All allowed source/wiki state is therefore placed directly in the prompt.
+Keep these concepts separate:
 
-Tool-using and IDE-native automation behavior belongs in later experiments.
+- explicit experiment payload size,
+- observed adapter input/output/cache tokens,
+- model-call count,
+- logical cost category (`maintenance_update`, `transition_verify`, `transition_repair`, `regression_probe`, `regression_repair`, `primary_answer`),
+- opaque Copilot cost/AIU fields unless their semantics are verified.
 
-## Telemetry
+Do not convert opaque cost/AIU telemetry to dollars by assumption.
 
-Each isolated call writes OTel locally using:
-
-```text
-COPILOT_OTEL_FILE_EXPORTER_PATH=<call>/otel.jsonl
-```
-
-The fields of interest include requested/resolved model, input/output/cache tokens, turn count, Copilot cost, and AI units where exposed by the runtime.
-
-Raw OTel must not be manually copied out by default because it can include pseudonymous/runtime metadata. The preflight and run summarizer extract only the small fields needed for experiment handoff.
-
-## Files
+## Key files
 
 - `validate_corpus.py` — deterministic corpus/rubric consistency checks
 - `copilot_cli.py` — isolated non-interactive Copilot adapter
-- `preflight_copilot.py` — unrelated non-scored micro-test; emits a 3-line handoff by default
-- `run_e007.py` — Family N state machine for C0–C4
-- `score_deterministic.py` — deterministic scoring used by eligible queries/regression gates
-- `handoff_summary.py` — creates an 8-line sanitized summary for one completed run
+- `preflight_copilot.py` — unrelated micro model/OTel preflight
+- `full_harness_preflight.py` — unrelated Zephyr end-to-end rehearsal; **does not use Corpus C**
+- `run_e007.py` — Family N C0–C4 state machine
+- `run_family_n.py` — executes the frozen 15-run plan and resumes safely
+- `score_deterministic.py` — deterministic query/regression scoring
+- `structural_metrics.py` — Wiki/raw ratio, growth, churn, provenance-description metrics
+- `cost_metrics.py` — logical cost ledger by call category
+- `handoff_summary.py` — compact sanitized summary for one run
+- `evaluate_semantic.py` — blinded two-pass semantic evaluation for one run
+- `evaluate_family.py` — resumable semantic evaluation wrapper for the frozen family
+- `summarize_family.py` — compact cross-run family handoff
 
-## Restricted-network handoff workflow
+## Execution workflow
 
-### 1. Infrastructure preflight
+### 0. Non-scored full-harness rehearsal — run once
 
-Run with the concrete model string available in the corporate Copilot environment:
+This is the final infrastructure check before scored execution. It uses an unrelated fictional Zephyr micro-world and exercises update, verify, repair, regression-repair, answer JSON, and OTel contracts.
 
 ```bash
-python3 experiments/E007-long-horizon-contamination/harness/preflight_copilot.py \
-  --model '<concrete-model>'
+python3 experiments/E007-long-horizon-contamination/harness/full_harness_preflight.py
 ```
 
-Default output is intentionally tiny:
+Expected compact output begins with:
 
 ```text
-PREFLIGHT-HANDOFF-v0
-status=PASS requested=... resolved=... cli=... wall_s=...
-otel=yes in=... out=... cost=... aiu=...
+FULL-HARNESS-PREFLIGHT-v0
+status=PASS ...
+calls=7 otel=7/7
+...
+corpus_c=NOT_USED quality_result=NONE
 ```
 
-Only those lines need to be transferred manually. `--json` is available for sanitized diagnostics if the compact output is insufficient.
+The rehearsal may expose infrastructure bugs only. It must not be used to tune E007 conditions, prompts, repetition count, or expected outcome.
 
-### 2. Completed E007 run
-
-After a local run, generate:
+### 1. Execute the frozen primary block
 
 ```bash
-python3 experiments/E007-long-horizon-contamination/harness/handoff_summary.py \
-  --run-dir experiments/E007-long-horizon-contamination/runs/<run-id>
+python3 experiments/E007-long-horizon-contamination/harness/run_family_n.py
 ```
 
-It writes `handoff.txt` and `handoff.json` inside the local run directory and prints approximately eight compact lines containing only:
+The runner follows `run-plan-v0.json`, never silently rerolls incomplete runs, and writes raw artifacts under ignored local `runs/` directories.
 
-- run/condition/model,
-- deterministic pass count and failed query IDs,
-- model-call/OTel counts,
-- bounded repair activity,
-- aggregate token/cost fields when available,
-- a short fingerprint of run-config + summary.
+For operational chunking without changing order, `--limit N` may be used. Re-running the command skips completed runs and continues the frozen sequence.
 
-The handoff is intentionally small enough to type manually if no digital transfer path is available.
+### 2. Run frozen post-hoc semantic evaluation
 
-## Before first scored run
+After all 15 primary runs complete:
 
-1. Validate Corpus C v0 and harness CI.
-2. Run the unrelated preflight in the **actual corporate environment**.
-3. Confirm the concrete Luna model string (or reject Luna if unavailable/unsuitable).
-4. Confirm that OTel fields are sufficient and that aggregation semantics are sane.
-5. Freeze model/config and semantic evaluator mode.
-6. Run one non-scored infrastructure/cost dry run only.
-7. Choose repetition count without inspecting comparative C0–C4 quality.
-8. Begin scored Family N runs.
+```bash
+python3 experiments/E007-long-horizon-contamination/harness/evaluate_family.py
+```
+
+Semantic evaluation is analysis-only and never feeds back into C0–C4 maintenance.
+
+### 3. Produce the compact family handoff
+
+```bash
+python3 experiments/E007-long-horizon-contamination/harness/summarize_family.py
+```
+
+This prints the small sanitized cross-condition summary that can be manually transferred outside the restricted network. Raw prompts, Wiki states, answers, and OTel remain local.
+
+## Interpretation rules
+
+Do not reduce E007 to one accuracy leaderboard.
+
+Before any headline conclusion inspect jointly:
+
+- deterministic and semantic correctness,
+- omission/unsupported/temporal/provenance failures,
+- Wiki/raw compression ratio,
+- rewrite churn,
+- verifier/repair intervention yield,
+- regression false positives and repair-induced damage,
+- post-hoc state integrity,
+- lifecycle cost by category,
+- stochastic variation across repetitions.
+
+A safeguard that wins only by copying most raw text, rewriting everything, or spending unlimited inference is a trade-off, not an unconditional success.
+
+See `../pre-scoring-red-team-review-v0.md` and `../analysis-protocol-v0.md`.
 
 ## Security / contamination note
 
-Corpus C is fictional. Do not point E007 at the user's real personal wiki or sensitive corporate material.
+Corpus C and the rehearsal micro-world are fictional.
 
-Realistic Corpus R requires a separate privacy/data-handling review before use.
+Do not point E007 at a real personal Wiki or sensitive corporate material. Realistic Corpus R requires a separate privacy/data-handling review before use.
