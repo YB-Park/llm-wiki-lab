@@ -72,6 +72,10 @@ def run_prompt(*, prompt: str, model: str, run_dir: Path, timeout_seconds: int =
 
     Isolation-critical flags remain explicit. Noncritical presentation/session flags are
     capability-detected because Copilot CLI exposure varies by version/account/policy.
+
+    We record explicit payload sizes separately from adapter-level OTel token totals.
+    Copilot's observed input-token count can include runtime/system context beyond the
+    experiment prompt, so both views are needed for later cost interpretation.
     """
     if not model or model.lower() == "auto":
         raise ValueError("E007 requires a concrete pinned model; 'auto' is not allowed for scored runs")
@@ -82,6 +86,9 @@ def run_prompt(*, prompt: str, model: str, run_dir: Path, timeout_seconds: int =
 
     run_dir.mkdir(parents=True, exist_ok=False)
     (run_dir / "prompt.md").write_text(prompt, encoding="utf-8")
+
+    prompt_utf8_bytes = len(prompt.encode("utf-8"))
+    prompt_chars = len(prompt)
 
     otel_path = run_dir / "otel.jsonl"
     transcript_path = run_dir / "session.md"
@@ -139,6 +146,9 @@ def run_prompt(*, prompt: str, model: str, run_dir: Path, timeout_seconds: int =
     response_path.write_text(proc.stdout, encoding="utf-8")
     stderr_path.write_text(proc.stderr, encoding="utf-8")
 
+    response_utf8_bytes = len(proc.stdout.encode("utf-8"))
+    response_chars = len(proc.stdout)
+
     metadata: dict[str, Any] = {
         "requested_model": model,
         "copilot_cli_version": cli_version(),
@@ -146,6 +156,10 @@ def run_prompt(*, prompt: str, model: str, run_dir: Path, timeout_seconds: int =
         "ended_at": ended.isoformat(),
         "wall_seconds": (ended - started).total_seconds(),
         "return_code": proc.returncode,
+        "prompt_utf8_bytes": prompt_utf8_bytes,
+        "prompt_chars": prompt_chars,
+        "response_utf8_bytes": response_utf8_bytes,
+        "response_chars": response_chars,
         "excluded_tools": list(EXCLUDED_TOOLS),
         "builtin_mcps_disabled": True,
         "mcp_tool_cache": False,
