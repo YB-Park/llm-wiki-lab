@@ -11,6 +11,24 @@ Total primary runs: **15**.
 
 This is a screening/trust-gate block, not a high-powered statistical benchmark. Three repetitions are enough to expose gross stochastic instability without turning the first experiment into an unnecessarily large campaign.
 
+## Infrastructure-rehearsal boundary
+
+The repetition count and run order were frozen before any C0–C4 scored outcome was observed.
+
+A later readiness audit noticed that the original method also called for one **full non-scored harness rehearsal** before the scored block. Earlier VS Code/CLI micro-preflights and CI had validated model access, OTel, syntax, and deterministic tooling, but had not exercised every live Luna prompt/parse path end-to-end.
+
+Therefore `harness/full_harness_preflight.py` is run once before the primary block using a completely unrelated fictional Zephyr micro-world. It does **not** use Corpus C and produces no comparative quality result.
+
+Because n=3 and the run order are already frozen, the rehearsal is allowed to reveal only infrastructure/contract failures. It must not be used to change:
+
+- repetition count,
+- C0–C4 definitions,
+- maintenance prompts,
+- expected hypothesis direction,
+- or run ordering.
+
+If it reveals a genuine harness bug, fix the infrastructure transparently before the first scored run and record the change. This preserves the intent of the original dry-run rule without letting rehearsal behavior tune the benchmark.
+
 ## No optional-stopping pooling
 
 Do not silently add a fourth or fifth repetition because an early result is surprising, close, or inconvenient and then pool it into the original block.
