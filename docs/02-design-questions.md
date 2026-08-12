@@ -294,6 +294,18 @@ Candidate signals: unresolved contradictions, duplicate pages, stale claims, orp
 
 The benchmark must test repeated derive-update-retrieve cycles, not only one-shot ingestion.
 
+### Q-EVAL-005 — How do we measure compilation loss separately from hallucination?
+
+**Status:** OPEN
+
+A wiki can remain factually correct in everything it states while silently dropping facts required by future questions. Research Batch A (especially WiCER) makes omission a first-class failure mode. Candidate methods include diagnostic probes, source-to-wiki coverage sampling, real-query regression sets, and exact/conditional fact preservation tests.
+
+### Q-EVAL-006 — How should wiki edits be regression-tested against downstream use?
+
+**Status:** OPEN
+
+A locally good rewrite may improve one question while making unrelated questions worse. Compare local quality checks with downstream query suites, guard sets, and sampled human review before accepting high-impact edits.
+
 ---
 
 ## J. VS Code + GitHub Copilot integration
@@ -316,6 +328,40 @@ Overly broad Copilot instructions may unintentionally influence unrelated coding
 
 It should be introduced because measured corpus scale or retrieval failure requires it, not because it is architecturally fashionable.
 
+### Q-UX-004 — What is the acceptable lifecycle cost of wiki automation?
+
+**Status:** OPEN
+
+Measure more than query cost: ingest, consolidation, retrieval, lint/testing, failed-automation repair, and human review attention. A wiki that saves rediscovery but spends excessive model context maintaining itself may have negative net value.
+
+### Q-UX-005 — What events should trigger expensive maintenance work?
+
+**Status:** OPEN
+
+Candidate triggers include every ingest, contradiction, retrieval failure, user correction, structural pressure, explicit user request, or scheduled batch maintenance. The trigger policy is part of the automation philosophy and cost model.
+
+---
+
+## K. Cross-cutting questions surfaced by Research Batch A
+
+### Q-SYS-001 — Should the wiki ever become an irreversible compression boundary?
+
+**Status:** OPEN
+
+Compiled knowledge is useful for navigation and synthesis, but experiments show compilation can omit future-critical facts. Determine whether raw evidence must always remain queryable and under which query classes source fallback becomes mandatory.
+
+### Q-SYS-002 — Should knowledge maintenance be evaluated like software maintenance?
+
+**Status:** OPEN
+
+Investigate whether structural lint, grounding invariants, behavioral regression suites, migration checks, and reversible diffs form a useful quality model for probabilistic knowledge artifacts.
+
+### Q-SYS-003 — How should one-off failures mature into durable system learning?
+
+**Status:** OPEN
+
+Candidate progression: correction -> failure example -> rule candidate -> regression test -> deterministic check where possible -> schema/process change. We must also measure damage from overgeneralized rules.
+
 ---
 
 ## Next action
@@ -326,4 +372,4 @@ The first research pass should prioritize the questions with the greatest irreve
 2. update and temporal semantics,
 3. knowledge unit and split/merge behavior,
 4. lifecycle/deletion,
-5. evaluation methodology.
+5. evaluation methodology, especially compilation loss and downstream regression.
