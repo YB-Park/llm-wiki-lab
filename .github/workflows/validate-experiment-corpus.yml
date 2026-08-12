@@ -104,6 +104,31 @@ jobs:
           assert result['passed_count'] == 3, result
           PY
 
+      - name: Test narrow LLM JSON control-character tolerance
+        run: |
+          python3 - <<'PY'
+          import json
+          import sys
+          sys.path.insert(0, 'experiments/E007-long-horizon-contamination/harness')
+          from score_deterministic import extract_json_object
+
+          # Literal newline inside an already quoted JSON string: invalid under strict
+          # JSON, but accepted by the intentionally narrow transport fallback.
+          transport_defect = '{"decision":"revise","coverage_issues":[],"preservation_issues":[],"faithfulness_issues":[{"description":"line one\nline two"}]}'
+          parsed = extract_json_object(transport_defect)
+          assert parsed['decision'] == 'revise'
+          assert parsed['faithfulness_issues'][0]['description'] == 'line one\nline two'
+
+          # Structural corruption must remain a hard failure.
+          malformed = '{"decision":"revise","coverage_issues": [}'
+          try:
+              extract_json_object(malformed)
+          except ValueError:
+              pass
+          else:
+              raise AssertionError('structurally malformed JSON was unexpectedly accepted')
+          PY
+
       - name: Smoke-test compact handoff without telemetry
         run: |
           mkdir -p /tmp/e007-fake/scores
