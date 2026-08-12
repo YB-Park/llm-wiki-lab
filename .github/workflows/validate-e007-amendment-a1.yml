@@ -1,0 +1,34 @@
+name: Validate E007 amendment A1
+
+on:
+  push:
+    paths:
+      - 'experiments/E007-long-horizon-contamination/harness/run_family_n_amendment1.py'
+      - 'experiments/E007-long-horizon-contamination/harness/archive_incomplete_run.py'
+      - 'experiments/E007-long-horizon-contamination/protocol-amendment-A1-answer-id-mismatch.md'
+      - '.github/workflows/validate-e007-amendment-a1.yml'
+  pull_request:
+    paths:
+      - 'experiments/E007-long-horizon-contamination/harness/run_family_n_amendment1.py'
+      - 'experiments/E007-long-horizon-contamination/harness/archive_incomplete_run.py'
+      - 'experiments/E007-long-horizon-contamination/protocol-amendment-A1-answer-id-mismatch.md'
+      - '.github/workflows/validate-e007-amendment-a1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-a1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Compile amendment scripts
+        run: |
+          python3 -m py_compile \
+            experiments/E007-long-horizon-contamination/harness/run_family_n_amendment1.py \
+            experiments/E007-long-horizon-contamination/harness/archive_incomplete_run.py
+      - name: Run deterministic policy self-test
+        run: |
+          cd experiments/E007-long-horizon-contamination/harness
+          python3 run_family_n_amendment1.py --self-test
