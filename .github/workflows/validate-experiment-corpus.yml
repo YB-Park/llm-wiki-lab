@@ -8,6 +8,8 @@ on:
       - 'experiments/E007-long-horizon-contamination/prompts/**'
       - 'experiments/E007-long-horizon-contamination/vscode-preflight/**'
       - 'experiments/E007-long-horizon-contamination/condition-protocol-v0.md'
+      - 'experiments/E007-long-horizon-contamination/scoring-protocol-v0.md'
+      - 'experiments/E007-long-horizon-contamination/analysis-protocol-v0.md'
       - '.github/workflows/validate-experiment-corpus.yml'
   pull_request:
     paths:
@@ -16,6 +18,8 @@ on:
       - 'experiments/E007-long-horizon-contamination/prompts/**'
       - 'experiments/E007-long-horizon-contamination/vscode-preflight/**'
       - 'experiments/E007-long-horizon-contamination/condition-protocol-v0.md'
+      - 'experiments/E007-long-horizon-contamination/scoring-protocol-v0.md'
+      - 'experiments/E007-long-horizon-contamination/analysis-protocol-v0.md'
       - '.github/workflows/validate-experiment-corpus.yml'
   workflow_dispatch:
 
@@ -40,6 +44,7 @@ jobs:
             experiments/E007-long-horizon-contamination/harness/copilot_cli.py \
             experiments/E007-long-horizon-contamination/harness/preflight_copilot.py \
             experiments/E007-long-horizon-contamination/harness/handoff_summary.py \
+            experiments/E007-long-horizon-contamination/harness/structural_metrics.py \
             experiments/E007-long-horizon-contamination/harness/run_e007.py
 
       - name: Validate VS Code preflight source
@@ -86,3 +91,18 @@ jobs:
           grep -q '^E007-HANDOFF-v0$' /tmp/e007-handoff.txt
           grep -q 'det=1/1 failed=-' /tmp/e007-handoff.txt
           grep -q 'tokens=unavailable' /tmp/e007-handoff.txt
+
+      - name: Smoke-test structural metrics
+        run: |
+          mkdir -p /tmp/e007-structure/states
+          cat > /tmp/e007-structure/run-config.json <<'JSON'
+          {"experiment":"E007","condition":"C2","model":"test-model","max_wave":0}
+          JSON
+          cat > /tmp/e007-structure/states/W00-wiki.md <<'MD'
+          # Synthetic Wiki
+          A fact from source [S001].
+          MD
+          python3 experiments/E007-long-horizon-contamination/harness/structural_metrics.py \
+            --run-dir /tmp/e007-structure --compact > /tmp/e007-structure.txt
+          grep -q '^STRUCTURE run=e007-structure condition=C2 states=1 ' /tmp/e007-structure.txt
+          test -f /tmp/e007-structure/structural-metrics.json
