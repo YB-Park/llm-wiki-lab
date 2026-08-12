@@ -36,6 +36,7 @@ def main() -> None:
     manifest = load_json("manifest.json")
     ground = load_json("ground-truth.json")
     query_doc = load_json("queries.json")
+    deterministic = load_json("deterministic-checks.json")
     sources = load_jsonl("sources.jsonl")
 
     require(manifest["corpus_id"] == ground["corpus_id"] == query_doc["corpus_id"], "corpus_id mismatch")
@@ -78,6 +79,7 @@ def main() -> None:
     queries = query_doc["queries"]
     query_ids = [query["query_id"] for query in queries]
     require(len(query_ids) == len(set(query_ids)), "duplicate query_id")
+    query_by_id = {query["query_id"]: query for query in queries}
 
     class_counts = Counter(query["class"] for query in queries)
     expected_classes = set(manifest["query_classes"])
@@ -97,10 +99,27 @@ def main() -> None:
             require(source_id in source_by_id, f"{query['query_id']} references missing source {source_id}")
             require(source_by_id[source_id]["wave"] <= ask_wave, f"{query['query_id']} asks for source {source_id} before arrival")
 
+    # C4 v0 deliberately gates only query classes with sufficiently stable deterministic checks.
+    deterministic_checks = deterministic.get("checks")
+    require(isinstance(deterministic_checks, dict), "deterministic-checks.json must contain a checks object")
+    eligible_classes = {"local_exact", "temporal", "provenance", "negative_uncertainty_delayed"}
+    eligible_query_ids = {query["query_id"] for query in queries if query["class"] in eligible_classes}
+    require(set(deterministic_checks) == eligible_query_ids, "deterministic check set must equal the 20 regression-eligible queries")
+
+    allowed_rule_keys = {"answer_all", "answer_any", "answer_none", "required_source_ids", "uncertainty_in"}
+    for query_id, rule in deterministic_checks.items():
+        require(query_id in query_by_id, f"deterministic rule references missing query {query_id}")
+        require(isinstance(rule, dict), f"deterministic rule for {query_id} must be an object")
+        unknown_keys = set(rule) - allowed_rule_keys
+        require(not unknown_keys, f"unknown deterministic rule keys for {query_id}: {sorted(unknown_keys)}")
+        for source_id in rule.get("required_source_ids", []):
+            require(source_id in source_by_id, f"deterministic rule {query_id} references missing source {source_id}")
+
     print("Corpus C v0 validation: PASS")
     print(f"  sources: {len(sources)}")
     print(f"  facts:   {len(facts)}")
     print(f"  queries: {len(queries)}")
+    print(f"  deterministic regression checks: {len(deterministic_checks)}")
     print(f"  classes: {dict(sorted(class_counts.items()))}")
 
 
