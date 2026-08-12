@@ -106,10 +106,18 @@ def aggregate_telemetry(run_dir: Path) -> dict[str, Any]:
     response_models: set[str] = set()
     wall_seconds = 0.0
     otel_files = 0
+    prompt_utf8_bytes = 0
+    response_utf8_bytes = 0
+    prompt_chars = 0
+    response_chars = 0
 
     for call_dir in call_dirs:
         meta = load_json(call_dir / "meta.json", {}) or {}
         wall_seconds += float(meta.get("wall_seconds") or 0.0)
+        prompt_utf8_bytes += int(meta.get("prompt_utf8_bytes") or 0)
+        response_utf8_bytes += int(meta.get("response_utf8_bytes") or 0)
+        prompt_chars += int(meta.get("prompt_chars") or 0)
+        response_chars += int(meta.get("response_chars") or 0)
         if meta.get("requested_model"):
             requested_models.add(str(meta["requested_model"]))
 
@@ -132,6 +140,12 @@ def aggregate_telemetry(run_dir: Path) -> dict[str, Any]:
         "otel_file_count": otel_files,
         "requested_models": sorted(requested_models),
         "response_models": sorted(response_models),
+        "payload": {
+            "prompt_utf8_bytes": prompt_utf8_bytes,
+            "response_utf8_bytes": response_utf8_bytes,
+            "prompt_chars": prompt_chars,
+            "response_chars": response_chars,
+        },
         "totals": totals,
         "observations": observations,
     }
@@ -172,9 +186,22 @@ def aggregate_guard_activity(summary: dict[str, Any]) -> dict[str, int]:
     }
 
 
+def structural_snapshot(run_dir: Path) -> dict[str, Any]:
+    metrics = load_json(run_dir / "structural-metrics.json", {}) or {}
+    aggregate = metrics.get("aggregate") or {}
+    return {
+        "state_count": aggregate.get("state_count", 0),
+        "final_wiki_to_raw_byte_ratio": aggregate.get("final_wiki_to_raw_byte_ratio"),
+        "final_wiki_utf8_bytes": aggregate.get("final_wiki_utf8_bytes"),
+        "final_raw_utf8_bytes": aggregate.get("final_raw_utf8_bytes"),
+        "cumulative_changed_lines": aggregate.get("cumulative_changed_lines"),
+        "max_changed_lines_per_previous_line": aggregate.get("max_changed_lines_per_previous_line"),
+    }
+
+
 def artifact_fingerprint(run_dir: Path) -> str:
     digest = hashlib.sha256()
-    for name in ("run-config.json", "summary.json"):
+    for name in ("run-config.json", "summary.json", "structural-metrics.json"):
         path = run_dir / name
         if path.exists():
             digest.update(name.encode("utf-8"))
@@ -182,7 +209,8 @@ def artifact_fingerprint(run_dir: Path) -> str:
     return digest.hexdigest()[:12]
 
 
-def compact_number(value: float) -> str:
+def compact_number(value: float | int) -> str:
+    value = float(value)
     if value == int(value):
         return str(int(value))
     return f"{value:.4f}".rstrip("0").rstrip(".")
@@ -194,6 +222,7 @@ def build_handoff(run_dir: Path) -> tuple[dict[str, Any], str]:
     scores = aggregate_primary_scores(run_dir)
     guards = aggregate_guard_activity(summary)
     telemetry = aggregate_telemetry(run_dir)
+    structure = structural_snapshot(run_dir)
 
     payload = {
         "format": "E007-HANDOFF-v0",
@@ -208,6 +237,7 @@ def build_handoff(run_dir: Path) -> tuple[dict[str, Any], str]:
         },
         "guards": guards,
         "telemetry": telemetry,
+        "structure": structure,
         "fingerprint": artifact_fingerprint(run_dir),
     }
 
@@ -222,9 +252,25 @@ def build_handoff(run_dir: Path) -> tuple[dict[str, Any], str]:
         tokens = "unavailable"
 
     failed = ",".join(scores["failed"]) if scores["failed"] else "-"
+    resolved = ",".join(telemetry["response_models"]) if telemetry["response_models"] else "?"
+    payload_sizes = telemetry["payload"]
+
+    if structure["state_count"]:
+        state_line = (
+            f"state=ratio:{structure['final_wiki_to_raw_byte_ratio']} "
+            f"wikiB:{structure['final_wiki_utf8_bytes']} rawB:{structure['final_raw_utf8_bytes']} "
+            f"churnLines:{structure['cumulative_changed_lines']} "
+            f"maxChurn:{structure['max_changed_lines_per_previous_line']}"
+        )
+    else:
+        state_line = "state=n/a"
+
     lines = [
         "E007-HANDOFF-v0",
-        f"run={run_dir.name} condition={payload['condition']} model={payload['model']} waves=0..{payload['max_wave']}",
+        (
+            f"run={run_dir.name} condition={payload['condition']} requested={payload['model']} "
+            f"resolved={resolved} waves=0..{payload['max_wave']}"
+        ),
         f"det={len(scores['passed'])}/{scores['scored']} failed={failed}",
         (
             f"calls={telemetry['call_count']} otel={telemetry['otel_file_count']}/{telemetry['call_count']} "
@@ -235,12 +281,17 @@ def build_handoff(run_dir: Path) -> tuple[dict[str, Any], str]:
             f"transition_flag:{guards['transition_final_flags']} "
             f"regression_repair:{guards['regression_repairs']}"
         ),
-        f"tokens={tokens}",
         (
-            f"billing=cost:{compact_number(totals['github.copilot.cost'])} "
+            f"payload=promptB:{payload_sizes['prompt_utf8_bytes']} "
+            f"responseB:{payload_sizes['response_utf8_bytes']}"
+        ),
+        f"tokens={tokens}",
+        state_line,
+        (
+            f"otel_opaque=cost:{compact_number(totals['github.copilot.cost'])} "
             f"aiu:{compact_number(totals['github.copilot.aiu'])}"
             if telemetry["otel_file_count"]
-            else "billing=unavailable"
+            else "otel_opaque=unavailable"
         ),
         f"fingerprint={payload['fingerprint']}",
     ]
