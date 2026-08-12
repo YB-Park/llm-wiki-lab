@@ -2,7 +2,7 @@
 """Minimal programmatic adapter for reproducible GitHub Copilot CLI calls.
 
 This module intentionally treats Copilot as a text-in/text-out semantic engine.
-It denies workspace/web/memory tools so E007 conditions see only prompt-provided state.
+It excludes workspace/web/memory tools so E007 conditions see only prompt-provided state.
 """
 
 from __future__ import annotations
@@ -16,7 +16,34 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-DENIED_TOOLS = ("shell", "write", "read", "url", "memory")
+# Use --excluded-tools rather than permission denial: the experiment does not merely
+# deny execution, it removes tool capabilities that could change the model's input.
+EXCLUDED_TOOLS = (
+    "bash",
+    "powershell",
+    "list_bash",
+    "list_powershell",
+    "read_bash",
+    "read_powershell",
+    "stop_bash",
+    "stop_powershell",
+    "write_bash",
+    "write_powershell",
+    "apply_patch",
+    "create",
+    "edit",
+    "view",
+    "glob",
+    "grep",
+    "rg",
+    "web_fetch",
+    "task",
+    "list_agents",
+    "read_agent",
+    "write_agent",
+    "skill",
+    "ask_user",
+)
 
 
 def cli_version() -> str:
@@ -28,6 +55,12 @@ def cli_version() -> str:
 
 
 def run_prompt(*, prompt: str, model: str, run_dir: Path, timeout_seconds: int = 900) -> dict[str, Any]:
+    """Run one isolated prompt and return metadata plus final response text.
+
+    GitHub documents --silent as the scripting-oriented mode that emits only the
+    agent response. We keep telemetry separate in the OTel file so the response
+    parser is not coupled to Copilot CLI's JSONL event representation.
+    """
     if not model or model.lower() == "auto":
         raise ValueError("E007 requires a concrete pinned model; 'auto' is not allowed for scored runs")
 
@@ -40,7 +73,7 @@ def run_prompt(*, prompt: str, model: str, run_dir: Path, timeout_seconds: int =
 
     otel_path = run_dir / "otel.jsonl"
     transcript_path = run_dir / "session.md"
-    stdout_path = run_dir / "stdout.jsonl"
+    response_path = run_dir / "response.txt"
     stderr_path = run_dir / "stderr.log"
 
     env = os.environ.copy()
@@ -54,17 +87,18 @@ def run_prompt(*, prompt: str, model: str, run_dir: Path, timeout_seconds: int =
         prompt,
         "--model",
         model,
+        "--silent",
+        "--stream=off",
         "--no-ask-user",
         "--no-custom-instructions",
         "--no-remote",
         "--no-remote-export",
         "--no-color",
-        "--output-format=json",
-        "--stream=off",
+        "--no-experimental",
         f"--share={transcript_path}",
     ]
-    for tool in DENIED_TOOLS:
-        command.append(f"--deny-tool={tool}")
+    for tool in EXCLUDED_TOOLS:
+        command.append(f"--excluded-tools={tool}")
 
     started = dt.datetime.now(dt.timezone.utc)
     proc = subprocess.run(
@@ -77,27 +111,30 @@ def run_prompt(*, prompt: str, model: str, run_dir: Path, timeout_seconds: int =
     )
     ended = dt.datetime.now(dt.timezone.utc)
 
-    stdout_path.write_text(proc.stdout, encoding="utf-8")
+    response_path.write_text(proc.stdout, encoding="utf-8")
     stderr_path.write_text(proc.stderr, encoding="utf-8")
 
-    metadata = {
+    metadata: dict[str, Any] = {
         "requested_model": model,
         "copilot_cli_version": cli_version(),
         "started_at": started.isoformat(),
         "ended_at": ended.isoformat(),
         "wall_seconds": (ended - started).total_seconds(),
         "return_code": proc.returncode,
-        "denied_tools": list(DENIED_TOOLS),
+        "excluded_tools": list(EXCLUDED_TOOLS),
         "no_custom_instructions": True,
+        "no_experimental": True,
         "otel_content_capture": False,
-        "command_shape": "copilot --prompt <stored in prompt.md> --model <pinned> --output-format=json ...",
+        "response_file": response_path.name,
+        "otel_file": otel_path.name,
+        "command_shape": "copilot --prompt <stored in prompt.md> --model <pinned> --silent --stream=off ...",
     }
     (run_dir / "meta.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
 
     if proc.returncode != 0:
         raise RuntimeError(f"Copilot CLI failed with return code {proc.returncode}; see {stderr_path}")
 
-    return metadata
+    return {**metadata, "response": proc.stdout}
 
 
 def main() -> None:
@@ -109,8 +146,8 @@ def main() -> None:
     args = parser.parse_args()
 
     prompt = args.prompt_file.read_text(encoding="utf-8")
-    meta = run_prompt(prompt=prompt, model=args.model, run_dir=args.run_dir, timeout_seconds=args.timeout)
-    print(json.dumps(meta, indent=2))
+    result = run_prompt(prompt=prompt, model=args.model, run_dir=args.run_dir, timeout_seconds=args.timeout)
+    print(json.dumps({k: v for k, v in result.items() if k != "response"}, indent=2))
 
 
 if __name__ == "__main__":
