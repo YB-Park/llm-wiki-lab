@@ -70,13 +70,8 @@ def help_has_flag(help_text: str, flag: str) -> bool:
 def run_prompt(*, prompt: str, model: str, run_dir: Path, timeout_seconds: int = 900) -> dict[str, Any]:
     """Run one isolated prompt and return metadata plus final response text.
 
-    GitHub documents --silent as the scripting-oriented mode that emits only the
-    agent response. We keep telemetry separate in the OTel file so the response
-    parser is not coupled to Copilot CLI's JSONL event representation.
-
-    Remote-session opt-out flags are capability-detected because GitHub documents
-    them as account/feature dependent. Their absence must not make a local text-only
-    experiment fail; if present, we use them explicitly.
+    Isolation-critical flags remain explicit. Noncritical presentation/session flags are
+    capability-detected because Copilot CLI exposure varies by version/account/policy.
     """
     if not model or model.lower() == "auto":
         raise ValueError("E007 requires a concrete pinned model; 'auto' is not allowed for scored runs")
@@ -99,6 +94,8 @@ def run_prompt(*, prompt: str, model: str, run_dir: Path, timeout_seconds: int =
     env["OTEL_SERVICE_NAME"] = "llm-wiki-lab-e007"
     env["COPILOT_MCP_TOOL_CACHE"] = "false"
 
+    # These flags define experimental isolation and are intentionally not silently
+    # dropped if a future/older CLI rejects them.
     command = [
         exe,
         "--prompt",
@@ -106,21 +103,24 @@ def run_prompt(*, prompt: str, model: str, run_dir: Path, timeout_seconds: int =
         "--model",
         model,
         "--silent",
-        "--stream=off",
         "--no-ask-user",
         "--no-custom-instructions",
         "--disable-builtin-mcps",
-        "--no-color",
-        "--no-experimental",
-        f"--share={transcript_path}",
     ]
 
     local_help = cli_help_text(exe)
-    remote_opt_out_flags: list[str] = []
-    for flag in ("--no-remote", "--no-remote-export"):
+    optional_flags_used: list[str] = []
+
+    if help_has_flag(local_help, "--stream"):
+        command.append("--stream=off")
+        optional_flags_used.append("--stream=off")
+    for flag in ("--no-remote", "--no-remote-export", "--no-color", "--no-experimental"):
         if help_has_flag(local_help, flag):
             command.append(flag)
-            remote_opt_out_flags.append(flag)
+            optional_flags_used.append(flag)
+    if help_has_flag(local_help, "--share"):
+        command.append(f"--share={transcript_path}")
+        optional_flags_used.append("--share=<local transcript>")
 
     for tool in EXCLUDED_TOOLS:
         command.append(f"--excluded-tools={tool}")
@@ -150,12 +150,12 @@ def run_prompt(*, prompt: str, model: str, run_dir: Path, timeout_seconds: int =
         "builtin_mcps_disabled": True,
         "mcp_tool_cache": False,
         "no_custom_instructions": True,
-        "no_experimental": True,
-        "remote_opt_out_flags_supported_and_used": remote_opt_out_flags,
+        "no_ask_user": True,
+        "optional_flags_supported_and_used": optional_flags_used,
         "otel_content_capture": False,
         "response_file": response_path.name,
         "otel_file": otel_path.name,
-        "command_shape": "copilot --prompt <stored in prompt.md> --model <pinned> --silent --stream=off ...",
+        "command_shape": "copilot --prompt <stored in prompt.md> --model <pinned> --silent <supported optional flags> ...",
     }
     (run_dir / "meta.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
 
