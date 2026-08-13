@@ -24,6 +24,7 @@ def load_cases():
 
 def main():
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    assert manifest["corpus_id"] == "T-v1", manifest
     rows = load_cases()
     assert len(rows) == manifest["case_count"] == 40
     assert len({r["case_id"] for r in rows}) == 40
@@ -53,7 +54,8 @@ def main():
     assert set(manifest["required_unsafe_classes"]) <= classes
 
     digest = hashlib.sha256(CASES.read_bytes()).hexdigest()
-    print("E009A-CORPUS-VALID-v0")
+    assert digest == manifest["cases_sha256"], (digest, manifest["cases_sha256"])
+    print("E009A-CORPUS-VALID-v1")
     print(f"cases=40 groups=20 safe=20 unsafe=20 sha256={digest}")
 
 
