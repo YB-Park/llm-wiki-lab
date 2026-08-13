@@ -11,6 +11,17 @@ To avoid manufacturing an easy compiled win, Stage 1A freezes a stronger R0/C1 r
 - use `top-k=12` with deterministic source-ID tie breaking;
 - if the topic contains fewer than 12 documents, return all documents.
 
+Prescore payload diagnostics with the frozen generator and BM25 logic:
+
+- small exact/provenance: required-signal coverage 1.000; strict 12/12; approval source 12/12;
+- small global synthesis: required-signal coverage 1.000; strict 12/12;
+- small decision rationale: required-signal coverage 1.000; strict 12/12;
+- large exact/provenance: required-signal coverage 1.000; strict 12/12; approval source 12/12;
+- large global synthesis: required-signal coverage 1.000; strict 12/12;
+- large decision rationale: required-signal coverage 0.250; strict 0/12.
+
+Interpretation before scoring: R0 is not a weak baseline at small scale and remains evidence-complete for exact/global tasks at large scale. Its deliberate pressure point is large-scale multi-hop decision recovery, where lexical matching finds the decision/option vocabulary but not the distributed constraint names. This is a retrieval limitation to measure, not a defect to repair after answer scoring.
+
 Consequences:
 
 - at small scale (8 documents/topic), R0 sees the full topic corpus and is effectively as evidence-rich as R1;
