@@ -33,5 +33,14 @@
   ],
   "verifier_visible_fields": ["previous_state", "new_evidence", "candidate_state"],
   "verifier_hidden_fields": ["case_id", "scenario_group", "gold_label", "risk", "primary_class", "gold_rationale"],
-  "pre_scoring_amendment": "corpus-red-team-amendment-v1.md"
+  "pre_scoring_amendment": "corpus-red-team-amendment-v1.md",
+  "cases_sha256": "6690fdfcd610a61743b18e2a37060aa262c9e6bd235880795cc444c4f7c16767",
+  "surface_audit": {
+    "bytes_best_1d_accuracy": 0.700,
+    "lines_best_1d_accuracy": 0.600,
+    "source_mentions_best_1d_accuracy": 0.600,
+    "pair_safe_longer": 10,
+    "pair_unsafe_longer": 10,
+    "pair_equal": 0
+  }
 }
