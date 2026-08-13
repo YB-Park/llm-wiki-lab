@@ -154,3 +154,13 @@ Do not change based on scored outcomes:
 - post-score analysis semantics
 
 Infrastructure-only defects may receive explicit amendments while preserving all existing scored artifacts. New semantic ideas become follow-up experiments rather than edits to Stage 1A.
+
+## Pre-scoring amendment A1 — JSON envelope normalization
+
+Before any E011 corpus build or scored answer call, the separate micro-world preflight failed with `answer_contract_json`. The compiler and answer calls completed, so this was classified as a serialization/contract failure rather than knowledge-system evidence.
+
+A1 preserves strict JSON as the default. If strict decoding fails, the parser may remove exactly one outer Markdown code fence, optionally tagged `json`, only when that fence contains the entire response; it then decodes the unchanged body. It does not extract JSON from surrounding prose or repair malformed JSON, schema fields, values, truncation, control characters, or semantic content.
+
+The already-produced failed preflight response must be re-evaluated before any new preflight model call. If A1 makes that existing response valid, the preflight passes with zero additional model calls. This prevents selecting a cleaner stochastic serialization.
+
+A1 changes only the deterministic serialization envelope boundary. Corpus, retrieval, prompts, conditions, model, order seeds, semantic answer schema, primary metrics, reuse regimes, and post-score analysis remain unchanged. The JSON transport helper is included in both repository fixture locking and the local runtime fixture fingerprint before scored execution.
