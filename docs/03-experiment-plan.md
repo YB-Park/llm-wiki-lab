@@ -350,7 +350,28 @@ Can the architecture be used consistently in the actual daily environment withou
 - policy violations by Copilot,
 - subjective usefulness.
 
-## 14. Experiment artifact structure
+## 14. E011 — Persistent compilation value gate
+
+### Question
+
+Under what workloads, if any, does a persistent LLM-derived synthesis layer earn enough reusable lifecycle value over raw evidence plus retrieval to justify existing at all?
+
+### Stage 1A baselines
+
+- R0: raw + lexical top-k retrieval,
+- R1: all ground-truth-relevant raw context as a strong raw ceiling,
+- C0: minimal durable topic synthesis only,
+- C1: durable topic synthesis + lexical raw evidence.
+
+Keep Stage 1A intentionally small: paired topic scenarios, two source scales, and three query classes (exact/provenance, global synthesis, multi-hop/decision rationale). Model reuse economics from measured build cost plus repeated query cost rather than repeatedly asking identical questions.
+
+### Primary interpretation
+
+Report quality/cost Pareto frontiers and the break-even reuse count, if one exists. Persistent compilation does not earn complexity merely because it wins one answer-accuracy cell. If it has no credible value region, default to raw source-of-record + retrieval + selective/on-demand synthesis.
+
+Only if Stage 1A survives should Stage 1B add an update wave to test whether maintenance cost destroys the static advantage. Detailed E001 representation optimization remains deferred until E011 establishes that persistent compilation deserves to exist for at least one workload region.
+
+## 15. Experiment artifact structure
 
 Each experiment should live under:
 
@@ -366,15 +387,13 @@ experiments/E###-short-name/
 
 `README.md` should state the hypothesis and protocol **before** results are interpreted when possible.
 
-## 15. First experiments to implement
+## 16. Current critical path
 
-Priority order:
+1. E007 long-horizon contamination — completed mechanism/trust gate,
+2. E009A canonical commit boundary — completed controlled pilot,
+3. E011 persistent compilation value gate — current,
+4. realistic/shadow workload validation,
+5. E003/E004/E002 only where a durable layer survives,
+6. E010 operational usability trial after core semantics are justified.
 
-1. E007 long-horizon contamination,
-2. E003 temporal update semantics,
-3. E001 knowledge-unit comparison,
-4. E004 provenance granularity,
-5. E002 consolidation strategy,
-6. E006 retrieval escalation.
-
-Reason: these are most likely to affect architecture in ways that become expensive to reverse after a large corpus exists.
+This order intentionally allows negative evidence to eliminate unnecessary downstream architecture work.
