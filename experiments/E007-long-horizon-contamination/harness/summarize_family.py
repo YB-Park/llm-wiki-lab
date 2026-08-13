@@ -37,6 +37,15 @@ def fmt(value: float | int | None, digits: int = 3) -> str:
     return f"{value:.{digits}f}".rstrip("0").rstrip(".")
 
 
+def semantic_mean_value(summary: dict[str, Any]) -> float | None:
+    """Read semantic mean from frozen v0 or A3/A4 summary schemas."""
+    for key in ("mean_correctness_across_valid_passes", "mean_correctness_across_passes"):
+        value = summary.get(key)
+        if value is not None:
+            return float(value)
+    return None
+
+
 def condition_summary(condition: str, run_dirs: list[Path]) -> dict[str, Any]:
     handoffs = [load_json(run_dir / "handoff.json", {}) or {} for run_dir in run_dirs]
     costs = [load_json(run_dir / "cost-metrics.json", {}) or {} for run_dir in run_dirs]
@@ -75,16 +84,22 @@ def condition_summary(condition: str, run_dirs: list[Path]) -> dict[str, Any]:
     regression_repairs = sum(int(h["guards"]["regression_repairs"]) for h in handoffs)
 
     semantic_available = [s for s in semantics if s is not None]
-    semantic_mean = (
-        mean(float(s["mean_correctness_across_passes"]) for s in semantic_available)
-        if semantic_available
-        else None
-    )
+    semantic_means = [v for s in semantic_available if (v := semantic_mean_value(s)) is not None]
+    semantic_mean = mean(semantic_means) if semantic_means else None
     semantic_major_disagreements = sum(
         len(s.get("major_disagreement_query_ids", [])) for s in semantic_available
     )
     semantic_human_audits = sum(
         len(s.get("needs_human_audit_query_ids", [])) for s in semantic_available
+    )
+    semantic_invalid_items = sum(
+        int(s.get("invalid_or_incomplete_item_count", 0)) for s in semantic_available
+    )
+    semantic_fully_valid_items = sum(
+        int(s.get("fully_valid_item_count", s.get("item_count", 0))) for s in semantic_available
+    )
+    semantic_expected_items = sum(
+        int(s.get("expected_item_count", s.get("item_count", 0))) for s in semantic_available
     )
 
     return {
@@ -109,6 +124,9 @@ def condition_summary(condition: str, run_dirs: list[Path]) -> dict[str, Any]:
         "semantic_mean": semantic_mean,
         "semantic_major_disagreements": semantic_major_disagreements,
         "semantic_human_audits": semantic_human_audits,
+        "semantic_invalid_items": semantic_invalid_items,
+        "semantic_fully_valid_items": semantic_fully_valid_items,
+        "semantic_expected_items": semantic_expected_items,
     }
 
 
@@ -152,7 +170,7 @@ def main() -> None:
         handoff = load_json(run_dir / "handoff.json", {}) or {}
         by_condition[str(handoff.get("condition", "?"))].append(run_dir)
 
-    print("E007-FAMILY-HANDOFF-v0")
+    print("E007-FAMILY-HANDOFF-A4-v0")
     print(f"complete={len(complete)}/{len(planned)} model={plan['model']} fingerprint={family_fingerprint(complete)}")
     if missing:
         print(f"missing={','.join(missing)}")
@@ -176,10 +194,16 @@ def main() -> None:
             if s["semantic_runs"]
             else "pending"
         )
+        sem_valid = (
+            f"{s['semantic_fully_valid_items']}/{s['semantic_expected_items']}"
+            if s["semantic_runs"]
+            else "pending"
+        )
         print(
             f"  fail={failures} guards=tRepair:{s['transition_repairs']} tFlag:{s['transition_flags']} "
-            f"rRepair:{s['regression_repairs']} semantic={semantic} "
-            f"semDisagree:{s['semantic_major_disagreements']} audit:{s['semantic_human_audits']}"
+            f"rRepair:{s['regression_repairs']} semantic={semantic} semValid={sem_valid} "
+            f"semInvalid:{s['semantic_invalid_items']} semDisagree:{s['semantic_major_disagreements']} "
+            f"audit:{s['semantic_human_audits']}"
         )
 
 
