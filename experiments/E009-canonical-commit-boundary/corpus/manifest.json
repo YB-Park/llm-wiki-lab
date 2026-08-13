@@ -1,0 +1,36 @@
+{
+  "experiment": "E009A",
+  "corpus_id": "T-v0",
+  "case_count": 40,
+  "scenario_group_count": 20,
+  "gold_counts": {
+    "safe_commit": 20,
+    "unsafe_commit": 20
+  },
+  "risk_values": ["low", "elevated", "high"],
+  "gold_labels": ["safe_commit", "unsafe_commit"],
+  "required_safe_classes": [
+    "safe_additive",
+    "safe_supersession_with_history",
+    "safe_correction",
+    "safe_disagreement_preserved",
+    "safe_restructure"
+  ],
+  "required_unsafe_classes": [
+    "unsafe_new_evidence_omission",
+    "unsafe_old_valid_loss",
+    "unsafe_unsupported_claim",
+    "unsafe_provenance_loss",
+    "unsafe_epistemic_flattening",
+    "unsafe_temporal_boundary_loss"
+  ],
+  "paired_design": true,
+  "pair_invariants": [
+    "same previous_state within scenario_group",
+    "same new_evidence within scenario_group",
+    "same risk within scenario_group",
+    "one safe and one unsafe candidate per scenario_group"
+  ],
+  "verifier_visible_fields": ["previous_state", "new_evidence", "candidate_state"],
+  "verifier_hidden_fields": ["case_id", "scenario_group", "gold_label", "risk", "primary_class", "gold_rationale"]
+}
