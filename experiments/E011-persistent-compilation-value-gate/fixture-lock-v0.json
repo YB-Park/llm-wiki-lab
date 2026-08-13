@@ -1,0 +1,21 @@
+{
+  "format": "E011-FIXTURE-LOCK-v0",
+  "scored_results_observed_at_lock": false,
+  "files": {
+    "experiments/E011-persistent-compilation-value-gate/generate_corpus.py": "2989274a223c6174a0ab6c4ff58f914e4eb506bb",
+    "experiments/E011-persistent-compilation-value-gate/lexical.py": "07b84a78f5f0511078462b6463d8a228df0ad816",
+    "experiments/E011-persistent-compilation-value-gate/compiler-prompt.md": "88784826a0f4b42e00ff4da0df93751aa13b556f",
+    "experiments/E011-persistent-compilation-value-gate/answer-prompt.md": "54bb440130e00ceb7a3459fbee28ad0b6d039b20",
+    "experiments/E011-persistent-compilation-value-gate/stage1a_core.py": "2e2757be8f377ab2c9019d965dd57c5a5ccc9bab",
+    "experiments/E011-persistent-compilation-value-gate/run_stage_1a.py": "9192bb8227476688550678ba2d59c469f9d68085",
+    "experiments/E011-persistent-compilation-value-gate/analysis_stage1a.py": "0fd538d1e6c642b49fa863b1cde30f77e37c7e79",
+    "experiments/E011-persistent-compilation-value-gate/instrumentation.py": "6ca0d0dbd438a995bbad3931b28371176eef2163",
+    "experiments/E011-persistent-compilation-value-gate/preflight.py": "ccec1546b9b06f3bbcbbf64a724285c86d010c0e",
+    "experiments/E011-persistent-compilation-value-gate/preregistration-v0.md": "40046b0c754d4677d9d28a9b231c7b89ba48c0c8",
+    "experiments/E011-persistent-compilation-value-gate/pre-scoring-red-team-v0.md": "d1a48b0bdfb6835501108d254e113185ac23e374",
+    "experiments/E011-persistent-compilation-value-gate/retrieval-red-team-amendment-v1.md": "cd4eadd7bad57238568896fccb5c471807b598b5",
+    "experiments/E011-persistent-compilation-value-gate/pre-run-freeze-v0.md": "69c6dd6eb12adc9ee045b0db376ba4cfd562b6fe",
+    "experiments/E009-canonical-commit-boundary/harness/copilot_cli.py": "cc0f01052d75b8b44cbbe9688b3137702c38de20",
+    "experiments/E009-canonical-commit-boundary/harness/telemetry.py": "90f8e0d9db06620f1b2312695542641881ff55f5"
+  }
+}
