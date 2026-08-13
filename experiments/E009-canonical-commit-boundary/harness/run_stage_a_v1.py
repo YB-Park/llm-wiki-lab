@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """T-v1 binding for the frozen E009A Stage A runner.
 
-The orchestration/policy implementation remains in run_stage_a.py. This wrapper changes
-only the frozen plan/run-root, requires the non-scored preflight sentinel, and sanitizes
-infrastructure failures. T-v0 artifacts cannot be mixed with scored T-v1 artifacts.
+The orchestration/policy implementation remains in run_stage_a.py. This wrapper binds the
+frozen T-v1 plan/run-root, requires the non-scored preflight sentinel, sanitizes
+infrastructure failures, and implements the preregistered risk-first A3 cost semantics.
+T-v0 artifacts cannot be mixed with scored T-v1 artifacts.
 """
 
 import json
@@ -17,6 +18,7 @@ base.RUN_ROOT = ROOT / "runs" / "stage-a-v1"
 PREFLIGHT_STATUS = ROOT / "runs" / "preflight-v1" / "status.json"
 
 _original_run_prompt = base.run_prompt
+_original_policy_telemetry = base.policy_telemetry
 
 
 def _sanitized_run_prompt(**kwargs):
@@ -31,6 +33,17 @@ def _sanitized_run_prompt(**kwargs):
         ) from None
 
 
+def _policy_telemetry_v1(policy, dirs, cases):
+    if policy != "A3":
+        return _original_policy_telemetry(policy, dirs, cases)
+    selected = [
+        dirs[(case_id, 1)]
+        for case_id, case in sorted(cases.items())
+        if case["risk"] == "low"
+    ]
+    return base.aggregate(selected)
+
+
 def _require_preflight() -> None:
     if not PREFLIGHT_STATUS.exists():
         raise SystemExit("E009A-STOP preflight_required run=harness/preflight.py")
@@ -43,6 +56,7 @@ def _require_preflight() -> None:
 
 
 base.run_prompt = _sanitized_run_prompt
+base.policy_telemetry = _policy_telemetry_v1
 
 
 if __name__ == "__main__":
