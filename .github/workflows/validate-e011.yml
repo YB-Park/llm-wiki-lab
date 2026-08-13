@@ -1,1 +1,29 @@
 name: Validate E011 prescore
+
+on:
+  push:
+    paths:
+      - 'experiments/E011-persistent-compilation-value-gate/**'
+      - '.github/workflows/validate-e011.yml'
+  pull_request:
+    paths:
+      - 'experiments/E011-persistent-compilation-value-gate/**'
+      - '.github/workflows/validate-e011.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Compile E011 prescore tools
+        run: |
+          python3 -m py_compile \
+            experiments/E011-persistent-compilation-value-gate/generate_corpus.py \
+            experiments/E011-persistent-compilation-value-gate/lexical.py \
+            experiments/E011-persistent-compilation-value-gate/validate_e011.py
+      - name: Validate corpus and lexical baseline
+        run: python3 experiments/E011-persistent-compilation-value-gate/validate_e011.py
