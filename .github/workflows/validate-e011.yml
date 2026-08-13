@@ -28,16 +28,19 @@ jobs:
             experiments/E011-persistent-compilation-value-gate/stage1a_core.py \
             experiments/E011-persistent-compilation-value-gate/instrumentation.py \
             experiments/E011-persistent-compilation-value-gate/preflight.py \
-            experiments/E011-persistent-compilation-value-gate/run_stage_1a.py
+            experiments/E011-persistent-compilation-value-gate/run_stage_1a.py \
+            experiments/E011-persistent-compilation-value-gate/analysis_stage1a.py \
+            experiments/E011-persistent-compilation-value-gate/archive_incomplete.py
       - name: Validate corpus and lexical baseline
         run: python3 experiments/E011-persistent-compilation-value-gate/validate_e011.py
       - name: Validate Stage 1A semantic invariants
         run: |
           python3 - <<'PY'
-          import json, sys
+          import sys
           from pathlib import Path
           root=Path('experiments/E011-persistent-compilation-value-gate')
           sys.path.insert(0,str(root))
+          import analysis_stage1a as analysis
           import generate_corpus as corpus
           import run_stage_1a as runner
           import stage1a_core as core
@@ -53,15 +56,21 @@ jobs:
               assert r0==r1, q['query_id']
               assert n0==n1==8
 
-          ctx='### SOURCE T01-S01\nsynthetic evidence'
-          good=core.parse_answer('{"answer":"ok","source_ids":["T01-S01"],"uncertainty":"none"}',ctx)
-          bad=core.parse_answer('{"answer":"ok","source_ids":["T01-S99"],"uncertainty":"none"}',ctx)
+          ctx='### SOURCE T01-S01\nsynthetic evidence\n### SOURCE T01-S02\nother evidence'
+          good=core.parse_answer('{"answer":"ok","source_ids":["T01-S01"],"uncertainty":"none"}',ctx,{'T01-S01','T01-S02'})
+          hidden=core.parse_answer('{"answer":"ok","source_ids":["T01-S99"],"uncertainty":"none"}',ctx,{'T01-S01','T01-S02'})
+          outscope=core.parse_answer('{"answer":"ok","source_ids":["T01-S02"],"uncertainty":"none"}',ctx,{'T01-S01'})
           assert good['valid'] is True
-          assert bad['valid'] is False and bad['violation']=='source_visibility'
+          assert hidden['valid'] is False and hidden['violation']=='source_visibility_or_existence'
+          assert outscope['valid'] is False and outscope['violation']=='source_visibility_or_existence'
 
           by_topic={}
           for q in queries: by_topic.setdefault(q['topic_id'],[]).append(q)
           for topic,qs in by_topic.items():
               prompt=core.compiler_prompt(core.topic_docs(docs,topic,'large'))
               assert all(q['question'] not in prompt for q in qs)
+
+          assert analysis.break_even(100,200,100)==1
+          assert analysis.break_even(100,100,100) is None
+          assert analysis.dominates({'strict_rate':1,'signal_rate':1,'prov_rate':1,'tokens':10},{'strict_rate':1,'signal_rate':1,'prov_rate':1,'tokens':20})
           PY
