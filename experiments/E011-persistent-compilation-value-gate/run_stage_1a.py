@@ -43,7 +43,8 @@ def require_preflight():
 def fixture_lock(dsha, qsha):
     f = {"model":MODEL,"docs":dsha,"queries":qsha,"compiler":h((ROOT/"compiler-prompt.md").read_text()),
          "answer":h((ROOT/"answer-prompt.md").read_text()),"core":h((ROOT/"stage1a_core.py").read_text()),
-         "lexical":h((ROOT/"lexical.py").read_text()),"build_seed":BUILD_SEED,"answer_seed":ANSWER_SEED}
+         "json_transport":h((ROOT/"json_transport.py").read_text()),"lexical":h((ROOT/"lexical.py").read_text()),
+         "build_seed":BUILD_SEED,"answer_seed":ANSWER_SEED}
     RUN.mkdir(parents=True, exist_ok=True); p = RUN / "fixture.json"
     if p.exists() and json.loads(p.read_text()) != f: raise SystemExit("E011-STOP fixture_mismatch")
     if not p.exists(): p.write_text(json.dumps(f, indent=2) + "\n")
