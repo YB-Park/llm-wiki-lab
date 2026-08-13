@@ -35,13 +35,15 @@ jobs:
           python3 -m py_compile \
             experiments/E009-canonical-commit-boundary/harness/validate_corpus.py \
             experiments/E009-canonical-commit-boundary/harness/audit_surface_balance.py \
+            experiments/E009-canonical-commit-boundary/harness/audit_surface_leakage_v1.py \
             experiments/E009-canonical-commit-boundary/harness/copilot_cli.py \
             experiments/E009-canonical-commit-boundary/harness/verifier_contract.py \
             experiments/E009-canonical-commit-boundary/harness/telemetry.py \
             experiments/E009-canonical-commit-boundary/harness/preflight.py \
             experiments/E009-canonical-commit-boundary/harness/archive_incomplete_call_v1.py \
             experiments/E009-canonical-commit-boundary/harness/run_stage_a.py \
-            experiments/E009-canonical-commit-boundary/harness/run_stage_a_v1.py
+            experiments/E009-canonical-commit-boundary/harness/run_stage_a_v1.py \
+            experiments/E009-canonical-commit-boundary/harness/export_stage_a_analysis.py
 
       - name: Test verifier contract containment
         run: python3 experiments/E009-canonical-commit-boundary/harness/verifier_contract.py
