@@ -41,15 +41,16 @@ def context_for(condition, query, scale, docs, summary):
     raise ValueError(condition)
 
 
-def parse_answer(text, context):
+def parse_answer(text, context, allowed_source_ids=None):
     try: obj = json.loads(text.strip())
     except Exception: return {"valid":False,"answer":"","source_ids":[],"uncertainty":None,"violation":"json"}
     if not isinstance(obj, dict): return {"valid":False,"answer":"","source_ids":[],"uncertainty":None,"violation":"object"}
     answer=obj.get("answer"); ids=obj.get("source_ids"); uncertainty=obj.get("uncertainty")
     shape_ok=isinstance(answer,str) and bool(answer.strip()) and isinstance(ids,list) and all(isinstance(x,str) and x for x in ids) and uncertainty in VALID_UNCERTAINTY
-    visible=set(SOURCE_ID_RE.findall(context)); provenance_ok=isinstance(ids,list) and set(ids) <= visible
+    visible=set(SOURCE_ID_RE.findall(context)); allowed=visible if allowed_source_ids is None else visible & set(allowed_source_ids)
+    provenance_ok=isinstance(ids,list) and set(ids) <= allowed
     valid=bool(shape_ok and provenance_ok)
-    violation=None if valid else ("source_visibility" if shape_ok and not provenance_ok else "schema")
+    violation=None if valid else ("source_visibility_or_existence" if shape_ok and not provenance_ok else "schema")
     return {"valid":valid,"answer":answer if isinstance(answer,str) else "","source_ids":ids if isinstance(ids,list) else [],"uncertainty":uncertainty,"violation":violation}
 
 
