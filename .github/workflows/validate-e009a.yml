@@ -27,10 +27,14 @@ jobs:
       - name: Validate paired corpus
         run: python3 experiments/E009-canonical-commit-boundary/harness/validate_corpus.py
 
+      - name: Audit superficial label leakage
+        run: python3 experiments/E009-canonical-commit-boundary/harness/audit_surface_balance.py
+
       - name: Compile harness
         run: |
           python3 -m py_compile \
             experiments/E009-canonical-commit-boundary/harness/validate_corpus.py \
+            experiments/E009-canonical-commit-boundary/harness/audit_surface_balance.py \
             experiments/E009-canonical-commit-boundary/harness/copilot_cli.py \
             experiments/E009-canonical-commit-boundary/harness/verifier_contract.py \
             experiments/E009-canonical-commit-boundary/harness/telemetry.py \
