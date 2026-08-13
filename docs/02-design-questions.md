@@ -272,9 +272,9 @@ Candidate mechanisms: error book, lint rule, prompt rule, regression test, ADR a
 
 ### Q-EVAL-001 — What does "better wiki" mean operationally?
 
-**Status:** OPEN
+**Status:** EXPERIMENTING
 
-Need a multi-dimensional scorecard rather than document count or answer accuracy alone.
+Current focus: E011 Persistent Compilation Value Gate. Before optimizing Wiki representation, determine whether any persistent compiled layer earns a repeatable quality/effort/cost advantage over strong raw+retrieval baselines and at what reuse level that advantage repays build cost.
 
 ### Q-EVAL-002 — What benchmark corpus best approximates real personal use?
 
@@ -330,9 +330,9 @@ It should be introduced because measured corpus scale or retrieval failure requi
 
 ### Q-UX-004 — What is the acceptable lifecycle cost of wiki automation?
 
-**Status:** OPEN
+**Status:** EXPERIMENTING
 
-Measure more than query cost: ingest, consolidation, retrieval, lint/testing, failed-automation repair, and human review attention. A wiki that saves rediscovery but spends excessive model context maintaining itself may have negative net value.
+E011 measures static build/query amortization first. Maintenance/update cost enters only if the static value gate survives.
 
 ### Q-UX-005 — What events should trigger expensive maintenance work?
 
@@ -346,9 +346,9 @@ Candidate triggers include every ingest, contradiction, retrieval failure, user 
 
 ### Q-SYS-001 — Should the wiki ever become an irreversible compression boundary?
 
-**Status:** OPEN
+**Status:** EXPERIMENTING
 
-Compiled knowledge is useful for navigation and synthesis, but experiments show compilation can omit future-critical facts. Determine whether raw evidence must always remain queryable and under which query classes source fallback becomes mandatory.
+E011 includes a compiled-only condition and a compiled+raw condition against strong raw baselines. This tests whether raw fallback is merely a safety cost or part of the value-producing retrieval strategy.
 
 ### Q-SYS-002 — Should knowledge maintenance be evaluated like software maintenance?
 
@@ -364,12 +364,8 @@ Candidate progression: correction -> failure example -> rule candidate -> regres
 
 ---
 
-## Next action
+## Current critical path
 
-The first research pass should prioritize the questions with the greatest irreversible-risk implications:
-
-1. provenance / recursive contamination,
-2. update and temporal semantics,
-3. knowledge unit and split/merge behavior,
-4. lifecycle/deletion,
-5. evaluation methodology, especially compilation loss and downstream regression.
+1. E011: determine whether persistent compilation earns lifecycle value at all.
+2. realistic/shadow workload validation for any surviving value region.
+3. only then resolve detailed representation, temporal/provenance, maintenance, and automation questions that remain necessary.
