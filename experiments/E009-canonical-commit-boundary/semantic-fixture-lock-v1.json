@@ -1,0 +1,16 @@
+{
+  "experiment": "E009A",
+  "lock_version": "v1",
+  "created_before_scored_corpus_T_judgments": true,
+  "note": "Git blob SHAs pin the exact scored semantic fixtures. Infrastructure-only amendments must explicitly update this lock and document why the semantic experiment is unchanged.",
+  "fixtures": {
+    "experiments/E009-canonical-commit-boundary/corpus/cases.jsonl": "c8fd744e2cc8a4267bd7e98cf60781429cafcae2",
+    "experiments/E009-canonical-commit-boundary/corpus/manifest.json": "0ec2f2ebb644f1f93e9239bc49b141daf2178a6a",
+    "experiments/E009-canonical-commit-boundary/prompts/transition-verifier.md": "6716c73986c7e6aec8e50ce2f2b472563159e98a",
+    "experiments/E009-canonical-commit-boundary/run-plan-v1.json": "1b0da879eee8af903a630958980a1935f473794a",
+    "experiments/E009-canonical-commit-boundary/preregistration-v0.md": "1bb8d073b2dd36109e64765c2a090421403920c2",
+    "experiments/E009-canonical-commit-boundary/harness/run_stage_a.py": "d236b0b2a10f0aadab6a910e17ca15b8a218fc51",
+    "experiments/E009-canonical-commit-boundary/harness/run_stage_a_v1.py": "83b1b679ffd655537953a81c06c0a767a4d95aba",
+    "experiments/E009-canonical-commit-boundary/harness/verifier_contract.py": "bb37e5a4e8a50c44b4ad4881a401583b7e881b03"
+  }
+}
