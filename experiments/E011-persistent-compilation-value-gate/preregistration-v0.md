@@ -100,7 +100,15 @@ Telemetry is adapter-level measurement, not assumed dollar billing truth.
 
 One **topic revisit** is the fixed three-query bundle for a topic at one scale.
 
-For each compiled-vs-raw comparison, use measured total-token cost to report whether a positive break-even revisit count exists:
+Freeze three reuse regimes before scoring:
+
+- `N=1` — one-off / rare revisit;
+- `N=3` — occasional reuse;
+- `N=10` — high reuse.
+
+Do not rerun identical questions to simulate these regimes. Replay lifecycle economics from the measured one-time build cost and the measured three-query bundle cost.
+
+For each compiled-vs-raw comparison, also report whether a positive token break-even count exists:
 
 `compiled_build + N * compiled_query_bundle <= N * raw_query_bundle`
 
@@ -108,10 +116,12 @@ If compiled query cost is not lower, token break-even is `none`.
 
 A cost break-even is not a value win when compiled quality is materially worse. Quality and cost remain a Pareto analysis.
 
-Primary paired comparisons:
+Primary causal-style paired comparisons:
 
 - `C0 vs R1` — precompiled synthesis versus direct access to the same topic evidence;
 - `C1 vs R0` — incremental value of durable synthesis when the same lexical raw evidence is already available.
+
+The architecture-level value frontier nevertheless compares all four conditions at `N in {1,3,10}`. A compiled condition earns a candidate value region only if it is non-dominated by the raw conditions on the relevant quality/cost/effort dimensions.
 
 ## Statistical plan
 
@@ -124,9 +134,9 @@ Follow `docs/08-statistical-analysis-standard.md`.
 
 ## Kill / narrow criteria
 
-Stage 1A does **not** justify detailed Wiki representation work unless at least one compiled condition shows a credible value region: comparable-or-better paired quality plus a material query-effort/token reduction capable of repaying build cost at a plausible revisit count.
+Stage 1A does **not** justify detailed Wiki representation work unless at least one compiled condition shows a credible value region: comparable-or-better paired quality plus a material query-effort/token reduction or quality gain that makes the lifecycle trade plausible at one or more frozen reuse regimes.
 
-If no such region appears, stop Stage 1B and prefer raw source-of-record + retrieval + selective/on-demand synthesis as the default hypothesis.
+If no compiled condition is non-dominated at `N=1`, `N=3`, or `N=10`, stop Stage 1B and prefer raw source-of-record + retrieval + selective/on-demand synthesis as the default hypothesis.
 
 If advantage appears only for global/high-reuse workloads, narrow compilation to those classes rather than universalizing it.
 
