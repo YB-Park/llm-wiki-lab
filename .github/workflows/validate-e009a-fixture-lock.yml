@@ -1,0 +1,24 @@
+name: Validate E009A semantic fixture lock
+
+on:
+  push:
+    paths:
+      - 'experiments/E009-canonical-commit-boundary/**'
+      - '.github/workflows/validate-e009a-fixture-lock.yml'
+  pull_request:
+    paths:
+      - 'experiments/E009-canonical-commit-boundary/**'
+      - '.github/workflows/validate-e009a-fixture-lock.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fixture-lock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate semantic fixture fingerprints
+        run: python3 experiments/E009-canonical-commit-boundary/harness/validate_semantic_fixture_lock.py
