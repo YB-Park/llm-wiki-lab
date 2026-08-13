@@ -1,0 +1,33 @@
+name: Validate E007 amendment A2
+
+on:
+  push:
+    paths:
+      - 'experiments/E007-long-horizon-contamination/harness/answer_contract_a2.py'
+      - 'experiments/E007-long-horizon-contamination/harness/run_family_n_amendment2.py'
+      - 'experiments/E007-long-horizon-contamination/harness/evaluate_semantic_amendment2.py'
+      - 'experiments/E007-long-horizon-contamination/harness/evaluate_family_amendment2.py'
+      - 'experiments/E007-long-horizon-contamination/protocol-amendment-A2-malformed-answer-items.md'
+      - '.github/workflows/validate-e007-amendment-a2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-a2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Compile A2 adapters
+        run: |
+          python3 -m py_compile \
+            experiments/E007-long-horizon-contamination/harness/answer_contract_a2.py \
+            experiments/E007-long-horizon-contamination/harness/run_family_n_amendment2.py \
+            experiments/E007-long-horizon-contamination/harness/evaluate_semantic_amendment2.py \
+            experiments/E007-long-horizon-contamination/harness/evaluate_family_amendment2.py
+      - name: Test malformed-item containment
+        working-directory: experiments/E007-long-horizon-contamination/harness
+        run: |
+          python3 answer_contract_a2.py
+          python3 run_family_n_amendment2.py --self-test
