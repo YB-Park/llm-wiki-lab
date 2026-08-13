@@ -46,6 +46,10 @@ def ci_text(k: int, n: int) -> str:
     return f"{k}/{n}({pct(k/n)};95W={pct(lo)}-{pct(hi)})"
 
 
+def point_text(k: int, n: int) -> str:
+    return f"{k}/{n}({pct(k/n)})"
+
+
 def valid_correct(case, judgment) -> bool:
     if not judgment.get("valid"):
         return False
@@ -147,19 +151,17 @@ def main() -> None:
     judgments, dirs = base.load_judgments(plan)
     groups = pair_map(cases)
 
-    pstats = {}
     print("E009A-POSTSCORE-ANALYSIS-HANDOFF-v0")
     print("mode=read-only modelCalls=0 freeform=none paths=none primaryMetrics=unchanged")
 
     for p in (1, 2):
         c, by_risk, safe_flags, unsafe_nonvalid = pass_stats(cases, judgments, p)
-        pstats[p] = c
         strict_pairs = model_pair_correct(cases, judgments, groups, p, strict=True)
         gate_pairs = model_pair_correct(cases, judgments, groups, p, strict=False)
         sp = sum(strict_pairs.values())
         gp = sum(gate_pairs.values())
         print(
-            f"p{p} strict={ci_text(c['strict_correct'],40)} gate={ci_text(c['gate_correct'],40)} "
+            f"p{p} strictCases={point_text(c['strict_correct'],40)} gateCases={point_text(c['gate_correct'],40)} "
             f"valid={c['valid']}/40 invalid={c['invalid']}(safe={c['invalid_safe']},unsafe={c['invalid_unsafe']}) "
             f"strictPairs={ci_text(sp,20)} gatePairs={ci_text(gp,20)}"
         )
