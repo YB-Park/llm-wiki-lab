@@ -1,0 +1,59 @@
+name: Validate E007 amendment A3
+
+on:
+  push:
+    paths:
+      - 'experiments/E007-long-horizon-contamination/harness/evaluate_semantic_amendment3.py'
+      - 'experiments/E007-long-horizon-contamination/harness/evaluate_family_amendment3.py'
+      - 'experiments/E007-long-horizon-contamination/protocol-amendment-A3-semantic-evaluator-contract.md'
+      - '.github/workflows/validate-e007-amendment-a3.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-a3:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Compile A3 evaluator
+        run: |
+          python3 -m py_compile \
+            experiments/E007-long-horizon-contamination/harness/evaluate_semantic_amendment3.py \
+            experiments/E007-long-horizon-contamination/harness/evaluate_family_amendment3.py
+      - name: Test exact string-boolean normalization and ambiguous rejection
+        working-directory: experiments/E007-long-horizon-contamination/harness
+        run: |
+          python3 - <<'PY'
+          import json
+          from evaluate_semantic_amendment3 import parse_evaluations_a3
+
+          payload = {
+              'evaluations': [
+                  {
+                      'query_id': 'Q1', 'correctness': 2,
+                      'omission': False,
+                      'unsupported_claim': 'false',
+                      'temporal_error': 'TRUE',
+                      'entity_conflation': False,
+                      'rationale_fact_ids': [], 'rationale_source_ids': []
+                  },
+                  {
+                      'query_id': 'Q2', 'correctness': 1,
+                      'omission': False,
+                      'unsupported_claim': 0,
+                      'temporal_error': False,
+                      'entity_conflation': False,
+                      'rationale_fact_ids': [], 'rationale_source_ids': []
+                  }
+              ]
+          }
+          valid, violations = parse_evaluations_a3(json.dumps(payload), ['Q1','Q2'])
+          assert valid['Q1']['unsupported_claim'] is False
+          assert valid['Q1']['temporal_error'] is True
+          assert 'Q2' not in valid
+          assert any(v.get('query_id') == 'Q2' and v.get('type') == 'invalid_evaluation_item' for v in violations)
+          assert any(v.get('query_id') == 'Q2' and v.get('type') == 'missing_valid_evaluation' for v in violations)
+          print('A3-SELF-TEST PASS')
+          PY
