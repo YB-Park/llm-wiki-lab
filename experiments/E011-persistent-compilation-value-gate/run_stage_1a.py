@@ -42,7 +42,8 @@ def require_preflight():
 
 def fixture_lock(dsha, qsha):
     f = {"model":MODEL,"docs":dsha,"queries":qsha,"compiler":h((ROOT/"compiler-prompt.md").read_text()),
-         "answer":h((ROOT/"answer-prompt.md").read_text()),"build_seed":BUILD_SEED,"answer_seed":ANSWER_SEED}
+         "answer":h((ROOT/"answer-prompt.md").read_text()),"core":h((ROOT/"stage1a_core.py").read_text()),
+         "lexical":h((ROOT/"lexical.py").read_text()),"build_seed":BUILD_SEED,"answer_seed":ANSWER_SEED}
     RUN.mkdir(parents=True, exist_ok=True); p = RUN / "fixture.json"
     if p.exists() and json.loads(p.read_text()) != f: raise SystemExit("E011-STOP fixture_mismatch")
     if not p.exists(): p.write_text(json.dumps(f, indent=2) + "\n")
@@ -76,7 +77,7 @@ def run_answers(docs, queries, summaries):
             if p.exists(): parsed=json.loads(p.read_text()); print(f"ANSWER-SKIP seq={seq}")
             elif d.exists(): raise SystemExit(f"E011-STOP incomplete_answer synthetic_call={seq:03d}-{ph[:12]} local_artifact_preserved=yes")
             else:
-                r=inst.call(prompt,MODEL,d,f"answer-{seq:03d}-{ph[:12]}"); parsed=core.parse_answer(str(r["response"])); p.write_text(json.dumps(parsed,indent=2)+"\n")
+                r=inst.call(prompt,MODEL,d,f"answer-{seq:03d}-{ph[:12]}"); parsed=core.parse_answer(str(r["response"]),ctx); p.write_text(json.dumps(parsed,indent=2)+"\n")
                 print(f"ANSWER-DONE seq={seq} contract={'valid' if parsed['valid'] else 'invalid'}")
             cache[ph]=parsed; dirs[ph]=d
         score=core.score(q,cache[ph])
