@@ -1,0 +1,22 @@
+name: Validate E007 amendment A4
+
+on:
+  push:
+    paths:
+      - 'experiments/E007-long-horizon-contamination/harness/evaluate_semantic_amendment4.py'
+      - '.github/workflows/validate-e007-amendment-a4.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile evaluator
+        run: python -m py_compile experiments/E007-long-horizon-contamination/harness/evaluate_semantic_amendment4.py
+      - name: Run recursion self-test
+        working-directory: experiments/E007-long-horizon-contamination/harness
+        run: python evaluate_semantic_amendment4.py --self-test
