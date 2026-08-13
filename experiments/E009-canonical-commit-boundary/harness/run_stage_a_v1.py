@@ -2,10 +2,11 @@
 """T-v1 binding for the frozen E009A Stage A runner.
 
 The orchestration/policy implementation remains in run_stage_a.py. This wrapper changes
-only the frozen plan/run-root and sanitizes infrastructure failures after the pre-scoring
-T-v0 surface-leak amendment. T-v0 artifacts can never be mixed with scored T-v1 artifacts.
+only the frozen plan/run-root, requires the non-scored preflight sentinel, and sanitizes
+infrastructure failures. T-v0 artifacts cannot be mixed with scored T-v1 artifacts.
 """
 
+import json
 from pathlib import Path
 
 import run_stage_a as base
@@ -13,6 +14,7 @@ import run_stage_a as base
 ROOT = Path(__file__).resolve().parents[1]
 base.PLAN = ROOT / "run-plan-v1.json"
 base.RUN_ROOT = ROOT / "runs" / "stage-a-v1"
+PREFLIGHT_STATUS = ROOT / "runs" / "preflight-v1" / "status.json"
 
 _original_run_prompt = base.run_prompt
 
@@ -29,8 +31,20 @@ def _sanitized_run_prompt(**kwargs):
         ) from None
 
 
+def _require_preflight() -> None:
+    if not PREFLIGHT_STATUS.exists():
+        raise SystemExit("E009A-STOP preflight_required run=harness/preflight.py")
+    try:
+        status = json.loads(PREFLIGHT_STATUS.read_text(encoding="utf-8"))
+    except Exception:
+        raise SystemExit("E009A-STOP preflight_status_invalid") from None
+    if status.get("status") != "PASS" or status.get("model") != "gpt-5.6-luna" or status.get("otel") != "yes":
+        raise SystemExit("E009A-STOP preflight_not_passed")
+
+
 base.run_prompt = _sanitized_run_prompt
 
 
 if __name__ == "__main__":
+    _require_preflight()
     base.main()
