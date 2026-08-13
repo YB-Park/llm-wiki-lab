@@ -50,17 +50,13 @@ def build_map():
 def topic_values(rows, metric):
     by=defaultdict(list)
     for r in rows: by[r["topic_id"]].append(r)
-    vals={}
-    for topic,rs in by.items():
-        q=quality(rs); vals[topic]=q[metric]
-    return vals
+    return {topic:quality(rs)[metric] for topic,rs in by.items()}
 
 
 def paired_boot(a,b):
     keys=sorted(a); diffs=[a[k]-b[k] for k in keys]; obs=sum(diffs)/len(diffs)
     rng=random.Random(BOOT_SEED); draws=[]
-    for _ in range(BOOT_N):
-        draws.append(sum(rng.choice(diffs) for _ in diffs)/len(diffs))
+    for _ in range(BOOT_N): draws.append(sum(rng.choice(diffs) for _ in diffs)/len(diffs))
     draws.sort(); lo=draws[int(.025*(len(draws)-1))]; hi=draws[int(.975*(len(draws)-1))]
     return obs,lo,hi
 
@@ -87,7 +83,6 @@ def main():
     print("E011-STAGE1A-ANALYSIS-HANDOFF-v0")
     print("mode=read-only modelCalls=0 unit=topic bootstrap=12topics freeform=none paths=none")
 
-    # Secondary diagnostic: did the compiled state itself preserve future-required material?
     qby=defaultdict(list)
     for q in queries: qby[q["topic_id"]].append(q)
     for scale in SCALES:
@@ -97,7 +92,7 @@ def main():
             raw=core.raw_context(core.topic_docs(docs,topic,scale)); rawb+=len(raw.encode())
             for q in qby[topic]:
                 sig_hit+=sum(s.lower() in summary for s in q["required_signals"]); sig_total+=len(q["required_signals"])
-                prov_hit+=sum(s in summary for s in q["required_source_ids"]); prov_total+=len(q["required_source_ids"])
+                prov_hit+=sum(s.lower() in summary for s in q["required_source_ids"]); prov_total+=len(q["required_source_ids"])
         print(f"compiledState scale={scale} signals={sig_hit}/{sig_total} prov={prov_hit}/{prov_total} bytes={state} rawBytes={rawb} ratio={state/rawb:.3f}")
 
     qcost={}; rawdocs={}; qmetrics={}
@@ -127,8 +122,7 @@ def main():
                 else: bes.append(be)
         agg=break_even(build_total,qcost[raw],qcost[comp])
         if bes:
-            s=sorted(bes); med=(s[(len(s)-1)//2]+s[len(s)//2])/2
-            detail=f"median={med:g} min={min(s)} max={max(s)}"
+            s=sorted(bes); med=(s[(len(s)-1)//2]+s[len(s)//2])/2; detail=f"median={med:g} min={min(s)} max={max(s)}"
         else: detail="median=none min=none max=none"
         print(f"breakEven {comp}vs{raw} aggregate={agg if agg is not None else 'none'} topicScaleFinite={len(bes)}/24 none={none} {detail}")
 
