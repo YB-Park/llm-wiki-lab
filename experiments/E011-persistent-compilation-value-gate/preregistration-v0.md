@@ -16,6 +16,12 @@ The independent cluster is the **topic scenario**. Conditions, two corpus scales
 
 Stage 1A is a mechanism/value pilot intended to detect large crossover effects, not production evidence.
 
+### Sample-size rationale
+
+Use 12 topic clusters as a deliberately bounded falsification pilot. This is not powered to distinguish small effects. A narrow advantage in only a few topics is not enough to justify architecture. Stage 1A should advance the compiled-layer hypothesis only when the value region is broad enough to remain visible in topic-level paired effects, uncertainty intervals, and the frozen lifecycle regimes.
+
+A surviving value region still requires replication on a materially different workload and, for architecture-level claims, a changed build or answer model axis before it becomes decision-grade evidence.
+
 ## Corpus plan
 
 Use 12 fictional topic scenarios. Each topic has a stable answerable core plus near-relevant and irrelevant distractors.
@@ -63,9 +69,9 @@ All conditions use one shared answer contract and prompt except for clearly labe
 
 ## Retrieval
 
-Lexical retrieval must be deterministic and model-free. Freeze tokenizer, ranking formula, tie-breaking, and top-k before scored calls.
+Lexical retrieval must be deterministic and model-free. Tokenizer, ranking formula, tie-breaking, and top-k are frozen before scored calls.
 
-Initial top-k candidate: 6 documents. Red-team this choice before freeze; do not tune it on scored answer quality.
+The initial top-k=6 candidate was rejected by corpus-only red-team diagnostics as an unnecessarily weak large-scale raw baseline. `retrieval-red-team-amendment-v1.md` freezes topic-scoped BM25 with `top-k=12`. Do not tune retrieval from scored answer quality.
 
 ## Primary quality outcomes
 
@@ -81,7 +87,7 @@ Report separately:
 
 Do not collapse these into one weighted quality score.
 
-No LLM-as-judge metric is primary in Stage 1A. A semantic judge may be added only as a secondary preregistered diagnostic before scoring if deterministic coverage is shown inadequate during non-scored rehearsal.
+No LLM-as-judge metric is used in Stage 1A primary analysis. The deterministic corpus contract is sufficient for this gate. Any later semantic judgment is exploratory and cannot rewrite the frozen primary result.
 
 ## Cost / effort outcomes
 
@@ -121,16 +127,24 @@ Primary causal-style paired comparisons:
 - `C0 vs R1` — precompiled synthesis versus direct access to the same topic evidence;
 - `C1 vs R0` — incremental value of durable synthesis when the same lexical raw evidence is already available.
 
-The architecture-level value frontier nevertheless compares all four conditions at `N in {1,3,10}`. A compiled condition earns a candidate value region only if it is non-dominated by the raw conditions on the relevant quality/cost/effort dimensions.
+The architecture-level value frontier nevertheless compares all four conditions at `N in {1,3,10}`. A compiled condition earns a candidate value region only if it is non-dominated by the raw conditions on the relevant quality/cost dimensions.
 
 ## Statistical plan
 
 - topic scenario is the bootstrap/paired unit;
 - report per-topic paired differences and scenario-level bootstrap intervals for headline quality differences;
 - scale/query-class breakdowns are secondary diagnostics unless explicitly stated otherwise before scoring;
-- do not treat 72 query rows as 72 independent samples.
+- do not treat 72 query rows as 72 independent samples;
+- no multiplicity-adjusted significance hunt is used: the headline paired comparisons are fixed above, while class/scale cells remain diagnostic;
+- point estimates and uncertainty are interpreted as effect evidence, not pass/fail p-values.
 
 Follow `docs/08-statistical-analysis-standard.md`.
+
+## Evidence grade and replication trigger
+
+Stage 1A can produce at most **controlled pilot / benchmark evidence** because it uses synthetic author ground truth, oracle topic grouping, a static corpus, and the same model family for compilation and answering.
+
+If a compiled condition survives the Value Gate, the next evidence step is not automatic architecture adoption. Replicate the surviving workload region on a materially different realistic/shadow workload. Any architecture-critical claim that depends on model behavior should additionally change the compiler or answer model axis.
 
 ## Kill / narrow criteria
 
