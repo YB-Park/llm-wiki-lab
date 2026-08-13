@@ -86,14 +86,16 @@ def main():
     qby=defaultdict(list)
     for q in queries: qby[q["topic_id"]].append(q)
     for scale in SCALES:
-        sig_hit=sig_total=prov_hit=prov_total=state=rawb=0
+        sig_hit=sig_total=prov_hit=prov_total=state=rawb=unknown_ids=unknown_states=0
         for topic in sorted(qby):
-            summary=builds[(scale,topic)]["summary"].lower(); state+=builds[(scale,topic)]["bytes"]
-            raw=core.raw_context(core.topic_docs(docs,topic,scale)); rawb+=len(raw.encode())
+            summary=builds[(scale,topic)]["summary"]; lower=summary.lower(); state+=builds[(scale,topic)]["bytes"]
+            scoped=core.topic_docs(docs,topic,scale); raw=core.raw_context(scoped); rawb+=len(raw.encode())
+            allowed={d["source_id"] for d in scoped}; unknown=set(core.SOURCE_ID_RE.findall(summary))-allowed
+            unknown_ids+=len(unknown); unknown_states+=int(bool(unknown))
             for q in qby[topic]:
-                sig_hit+=sum(s.lower() in summary for s in q["required_signals"]); sig_total+=len(q["required_signals"])
-                prov_hit+=sum(s.lower() in summary for s in q["required_source_ids"]); prov_total+=len(q["required_source_ids"])
-        print(f"compiledState scale={scale} signals={sig_hit}/{sig_total} prov={prov_hit}/{prov_total} bytes={state} rawBytes={rawb} ratio={state/rawb:.3f}")
+                sig_hit+=sum(s.lower() in lower for s in q["required_signals"]); sig_total+=len(q["required_signals"])
+                prov_hit+=sum(s.lower() in lower for s in q["required_source_ids"]); prov_total+=len(q["required_source_ids"])
+        print(f"compiledState scale={scale} signals={sig_hit}/{sig_total} prov={prov_hit}/{prov_total} unknownSourceIDs={unknown_ids} affectedStates={unknown_states}/12 bytes={state} rawBytes={rawb} ratio={state/rawb:.3f}")
 
     qcost={}; rawdocs={}; qmetrics={}
     for c in CONDS:
