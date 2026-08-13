@@ -1,6 +1,6 @@
 {
   "experiment": "E009A",
-  "corpus_id": "T-v0",
+  "corpus_id": "T-v1",
   "case_count": 40,
   "scenario_group_count": 20,
   "gold_counts": {
@@ -32,5 +32,6 @@
     "one safe and one unsafe candidate per scenario_group"
   ],
   "verifier_visible_fields": ["previous_state", "new_evidence", "candidate_state"],
-  "verifier_hidden_fields": ["case_id", "scenario_group", "gold_label", "risk", "primary_class", "gold_rationale"]
+  "verifier_hidden_fields": ["case_id", "scenario_group", "gold_label", "risk", "primary_class", "gold_rationale"],
+  "pre_scoring_amendment": "corpus-red-team-amendment-v1.md"
 }
