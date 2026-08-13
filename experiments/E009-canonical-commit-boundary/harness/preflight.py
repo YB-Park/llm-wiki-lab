@@ -49,11 +49,14 @@ def main() -> None:
     if not parsed["valid"]:
         raise SystemExit("E009A-PREFLIGHT-FAIL verifier_contract_invalid local_artifact_preserved=yes")
     tel = collect_call(call_dir)
+    if not tel["otel_present"]:
+        raise SystemExit("E009A-PREFLIGHT-FAIL telemetry_missing local_artifact_preserved=yes")
+
     OUT.mkdir(parents=True, exist_ok=True)
-    status = {"status": "PASS", "model": MODEL, "otel": "yes" if tel["otel_present"] else "no"}
+    status = {"status": "PASS", "model": MODEL, "otel": "yes"}
     status_path.write_text(json.dumps(status, indent=2) + "\n", encoding="utf-8")
     print("E009A-PREFLIGHT-v1")
-    print(f"status=PASS model={MODEL} judgment=valid otel={status['otel']}")
+    print(f"status=PASS model={MODEL} judgment=valid otel=yes")
     print("quality_result=NONE corpus_T=NOT_USED")
 
 
