@@ -61,6 +61,7 @@ jobs:
             experiments/E007-long-horizon-contamination/harness/evaluate_family.py \
             experiments/E007-long-horizon-contamination/harness/summarize_family.py \
             experiments/E007-long-horizon-contamination/harness/export_forensics.py \
+            experiments/E007-long-horizon-contamination/harness/export_mechanisms.py \
             experiments/E007-long-horizon-contamination/harness/run_e007.py \
             experiments/E007-long-horizon-contamination/harness/run_family_n.py
 
