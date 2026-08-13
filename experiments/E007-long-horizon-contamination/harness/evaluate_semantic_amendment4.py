@@ -4,6 +4,10 @@
 A4 builds on A3. It never re-runs a missing primary answer. Semantic queries whose
 primary answer is absent are excluded from judge prompts and recorded as invalid/incomplete.
 Existing evaluator response.txt files are reused by A3's call_or_reuse path.
+
+Implementation note: keep stable references to the original base helpers before monkey
+patching. This avoids wrapper self-recursion while preserving A4's narrow data-plumbing
+change. No primary or evaluator result is altered by this implementation fix.
 """
 
 from __future__ import annotations
@@ -13,6 +17,10 @@ from typing import Any
 
 import evaluate_semantic_amendment3 as a3
 from answer_contract_a2 import parse_answer_batch_valid_only
+
+# Capture originals before any monkey patching. Wrappers must call these stable references,
+# never the module attributes that main() replaces.
+_ORIGINAL_BUILD_WAVE_ITEMS = a3.base.build_wave_items
 
 
 def load_primary_answers_a4(run_dir, queries: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
@@ -42,11 +50,11 @@ def load_primary_answers_a4(run_dir, queries: list[dict[str, Any]]) -> dict[str,
 
 
 def build_wave_items_a4(*, wave, queries, answers, facts_by_id, sources):
-    # Never invent a candidate answer. Only judge queries with an observed valid primary answer.
+    """Build judge items only for semantic queries with an observed primary answer."""
     present_queries = [query for query in queries if query["query_id"] in answers]
     if not present_queries:
         return []
-    return a3.base.build_wave_items(
+    return _ORIGINAL_BUILD_WAVE_ITEMS(
         wave=wave,
         queries=present_queries,
         answers=answers,
@@ -55,25 +63,26 @@ def build_wave_items_a4(*, wave, queries, answers, facts_by_id, sources):
     )
 
 
-def parse_evaluations_a4(text: str, expected_ids: list[str]):
-    # expected_ids is narrowed by main wrapper below to only queries actually sent to the judge.
-    return a3.parse_evaluations_a3(text, expected_ids)
+def self_test() -> None:
+    """Verify the wrapper delegates to the captured original rather than itself."""
+    assert _ORIGINAL_BUILD_WAVE_ITEMS is not build_wave_items_a4
+    # Empty input must terminate locally and never call the original helper.
+    result = build_wave_items_a4(wave=0, queries=[], answers={}, facts_by_id={}, sources=[])
+    assert result == []
+    print("A4-RECURSION-SELF-TEST PASS")
 
 
 def main() -> None:
     # Patch only post-hoc evaluator data plumbing; A3 aggregation and raw-response reuse stay intact.
     a3.base.load_primary_answers = load_primary_answers_a4
     a3.base.build_wave_items = build_wave_items_a4
-
-    original_parser = a3.parse_evaluations_a3
-
-    # A3 main constructs expected IDs from all wave queries. Narrow expectation to judge-present
-    # queries by deriving IDs from the serialized prompt is invasive, so instead parse all returned
-    # rows and allow missing IDs to flow into A3 invalid/incomplete aggregation. This preserves the
-    # primary omission without inventing an evaluator result.
-    a3.parse_evaluations_a3 = original_parser
     a3.main()
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+
+    if "--self-test" in sys.argv:
+        self_test()
+    else:
+        main()
