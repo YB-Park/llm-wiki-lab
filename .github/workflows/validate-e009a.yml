@@ -39,6 +39,7 @@ jobs:
             experiments/E009-canonical-commit-boundary/harness/verifier_contract.py \
             experiments/E009-canonical-commit-boundary/harness/telemetry.py \
             experiments/E009-canonical-commit-boundary/harness/preflight.py \
+            experiments/E009-canonical-commit-boundary/harness/archive_incomplete_call_v1.py \
             experiments/E009-canonical-commit-boundary/harness/run_stage_a.py \
             experiments/E009-canonical-commit-boundary/harness/run_stage_a_v1.py
 
@@ -86,25 +87,40 @@ jobs:
               assert '{{' not in prompt and '}}' not in prompt
           PY
 
-      - name: Smoke-test deterministic policy semantics
+      - name: Smoke-test amended policy semantics and counterfactual cost
         run: |
           python3 - <<'PY'
-          import sys
+          import json, sys
+          from pathlib import Path
           root = 'experiments/E009-canonical-commit-boundary'
           sys.path.insert(0, f'{root}/harness')
-          import run_stage_a
+          import run_stage_a_v1  # applies the frozen T-v1 policy amendments
+          import run_stage_a as base
+
           safe_low = {'gold_label':'safe_commit','risk':'low'}
           bad_low = {'gold_label':'unsafe_commit','risk':'low'}
+          safe_elev = {'gold_label':'safe_commit','risk':'elevated'}
+          bad_elev = {'gold_label':'unsafe_commit','risk':'elevated'}
           safe_high = {'gold_label':'safe_commit','risk':'high'}
           accept = {'valid':True,'decision':'accept'}
           revise = {'valid':True,'decision':'revise'}
           invalid = {'valid':False,'decision':None}
-          assert run_stage_a.policy_action('A0', bad_low, revise, revise)['final'] == 'commit'
-          assert run_stage_a.policy_action('A1', safe_low, accept, revise)['final'] == 'commit'
-          assert run_stage_a.policy_action('A1', safe_low, invalid, accept)['final'] == 'quarantine'
-          assert run_stage_a.policy_action('A2', safe_low, accept, revise)['final'] == 'quarantine'
-          assert run_stage_a.policy_action('A3', safe_low, accept, revise)['review'] is False
-          assert run_stage_a.policy_action('A3', safe_high, accept, accept)['review'] is True
-          assert run_stage_a.policy_action('A3', bad_low, revise, accept)['final'] == 'quarantine'
-          assert run_stage_a.policy_action('A4', safe_high, revise, revise)['final'] == 'commit'
+
+          assert base.policy_action('A0', bad_low, revise, revise)['final'] == 'commit'
+          assert base.policy_action('A1', safe_low, accept, revise)['final'] == 'commit'
+          assert base.policy_action('A2', safe_low, accept, revise)['final'] == 'quarantine'
+          assert base.policy_action('A3', safe_low, accept, revise)['auto_commit'] is True
+          assert base.policy_action('A3', bad_low, revise, accept)['review'] is True
+          assert base.policy_action('A3', safe_elev, accept, accept)['auto_commit'] is True
+          assert base.policy_action('A3', safe_elev, accept, revise)['review'] is True
+          assert base.policy_action('A3', bad_elev, accept, accept)['final'] == 'commit'
+          assert base.policy_action('A3', safe_high, accept, accept)['review'] is True
+          assert base.policy_action('A4', safe_high, revise, revise)['final'] == 'commit'
+
+          rows = [json.loads(line) for line in open(f'{root}/corpus/cases.jsonl') if line.strip()]
+          cases = {row['case_id']: row for row in rows}
+          dirs = {(case_id, p): Path('/tmp/e009a-nonexistent') / f'{case_id}-p{p}' for case_id in cases for p in (1,2)}
+          tel = base.policy_telemetry('A3', dirs, cases)
+          expected_calls = sum(1 if c['risk']=='low' else 2 if c['risk']=='elevated' else 0 for c in cases.values())
+          assert tel['call_count'] == expected_calls, (tel, expected_calls)
           PY
