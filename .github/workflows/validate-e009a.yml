@@ -24,10 +24,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Validate paired corpus
+      - name: Validate frozen paired corpus T-v1
         run: python3 experiments/E009-canonical-commit-boundary/harness/validate_corpus.py
 
-      - name: Audit superficial label leakage
+      - name: Report frozen superficial-label audit
         run: python3 experiments/E009-canonical-commit-boundary/harness/audit_surface_balance.py
 
       - name: Compile harness
@@ -39,21 +39,26 @@ jobs:
             experiments/E009-canonical-commit-boundary/harness/verifier_contract.py \
             experiments/E009-canonical-commit-boundary/harness/telemetry.py \
             experiments/E009-canonical-commit-boundary/harness/preflight.py \
-            experiments/E009-canonical-commit-boundary/harness/run_stage_a.py
+            experiments/E009-canonical-commit-boundary/harness/run_stage_a.py \
+            experiments/E009-canonical-commit-boundary/harness/run_stage_a_v1.py
 
       - name: Test verifier contract containment
         run: python3 experiments/E009-canonical-commit-boundary/harness/verifier_contract.py
 
-      - name: Validate frozen call plan
+      - name: Validate frozen T-v1 call plan
         run: |
           python3 - <<'PY'
           import json
           from collections import Counter
           root = 'experiments/E009-canonical-commit-boundary'
-          plan = json.load(open(f'{root}/run-plan-v0.json'))
+          manifest = json.load(open(f'{root}/corpus/manifest.json'))
+          plan = json.load(open(f'{root}/run-plan-v1.json'))
           rows = [json.loads(line) for line in open(f'{root}/corpus/cases.jsonl') if line.strip()]
           case_ids = {row['case_id'] for row in rows}
           calls = plan['calls']
+          assert manifest['corpus_id'] == 'T-v1', manifest
+          assert plan['corpus_id'] == manifest['corpus_id'], (plan, manifest)
+          assert plan['plan_version'] == 'v1', plan
           assert plan['model'] == 'gpt-5.6-luna', plan
           assert len(calls) == 80, len(calls)
           assert [row['sequence'] for row in calls] == list(range(1,81))
