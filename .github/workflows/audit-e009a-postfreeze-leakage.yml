@@ -1,0 +1,22 @@
+name: Audit E009A post-freeze leakage
+
+on:
+  push:
+    paths:
+      - 'experiments/E009-canonical-commit-boundary/harness/audit_surface_leakage_v1.py'
+      - 'experiments/E009-canonical-commit-boundary/corpus/cases.jsonl'
+      - '.github/workflows/audit-e009a-postfreeze-leakage.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Compile audit
+        run: python3 -m py_compile experiments/E009-canonical-commit-boundary/harness/audit_surface_leakage_v1.py
+      - name: Run frozen-corpus leakage audit
+        run: python3 experiments/E009-canonical-commit-boundary/harness/audit_surface_leakage_v1.py
