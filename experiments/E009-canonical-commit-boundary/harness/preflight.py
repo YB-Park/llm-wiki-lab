@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One-call non-scored rehearsal for the E009A verifier transport/contract path."""
+"""One-call non-scored rehearsal for the E009A T-v1 verifier transport/contract path."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from verifier_contract import parse_judgment
 
 ROOT = Path(__file__).resolve().parents[1]
 PROMPT = ROOT / "prompts" / "transition-verifier.md"
-OUT = ROOT / "runs" / "preflight-v0"
+OUT = ROOT / "runs" / "preflight-v1"
 MODEL = "gpt-5.6-luna"
 
 
@@ -30,24 +30,29 @@ def render() -> str:
 
 def main() -> None:
     call_dir = OUT / "call"
-    if (OUT / "status.json").exists():
-        status = json.loads((OUT / "status.json").read_text(encoding="utf-8"))
-        print("E009A-PREFLIGHT-v0")
+    status_path = OUT / "status.json"
+    if status_path.exists():
+        status = json.loads(status_path.read_text(encoding="utf-8"))
+        print("E009A-PREFLIGHT-v1")
         print(f"status={status['status']} model={status['model']} judgment=valid otel={status['otel']}")
         print("quality_result=NONE corpus_T=NOT_USED")
         return
     if call_dir.exists():
         raise SystemExit("E009A-PREFLIGHT-STOP incomplete_local_attempt preserve=yes")
 
-    result = run_prompt(prompt=render(), model=MODEL, run_dir=call_dir)
+    try:
+        result = run_prompt(prompt=render(), model=MODEL, run_dir=call_dir)
+    except Exception:
+        raise SystemExit("E009A-PREFLIGHT-FAIL infrastructure_call_failure local_artifact_preserved=yes") from None
+
     parsed = parse_judgment(str(result["response"]))
     if not parsed["valid"]:
-        raise SystemExit("E009A-PREFLIGHT-FAIL verifier_contract_invalid inspect_local_artifact=yes")
+        raise SystemExit("E009A-PREFLIGHT-FAIL verifier_contract_invalid local_artifact_preserved=yes")
     tel = collect_call(call_dir)
     OUT.mkdir(parents=True, exist_ok=True)
     status = {"status": "PASS", "model": MODEL, "otel": "yes" if tel["otel_present"] else "no"}
-    (OUT / "status.json").write_text(json.dumps(status, indent=2) + "\n", encoding="utf-8")
-    print("E009A-PREFLIGHT-v0")
+    status_path.write_text(json.dumps(status, indent=2) + "\n", encoding="utf-8")
+    print("E009A-PREFLIGHT-v1")
     print(f"status=PASS model={MODEL} judgment=valid otel={status['otel']}")
     print("quality_result=NONE corpus_T=NOT_USED")
 
