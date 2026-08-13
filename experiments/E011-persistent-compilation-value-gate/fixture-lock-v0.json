@@ -11,7 +11,7 @@
     "experiments/E011-persistent-compilation-value-gate/run_stage_1a.py": "c3fddf20b219fa401a854cb04ab0a9e2ef52883f",
     "experiments/E011-persistent-compilation-value-gate/analysis_stage1a.py": "0fd538d1e6c642b49fa863b1cde30f77e37c7e79",
     "experiments/E011-persistent-compilation-value-gate/instrumentation.py": "6ca0d0dbd438a995bbad3931b28371176eef2163",
-    "experiments/E011-persistent-compilation-value-gate/preflight.py": "70d71506c17685413dab683780ca7894ccb481cc",
+    "experiments/E011-persistent-compilation-value-gate/preflight.py": "a93b23126eefdf22833a95b95be3666299fc8978",
     "experiments/E011-persistent-compilation-value-gate/preregistration-v0.md": "40046b0c754d4677d9d28a9b231c7b89ba48c0c8",
     "experiments/E011-persistent-compilation-value-gate/pre-scoring-red-team-v0.md": "d1a48b0bdfb6835501108d254e113185ac23e374",
     "experiments/E011-persistent-compilation-value-gate/retrieval-red-team-amendment-v1.md": "cd4eadd7bad57238568896fccb5c471807b598b5",
