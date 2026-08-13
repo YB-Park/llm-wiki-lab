@@ -1,6 +1,6 @@
 # E009A — Canonical Commit Boundary
 
-Status: **preregistered design phase; no scored run yet.**
+Status: **T-v1 preregistered and frozen; no scored run yet.**
 
 This is a focused activation of the existing E009 human-review/automation-boundary research axis after E007 exposed a more precise problem: semantic proposal quality and canonical mutation authority must be separated.
 
@@ -14,175 +14,121 @@ E009A does not attempt to choose the full wiki representation, retrieval stack, 
 
 When a proposed knowledge-state transition may be wrong, incomplete, over-conservative, or merely unusual, **what decision boundary should control mutation of canonical knowledge?**
 
-We want to distinguish:
+The central trade-off is not only `catch bad edits`. A policy can also fail by blocking good updates until the wiki becomes stale, by consuming too many verifier calls, or by creating excessive human-review burden.
 
-- safe autonomous commit,
-- quarantine/pending review,
-- retention of the previous canonical state,
-- explicit human review.
+## Stage A: controlled transition adjudication
 
-The central trade-off is not only `catch bad edits`. A policy can also fail by blocking good updates until the wiki becomes stale.
+Proposal generation is **not** part of the variable under test. Corpus T-v1 contains 40 fixed fictional transition cases in 20 paired scenarios: one evaluator-labeled safe candidate and one unsafe candidate share the same previous state, new evidence, and risk label.
 
-## Why this experiment is next
+The corpus was red-teamed before scoring. T-v0 was rejected because candidate length alone predicted the label at 92.5% and the safe candidate was longer in all 20 pairs. T-v1 rebalanced those surface cues and is now frozen by SHA-256 in `corpus/manifest.json`.
 
-E007 produced four observations that make this question urgent:
+Verifier-visible fields are only:
 
-1. provenance can be lost in canonical state under generic recursive rewriting;
-2. some failed answers occur even when canonical state remains correct enough;
-3. transition verification can remain unresolved while the state is still committed;
-4. a noisy or over-strict behavioral probe can trigger canonical mutation.
+- previous canonical state;
+- new authoritative evidence;
+- proposed next canonical state.
 
-Therefore `more verification` is not yet a sufficient design answer. We need to study **decision semantics after verification**.
-
-## Stage A only: controlled transition adjudication
-
-The first scored block is deliberately one-step and controlled.
-
-Proposal generation is **not** part of the variable under test. Each case provides a frozen previous state, new evidence, proposed next state, operation/risk metadata, and evaluator-only ground truth indicating whether the proposal is safe to commit.
-
-This isolates the commit/adjudication policy from stochastic proposal-generation quality.
-
-### Planned case balance
-
-Target: 40 fixed cases, balanced 20 safe / 20 unsafe before the first scored run.
-
-Safe cases should include:
-
-- additive exact information,
-- legitimate current-state supersession while preserving history,
-- correction of an earlier erroneous measurement,
-- preservation of unresolved disagreement,
-- legitimate restructure/rename that changes prose without semantic loss.
-
-Unsafe cases should include:
-
-- omission of important new evidence,
-- deletion of still-valid historical/qualifying information,
-- unsupported factual synthesis,
-- provenance/evidence-identity loss,
-- conflict/uncertainty flattening,
-- temporal boundary loss or incorrect overwrite.
-
-The exact case manifest is frozen before any scored model judgment is inspected.
+Gold label, risk label, fault class, scenario identity, and rationale remain hidden from the verifier.
 
 ## Policy conditions
 
-Stage A compares decision policies over the **same frozen proposal cases**.
+All policies are replayed over the same frozen two-pass judgment set. No automatic repair is performed in Stage A, so proposal quality is not confounded with adjudication quality.
 
 ### A0 — unconditional commit
 
 Always commit the proposed next state.
 
-Purpose: lower-bound safety / upper-bound automation.
+Purpose: no-gate safety baseline / maximum autonomy.
 
 ### A1 — single-verifier gate
 
-One blinded verifier judges the transition.
+One blinded verifier judges every transition.
 
-- `accept` -> commit
+- valid `accept` -> commit
 - `revise` or invalid verifier output -> quarantine
-
-No automatic repair is performed in Stage A. This isolates decision quality from repair quality.
 
 ### A2 — two-pass consensus gate
 
-Two independent blinded verifier passes evaluate the same frozen transition.
+Two separate blinded calls to the same pinned model judge every transition.
 
-- both `accept` -> commit
-- any `revise`, invalid output, or disagreement -> quarantine
+- both valid `accept` -> commit
+- otherwise -> quarantine
 
-Purpose: measure whether extra model work meaningfully reduces unsafe commits or mostly increases false blocking/cost.
+The two calls measure empirical repeatability; they are not treated as statistically independent experts.
 
-### A3 — risk-sensitive escalation
+### A3 — risk-sensitive tiered evidence
 
-A deterministic operation-risk label is supplied by the case manifest for this first controlled study; classifier quality is explicitly outside scope.
+A manifest-supplied operation-risk label is used only by the policy simulator; the verifier never sees it. Automatic risk-classifier quality is outside Stage A.
 
-- low-risk + verifier `accept` -> autonomous commit
-- destructive/temporal/provenance/conflict-sensitive operations -> simulated human review regardless of accept
-- any verifier `revise`/invalid -> simulated human review
+- **low risk** -> one verifier pass; valid `accept` may commit autonomously, otherwise oracle review
+- **elevated risk** -> two verifier passes; two valid accepts may commit autonomously, otherwise oracle review
+- **high risk** -> direct oracle review; no verifier call is needed by the counterfactual A3 deployment
 
-Human review is represented by evaluator-only ground truth in Stage A and is an **oracle upper-bound for adjudication**, not a claim that real humans are perfect.
-
-Purpose: test whether risk-sensitive review can approach oracle safety with materially lower review burden than reviewing everything.
+This policy tests whether stronger evidence can be required as semantic/destructive risk rises without routing every non-trivial update directly to a person.
 
 ### A4 — review all
 
 Every proposal receives simulated oracle review.
 
-Purpose: upper-bound decision quality / upper-bound review burden. This is not a production recommendation.
+This is an adjudication upper bound and review-burden reference, not a claim that real humans are perfect and not a production recommendation.
 
 ## Primary outcomes
 
-Report a Pareto frontier, not a single weighted score.
+Report a Pareto frontier rather than one weighted winner score:
 
-For every policy:
-
-- **unsafe commit rate**: unsafe proposals committed;
-- **safe auto-commit rate**: safe proposals committed without human review;
-- **safe blocked/quarantined rate**: good updates prevented from becoming canonical;
-- **review rate**: proportion requiring human review;
-- **quarantine rate**;
+- unsafe commits / unsafe cases;
+- safe autonomous commits / safe cases;
+- safe blocked / safe cases;
+- oracle review burden;
+- quarantine/final rejection burden;
 - verifier invalid/contract-failure rate;
-- model calls, input/output tokens, wall time;
-- results by fault/operation class.
+- model calls, adapter-level input/output tokens, and wall time;
+- outcomes by transition class and risk tier.
 
-Unsafe commit and blocked-good-update are intentionally reported separately. We will not hide the trade-off inside an arbitrary loss weight.
+Unsafe commit and blocked-good-update are intentionally separate. Safety bought entirely by staleness, review burden, or inference cost is not treated as free.
 
-## Secondary diagnostics
+## Frozen design artifacts
 
-- verifier agreement/disagreement by case class;
-- false positives on legitimate restructure/rename;
-- provenance-loss detection;
-- temporal/correction/change distinction;
-- conflict/uncertainty preservation;
-- whether the second verifier adds useful information conditional on the first pass;
-- marginal safety improvement per extra verifier call.
+- `preregistration-v0.md`
+- `pre-scoring-red-team-review-v0.md`
+- `corpus-red-team-amendment-v1.md`
+- `policy-red-team-amendment-v1.md`
+- `corpus/manifest.json` / Corpus T-v1
+- `run-plan-v1.json` / 80 interleaved calls
+- `prompts/transition-verifier.md`
+
+After `pre-run-freeze-v1.md` is recorded, semantic case text, gold labels, verifier prompt, and A0-A4 policy semantics are not changed based on scored outcomes. Infrastructure-only defects may be handled only through explicit amendments that preserve scored semantics and raw evidence.
 
 ## Explicit non-goals
 
 Stage A does **not** answer:
 
-- whether quarantine is better than rollback over many waves;
+- whether quarantine/rollback is sustainable over many waves;
 - how pending evidence should be reincorporated;
-- whether a staging buffer should exist;
+- whether staging/selective consolidation is the final maintenance algorithm;
 - whether Markdown pages or structured claims are the final representation;
-- how to classify risk automatically;
+- how operation risk should be classified automatically;
 - whether behavioral answer failures should trigger state repair;
-- whether a particular model generalizes across providers;
-- IDE review UX.
+- whether Luna's judgment behavior generalizes to other models;
+- real human-review accuracy/latency/UX;
+- final VS Code/Copilot workflow.
 
-Those become follow-ups only if Stage A identifies a useful boundary.
+## Follow-up trigger
 
-## Follow-up triggers
+Open E009B sequential commit/backlog study only if Stage A identifies a non-oracle boundary worth carrying forward. E009B would measure staleness, pending backlog, delayed reconsideration, and review batching over time.
 
-### Open E009B sequential commit/backlog study if
-
-one or more non-oracle policies materially reduce unsafe commits while retaining enough safe updates to justify studying long-horizon staleness/backlog behavior.
-
-E009B would compare `quarantine`, `retain previous state`, delayed reconsideration, and review batching over a sequential stream.
-
-### Open behavioral-alarm authorization study if
-
-transition adjudication looks tractable but E007's `answer failure -> canonical mutation` risk remains unresolved.
-
-That study must include known `state-good / answer-bad` and `state-bad / answer-bad` cases and compare direct repair against state diagnosis before mutation.
-
-### Stop/redirect if
-
-verifier-based policies are dominated by simple review or exhibit unacceptable false-blocking across legitimate safe transitions. In that case we should not add more verifier sophistication merely to preserve an attractive automation story.
+A separate behavioral-alarm authorization study remains justified if `answer failure -> canonical mutation` is still unresolved after transition adjudication.
 
 ## Experimental equipment
 
-The first block may use GPT-5.6 Luna because it is available in the actual managed environment and cheap enough for repeated controlled judgments. The model is experimental equipment, not an architecture decision.
+The first block uses GPT-5.6 Luna because it is available in the actual managed environment and cheap enough for repeated controlled judgments. The model is experimental equipment, not an architecture decision.
 
-If a headline result depends strongly on verifier behavior, replication with a second model is required before promoting the result to an architecture-level policy.
+If an architecture-relevant conclusion depends on a narrow verifier-behavior difference, replication with a second model is required before an ADR.
 
 ## Reporting/security boundary
 
-Raw model responses, local paths, telemetry, and environment metadata remain local to the execution environment.
-
-The harness should emit a minimal structured safe handoff containing only synthetic case IDs, aggregate counts, and normalized metrics. External transfer occurs only if permitted by organizational policy.
+Raw prompts, model responses, OTel, local paths, usernames/hostnames, and environment screenshots remain local. The normal successful runner emits a compact synthetic aggregate handoff only. External transfer occurs only if organizational policy permits it; see `docs/06-security-and-handoff-boundary.md`.
 
 ## Decision discipline
 
-No production policy is adopted from E009A alone. Any eventual automation/commit policy still requires an ADR with evidence, trade-offs, expected failure modes, and reversal conditions.
+No production policy is adopted from E009A alone. Any eventual automation/commit policy requires an ADR with evidence, trade-offs, expected failure modes, operational cost, and reversal conditions.
