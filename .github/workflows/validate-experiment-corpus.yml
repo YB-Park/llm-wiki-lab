@@ -10,6 +10,7 @@ on:
       - 'experiments/E007-long-horizon-contamination/condition-protocol-v0.md'
       - 'experiments/E007-long-horizon-contamination/scoring-protocol-v0.md'
       - 'experiments/E007-long-horizon-contamination/analysis-protocol-v0.md'
+      - 'experiments/E007-long-horizon-contamination/analysis-plan-v0.md'
       - 'experiments/E007-long-horizon-contamination/evaluator-profile-v0.md'
       - 'experiments/E007-long-horizon-contamination/execution-profile-v0.md'
       - 'experiments/E007-long-horizon-contamination/repetition-plan-v0.md'
@@ -24,6 +25,7 @@ on:
       - 'experiments/E007-long-horizon-contamination/condition-protocol-v0.md'
       - 'experiments/E007-long-horizon-contamination/scoring-protocol-v0.md'
       - 'experiments/E007-long-horizon-contamination/analysis-protocol-v0.md'
+      - 'experiments/E007-long-horizon-contamination/analysis-plan-v0.md'
       - 'experiments/E007-long-horizon-contamination/evaluator-profile-v0.md'
       - 'experiments/E007-long-horizon-contamination/execution-profile-v0.md'
       - 'experiments/E007-long-horizon-contamination/repetition-plan-v0.md'
@@ -58,6 +60,7 @@ jobs:
             experiments/E007-long-horizon-contamination/harness/evaluate_semantic.py \
             experiments/E007-long-horizon-contamination/harness/evaluate_family.py \
             experiments/E007-long-horizon-contamination/harness/summarize_family.py \
+            experiments/E007-long-horizon-contamination/harness/export_forensics.py \
             experiments/E007-long-horizon-contamination/harness/run_e007.py \
             experiments/E007-long-horizon-contamination/harness/run_family_n.py
 
@@ -112,14 +115,11 @@ jobs:
           sys.path.insert(0, 'experiments/E007-long-horizon-contamination/harness')
           from score_deterministic import extract_json_object
 
-          # Literal newline inside an already quoted JSON string: invalid under strict
-          # JSON, but accepted by the intentionally narrow transport fallback.
           transport_defect = '{"decision":"revise","coverage_issues":[],"preservation_issues":[],"faithfulness_issues":[{"description":"line one\nline two"}]}'
           parsed = extract_json_object(transport_defect)
           assert parsed['decision'] == 'revise'
           assert parsed['faithfulness_issues'][0]['description'] == 'line one\nline two'
 
-          # Structural corruption must remain a hard failure.
           malformed = '{"decision":"revise","coverage_issues": [}'
           try:
               extract_json_object(malformed)
