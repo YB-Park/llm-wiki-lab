@@ -1,6 +1,6 @@
 # E009A preregistration v0
 
-Status: **freeze before corpus scoring or model judgment.**
+Status: **freeze before corpus scoring or model judgment.** Pre-scoring amendments `corpus-red-team-amendment-v1.md` and `policy-red-team-amendment-v1.md` are part of this frozen design.
 
 ## Primary hypotheses
 
@@ -22,9 +22,9 @@ A2 is useful only if the second pass materially reduces unsafe commits or adjudi
 
 More calls are not assumed to mean more trust.
 
-### H4 — risk-sensitive escalation can reduce review burden without granting broad mutation authority
+### H4 — risk-sensitive evidence escalation can reduce review burden without granting broad mutation authority
 
-A3 may approach A4's unsafe-commit performance while requiring materially fewer oracle reviews by allowing only low-risk accepted transitions to auto-commit.
+A3 may approach A4's unsafe-commit performance with fewer oracle reviews by requiring one accept for low-risk operations, two accepts for elevated-risk operations, and direct review for high-risk operations.
 
 This is the main working hypothesis, not a favored conclusion.
 
@@ -117,14 +117,13 @@ Two-pass evaluation uses independent calls with identical evidence and no cross-
 
 ### A3
 
-A3 is **risk-first** so known elevated/high-risk operations are not sent through a verifier that cannot change their routing decision.
+A3 is **risk-first and tiered by evidence strength**.
 
-- `risk=elevated|high` -> `review` directly; no verifier call is required for the counterfactual A3 deployment cost;
-- `risk=low` -> run one verifier pass;
-- `risk=low` + valid `accept` -> `commit` autonomously;
-- `risk=low` + `revise`/invalid -> `review`.
+- `risk=low`: run pass 1; valid `accept` -> autonomous `commit`; `revise`/invalid -> `review`;
+- `risk=elevated`: run pass 1 and pass 2; both valid `accept` -> autonomous `commit`; otherwise -> `review`;
+- `risk=high`: direct `review`; no verifier call is required by the counterfactual A3 policy.
 
-The research block still generates pass-1/pass-2 judgments for every frozen case so verifier behavior can be compared on the same corpus. A3's reported model-call/token cost counts only the low-risk pass-1 judgments that the policy would actually need.
+The research block still generates pass-1/pass-2 judgments for every frozen case so verifier behavior and A1/A2/A3 can be compared on identical evidence. A3's reported model-call/token cost counts only the judgments its risk tier would actually require.
 
 `review` uses the gold safe/unsafe label only to simulate the final Stage-A adjudication outcome and to count review burden. The verifier never sees the label.
 
@@ -156,7 +155,7 @@ Number and proportion of cases routed to oracle review.
 
 ### quarantine burden
 
-Number and proportion of cases left uncommitted without oracle review.
+Number and proportion of cases left uncommitted after adjudication. For A1/A2 this is an unresolved automatic quarantine; for A3/A4 it is an oracle-reviewed rejection and should be interpreted separately from pending backlog.
 
 ## Primary reporting
 
@@ -168,7 +167,7 @@ Report:
 - safe autonomous commits / safe cases;
 - safe blocked / safe cases;
 - review count / all cases;
-- quarantine count / all cases;
+- quarantine/final rejection count / all cases;
 - model calls/tokens/latency;
 - exact 2x2 verifier confusion matrix;
 - outcomes by transition class;
