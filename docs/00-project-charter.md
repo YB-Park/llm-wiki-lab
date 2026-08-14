@@ -4,12 +4,16 @@
 
 Design and validate a personal LLM Wiki that can accumulate useful knowledge over long periods without quietly degrading into an opaque collection of stale, duplicated, or hallucinated documents.
 
+The **primary product target is VS Code**. The first-class experience should fit naturally into a developer's existing editor workflow rather than requiring a separate PKM application or a terminal-centric operating model.
+
 The target usage environment is primarily:
 
 - VS Code
 - Git/GitHub
 - GitHub Copilot
 - Markdown-first local files
+
+This is **VS Code-first, not VS Code-only**. Core storage, retrieval, provenance, evaluation, and maintenance logic should remain editor-agnostic where practical so that later CLI, web, other-editor, or service surfaces can reuse the same trustworthy substrate. The CLI is therefore an implementation/testing substrate and fallback surface, not the intended long-term primary UX.
 
 Additional infrastructure such as embeddings, databases, knowledge graphs, MCP servers, or scheduled maintenance may be introduced only when there is a demonstrated need.
 
@@ -25,6 +29,8 @@ The system should improve a person's ability to:
 6. inspect and repair the system when it makes mistakes.
 
 Convenience matters, but trustworthy compounding is the primary objective.
+
+For product-facing work, convenience should be evaluated in the actual **VS Code interaction loop**: commands, editor context, source navigation, provenance inspection, and Copilot-assisted answering should not require repeated context switching to a separate application or verbose terminal ceremony.
 
 ## 3. Non-goals for the initial phase
 
@@ -121,6 +127,10 @@ Repeated failure modes should become explicit rules, tests, or an error book rat
 ### P-H8. Human review should be risk-sensitive
 
 Not every change needs the same approval burden. Destructive, high-impact, or evidence-changing operations should receive more scrutiny than additive low-risk changes.
+
+### P-H9. VS Code is the first-class interaction surface
+
+Product UX should be designed and evaluated first in VS Code. Editor integration should expose the trustworthy core rather than duplicate its semantics. Do not make architectural truth depend on VS Code APIs, but do not accept a terminal-only workflow as the intended finished experience.
 
 ## 6. Success criteria
 
