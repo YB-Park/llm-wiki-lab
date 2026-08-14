@@ -7,6 +7,7 @@ const { promisify } = require('node:util');
 const vscode = require('vscode');
 const base = require('./extension');
 const { classifyGitSafety } = require('./git-safety');
+const { discoverCopilotModels } = require('./lm-discovery');
 
 const execFileAsync = promisify(execFile);
 let doctorOutput;
@@ -53,8 +54,6 @@ async function doctor(context) {
   const root = wikiRoot(folder);
   const pythonReady = await executableAvailable(python, ['--version'], folder.uri.fsPath);
 
-  // Reuse the real extension -> Python-core command boundary. This may initialize
-  // empty local workspace metadata, but it ingests nothing and makes no model call.
   if (pythonReady) await vscode.commands.executeCommand('llmWiki.init');
 
   let coreReady = false;
@@ -110,11 +109,31 @@ async function doctor(context) {
   };
 }
 
+async function discoverModels() {
+  const report = await discoverCopilotModels();
+  const doc = await vscode.workspace.openTextDocument({
+    content: `${JSON.stringify(report, null, 2)}\n`,
+    language: 'json',
+  });
+  await vscode.window.showTextDocument(doc, { preview: true });
+
+  if (!report.apiAvailable) {
+    vscode.window.showWarningMessage('LLM Wiki LM spike: VS Code Language Model API is unavailable in this session. No generation call was made.');
+  } else if (!report.exactLuna.exactMetadataSignal) {
+    vscode.window.showWarningMessage('LLM Wiki LM spike: no exact gpt-5.6-luna id/family signal was found. No fallback and no generation call were used.');
+  } else {
+    vscode.window.showInformationMessage('LLM Wiki LM spike: exact gpt-5.6-luna metadata signal found. Generation calls remain disabled in this discovery step.');
+  }
+
+  return report;
+}
+
 async function activate(context) {
   await base.activate(context);
   doctorOutput = vscode.window.createOutputChannel('LLM Wiki Doctor');
   context.subscriptions.push(doctorOutput);
   context.subscriptions.push(vscode.commands.registerCommand('llmWiki.doctor', () => doctor(context)));
+  context.subscriptions.push(vscode.commands.registerCommand('llmWiki.experimentalDiscoverCopilotModels', () => discoverModels()));
 }
 
 function deactivate() {
