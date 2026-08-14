@@ -6,17 +6,14 @@ const path = require('node:path');
 const vscode = require('vscode');
 
 async function stage(label, promise, timeoutMs = 8000) {
-  console.log(`VS-RUNTIME-STAGE start=${label}`);
   let timer;
   try {
-    const result = await Promise.race([
+    return await Promise.race([
       Promise.resolve(promise),
       new Promise((_, reject) => {
         timer = setTimeout(() => reject(new Error(`VS-RUNTIME-STAGE timeout=${label}`)), timeoutMs);
       }),
     ]);
-    console.log(`VS-RUNTIME-STAGE pass=${label}`);
-    return result;
   } finally {
     if (timer) clearTimeout(timer);
   }
