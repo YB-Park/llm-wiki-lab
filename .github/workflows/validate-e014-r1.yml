@@ -1,0 +1,64 @@
+name: Discover E014 R1 freeze hashes
+
+on:
+  push:
+    branches:
+      - experiment/e014-r1-rank-expand
+    paths:
+      - 'experiments/E014-r1-rank-expand/**'
+      - 'dogfood/**'
+      - '.github/workflows/validate-e014-r1.yml'
+  pull_request:
+    paths:
+      - 'experiments/E014-r1-rank-expand/**'
+      - 'dogfood/**'
+      - '.github/workflows/validate-e014-r1.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  hash-discovery:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Compile R1 and current core
+        run: python3 -m compileall -q dogfood experiments/E014-r1-rank-expand
+
+      - name: Existing core regression tests
+        run: python3 -m unittest discover -s dogfood/tests -v
+
+      - name: Generator-only held-out corpus hash discovery
+        working-directory: experiments/E014-r1-rank-expand
+        run: python3 generate_corpus.py
+
+      - name: Write candidate freeze hash manifest
+        run: |
+          {
+            echo 'E014-R1-FREEZE-HASH-DISCOVERY-v0'
+            python3 experiments/E014-r1-rank-expand/generate_corpus.py
+            sha256sum \
+              experiments/E014-r1-rank-expand/generate_corpus.py \
+              experiments/E014-r1-rank-expand/retrieval_r1.py \
+              experiments/E014-r1-rank-expand/analysis_r1.py \
+              experiments/E014-r1-rank-expand/validate_prescore.py
+            echo 'heldoutScoring=disabled modelCalls=0'
+          } > /tmp/e014-r1-freeze-hashes.txt
+          cat /tmp/e014-r1-freeze-hashes.txt
+
+      - name: Assert hash-discovery workflow cannot score held-out R1
+        run: |
+          if grep -nE 'python3[[:space:]]+analysis_r1\.py|analysis_r1\.py[[:space:]]+--out' .github/workflows/validate-e014-r1.yml; then
+            echo 'E014-R1-HASH-DISCOVERY-STOP scoring command present before freeze'
+            exit 1
+          fi
+          echo 'E014-R1-HASH-DISCOVERY-ONLY heldoutScoring=disabled modelCalls=0'
+
+      - name: Preserve freeze hash manifest
+        uses: actions/upload-artifact@v7
+        with:
+          name: e014-r1-freeze-hashes
+          path: /tmp/e014-r1-freeze-hashes.txt
+          if-no-files-found: error
+          retention-days: 30
