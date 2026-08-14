@@ -3,14 +3,17 @@
 
 from __future__ import annotations
 
-import sys
+import importlib.util
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 E011 = ROOT.parent / "E011-persistent-compilation-value-gate"
-sys.path.insert(0, str(E011))
 
-import stage1a_core as e011_core  # type: ignore
+spec = importlib.util.spec_from_file_location("e012_e011_stage1a_core", E011 / "stage1a_core.py")
+if spec is None or spec.loader is None:
+    raise RuntimeError("cannot load E011 stage1a core")
+e011_core = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(e011_core)
 
 
 def raw_context(docs: list[dict]) -> str:
