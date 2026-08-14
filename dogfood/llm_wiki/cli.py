@@ -31,8 +31,10 @@ from .store import (
     ingest_file,
     read_text,
     source_status,
+    sources,
     supersede_source,
 )
+from .temporal import change_source, correct_source, dispute_sources, temporal_source_status
 
 
 def _root(value: str) -> Path:
@@ -140,6 +142,11 @@ def parser() -> argparse.ArgumentParser:
     )
     _add_topic_and_class_args(srch)
 
+    discover = sub.add_parser("discover")
+    discover.add_argument("query")
+    discover.add_argument("--top-k-per-topic", type=int, default=3)
+    discover.add_argument("--json", action="store_true")
+
     ctx = sub.add_parser("context")
     ctx.add_argument("query")
     ctx.add_argument("--top-k", type=int, default=8)
@@ -170,6 +177,11 @@ def parser() -> argparse.ArgumentParser:
     source_show.add_argument("source_id")
     source_show.add_argument("--topic", help="scope source and record a local provenance-follow event")
 
+    source_list = source_sub.add_parser("list")
+    source_list.add_argument("--topic", required=True, help="topic label or opaque topic ID")
+    source_list.add_argument("--json", action="store_true")
+    source_list.add_argument("--include-superseded", action="store_true")
+
     source_status_cmd = source_sub.add_parser("status")
     source_status_cmd.add_argument("source_id")
     source_status_cmd.add_argument("--topic", required=True, help="topic label or opaque topic ID")
@@ -178,6 +190,22 @@ def parser() -> argparse.ArgumentParser:
     source_supersede.add_argument("predecessor_source_id")
     source_supersede.add_argument("successor_source_id")
     source_supersede.add_argument("--topic", required=True, help="topic label or opaque topic ID")
+
+    source_correct = source_sub.add_parser("correct")
+    source_correct.add_argument("predecessor_source_id")
+    source_correct.add_argument("successor_source_id")
+    source_correct.add_argument("--topic", required=True, help="topic label or opaque topic ID")
+
+    source_change = source_sub.add_parser("change")
+    source_change.add_argument("predecessor_source_id")
+    source_change.add_argument("successor_source_id")
+    source_change.add_argument("--topic", required=True, help="topic label or opaque topic ID")
+    source_change.add_argument("--effective-at", required=True, help="timezone-aware ISO-8601 effective instant")
+
+    source_dispute = source_sub.add_parser("dispute")
+    source_dispute.add_argument("left_source_id")
+    source_dispute.add_argument("right_source_id")
+    source_dispute.add_argument("--topic", required=True, help="topic label or opaque topic ID")
 
     feedback = sub.add_parser("feedback")
     feedback.add_argument("outcome", choices=("helpful", "not_helpful"))
@@ -299,6 +327,44 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"   {snippet}")
         return 0
 
+    if args.command == "discover":
+        ensure_workspace(root)
+        any_hits = False
+        for topic_row in topics(root):
+            topic_id = topic_row["topic_id"]
+            hits = search(
+                root,
+                args.query,
+                top_k=max(0, args.top_k_per_topic),
+                topic_id=topic_id,
+                include_superseded=False,
+            )
+            for hit in hits:
+                any_hits = True
+                row = {
+                    "topic_id": topic_id,
+                    "topic_label": topic_row["label"],
+                    "source_id": hit.source.source_id,
+                    "source_ids": list(hit.source_ids),
+                    "object_id": hit.object_id,
+                    "sha256": hit.source.sha256,
+                    "name": hit.source.name,
+                    "names": sorted({src.name for src in hit.evidence_sources}),
+                    "score": hit.score,
+                    "snippet": hit.snippet,
+                }
+                if args.json:
+                    print(json.dumps(row, ensure_ascii=False, sort_keys=True))
+                else:
+                    print(
+                        f"topic={json.dumps(topic_row['label'], ensure_ascii=False)} "
+                        f"source={hit.source.source_id} score={hit.score:.6f} name={hit.source.name}"
+                    )
+                    print(f"   {' '.join(hit.snippet.split())}")
+        if not any_hits and not args.json:
+            print("DISCOVER no_current_topic_hits")
+        return 0
+
     if args.command == "context":
         topic_id = _resolved_topic_id(root, args.topic)
         if topic_id is not None:
@@ -391,11 +457,36 @@ def main(argv: list[str] | None = None) -> int:
             print(read_text(src))
             return 0
 
+        if args.source_command == "list":
+            topic_id = _resolved_topic_id(root, args.topic)
+            assert topic_id is not None
+            try:
+                rows = sources(root, topic_id=topic_id, include_superseded=args.include_superseded)
+                states = [temporal_source_status(root, src.source_id, topic_id=topic_id) for src in rows]
+            except (ValueError, RuntimeError) as exc:
+                raise SystemExit(f"SOURCE-STOP {exc}") from None
+            for src, state in zip(rows, states):
+                row = {
+                    "source_id": src.source_id,
+                    "object_id": src.object_id,
+                    "sha256": src.sha256,
+                    "name": src.name,
+                    **state,
+                }
+                if args.json:
+                    print(json.dumps(row, ensure_ascii=False, sort_keys=True))
+                else:
+                    print(
+                        f"SOURCE {src.source_id} status={state['status']} "
+                        f"contested={'yes' if state['contested'] else 'no'} name={src.name}"
+                    )
+            return 0
+
         if args.source_command == "status":
             topic_id = _resolved_topic_id(root, args.topic)
             assert topic_id is not None
             try:
-                state = source_status(root, args.source_id, topic_id=topic_id)
+                state = temporal_source_status(root, args.source_id, topic_id=topic_id)
             except (ValueError, RuntimeError) as exc:
                 raise SystemExit(f"SOURCE-STOP {exc}") from None
             print(json.dumps(state, sort_keys=True))
@@ -417,6 +508,48 @@ def main(argv: list[str] | None = None) -> int:
                 f"SUPERSEDE predecessor={args.predecessor_source_id} successor={args.successor_source_id} "
                 f"scope=topic created={'yes' if created else 'no'}"
             )
+            return 0
+
+        if args.source_command in {"correct", "change", "dispute"}:
+            topic_id = _resolved_topic_id(root, args.topic)
+            assert topic_id is not None
+            try:
+                if args.source_command == "correct":
+                    created = correct_source(
+                        root,
+                        args.predecessor_source_id,
+                        args.successor_source_id,
+                        topic_id=topic_id,
+                    )
+                    print(
+                        f"CORRECTION predecessor={args.predecessor_source_id} successor={args.successor_source_id} "
+                        f"scope=topic created={'yes' if created else 'no'}"
+                    )
+                elif args.source_command == "change":
+                    created = change_source(
+                        root,
+                        args.predecessor_source_id,
+                        args.successor_source_id,
+                        topic_id=topic_id,
+                        effective_at=args.effective_at,
+                    )
+                    print(
+                        f"CHANGE predecessor={args.predecessor_source_id} successor={args.successor_source_id} "
+                        f"effectiveAt={args.effective_at} scope=topic created={'yes' if created else 'no'}"
+                    )
+                else:
+                    created = dispute_sources(
+                        root,
+                        args.left_source_id,
+                        args.right_source_id,
+                        topic_id=topic_id,
+                    )
+                    print(
+                        f"DISPUTE left={args.left_source_id} right={args.right_source_id} "
+                        f"scope=topic created={'yes' if created else 'no'}"
+                    )
+            except (ValueError, RuntimeError) as exc:
+                raise SystemExit(f"SOURCE-STOP {exc}") from None
             return 0
         raise AssertionError(args.source_command)
 

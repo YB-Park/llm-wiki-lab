@@ -5,10 +5,12 @@ const path = require('node:path');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const vscode = require('vscode');
+const { locatorForRow, parseIngestReceipt, resolveWorkspaceRelative, sha256, workspaceRelativePath } = require('./product-helpers');
 
 const execFileAsync = promisify(execFile);
 const SOURCE_SCHEME = 'llm-wiki-source';
 const SELECTED_TOPIC_KEY = 'llmWiki.selectedTopic';
+const SOURCE_LOCATORS_KEY = 'llmWiki.sourceLocators.v1';
 const MAX_BUFFER = 16 * 1024 * 1024;
 const QUERY_CLASSES = new Set(['exact_provenance', 'synthesis', 'decision_history', 'other']);
 
@@ -95,6 +97,26 @@ function parseJsonLines(stdout) {
 
 function workspaceTopicKey(folder) {
   return `${SELECTED_TOPIC_KEY}:${folder.uri.toString()}`;
+}
+
+function workspaceLocatorKey(folder) {
+  return `${SOURCE_LOCATORS_KEY}:${folder.uri.toString()}`;
+}
+
+function sourceLocators(context, folder) {
+  return context.workspaceState.get(workspaceLocatorKey(folder), {});
+}
+
+async function rememberSourceLocator(context, folder, sourceId, filePath, digest) {
+  const relativePath = workspaceRelativePath(folder.uri.fsPath, filePath);
+  if (!sourceId || !relativePath || !digest) return;
+  const next = { ...sourceLocators(context, folder), [sourceId]: { relativePath, sha256: digest } };
+  await context.workspaceState.update(workspaceLocatorKey(folder), next);
+}
+
+function displayLocator(context, folder, row) {
+  const locator = locatorForRow(sourceLocators(context, folder), row);
+  return locator ? locator.relativePath : (row.name || row.source_id || 'source');
 }
 
 async function setSelectedTopic(context, folder, topic) {
@@ -222,7 +244,24 @@ function languageForName(name) {
   return mapping[ext] || 'plaintext';
 }
 
-async function openSource(context, folder, topic, row) {
+async function openSource(context, folder, topic, row, options = {}) {
+  const preferWorkspaceFile = options.preferWorkspaceFile !== false;
+  const locator = preferWorkspaceFile ? locatorForRow(sourceLocators(context, folder), row) : undefined;
+  if (locator) {
+    const target = resolveWorkspaceRelative(folder.uri.fsPath, locator.relativePath);
+    if (target && fs.existsSync(target) && fs.statSync(target).isFile()) {
+      const digest = sha256(fs.readFileSync(target));
+      if (digest === (row.sha256 || locator.sha256)) {
+        const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(target));
+        await vscode.window.showTextDocument(doc, { preview: true });
+        return;
+      }
+      vscode.window.showWarningMessage(
+        `LLM Wiki: ${locator.relativePath} changed after ingest; opening immutable evidence snapshot instead.`
+      );
+    }
+  }
+
   const uri = sourceUri(folder, topic, row);
   let doc = await vscode.workspace.openTextDocument(uri);
   const language = languageForName(row.name);
@@ -248,7 +287,11 @@ async function ingestActive(context, authoritativeUpdate) {
   if (!topic) return;
   const args = ['ingest', editor.document.uri.fsPath, '--topic', topic.id];
   if (authoritativeUpdate) args.push('--authoritative-update');
-  await runCli(context, folder, args);
+  const stdout = await runCli(context, folder, args);
+  const receipt = parseIngestReceipt(stdout);
+  if (receipt) {
+    await rememberSourceLocator(context, folder, receipt.sourceId, editor.document.uri.fsPath, receipt.sha256);
+  }
   const mode = authoritativeUpdate ? 'authoritative update' : 'evidence';
   vscode.window.showInformationMessage(`LLM Wiki ingested ${path.basename(editor.document.uri.fsPath)} as ${mode} for ${topic.label}.`);
 }
@@ -278,7 +321,7 @@ async function searchTopic(context, options = {}) {
   output.appendLine(`Query: ${query.trim()}`);
   output.appendLine('');
   for (const row of rows) {
-    output.appendLine(`${row.name}  score=${Number(row.score).toFixed(6)}  ${row.source_id}`);
+    output.appendLine(`${displayLocator(context, folder, row)}  score=${Number(row.score).toFixed(6)}  ${row.source_id}`);
     output.appendLine(String(row.snippet || '').replace(/\s+/g, ' '));
     output.appendLine('');
   }
@@ -290,13 +333,13 @@ async function searchTopic(context, options = {}) {
   }
 
   if (options && options.openFirstResult === true) {
-    await openSource(context, folder, topic, rows[0]);
+    await openSource(context, folder, topic, rows[0], { preferWorkspaceFile: false });
     return;
   }
 
   const picked = await vscode.window.showQuickPick(
     rows.map((row) => ({
-      label: row.name,
+      label: displayLocator(context, folder, row),
       description: `${Number(row.score).toFixed(4)} · ${row.source_id}`,
       detail: String(row.snippet || '').replace(/\s+/g, ' '),
       row,
@@ -310,6 +353,167 @@ async function searchTopic(context, options = {}) {
     }
   );
   if (picked) await openSource(context, folder, topic, picked.row);
+}
+
+async function discoverAcrossTopics(context, options = {}) {
+  const folder = firstWorkspaceFolder();
+  const suppliedQuery = options && typeof options.query === 'string' ? options.query.trim() : '';
+  const query = suppliedQuery || await vscode.window.showInputBox({
+    title: 'LLM Wiki: Find Evidence Across Topics',
+    prompt: 'Discovery searches each topic current view. It does not count as an E013 visit.',
+    ignoreFocusOut: true,
+  });
+  if (!query || !query.trim()) return;
+
+  const rows = parseJsonLines(await runCli(context, folder, ['discover', query.trim(), '--json']));
+  rows.sort((a, b) => Number(b.score) - Number(a.score));
+  if (!rows.length) {
+    vscode.window.showInformationMessage('LLM Wiki found no current evidence across topics.');
+    return;
+  }
+
+  if (options && options.openFirstResult === true) {
+    const row = rows[0];
+    const topic = { id: row.topic_id, label: row.topic_label };
+    await setSelectedTopic(context, folder, topic);
+    await openSource(context, folder, topic, row, { preferWorkspaceFile: false });
+    return;
+  }
+
+  const picked = await vscode.window.showQuickPick(
+    rows.map((row) => ({
+      label: displayLocator(context, folder, row),
+      description: `${row.topic_label} · ${Number(row.score).toFixed(4)}`,
+      detail: String(row.snippet || '').replace(/\s+/g, ' '),
+      row,
+    })),
+    {
+      title: 'LLM Wiki: Find Evidence Across Topics',
+      placeHolder: 'Choose current evidence; selecting it switches the active topic',
+      matchOnDescription: true,
+      matchOnDetail: true,
+      ignoreFocusOut: true,
+    }
+  );
+  if (!picked) return;
+  const topic = { id: picked.row.topic_id, label: picked.row.topic_label };
+  await setSelectedTopic(context, folder, topic);
+  await openSource(context, folder, topic, picked.row);
+}
+
+async function currentSources(context, folder, topic) {
+  return parseJsonLines(await runCli(context, folder, ['source', 'list', '--topic', topic.id, '--json']));
+}
+
+async function pickSource(context, folder, topic, title, excludeSourceId) {
+  const rows = (await currentSources(context, folder, topic)).filter((row) => row.source_id !== excludeSourceId);
+  const picked = await vscode.window.showQuickPick(
+    rows.map((row) => ({
+      label: displayLocator(context, folder, row),
+      description: `${row.contested ? 'contested · ' : ''}${row.source_id}`,
+      row,
+    })),
+    { title, placeHolder: 'Choose an explicit current evidence revision', ignoreFocusOut: true }
+  );
+  return picked ? picked.row : undefined;
+}
+
+async function markCorrection(context) {
+  const folder = firstWorkspaceFolder();
+  const topic = await selectTopic(context, folder);
+  if (!topic) return;
+  const predecessor = await pickSource(context, folder, topic, 'LLM Wiki: Correction — incorrect predecessor');
+  if (!predecessor) return;
+  const successor = await pickSource(context, folder, topic, 'LLM Wiki: Correction — correcting successor', predecessor.source_id);
+  if (!successor) return;
+  const approved = await vscode.window.showWarningMessage(
+    `Mark ${predecessor.name} as erroneous and ${successor.name} as its correction?`,
+    { modal: true }, 'Record Correction'
+  );
+  if (approved !== 'Record Correction') return;
+  await runCli(context, folder, ['source', 'correct', predecessor.source_id, successor.source_id, '--topic', topic.id]);
+  vscode.window.showInformationMessage('LLM Wiki recorded explicit correction. Raw/history remain preserved.');
+}
+
+async function markChange(context) {
+  const folder = firstWorkspaceFolder();
+  const topic = await selectTopic(context, folder);
+  if (!topic) return;
+  const predecessor = await pickSource(context, folder, topic, 'LLM Wiki: Change — earlier state');
+  if (!predecessor) return;
+  const successor = await pickSource(context, folder, topic, 'LLM Wiki: Change — later state', predecessor.source_id);
+  if (!successor) return;
+  const effectiveAt = await vscode.window.showInputBox({
+    title: 'LLM Wiki: Change — effective time',
+    prompt: 'Timezone-aware ISO 8601 instant, e.g. 2026-08-01T09:00:00+09:00',
+    ignoreFocusOut: true,
+    validateInput: (value) => value.trim() ? undefined : 'Effective time is required.',
+  });
+  if (!effectiveAt) return;
+  await runCli(context, folder, [
+    'source', 'change', predecessor.source_id, successor.source_id,
+    '--topic', topic.id, '--effective-at', effectiveAt.trim(),
+  ]);
+  vscode.window.showInformationMessage('LLM Wiki recorded explicit change-over-time. Raw/history remain preserved.');
+}
+
+async function markDispute(context) {
+  const folder = firstWorkspaceFolder();
+  const topic = await selectTopic(context, folder);
+  if (!topic) return;
+  const left = await pickSource(context, folder, topic, 'LLM Wiki: Dispute — first current evidence');
+  if (!left) return;
+  const right = await pickSource(context, folder, topic, 'LLM Wiki: Dispute — conflicting current evidence', left.source_id);
+  if (!right) return;
+  const approved = await vscode.window.showWarningMessage(
+    `Record unresolved disagreement between ${left.name} and ${right.name}? Neither becomes the winner.`,
+    { modal: true }, 'Record Dispute'
+  );
+  if (approved !== 'Record Dispute') return;
+  await runCli(context, folder, ['source', 'dispute', left.source_id, right.source_id, '--topic', topic.id]);
+  vscode.window.showInformationMessage('LLM Wiki recorded unresolved dispute; both evidence revisions remain current.');
+}
+
+async function recordFeedback(context, topic, presetOutcome) {
+  const folder = firstWorkspaceFolder();
+  const activeTopic = topic || await selectTopic(context, folder);
+  if (!activeTopic) return;
+  let outcome = presetOutcome;
+  if (!outcome) {
+    const picked = await vscode.window.showQuickPick(
+      [
+        { label: 'Helpful', value: 'helpful' },
+        { label: 'Not helpful', value: 'not_helpful' },
+      ],
+      { title: 'LLM Wiki: Feedback', placeHolder: 'Fixed-code local feedback only', ignoreFocusOut: true }
+    );
+    if (!picked) return;
+    outcome = picked.value;
+  }
+  const reasons = outcome === 'helpful'
+    ? [
+        { label: 'Correct', value: 'correct' },
+        { label: 'Helped find the source', value: 'found_source' },
+        { label: 'Other', value: 'other' },
+        { label: 'Skip reason', value: undefined },
+      ]
+    : [
+        { label: 'Missing source', value: 'missing_source' },
+        { label: 'Wrong', value: 'wrong' },
+        { label: 'Incomplete', value: 'incomplete' },
+        { label: 'Other', value: 'other' },
+        { label: 'Skip reason', value: undefined },
+      ];
+  const pickedReason = await vscode.window.showQuickPick(reasons, {
+    title: 'LLM Wiki: Feedback reason (optional)',
+    placeHolder: 'No free text is stored',
+    ignoreFocusOut: true,
+  });
+  if (!pickedReason) return;
+  const args = ['feedback', outcome, '--topic', activeTopic.id];
+  if (pickedReason.value) args.push('--reason', pickedReason.value);
+  await runCli(context, folder, args);
+  vscode.window.showInformationMessage('LLM Wiki recorded local fixed-code feedback.');
 }
 
 async function askLuna(context) {
@@ -358,6 +562,12 @@ async function askLuna(context) {
   output.appendLine('');
   output.append(stdout.trim());
   output.show(true);
+
+  const feedback = await vscode.window.showInformationMessage(
+    'Was this LLM Wiki answer useful?', 'Helpful', 'Not helpful'
+  );
+  if (feedback === 'Helpful') await recordFeedback(context, topic, 'helpful');
+  if (feedback === 'Not helpful') await recordFeedback(context, topic, 'not_helpful');
 }
 
 async function showCalibration(context) {
@@ -425,6 +635,11 @@ function activate(context) {
   register('llmWiki.ingestActiveFile', () => ingestActive(context, false));
   register('llmWiki.ingestAuthoritativeUpdate', () => ingestActive(context, true));
   register('llmWiki.search', (options) => searchTopic(context, options || {}));
+  register('llmWiki.discoverAcrossTopics', (options) => discoverAcrossTopics(context, options || {}));
+  register('llmWiki.markCorrection', () => markCorrection(context));
+  register('llmWiki.markChange', () => markChange(context));
+  register('llmWiki.markDispute', () => markDispute(context));
+  register('llmWiki.feedback', () => recordFeedback(context));
   register('llmWiki.ask', () => askLuna(context));
   register('llmWiki.calibration', () => showCalibration(context));
 
