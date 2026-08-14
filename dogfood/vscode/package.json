@@ -85,6 +85,11 @@
     }
   },
   "scripts": {
-    "check": "node --check extension.js && node test/static.js"
+    "check": "node --check extension.js && node test/static.js",
+    "test:integration": "vscode-test --label runtime"
+  },
+  "devDependencies": {
+    "@vscode/test-cli": "0.0.6",
+    "@vscode/test-electron": "2.4.0"
   }
 }
