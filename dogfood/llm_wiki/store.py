@@ -35,7 +35,7 @@ def _source_id(sha256: str) -> str:
     return f"src-{sha256[:16]}"
 
 
-def ingest_file(root: Path, file_path: Path) -> tuple[Source, bool]:
+def ingest_file(root: Path, file_path: Path, *, topic_id: str | None = None) -> tuple[Source, bool]:
     ensure_workspace(root)
     data = file_path.read_bytes()
     try:
@@ -62,6 +62,8 @@ def ingest_file(root: Path, file_path: Path) -> tuple[Source, bool]:
         "size_bytes": len(data),
         "duplicate_content": duplicate,
     }
+    if topic_id is not None:
+        event["topic_id"] = topic_id
     with (root / "manifest.jsonl").open("a", encoding="utf-8") as f:
         f.write(json.dumps(event, sort_keys=True, ensure_ascii=False) + "\n")
 
@@ -79,11 +81,14 @@ def history(root: Path) -> list[dict]:
     return rows
 
 
-def sources(root: Path) -> list[Source]:
+def sources(root: Path, *, topic_id: str | None = None) -> list[Source]:
     latest: dict[str, dict] = {}
     for event in history(root):
-        if event.get("event") == "ingest":
-            latest[event["source_id"]] = event
+        if event.get("event") != "ingest":
+            continue
+        if topic_id is not None and event.get("topic_id") != topic_id:
+            continue
+        latest[event["source_id"]] = event
     out = []
     for sid, event in sorted(latest.items()):
         raw = root / "raw" / f"{event['sha256']}.txt"
@@ -91,6 +96,14 @@ def sources(root: Path) -> list[Source]:
             raise RuntimeError(f"missing_raw_object:{sid}")
         out.append(Source(sid, event["sha256"], event["name"], int(event["size_bytes"]), raw))
     return out
+
+
+def find_source(root: Path, source_id: str, *, topic_id: str | None = None) -> Source:
+    matches = [src for src in sources(root, topic_id=topic_id) if src.source_id == source_id]
+    if len(matches) != 1:
+        scope = topic_id if topic_id is not None else "all"
+        raise ValueError(f"source_not_found:{source_id}:scope={scope}")
+    return matches[0]
 
 
 def read_text(source: Source) -> str:
