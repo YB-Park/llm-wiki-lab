@@ -5,6 +5,7 @@ from pathlib import Path
 
 from .jsonl_log import audit_canonical_logs
 from .store import verify_raw_integrity
+from .workspace_loss import missing_manifest_is_state_loss
 
 
 def audit_alpha_integrity(root: Path) -> dict:
@@ -16,22 +17,15 @@ def audit_alpha_integrity(root: Path) -> dict:
     than guessing at source identity from surviving raw files or a partial log.
     """
     config_present = (root / "config.json").is_file()
-    raw_dir = root / "raw"
-    raw_dir_present = raw_dir.is_dir()
-    surviving_raw = raw_dir_present and any(child.is_file() for child in raw_dir.iterdir())
+    raw_dir_present = (root / "raw").is_dir()
     manifest_present = (root / "manifest.jsonl").is_file()
     initialized = config_present and raw_dir_present and manifest_present
+    manifest_loss = missing_manifest_is_state_loss(root)
 
     canonical_report = audit_canonical_logs(root)
     canonical = asdict(canonical_report)
 
-    # Config is the normal durable initialization marker. Surviving raw objects
-    # are an independent prior-use signal because raw publication occurs only
-    # after initialization has created canonical workspace state.
-    if not manifest_present and (config_present or surviving_raw):
-        canonical["manifest"]["status"] = "missing"
-        canonical["manifest"]["ok"] = False
-        canonical["ok"] = False
+    if manifest_loss:
         raw: dict = {"status": "not_checked_manifest_missing", "ok": False}
     elif not initialized:
         raw = {"status": "not_checked_uninitialized", "ok": False}
