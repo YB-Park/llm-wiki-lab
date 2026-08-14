@@ -1,6 +1,8 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const vscode = require('vscode');
 
 suite('LLM Wiki Dogfood Extension Host', () => {
@@ -24,5 +26,20 @@ suite('LLM Wiki Dogfood Extension Host', () => {
     ]) {
       assert.ok(commands.has(command), `missing runtime command: ${command}`);
     }
+  });
+
+  test('executes Initialize Workspace through the editor-to-core bridge', async () => {
+    const folder = (vscode.workspace.workspaceFolders || [])[0];
+    assert.ok(folder, 'integration test workspace is not open');
+    const wikiRoot = path.join(folder.uri.fsPath, '.wiki-lab');
+    fs.rmSync(wikiRoot, { recursive: true, force: true });
+
+    await vscode.commands.executeCommand('llmWiki.init');
+
+    const configPath = path.join(wikiRoot, 'config.json');
+    assert.ok(fs.existsSync(configPath), 'VS Code command did not initialize the local wiki core');
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    assert.equal(config.compiled_provider, 'disabled');
+    assert.equal(config.format, 'llm-wiki-dogfood-v0');
   });
 });
