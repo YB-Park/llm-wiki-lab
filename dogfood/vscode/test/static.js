@@ -6,6 +6,7 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+const entry = fs.readFileSync(path.join(root, 'entry.js'), 'utf8');
 const extension = fs.readFileSync(path.join(root, 'extension.js'), 'utf8');
 const bundler = fs.readFileSync(path.join(root, 'scripts', 'bundle-core.js'), 'utf8');
 
@@ -23,8 +24,10 @@ for (const command of [
   assert(commands.has(command), `missing command: ${command}`);
   assert(extension.includes(`'${command}'`), `command not wired in extension.js: ${command}`);
 }
+assert(commands.has('llmWiki.doctor'), 'missing Doctor command');
+assert(entry.includes("'llmWiki.doctor'"), 'Doctor command not wired in entry.js');
 
-assert.equal(manifest.main, './extension.js');
+assert.equal(manifest.main, './entry.js');
 assert.equal(manifest.private, true);
 assert.equal(manifest.capabilities.untrustedWorkspaces.supported, false, 'extension must not run in untrusted workspaces');
 assert.equal(manifest.contributes.configuration.properties['llmWiki.maxAiCredits'].default, 30);
@@ -43,7 +46,14 @@ assert(extension.includes("path.resolve(context.extensionPath, '..', '..')"), 'd
 assert(!extension.includes('shell: true'), 'extension must not invoke CLI through a shell');
 assert(!extension.includes('compiled_provider ='), 'extension must not implement or enable a compiled provider');
 
+assert(entry.includes("executeCommand('llmWiki.init')"), 'Doctor must reuse the real extension-to-core boundary');
+assert(entry.includes("executableAvailable('copilot', ['--version']"), 'Doctor may only probe Copilot availability/version');
+assert(entry.includes("doctorOutput.appendLine('Model calls: 0')"), 'Doctor must state zero model calls');
+assert(!entry.includes('--allow-model-call'), 'Doctor wrapper must never authorize a model call');
+assert(!entry.includes('gpt-5.6-luna'), 'Doctor wrapper must not invoke or select a model');
+assert(!entry.includes('process.env'), 'Doctor output/probing must not inspect environment metadata');
+
 assert(bundler.includes("path.join(dogfoodRoot, 'llm_wiki')"), 'bundler must copy from the shared core source of truth');
 assert(bundler.includes("path.join(bundleRoot, 'dogfood')"), 'bundler must preserve the dogfood Python package layout');
 
-console.log('VS-CODE-DOGFOOD-STATIC PASS commands=8 trustedWorkspaceOnly=yes model=gpt-5.6-luna bundledCore=generated compiledProvider=not-implemented');
+console.log('VS-CODE-DOGFOOD-STATIC PASS commands=9 doctorModelCalls=0 trustedWorkspaceOnly=yes model=gpt-5.6-luna bundledCore=generated compiledProvider=not-implemented');
