@@ -17,3 +17,7 @@ otel.jsonl
 
 # Local dogfood evidence store. Raw personal evidence is never committed by default.
 .wiki-lab/
+
+# Generated VS Code dogfood packaging outputs; the Python core source of truth stays under dogfood/llm_wiki.
+dogfood/vscode/python/
+dogfood/vscode/dist/
