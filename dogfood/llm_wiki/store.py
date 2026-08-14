@@ -311,7 +311,7 @@ def ingest_file(
     object_id = _object_id(sha)
 
     retry_source_id: str | None = None
-    predecessor_row: dict | None = None
+    existing_current_successor_id: str | None = None
     if topic_id is not None and supersedes_source_id is not None:
         records, active, superseded_by = _topic_state(root, topic_id=topic_id)
         predecessor_row = records.get(supersedes_source_id)
@@ -328,19 +328,33 @@ def ingest_file(
                 retry_source_id = successor_id
             else:
                 raise ValueError(f"supersession_predecessor_not_current:{supersedes_source_id}")
-        elif _identity_matches(predecessor_row, object_id=object_id, origin_id=origin_id):
-            raise ValueError("supersession_no_identity_change")
+        else:
+            if _identity_matches(predecessor_row, object_id=object_id, origin_id=origin_id):
+                raise ValueError("supersession_no_identity_change")
+            current_matches = sorted(
+                sid for sid, row in records.items()
+                if sid != supersedes_source_id
+                and sid in active
+                and _identity_matches(row, object_id=object_id, origin_id=origin_id)
+            )
+            if len(current_matches) > 1:
+                raise RuntimeError("ambiguous_current_successor_identity")
+            if current_matches:
+                # The successor evidence was already ingested before the lineage
+                # relation was known. Reuse it rather than inventing a duplicate
+                # source revision for the same current origin+object identity.
+                existing_current_successor_id = current_matches[0]
 
     if retry_source_id is not None:
         records, _, _ = _topic_state(root, topic_id=topic_id)  # type: ignore[arg-type]
         return _source_from_row(root, records[retry_source_id]), True
 
-    source_id: str | None = None
+    source_id: str | None = existing_current_successor_id
     if supersedes_source_id is None:
         if topic_id is None:
             source_id, _ = _find_unscoped_identity_match(root, object_id=object_id, origin_id=origin_id)
         else:
-            current, historical, records, _ = _find_topic_identity_matches(
+            current, historical, _, _ = _find_topic_identity_matches(
                 root,
                 topic_id=topic_id,
                 object_id=object_id,
@@ -384,9 +398,13 @@ def ingest_file(
 
     if supersedes_source_id is not None:
         assert topic_id is not None
-        # A new source revision is now durably visible. If relation append fails,
+        # The successor source is now durably visible. If relation append fails,
         # ambiguity remains visible rather than hiding the predecessor.
         _record_supersession(root, supersedes_source_id, source_id, topic_id=topic_id)
+
+    if existing_current_successor_id is not None:
+        records, _, _ = _topic_state(root, topic_id=topic_id)  # type: ignore[arg-type]
+        return _source_from_row(root, records[source_id]), duplicate_content
 
     row = _normalize_ingest(event)
     return _source_from_row(root, row), duplicate_content
