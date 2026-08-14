@@ -8,6 +8,7 @@ const root = path.resolve(__dirname, '..');
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const entry = fs.readFileSync(path.join(root, 'entry.js'), 'utf8');
 const extension = fs.readFileSync(path.join(root, 'extension.js'), 'utf8');
+const gitSafety = fs.readFileSync(path.join(root, 'git-safety.js'), 'utf8');
 const bundler = fs.readFileSync(path.join(root, 'scripts', 'bundle-core.js'), 'utf8');
 
 const commands = new Set((manifest.contributes.commands || []).map((row) => row.command));
@@ -55,11 +56,24 @@ assert(!extension.includes('compiled_provider ='), 'extension must not implement
 assert(entry.includes("executeCommand('llmWiki.init')"), 'Doctor must reuse the real extension-to-core boundary');
 assert(entry.includes("executableAvailable('copilot', ['--version']"), 'Doctor may only probe Copilot availability/version');
 assert(entry.includes("doctorOutput.appendLine('Model calls: 0')"), 'Doctor must state zero model calls');
+assert(entry.includes('classifyGitSafety'), 'Doctor must classify Git raw-store safety');
+assert(entry.includes('Git raw-store safety:'), 'Doctor must report only the Git-safety classification');
+assert(entry.includes('Realistic evidence dogfood:'), 'Doctor must distinguish core readiness from safe evidence readiness');
 assert(!entry.includes('--allow-model-call'), 'Doctor wrapper must never authorize a model call');
 assert(!entry.includes('gpt-5.6-luna'), 'Doctor wrapper must not invoke or select a model');
 assert(!entry.includes('process.env'), 'Doctor output/probing must not inspect environment metadata');
 
+assert(gitSafety.includes("['rev-parse', '--is-inside-work-tree']"), 'Git safety must detect local work-tree membership deterministically');
+assert(gitSafety.includes("['check-ignore', '-q', '--'"), 'Git safety must use local ignore inspection');
+assert(gitSafety.includes("return 'NOT_GIT'"), 'Git safety must distinguish non-Git workspaces');
+assert(gitSafety.includes("return 'UNPROTECTED'"), 'Git safety must distinguish unprotected stores');
+assert(gitSafety.includes("return ignored ? 'PROTECTED' : 'UNPROTECTED'"), 'Git safety must classify ignored stores as protected');
+assert(!gitSafety.includes('writeFile'), 'Git safety classifier must never mutate Git ignore files');
+assert(!gitSafety.includes('appendFile'), 'Git safety classifier must never mutate local exclude files');
+assert(!gitSafety.includes("'add'"), 'Git safety classifier must never stage files');
+assert(!gitSafety.includes('process.env'), 'Git safety classifier must not inspect environment metadata');
+
 assert(bundler.includes("path.join(dogfoodRoot, 'llm_wiki')"), 'bundler must copy from the shared core source of truth');
 assert(bundler.includes("path.join(bundleRoot, 'dogfood')"), 'bundler must preserve the dogfood Python package layout');
 
-console.log('VS-CODE-DOGFOOD-STATIC PASS commands=9 doctorModelCalls=0 programmaticLocalOnly=yes consentBypass=no trustedWorkspaceOnly=yes model=gpt-5.6-luna bundledCore=generated compiledProvider=not-implemented');
+console.log('VS-CODE-DOGFOOD-STATIC PASS commands=9 doctorModelCalls=0 gitSafety=read-only programmaticLocalOnly=yes consentBypass=no trustedWorkspaceOnly=yes model=gpt-5.6-luna bundledCore=generated compiledProvider=not-implemented');
