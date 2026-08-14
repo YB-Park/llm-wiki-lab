@@ -41,19 +41,31 @@ Open the repository root in VS Code, switch to the `dogfood/minimal-shell-v0` br
 
 A second Extension Development Host window opens with the extension loaded.
 
-For realistic dogfood, use the extension in a workspace that contains only evidence you are permitted to process. The local `.wiki-lab/` directory is ignored by Git.
+## Installable VSIX dogfood
+
+CI also builds `llm-wiki-dogfood.vsix`. The VSIX bundles the shared Python core **at package time** under the extension's `python/` directory. That generated copy is build output, not a second source-of-truth implementation.
+
+The installed extension therefore does not require a checkout of this repository for normal raw/retrieval/provenance use. It still requires Python to be available on the machine.
+
+To install a downloaded VSIX in VS Code, use the Extensions view's `Install from VSIX...` action.
+
+## Runtime prerequisites
+
+- a trusted VS Code workspace;
+- Python available as `python3` by default, configurable via `llmWiki.pythonExecutable`;
+- GitHub Copilot CLI installed and authenticated only if you choose `LLM Wiki: Ask Luna (Read-only)`.
+
+For realistic dogfood, use the extension in a workspace that contains only evidence you are permitted to process. The local `.wiki-lab/` directory is ignored by Git when working in this repository; other repositories should also ignore their local wiki directory if Git is enabled.
 
 ## Settings
 
 - `llmWiki.pythonExecutable`: default `python3`.
-- `llmWiki.corePath`: optional path to the repository/core root. Empty uses the current extension repository in development.
+- `llmWiki.corePath`: optional override. Empty uses the bundled core in an installed VSIX and the repository core during extension development.
 - `llmWiki.workspaceDirectory`: default `.wiki-lab` inside the active workspace.
 - `llmWiki.maxAiCredits`: default `30` per explicit Ask Luna call.
 
 ## Current limitations
 
-This is a first usable editor shell, not a polished extension release. It currently uses Command Palette, Quick Pick, Output, status bar, and virtual documents rather than a dedicated sidebar or chat participant.
-
-It does not yet package the Python core independently of this repository, so Extension Development Host use assumes access to the repository's `dogfood` package (or an explicitly configured `llmWiki.corePath`). Packaging/installability is a later productization step after the interaction loop is validated.
+This is a first usable editor shell, not a polished Marketplace release. It currently uses Command Palette, Quick Pick, Output, status bar, and virtual documents rather than a dedicated sidebar or chat participant.
 
 Compiled knowledge remains disabled. E013 realistic workload evidence decides whether a compiled provider is ever allowed to advance to shadow/opt-in testing.
