@@ -7,6 +7,7 @@ on:
       - dogfood/minimal-shell-v0
       - dogfood/vscode-v1-hardening
       - dogfood/git-safety
+      - spike/vscode-lm-api-luna
     paths:
       - 'dogfood/**'
       - '.vscode/**'
@@ -49,8 +50,10 @@ jobs:
           node --check dogfood/vscode/entry.js
           node --check dogfood/vscode/extension.js
           node --check dogfood/vscode/git-safety.js
+          node --check dogfood/vscode/lm-discovery.js
           node dogfood/vscode/test/static.js
           node dogfood/vscode/test/git-safety.js
+          node dogfood/vscode/test/lm-discovery.js
       - name: Install VS Code test/package tooling
         working-directory: dogfood/vscode
         run: npm install --no-audit --no-fund
@@ -72,6 +75,7 @@ jobs:
           test -s dist/llm-wiki-dogfood.vsix
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/cli.py'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/git-safety.js'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/lm-discovery.js'
       - name: Unpack and execute packaged VSIX in Extension Host
         working-directory: dogfood/vscode
         run: |
@@ -80,6 +84,7 @@ jobs:
           unzip -q dist/llm-wiki-dogfood.vsix -d dist/unpacked
           test -f dist/unpacked/extension/python/dogfood/llm_wiki/cli.py
           test -f dist/unpacked/extension/git-safety.js
+          test -f dist/unpacked/extension/lm-discovery.js
           xvfb-run -a npm run test:packaged
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v7
