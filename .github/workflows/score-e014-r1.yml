@@ -1,0 +1,47 @@
+name: Score E014 R1 official heldout
+
+on:
+  push:
+    branches:
+      - experiment/e014-r1-rank-expand
+    paths:
+      - '.github/workflows/score-e014-r1.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  official-score:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Reverify frozen R1 score-affecting bytes
+        run: |
+          cat > /tmp/e014-r1-frozen-sha256.txt <<'EOF'
+          82667717662d1a84e874d133e98d37cfb80ea9fce12fb129c3115ff08e94ed97  experiments/E014-r1-rank-expand/generate_corpus.py
+          1821a9e16d665a95cfa0d1d0edf4b6790d0ced2d00d47b784b7ac7218cb0c7bf  experiments/E014-r1-rank-expand/retrieval_r1.py
+          2db4b66ca2ad7a94038f60258d55d1b2ce6cdaeb5770b7821ea26d7b2c945ca2  experiments/E014-r1-rank-expand/analysis_r1.py
+          EOF
+          sha256sum -c /tmp/e014-r1-frozen-sha256.txt
+          echo 'E014-R1-OFFICIAL-SCORE-START frozenBytes=yes corpusSha=f3126cc8e61455c4b962a7f2efb7505003ec92767f342a4eefb43f105348b442'
+
+      - name: Revalidate prescore boundary
+        working-directory: experiments/E014-r1-rank-expand
+        env:
+          PYTHONPATH: ../..
+        run: python3 validate_prescore.py
+
+      - name: Official frozen E014 R1 held-out score
+        working-directory: experiments/E014-r1-rank-expand
+        env:
+          PYTHONPATH: ../..
+        run: python3 analysis_r1.py --out /tmp/e014-r1-results-v0.json
+
+      - name: Preserve synthetic scored result artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: e014-r1-heldout-v0
+          path: /tmp/e014-r1-results-v0.json
+          if-no-files-found: error
+          retention-days: 30
