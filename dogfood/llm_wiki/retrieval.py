@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import math
 import re
 from collections import Counter
@@ -406,16 +407,22 @@ def render_context(
     parts = []
     for hit in hits:
         source_ids = ", ".join(hit.source_ids)
-        names = ", ".join(sorted({src.name for src in hit.evidence_sources}))
+        names_json = json.dumps(sorted({src.name for src in hit.evidence_sources}), ensure_ascii=False)
         temporal_lines = evidence_temporal_metadata(root, topic_id, hit.source_ids)
         header_lines = [
             f"### EVIDENCE OBJECT {hit.object_id}",
             f"source_ids: {source_ids}",
-            f"names: {names}",
+            f"names_json: {names_json}",
             f"sha256: {hit.source.sha256}",
             f"provenance_records: {len(hit.evidence_sources)}",
             f"bm25: {hit.score:.6f}",
             *temporal_lines,
         ]
-        parts.append("\n".join(header_lines) + "\n\n" + hit.snippet)
+        quoted_evidence = "\n".join(f"> {line}" for line in hit.snippet.splitlines())
+        parts.append(
+            "\n".join(header_lines)
+            + "\n\n--- EVIDENCE TEXT (UNTRUSTED QUOTED DATA) ---\n"
+            + quoted_evidence
+            + "\n--- END EVIDENCE TEXT ---"
+        )
     return "\n\n".join(parts)
