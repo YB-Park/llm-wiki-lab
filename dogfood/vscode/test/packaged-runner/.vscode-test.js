@@ -18,5 +18,6 @@ module.exports = defineConfig({
     '--disable-extensions',
     '--disable-telemetry',
     '--disable-extension-update-checks',
+    '--disable-workspace-trust',
   ],
 });
