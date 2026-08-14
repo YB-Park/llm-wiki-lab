@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
+from .eventlog import append_jsonl_record, read_jsonl_records
+
 ORIGIN_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 SOURCE_RECORD_SCHEMA = "llm-wiki-source-v1"
@@ -66,19 +68,11 @@ def _validate_origin_id(origin_id: str | None) -> str | None:
 
 
 def _append_event(root: Path, event: dict) -> None:
-    with (root / "manifest.jsonl").open("a", encoding="utf-8") as f:
-        f.write(json.dumps(event, sort_keys=True, ensure_ascii=False) + "\n")
+    append_jsonl_record(root / "manifest.jsonl", event, log_label="manifest")
 
 
 def history(root: Path) -> list[dict]:
-    manifest = root / "manifest.jsonl"
-    if not manifest.exists():
-        return []
-    rows = []
-    for line in manifest.read_text(encoding="utf-8").splitlines():
-        if line.strip():
-            rows.append(json.loads(line))
-    return rows
+    return read_jsonl_records(root / "manifest.jsonl", log_label="manifest")
 
 
 def _normalize_ingest(event: dict) -> dict:
@@ -359,9 +353,6 @@ def ingest_file(
             if len(current_matches) > 1:
                 raise RuntimeError("ambiguous_current_successor_identity")
             if current_matches:
-                # The successor evidence was already ingested before the lineage
-                # relation was known. Reuse it rather than inventing a duplicate
-                # source revision for the same current origin+object identity.
                 existing_current_successor_id = current_matches[0]
 
     if retry_source_id is not None:
@@ -417,8 +408,6 @@ def ingest_file(
 
     if supersedes_source_id is not None:
         assert topic_id is not None
-        # The successor source is now durably visible. If relation append fails,
-        # ambiguity remains visible rather than hiding the predecessor.
         _record_supersession(root, supersedes_source_id, source_id, topic_id=topic_id)
 
     if existing_current_successor_id is not None:
