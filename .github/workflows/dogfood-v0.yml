@@ -22,6 +22,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          package-manager-cache: false
       - name: Compile Python core
         run: python3 -m compileall -q dogfood
       - name: Python unit tests
@@ -41,9 +45,30 @@ jobs:
           node --version
           node --check dogfood/vscode/extension.js
           node dogfood/vscode/test/static.js
-      - name: Install VS Code integration-test harness
+      - name: Install VS Code test/package tooling
         working-directory: dogfood/vscode
         run: npm install --no-audit --no-fund
       - name: VS Code Extension Host integration test
         working-directory: dogfood/vscode
         run: xvfb-run -a npm run test:integration
+      - name: Bundle and verify shared Python core
+        working-directory: dogfood/vscode
+        run: |
+          npm run bundle:core
+          tmp="$(mktemp -d)"
+          PYTHONPATH="$PWD/python" python3 -m dogfood.llm_wiki.cli --root "$tmp/wiki" init
+          grep -q 'compiled_provider.*disabled' "$tmp/wiki/config.json"
+          test -f python/dogfood/llm_wiki/cli.py
+      - name: Package installable VSIX
+        working-directory: dogfood/vscode
+        run: |
+          npm run package:vsix
+          test -s dist/llm-wiki-dogfood.vsix
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/cli.py'
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: llm-wiki-dogfood-vsix
+          path: dogfood/vscode/dist/llm-wiki-dogfood.vsix
+          if-no-files-found: error
+          retention-days: 14
