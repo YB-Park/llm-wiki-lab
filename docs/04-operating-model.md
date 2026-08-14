@@ -1,248 +1,231 @@
 # Lab Operating Model
 
-This document governs how research, decisions, experiments, and implementation changes should move through the repository.
+This document governs how research, decisions, experiments, implementation, dogfood, and handoff state move through the repository.
 
-It governs the **lab**, not the future production wiki. Production-wiki behavior must be decided separately through ADRs.
+The lab exists to produce a **working VS Code-first LLM Wiki**. Research rigor is a means to that end; it must not become an endless prerequisite chain after a usable decision is sufficiently supported.
 
-## 1. Artifact types
+## 1. Artifact roles
 
-### Research notes
+### `HANDOFF.md` — current continuation state
 
-Location: `research/`
-
-Purpose: record external evidence, implementation observations, paper notes, prior art, and comparisons.
+Purpose: let the next session/operator continue without reconstructing the project from history.
 
 Rules:
 
-- distinguish source claims from our interpretation,
-- include links/citations sufficient to re-check important claims,
-- record limitations and uncertainty,
-- avoid converting one implementation's choice into a universal recommendation.
+- keep current state, in-flight work, immediate next actions, and important “do not accidentally do” boundaries;
+- **replace/delete stale information** instead of appending a project diary;
+- point to canonical evidence rather than copying experiment/ADR detail;
+- if handoff disagrees with merged code or an accepted ADR, code/ADR wins and handoff is corrected immediately.
 
-### Design questions
+### `docs/02-design-questions.md` — current question register
 
-Location: `docs/02-design-questions.md`
-
-Purpose: canonical register of unresolved architecture/policy questions.
+Purpose: track unresolved or active architecture/product questions.
 
 Rules:
 
-- important ambiguity should become an explicit question,
-- questions are not resolved by prose consensus,
-- resolved questions point to an ADR.
+- keep statuses current;
+- `DECIDED` requires an accepted ADR;
+- completed experiments may narrow a question without silently becoming policy;
+- remove obsolete “current focus” language when the program moves on.
 
-### Experiments
+### `docs/03-experiment-plan.md` — current experiment map
 
-Location: `experiments/`
+Purpose: show active gates, completed evidence that constrains the architecture, parked families, and the current critical path.
 
-Purpose: produce reproducible evidence about competing designs.
+Detailed protocols/results belong under `experiments/`, not repeated forever in the program map.
 
-Rules:
+### `research/` — external evidence / prior art
 
-- state hypothesis and protocol before interpreting results,
-- preserve raw outputs when feasible,
-- record model/tool versions and relevant prompts,
-- keep measured result separate from interpretation,
-- record failed experiments as well as successful ones.
+Record sources, implementation observations, known limitations, failure modes, and our interpretation. Do not treat one system's design choice or an LLM summary as universal evidence.
 
-### Decisions
+### `experiments/` — reproducible evidence
 
-Location: `decisions/`
+State protocol/decision boundaries before interpreting results when practical. Preserve negative results. Keep synthetic mechanism evidence distinct from natural product/workload evidence.
 
-Purpose: make policy adoption explicit and reversible.
+### `decisions/` — accepted policy
 
-An ADR must include alternatives, evidence, trade-offs, failure modes, and re-evaluation conditions.
+Non-trivial architecture behavior should be justified by an ADR containing context, alternatives, evidence, trade-offs, failure modes, and re-evaluation triggers.
 
-### Implementation
+Do not rewrite an old ADR to make history look cleaner; supersede it with a later ADR when policy changes.
 
-Future location: to be decided.
+### `dogfood/` — current product/core implementation
 
-Implementation should reference the ADRs that justify non-trivial behavior.
+- `dogfood/llm_wiki/`: editor-agnostic trustworthy substrate and CLI/testing surface;
+- `dogfood/vscode/`: first-class VS Code product surface and installable VSIX.
+
+The CLI is a substrate/fallback, not permission to leave important customer operations terminal-only forever.
 
 ## 2. Epistemic discipline
 
-Use these concepts consistently:
+Use these labels mentally and in artifacts where useful:
 
 - **Fact** — supported by a source or direct measured observation.
-- **Observation** — something seen in an experiment or real use; may not generalize.
+- **Observation** — seen in a test/experiment/real use; may not generalize.
 - **Hypothesis** — proposed explanation or design expectation.
-- **Interpretation** — our reasoning about facts/observations.
-- **Decision** — an adopted policy recorded in an ADR.
+- **Interpretation** — reasoning about facts/observations.
+- **Decision** — adopted policy in an ADR.
 - **Open question** — intentionally unresolved.
 
-A confident LLM sentence does not change epistemic status.
+A confident LLM sentence does not upgrade epistemic status.
 
-## 3. Change-risk tiers
+## 3. Two different readiness concepts
 
-For the lab repository itself:
+Do not conflate them.
+
+### Core readiness
+
+Alpha Core readiness means the raw-first trust loop has enough integrity/provenance/history/retrieval/answer boundaries to be used safely for dogfood. `docs/09-alpha-core-readiness-gate.md` owns this definition.
+
+### Customer readiness
+
+Customer readiness means a real VS Code + Copilot user can actually live with the product: recover knowledge, navigate original sources, express corrections/disagreements, give feedback, survive operational mistakes, and use the real model path repeatedly without hidden assumptions.
+
+E010 owns the current customer/product gate. Passing deterministic core CI is **not** sufficient for customer readiness.
+
+## 4. Convergence rule
+
+After Alpha Core Ready, **stop adding core infrastructure by default**.
+
+Core work requires at least one of:
+
+1. an observed dogfood/product blocker;
+2. an E013/E015 preregistered boundary crossing;
+3. a reproducible trust/data-loss failure in an existing Alpha invariant.
+
+“Interesting”, “future-proof”, “modern architecture”, or “another team uses it” are not enough.
+
+When a real product blocker exists, fix the **smallest layer that owns the problem**. A VS Code surface gap should not automatically become a new database/schema/retrieval subsystem.
+
+## 5. Product dogfood discipline
+
+Real use must not be replaced by synthetic activity once the question is about user behavior.
+
+For E010/E013/E015:
+
+- use the installable VSIX in actual VS Code work;
+- preserve private/company-data boundaries;
+- do not manufacture visits/updates/query classes to reach sample minima;
+- capture friction and fixed-code feedback when practical;
+- distinguish “the capability exists in core” from “a normal VS Code user can perform it”; 
+- prefer repeated multi-session use over one impressive demo.
+
+The repository itself is a valid self-hosting corpus, but self-repo success is only one realistic workload, not proof of universal customer value.
+
+## 6. Model / Copilot cost discipline
+
+Use model calls when the research/product question **is about model behavior**.
+
+Examples that justify paid calls:
+
+- actual answer usefulness/faithfulness;
+- exact model/adapter behavior;
+- compiled synthesis quality;
+- a preregistered LLM-evaluated comparison where deterministic checks are insufficient.
+
+Do **not** spend model calls to re-test deterministic storage, JSONL integrity, permissions, lexical ranking, or other questions that code/fault injection can answer directly.
+
+Cost discipline does not mean under-testing a genuine model question. When a small paid experiment is necessary, run enough calls to answer the preregistered question rather than stopping early only to save credits.
+
+The actual VS Code/Copilot Pro entitlement must be tested in a real user session; CI must not fake that evidence or silently substitute another model.
+
+## 7. Change-risk tiers
 
 ### Low risk
 
-- adding research notes,
-- adding references,
-- recording experiment outputs,
-- adding open questions.
-
-These can usually be additive changes.
+- current-state doc refresh;
+- research notes;
+- recording measured outputs;
+- tests that do not change product semantics.
 
 ### Medium risk
 
-- changing experiment protocols after runs exist,
-- changing definitions or shared metrics,
-- restructuring research taxonomy.
+- product UX behavior;
+- telemetry/event semantics;
+- retrieval candidate behavior;
+- experiment protocol changes before official scoring.
 
-These should include rationale and preserve migration/history.
+Use a short-lived branch/PR and relevant automated consumer tests.
 
 ### High risk
 
-- deleting experiment evidence,
-- rewriting historical results,
-- changing an ADR without recording supersession,
-- removing an important rejected alternative from history.
+- canonical evidence/history semantics;
+- destructive operations;
+- source identity/provenance meaning;
+- policy changes to accepted ADR behavior;
+- changing frozen experiment inputs/scorers after results are visible.
 
-Prefer superseding artifacts over rewriting history.
+Require explicit rationale, strong regression/fault tests, and an ADR or ADR amendment/supersession where policy changes.
 
-## 4. ADR lifecycle
+## 8. Experiment lifecycle
 
-Recommended states:
+Use the full controlled lifecycle when the decision benefits from it:
 
-- Proposed
-- Accepted
-- Superseded
-- Rejected
-- Deprecated
+1. choose question;
+2. write hypothesis/boundary;
+3. freeze corpus/protocol/scorer enough for fairness;
+4. run baseline/alternatives;
+5. compute deterministic metrics;
+6. add human/LLM evaluation only where justified;
+7. record result and threats;
+8. decide, narrow, kill, or generate a new question.
 
-A later ADR should supersede an earlier one instead of editing history to make the earlier decision appear different from what it was.
+For **real dogfood** the lifecycle is lighter:
 
-## 5. Experiment lifecycle
+1. state what behavior/decision the natural data is meant to inform;
+2. instrument privacy-minimal events before looking at them;
+3. use the product normally;
+4. wait for preregistered sufficiency rather than fabricating activity;
+5. make the narrow decision supported by the observed distribution/failures.
 
-1. Question selected.
-2. Hypothesis written.
-3. Corpus and evaluation criteria frozen enough for comparison.
-4. Baseline run.
-5. Alternative runs.
-6. Deterministic metrics computed.
-7. Human/LLM qualitative evaluation where needed.
-8. Analysis written.
-9. Threats to validity documented.
-10. Result either informs an ADR or generates new questions.
+## 9. Git / PR workflow
 
-Negative or ambiguous results are valid outcomes.
+Prefer short-lived branches and PRs for consequential implementation, experiment, or product changes so diffs remain inspectable.
 
-## 6. Research-note template
-
-Each substantial note should answer:
+A normal completion unit is:
 
 ```text
-System / paper / practice:
-Source:
-Date reviewed:
-
-Problem addressed:
-Architecture / method:
-Evidence / evaluation:
-What appears to work:
-Known limitations:
-Failure modes:
-Relevant design questions:
-Ideas worth testing:
-Our interpretation:
-Confidence / open uncertainty:
+problem/evidence
+  -> narrow change
+  -> tests / product check
+  -> PR / decision record when needed
+  -> HANDOFF current-state refresh
 ```
 
-## 7. Decision template
+Do not leave a PR/issue body claiming a merge/result that did not actually occur. Current handoff must reflect merged state, not intent.
 
-```text
-# ADR-XXXX: Title
+## 10. How LLMs participate
 
-Status:
-Date:
+Good roles:
 
-## Context
+- research assistant;
+- synthesis/comparison tool;
+- code assistant;
+- test-data generator;
+- experimental subject;
+- read-only answerer over retrieved evidence.
 
-## Decision drivers
+Bad roles:
 
-## Alternatives considered
+- self-authenticating evidence source;
+- invisible policy maker;
+- automatic winner-selection for disputed evidence;
+- justification for deleting provenance/history;
+- substitute for a deterministic comparison that is cheaper and stronger.
 
-## Evidence
+## 11. Release posture
 
-## Decision
+Until E010 customer gates have evidence, describe the product as **Alpha/dogfood**, not customer-ready.
 
-## Consequences
+A customer-ready candidate must at minimum demonstrate:
 
-### Benefits
-### Costs
-### Risks / failure modes
+- Alpha trust/integrity remains green;
+- useful self-hosting/realistic retrieval;
+- unambiguous original-source navigation in realistic workspaces;
+- first-class VS Code access to trust-sensitive update/correction/dispute behavior when needed;
+- low-friction product feedback;
+- a forgotten-topic/cross-topic recall story;
+- a minimal backup/restore operating story for valuable local knowledge;
+- real-session evidence for the actual Copilot/model path shipped;
+- repeated multi-session usefulness rather than a one-shot demo.
 
-## Re-evaluation triggers
-
-## Related experiments / research
-```
-
-## 8. Experiment template
-
-```text
-# E###: Title
-
-Status:
-Question:
-Hypothesis:
-
-## Variables
-## Corpus
-## Protocol
-## Metrics
-## Expected failure modes
-## Runs
-## Results
-## Interpretation
-## Threats to validity
-## Follow-up
-```
-
-## 9. Git workflow
-
-During the early research phase, small additive research/doc changes may land directly on `main` when appropriate.
-
-As implementation and experiments become consequential, prefer short-lived branches and PRs so that:
-
-- experiment changes are reviewable,
-- policy changes are explicit,
-- diffs act as a knowledge-maintenance audit trail.
-
-Do not use commit history as the only place where a major decision is explained; use an ADR.
-
-## 10. How Copilot/LLMs should participate
-
-LLMs are useful as:
-
-- research assistants,
-- comparison/synthesis tools,
-- experimental subjects,
-- test-data generators,
-- code assistants,
-- candidate maintainers.
-
-They must not be treated as:
-
-- self-authenticating sources,
-- invisible policy makers,
-- justification for deleting provenance,
-- substitutes for controlled comparison when a decision is experimentally testable.
-
-## 11. Stop conditions before production prototype
-
-Do not lock in a production schema until we can at least explain our current position on:
-
-- source/derived separation,
-- provenance,
-- temporal update semantics,
-- contradiction semantics,
-- knowledge granularity,
-- split/merge/rename lifecycle,
-- deletion/archival,
-- retrieval escalation,
-- evaluation methodology,
-- human-review boundaries.
-
-We do not need perfect answers, but we need explicit, inspectable answers and known uncertainties.
+A failed customer gate should generate the smallest product fix, **not a new open-ended architecture program**.
