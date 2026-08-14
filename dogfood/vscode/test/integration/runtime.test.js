@@ -75,8 +75,70 @@ suite('LLM Wiki Dogfood Extension Host', () => {
     assert.ok(result, 'Doctor did not return its sanitized readiness result');
     assert.equal(result.coreReady, true);
     assert.equal(result.compiledDisabled, true);
+    assert.equal(result.integrityReady, true);
+    assert.equal(result.rawIntegrityStatus, 'clean');
+    assert.equal(result.manifestIntegrityStatus, 'clean');
+    assert.equal(result.provenanceIntegrityStatus, 'clean');
     assert.equal(result.gitSafety, 'PROTECTED');
+    assert.equal(result.localReady, true);
     assert.equal(result.realisticDogfoodReady, true);
+  });
+
+  test('Doctor detects a torn canonical manifest without repairing or replaying its prefix', async () => {
+    const folder = (vscode.workspace.workspaceFolders || [])[0];
+    assert.ok(folder, 'integration test workspace is not open');
+    const wikiRoot = path.join(folder.uri.fsPath, '.wiki-lab');
+    fs.rmSync(wikiRoot, { recursive: true, force: true });
+    await vscode.commands.executeCommand('llmWiki.init');
+
+    const manifest = path.join(wikiRoot, 'manifest.jsonl');
+    fs.writeFileSync(manifest, '{"event":"partial"', 'utf8');
+    const before = fs.readFileSync(manifest);
+
+    const result = await vscode.commands.executeCommand('llmWiki.doctor');
+
+    assert.equal(result.coreReady, true);
+    assert.equal(result.integrityReady, false);
+    assert.equal(result.manifestIntegrityStatus, 'torn_tail');
+    assert.equal(result.rawIntegrityStatus, 'not_checked_manifest_damaged');
+    assert.equal(result.localReady, false);
+    assert.equal(result.realisticDogfoodReady, false);
+    assert.deepEqual(fs.readFileSync(manifest), before, 'Doctor must not truncate or repair the torn manifest');
+  });
+
+  test('Doctor detects a missing referenced raw object while canonical logs remain clean', async () => {
+    const folder = (vscode.workspace.workspaceFolders || [])[0];
+    assert.ok(folder, 'integration test workspace is not open');
+    const wikiRoot = path.join(folder.uri.fsPath, '.wiki-lab');
+    fs.rmSync(wikiRoot, { recursive: true, force: true });
+    await vscode.commands.executeCommand('llmWiki.init');
+
+    const sha = '0'.repeat(64);
+    const manifest = path.join(wikiRoot, 'manifest.jsonl');
+    const row = {
+      event: 'ingest',
+      record_schema: 'llm-wiki-source-v1',
+      recorded_at: '2026-08-15T00:00:00+00:00',
+      source_id: 'src-doctor-missing-raw',
+      object_id: `obj-${sha}`,
+      sha256: sha,
+      origin_id: null,
+      name: 'missing.md',
+      size_bytes: 12,
+      duplicate_content: false,
+    };
+    fs.writeFileSync(manifest, `${JSON.stringify(row)}\n`, 'utf8');
+
+    const result = await vscode.commands.executeCommand('llmWiki.doctor');
+
+    assert.equal(result.coreReady, true);
+    assert.equal(result.integrityReady, false);
+    assert.equal(result.manifestIntegrityStatus, 'clean');
+    assert.equal(result.provenanceIntegrityStatus, 'clean');
+    assert.equal(result.rawIntegrityStatus, 'failed');
+    assert.equal(result.localReady, false);
+    assert.equal(result.realisticDogfoodReady, false);
+    assert.equal(fs.existsSync(path.join(wikiRoot, 'raw', `${sha}.txt`)), false, 'Doctor must not invent missing raw evidence');
   });
 
   test('runs topic -> active-file ingest -> search -> read-only provenance entirely through VS Code commands', async () => {
