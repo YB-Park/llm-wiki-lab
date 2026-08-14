@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from .calibration import QUERY_CLASSES
+from .private_fs import append_private_text, ensure_private_directory
 from .shadow import RetrievalShadowObservation
 
 SHADOW_EVENTS_FILE = "retrieval-shadow-events.jsonl"
@@ -50,9 +51,8 @@ def _validate_common(operation: str, query_class: str | None) -> None:
 
 
 def _append(root: Path, row: dict) -> None:
-    root.mkdir(parents=True, exist_ok=True)
-    with _path(root).open("a", encoding="utf-8") as f:
-        f.write(json.dumps(row, sort_keys=True, ensure_ascii=False) + "\n")
+    ensure_private_directory(root)
+    append_private_text(_path(root), json.dumps(row, sort_keys=True, ensure_ascii=False) + "\n")
 
 
 def record_retrieval_shadow(
