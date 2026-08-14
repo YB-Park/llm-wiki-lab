@@ -4,6 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
+from .adapters import answer_prompt, ask_copilot
 from .retrieval import render_context, search
 from .store import ensure_workspace, history, ingest_file
 
@@ -31,6 +32,18 @@ def parser() -> argparse.ArgumentParser:
     ctx.add_argument("query")
     ctx.add_argument("--top-k", type=int, default=8)
     ctx.add_argument("--max-chars", type=int, default=1200)
+
+    ask = sub.add_parser("ask")
+    ask.add_argument("query")
+    ask.add_argument("--top-k", type=int, default=8)
+    ask.add_argument("--max-chars", type=int, default=1200)
+    ask.add_argument("--model", default="gpt-5.6-luna")
+    ask.add_argument("--max-ai-credits", type=int, default=30)
+    ask.add_argument(
+        "--allow-model-call",
+        action="store_true",
+        help="required opt-in: sends rendered evidence context to the configured Copilot model",
+    )
 
     hist = sub.add_parser("history")
     hist.add_argument("--limit", type=int, default=20)
@@ -78,6 +91,23 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "context":
         text = render_context(root, args.query, top_k=args.top_k, max_chars_per_source=args.max_chars)
         print(text)
+        return 0
+
+    if args.command == "ask":
+        if not args.allow_model_call:
+            raise SystemExit(
+                "ASK-STOP model_call_not_authorized: rerun with --allow-model-call only for evidence you are permitted to send"
+            )
+        context = render_context(root, args.query, top_k=args.top_k, max_chars_per_source=args.max_chars)
+        if not context.strip():
+            raise SystemExit("ASK-STOP no_retrieved_evidence")
+        answer = ask_copilot(
+            answer_prompt(args.query, context),
+            model=args.model,
+            max_ai_credits=args.max_ai_credits,
+        )
+        print(f"MODEL {answer.model or args.model}")
+        print(answer.text)
         return 0
 
     if args.command == "history":
