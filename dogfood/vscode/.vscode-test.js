@@ -17,6 +17,7 @@ module.exports = defineConfig({
   launchArgs: [
     '--disable-extensions',
     '--disable-telemetry',
-    '--disable-extension-update-checks'
+    '--disable-extension-update-checks',
+    '--disable-workspace-trust'
   ],
 });
