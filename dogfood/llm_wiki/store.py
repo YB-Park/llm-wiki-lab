@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ORIGIN_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 SOURCE_RECORD_SCHEMA = "llm-wiki-source-v1"
 
 
@@ -22,6 +23,18 @@ class Source:
     raw_path: Path
     origin_id: str | None = None
     legacy: bool = False
+
+
+@dataclass(frozen=True)
+class RawIntegrityReport:
+    source_records: int
+    unique_objects: int
+    verified_objects: int
+    missing_objects: int
+    corrupt_objects: int
+    invalid_utf8_objects: int
+    invalid_source_records: int
+    ok: bool
 
 
 def ensure_workspace(root: Path) -> None:
@@ -165,14 +178,20 @@ def _topic_state(root: Path, *, topic_id: str) -> tuple[dict[str, dict], set[str
 
 
 def _source_from_row(root: Path, row: dict) -> Source:
-    raw = root / "raw" / f"{row['sha256']}.txt"
-    sid = row["source_id"]
+    sid = str(row["source_id"])
+    sha = str(row["sha256"])
+    object_id = str(row["object_id"])
+    if not SHA256_RE.fullmatch(sha):
+        raise RuntimeError("source_record_sha_invalid")
+    if object_id != _object_id(sha):
+        raise RuntimeError("source_record_object_identity_mismatch")
+    raw = root / "raw" / f"{sha}.txt"
     if not raw.exists():
         raise RuntimeError(f"missing_raw_object:{sid}")
     return Source(
         source_id=sid,
-        object_id=row["object_id"],
-        sha256=row["sha256"],
+        object_id=object_id,
+        sha256=sha,
         name=row["name"],
         size_bytes=int(row["size_bytes"]),
         raw_path=raw,
@@ -450,5 +469,83 @@ def find_source(root: Path, source_id: str, *, topic_id: str | None = None) -> S
     return matches[0]
 
 
+def read_bytes_verified(source: Source) -> bytes:
+    """Read immutable raw bytes only after verifying their declared identity."""
+    if not SHA256_RE.fullmatch(source.sha256):
+        raise RuntimeError("raw_source_sha_invalid")
+    if source.object_id != _object_id(source.sha256):
+        raise RuntimeError("raw_source_object_identity_mismatch")
+    if source.raw_path.name != f"{source.sha256}.txt":
+        raise RuntimeError("raw_source_path_identity_mismatch")
+    try:
+        data = source.raw_path.read_bytes()
+    except FileNotFoundError as exc:
+        raise RuntimeError("raw_object_missing") from exc
+    if _sha256(data) != source.sha256:
+        raise RuntimeError("raw_object_integrity_mismatch")
+    return data
+
+
 def read_text(source: Source) -> str:
-    return source.raw_path.read_text(encoding="utf-8")
+    data = read_bytes_verified(source)
+    try:
+        return data.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise RuntimeError("raw_object_not_utf8") from exc
+
+
+def verify_raw_integrity(root: Path) -> RawIntegrityReport:
+    """Read-only aggregate audit of every unique raw object referenced by history.
+
+    The report deliberately contains counts/status only: no source IDs, paths,
+    filenames, content, hashes, or local provenance metadata.
+    """
+    records = _source_rows(root)
+    valid_shas: set[str] = set()
+    invalid_source_records = 0
+    for row in records.values():
+        sha = str(row.get("sha256", ""))
+        object_id = str(row.get("object_id", ""))
+        if not SHA256_RE.fullmatch(sha) or object_id != _object_id(sha):
+            invalid_source_records += 1
+            continue
+        valid_shas.add(sha)
+
+    verified_objects = 0
+    missing_objects = 0
+    corrupt_objects = 0
+    invalid_utf8_objects = 0
+    for sha in sorted(valid_shas):
+        raw = root / "raw" / f"{sha}.txt"
+        try:
+            data = raw.read_bytes()
+        except FileNotFoundError:
+            missing_objects += 1
+            continue
+        if _sha256(data) != sha:
+            corrupt_objects += 1
+            continue
+        try:
+            data.decode("utf-8")
+        except UnicodeDecodeError:
+            invalid_utf8_objects += 1
+            continue
+        verified_objects += 1
+
+    ok = (
+        invalid_source_records == 0
+        and missing_objects == 0
+        and corrupt_objects == 0
+        and invalid_utf8_objects == 0
+        and verified_objects == len(valid_shas)
+    )
+    return RawIntegrityReport(
+        source_records=len(records),
+        unique_objects=len(valid_shas),
+        verified_objects=verified_objects,
+        missing_objects=missing_objects,
+        corrupt_objects=corrupt_objects,
+        invalid_utf8_objects=invalid_utf8_objects,
+        invalid_source_records=invalid_source_records,
+        ok=ok,
+    )
