@@ -2,7 +2,7 @@
   "name": "llm-wiki-dogfood",
   "displayName": "LLM Wiki Dogfood",
   "description": "VS Code-first dogfood shell over the architecture-neutral LLM Wiki core.",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": true,
   "publisher": "llm-wiki-lab",
   "repository": {
@@ -33,50 +33,30 @@
     "onCommand:llmWiki.ask",
     "onCommand:llmWiki.calibration",
     "onCommand:llmWiki.doctor",
-    "onCommand:llmWiki.experimentalDiscoverCopilotModels"
+    "onCommand:llmWiki.experimentalDiscoverCopilotModels",
+    "onCommand:llmWiki.discoverAcrossTopics",
+    "onCommand:llmWiki.markCorrection",
+    "onCommand:llmWiki.markChange",
+    "onCommand:llmWiki.markDispute",
+    "onCommand:llmWiki.feedback"
   ],
   "contributes": {
     "commands": [
-      {
-        "command": "llmWiki.init",
-        "title": "LLM Wiki: Initialize Workspace"
-      },
-      {
-        "command": "llmWiki.createTopic",
-        "title": "LLM Wiki: Create Topic"
-      },
-      {
-        "command": "llmWiki.selectTopic",
-        "title": "LLM Wiki: Select Topic"
-      },
-      {
-        "command": "llmWiki.ingestActiveFile",
-        "title": "LLM Wiki: Ingest Active File"
-      },
-      {
-        "command": "llmWiki.ingestAuthoritativeUpdate",
-        "title": "LLM Wiki: Ingest Active File as Authoritative Update"
-      },
-      {
-        "command": "llmWiki.search",
-        "title": "LLM Wiki: Search Topic"
-      },
-      {
-        "command": "llmWiki.ask",
-        "title": "LLM Wiki: Ask Luna (Read-only)"
-      },
-      {
-        "command": "llmWiki.calibration",
-        "title": "LLM Wiki: Show Calibration Summary"
-      },
-      {
-        "command": "llmWiki.doctor",
-        "title": "LLM Wiki: Doctor (Zero Model Calls)"
-      },
-      {
-        "command": "llmWiki.experimentalDiscoverCopilotModels",
-        "title": "LLM Wiki: Experimental — Discover Copilot Models (Zero Generation)"
-      }
+      { "command": "llmWiki.init", "title": "LLM Wiki: Initialize Workspace" },
+      { "command": "llmWiki.createTopic", "title": "LLM Wiki: Create Topic" },
+      { "command": "llmWiki.selectTopic", "title": "LLM Wiki: Select Topic" },
+      { "command": "llmWiki.ingestActiveFile", "title": "LLM Wiki: Ingest Active File" },
+      { "command": "llmWiki.ingestAuthoritativeUpdate", "title": "LLM Wiki: Ingest Active File as Authoritative Update" },
+      { "command": "llmWiki.search", "title": "LLM Wiki: Search Topic" },
+      { "command": "llmWiki.discoverAcrossTopics", "title": "LLM Wiki: Find Evidence Across Topics" },
+      { "command": "llmWiki.markCorrection", "title": "LLM Wiki: Record Correction" },
+      { "command": "llmWiki.markChange", "title": "LLM Wiki: Record Change Over Time" },
+      { "command": "llmWiki.markDispute", "title": "LLM Wiki: Record Unresolved Dispute" },
+      { "command": "llmWiki.feedback", "title": "LLM Wiki: Record Feedback" },
+      { "command": "llmWiki.ask", "title": "LLM Wiki: Ask Luna (Read-only)" },
+      { "command": "llmWiki.calibration", "title": "LLM Wiki: Show Calibration Summary" },
+      { "command": "llmWiki.doctor", "title": "LLM Wiki: Doctor (Zero Model Calls)" },
+      { "command": "llmWiki.experimentalDiscoverCopilotModels", "title": "LLM Wiki: Experimental — Discover Copilot Models (Zero Generation)" }
     ],
     "configuration": {
       "title": "LLM Wiki Dogfood",
@@ -106,7 +86,7 @@
     }
   },
   "scripts": {
-    "check": "node --check entry.js && node --check extension.js && node test/static.js",
+    "check": "node --check entry.js && node --check extension.js && node --check product-helpers.js && node test/product-helpers.js && node test/static.js",
     "test:integration": "vscode-test --label runtime",
     "test:packaged": "cd test/packaged-runner && ../../node_modules/.bin/vscode-test",
     "bundle:core": "node scripts/bundle-core.js",
