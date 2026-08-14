@@ -22,6 +22,23 @@ async function withWindowStubs(stubs, fn) {
   }
 }
 
+async function stage(label, promise, timeoutMs = 8000) {
+  console.log(`VS-RUNTIME-STAGE start=${label}`);
+  let timer;
+  try {
+    const result = await Promise.race([
+      Promise.resolve(promise),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`VS-RUNTIME-STAGE timeout=${label}`)), timeoutMs);
+      }),
+    ]);
+    console.log(`VS-RUNTIME-STAGE pass=${label}`);
+    return result;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 suite('LLM Wiki Dogfood Extension Host', () => {
   test('loads extension and registers the VS Code-first command surface', async () => {
     const extension = vscode.extensions.getExtension('llm-wiki-lab.llm-wiki-dogfood');
@@ -108,13 +125,13 @@ suite('LLM Wiki Dogfood Extension Host', () => {
           showInformationMessage: async () => undefined,
         },
         async () => {
-          await vscode.commands.executeCommand('llmWiki.init');
-          await vscode.commands.executeCommand('llmWiki.createTopic');
+          await stage('init', vscode.commands.executeCommand('llmWiki.init'));
+          await stage('create-topic', vscode.commands.executeCommand('llmWiki.createTopic'));
 
-          const evidenceDoc = await vscode.workspace.openTextDocument(vscode.Uri.file(evidencePath));
-          await vscode.window.showTextDocument(evidenceDoc, { preview: false });
-          await vscode.commands.executeCommand('llmWiki.ingestActiveFile');
-          await vscode.commands.executeCommand('llmWiki.search');
+          const evidenceDoc = await stage('open-evidence-document', vscode.workspace.openTextDocument(vscode.Uri.file(evidencePath)));
+          await stage('show-evidence-editor', vscode.window.showTextDocument(evidenceDoc, { preview: false }));
+          await stage('ingest-active-file', vscode.commands.executeCommand('llmWiki.ingestActiveFile'));
+          await stage('search-and-open-provenance', vscode.commands.executeCommand('llmWiki.search'));
         }
       );
 
