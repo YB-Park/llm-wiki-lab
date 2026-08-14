@@ -1,0 +1,64 @@
+name: E011 remote replication
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'remote-lab/e011-request.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  copilot-requests: write
+
+jobs:
+  replicate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Install GitHub Copilot CLI
+        run: npm install -g @github/copilot
+
+      - name: Show runtime versions
+        run: |
+          python3 --version
+          copilot --version
+
+      - name: Validate frozen E011 semantic fixture
+        working-directory: experiments/E011-persistent-compilation-value-gate
+        run: python3 validate_frozen_a1.py
+
+      - name: Compile remote replication tools
+        working-directory: experiments/E011-persistent-compilation-value-gate
+        run: |
+          python3 -m py_compile \
+            remote_instrumentation_v1.py \
+            run_stage_1a_remote_v1.py \
+            analysis_stage1a_remote_v1.py
+
+      - name: Run frozen E011 remote replication
+        working-directory: experiments/E011-persistent-compilation-value-gate
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 run_stage_1a_remote_v1.py
+
+      - name: Analyze frozen remote results
+        working-directory: experiments/E011-persistent-compilation-value-gate
+        run: python3 analysis_stage1a_remote_v1.py
+
+      - name: Upload remote replication artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e011-remote-v1-${{ github.run_id }}
+          path: experiments/E011-persistent-compilation-value-gate/runs/stage-1a-remote-v1/
+          if-no-files-found: ignore
+          retention-days: 7
