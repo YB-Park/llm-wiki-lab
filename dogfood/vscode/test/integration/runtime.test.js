@@ -58,19 +58,24 @@ suite('LLM Wiki Dogfood Extension Host', () => {
     assert.equal(config.format, 'llm-wiki-dogfood-v0');
   });
 
-  test('Doctor reuses the real core boundary and preserves compiled-disabled with zero required model calls', async () => {
+  test('Doctor reuses the real core boundary and reports Git-protected realistic dogfood readiness', async () => {
     const folder = (vscode.workspace.workspaceFolders || [])[0];
     assert.ok(folder, 'integration test workspace is not open');
     const wikiRoot = path.join(folder.uri.fsPath, '.wiki-lab');
     fs.rmSync(wikiRoot, { recursive: true, force: true });
 
-    await vscode.commands.executeCommand('llmWiki.doctor');
+    const result = await vscode.commands.executeCommand('llmWiki.doctor');
 
     const configPath = path.join(wikiRoot, 'config.json');
     assert.ok(fs.existsSync(configPath), 'Doctor did not reach the real local core boundary');
     const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
     assert.equal(config.compiled_provider, 'disabled');
     assert.equal(config.format, 'llm-wiki-dogfood-v0');
+    assert.ok(result, 'Doctor did not return its sanitized readiness result');
+    assert.equal(result.coreReady, true);
+    assert.equal(result.compiledDisabled, true);
+    assert.equal(result.gitSafety, 'PROTECTED');
+    assert.equal(result.realisticDogfoodReady, true);
   });
 
   test('runs topic -> active-file ingest -> search -> read-only provenance entirely through VS Code commands', async () => {
