@@ -45,6 +45,19 @@ For a topic-scoped `search`, `context`, or `ask`, local telemetry may store only
 - default rendered/snippet context characters;
 - candidate rendered/snippet context characters.
 
+### Failure containment
+
+E015 is **fail-open with respect to the user-visible W0 path**.
+
+If X1 comparison or shadow telemetry recording fails:
+
+- the existing W0 search/context/Ask path continues unchanged;
+- no exception text, query, ID, path, content, or stack trace is appended to telemetry;
+- a separate `shadow_failure` event may record only opaque topic ID, operation, timestamp, and optional query class;
+- sanitized export may report only aggregate failure counts.
+
+A shadow failure must never trigger fallback to another retrieval/model mode and must never cause an additional model call.
+
 ### Forbidden telemetry
 
 Shadow events must never contain:
@@ -57,6 +70,7 @@ Shadow events must never contain:
 - SHA/content hashes;
 - retrieved text/snippets;
 - answer/model output;
+- exception text/stack traces;
 - embeddings or semantic representations.
 
 The comparison may use object IDs transiently in process memory, but only aggregate comparison features may be appended.
@@ -67,28 +81,29 @@ The existing E013 sanitized export may add an `retrieval_shadow` section contain
 
 Primary descriptive quantities:
 
-1. shadow query events;
-2. topics with shadow activity;
-3. 30-minute visits containing shadow activity;
-4. ordered-result divergence rate;
-5. top-1 divergence rate;
-6. candidate-addition rate (`candidate_only_count > 0`);
-7. default-only rate;
-8. mean/aggregate top-k overlap fraction;
-9. total candidate/default context-character ratio;
-10. the same divergence counts by explicit query class, with `unknown` retained as a first-class bucket.
+1. successful shadow query events;
+2. aggregate shadow-failure count;
+3. topics with successful shadow activity;
+4. 30-minute visits containing successful shadow activity;
+5. ordered-result divergence rate;
+6. top-1 divergence rate;
+7. candidate-addition rate (`candidate_only_count > 0`);
+8. default-only rate;
+9. mean/aggregate top-k overlap fraction;
+10. total candidate/default context-character ratio;
+11. the same divergence counts by explicit query class, with `unknown` retained as a first-class bucket.
 
 ## Data-readiness floor
 
 `SHADOW_CALIBRATION_READY` requires all:
 
-- >= 50 shadow query events;
-- >= 10 topics with shadow activity;
-- >= 30 topic visits containing shadow activity.
+- >= 50 **successful** shadow query events;
+- >= 10 topics with successful shadow activity;
+- >= 30 topic visits containing successful shadow activity.
 
 Before then: `INSUFFICIENT_SHADOW_DATA`.
 
-These are calibration minima, not statistical power claims.
+These are calibration minima, not statistical power claims. Failure events do not count toward readiness.
 
 ## Interpretation rules
 
