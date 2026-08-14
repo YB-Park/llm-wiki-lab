@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import errno
 import os
+import tempfile
 from pathlib import Path
 
 PRIVATE_DIR_MODE = 0o700
@@ -39,15 +41,61 @@ def _write_all(fd: int, payload: bytes) -> None:
         offset += written
 
 
-def write_private_bytes(path: Path, payload: bytes) -> None:
-    ensure_private_directory(path.parent)
-    restrict_private_file(path)
-    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, PRIVATE_FILE_MODE)
+def _fsync_directory(path: Path) -> None:
+    """Request durability for a same-directory atomic replacement where supported."""
+    if not _is_posix():
+        return
+    flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
     try:
-        _write_all(fd, payload)
+        fd = os.open(path, flags)
+    except OSError as exc:
+        if exc.errno in {errno.EINVAL, errno.ENOTSUP, getattr(errno, "EOPNOTSUPP", errno.ENOTSUP)}:
+            return
+        raise
+    try:
+        try:
+            os.fsync(fd)
+        except OSError as exc:
+            if exc.errno not in {errno.EINVAL, errno.ENOTSUP, getattr(errno, "EOPNOTSUPP", errno.ENOTSUP)}:
+                raise
     finally:
         os.close(fd)
+
+
+def write_private_bytes(path: Path, payload: bytes) -> None:
+    """Replace a private file without exposing a partially written final path.
+
+    Bytes are completed and fsynced in a same-directory temporary file before
+    `os.replace` publishes them. This is not a multi-writer transaction or a
+    cross-file WAL; it only prevents a failed pre-publication write from
+    poisoning the final private/content-addressed path.
+    """
+    ensure_private_directory(path.parent)
     restrict_private_file(path)
+
+    fd, temp_name = tempfile.mkstemp(prefix=f".{path.name}.tmp-", dir=path.parent)
+    temp_path = Path(temp_name)
+    published = False
+    try:
+        if _is_posix():
+            os.fchmod(fd, PRIVATE_FILE_MODE)
+        _write_all(fd, payload)
+        os.fsync(fd)
+        os.close(fd)
+        fd = -1
+
+        os.replace(temp_path, path)
+        published = True
+        restrict_private_file(path)
+        _fsync_directory(path.parent)
+    finally:
+        if fd >= 0:
+            os.close(fd)
+        if not published:
+            try:
+                temp_path.unlink()
+            except FileNotFoundError:
+                pass
 
 
 def write_private_text(path: Path, text: str) -> None:
