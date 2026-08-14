@@ -5,6 +5,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from dogfood.llm_wiki.adapters import _final_message, answer_prompt
+from dogfood.llm_wiki.cli import main as cli_main
 from dogfood.llm_wiki.retrieval import render_context, search, tokenize
 from dogfood.llm_wiki.store import history, ingest_file, sources
 
@@ -82,6 +84,32 @@ class DogfoodV0Tests(unittest.TestCase):
             ingest_file(root, note)
             config = json.loads((root / "config.json").read_text(encoding="utf-8"))
             self.assertEqual(config["compiled_provider"], "disabled")
+
+    def test_copilot_jsonl_extracts_only_final_answer(self):
+        stdout = "\n".join([
+            json.dumps({"type": "assistant.message", "data": {"phase": "analysis", "content": "ignore"}}),
+            json.dumps({"type": "assistant.message", "data": {"phase": "final_answer", "content": "Answer [src-abc]", "model": "gpt-5.6-luna", "toolRequests": []}}),
+        ])
+        answer = _final_message(stdout)
+        self.assertEqual(answer.text, "Answer [src-abc]")
+        self.assertEqual(answer.model, "gpt-5.6-luna")
+
+    def test_answer_prompt_is_read_only_and_evidence_bound(self):
+        prompt = answer_prompt("Why?", "### SOURCE src-abc\nEvidence")
+        self.assertIn("using only the evidence", prompt)
+        self.assertIn("src-abc", prompt)
+        self.assertIn("Do not claim to update", prompt)
+
+    def test_ask_requires_explicit_model_opt_in_before_any_adapter_call(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            root = base / "wiki"
+            note = base / "x.md"
+            note.write_text("cache decision", encoding="utf-8")
+            ingest_file(root, note)
+            with self.assertRaises(SystemExit) as cm:
+                cli_main(["--root", str(root), "ask", "cache"])
+            self.assertIn("model_call_not_authorized", str(cm.exception))
 
 
 if __name__ == "__main__":
