@@ -81,6 +81,50 @@ class DogfoodV0Tests(unittest.TestCase):
             )
             self.assertEqual(source_status(root, new.source_id, topic_id=topic)["status"], "current")
 
+    def test_plain_reingest_does_not_reactivate_superseded_content(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            root = base / "wiki"
+            topic = "topic-no-implicit-reactivation"
+            old_file = base / "old.md"
+            new_file = base / "new.md"
+            old_file.write_text("state alpha", encoding="utf-8")
+            new_file.write_text("state beta", encoding="utf-8")
+
+            old, _ = ingest_file(root, old_file, topic_id=topic)
+            new, _ = ingest_file(root, new_file, topic_id=topic, supersedes_source_id=old.source_id)
+            duplicate_old, duplicate = ingest_file(root, old_file, topic_id=topic)
+
+            self.assertTrue(duplicate)
+            self.assertEqual(duplicate_old.source_id, old.source_id)
+            self.assertEqual([src.source_id for src in sources(root, topic_id=topic)], [new.source_id])
+            self.assertEqual(source_status(root, old.source_id, topic_id=topic)["status"], "superseded")
+
+    def test_explicit_reversion_can_reactivate_identical_historical_bytes(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            root = base / "wiki"
+            topic = "topic-revert"
+            note = base / "state.md"
+
+            note.write_text("state alpha", encoding="utf-8")
+            a, _ = ingest_file(root, note, topic_id=topic)
+            note.write_text("state beta", encoding="utf-8")
+            b, _ = ingest_file(root, note, topic_id=topic, supersedes_source_id=a.source_id)
+
+            note.write_text("state alpha", encoding="utf-8")
+            reverted, duplicate = ingest_file(root, note, topic_id=topic, supersedes_source_id=b.source_id)
+
+            self.assertTrue(duplicate)
+            self.assertEqual(reverted.source_id, a.source_id)
+            self.assertEqual([src.source_id for src in sources(root, topic_id=topic)], [a.source_id])
+            self.assertEqual(source_status(root, a.source_id, topic_id=topic)["status"], "current")
+            self.assertEqual(
+                source_status(root, b.source_id, topic_id=topic),
+                {"source_id": b.source_id, "status": "superseded", "superseded_by": a.source_id},
+            )
+            self.assertEqual(len(list((root / "raw").iterdir())), 2)
+
     def test_supersession_chain_keeps_only_latest_current(self):
         with tempfile.TemporaryDirectory() as td:
             base = Path(td)
@@ -103,17 +147,15 @@ class DogfoodV0Tests(unittest.TestCase):
             self.assertEqual(len(list((root / "raw").iterdir())), 3)
             self.assertEqual(sum(1 for row in history(root) if row.get("event") == "supersede"), 2)
 
-    def test_supersession_rejects_self_conflict_cycle_and_stale_successor(self):
+    def test_supersession_rejects_self_conflict_and_inactive_successor(self):
         with tempfile.TemporaryDirectory() as td:
             base = Path(td)
             root = base / "wiki"
             topic = "topic-guards"
-            files = []
             sources_by_name = {}
             for name in ("a", "b", "c"):
                 p = base / f"{name}.md"
                 p.write_text(f"value {name}", encoding="utf-8")
-                files.append(p)
                 sources_by_name[name], _ = ingest_file(root, p, topic_id=topic)
 
             a = sources_by_name["a"]
@@ -137,6 +179,27 @@ class DogfoodV0Tests(unittest.TestCase):
             self.assertEqual(len(relations), 1)
             self.assertEqual(relations[0]["predecessor_source_id"], a.source_id)
             self.assertEqual(relations[0]["successor_source_id"], b.source_id)
+
+    def test_stale_old_relation_cannot_reactivate_superseded_successor(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            root = base / "wiki"
+            topic = "topic-stale-idempotence"
+            note = base / "state.md"
+
+            note.write_text("state alpha", encoding="utf-8")
+            a, _ = ingest_file(root, note, topic_id=topic)
+            note.write_text("state beta", encoding="utf-8")
+            b, _ = ingest_file(root, note, topic_id=topic, supersedes_source_id=a.source_id)
+            note.write_text("state gamma", encoding="utf-8")
+            c, _ = ingest_file(root, note, topic_id=topic, supersedes_source_id=b.source_id)
+
+            note.write_text("state beta", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                ingest_file(root, note, topic_id=topic, supersedes_source_id=a.source_id)
+
+            self.assertEqual([src.source_id for src in sources(root, topic_id=topic)], [c.source_id])
+            self.assertEqual(source_status(root, b.source_id, topic_id=topic)["status"], "superseded")
 
     def test_topic_scoped_supersession_does_not_hide_other_topic_or_unscoped_view(self):
         with tempfile.TemporaryDirectory() as td:
