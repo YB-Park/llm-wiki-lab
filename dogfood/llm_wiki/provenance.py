@@ -84,16 +84,50 @@ def _record_id(identity: dict) -> str:
 def _row_to_record(row: dict) -> ExactProvenanceRecord:
     if row.get("record_schema") != PROVENANCE_SCHEMA or row.get("event") != "bind_exact_raw_span":
         raise RuntimeError("provenance_record_schema_mismatch")
+    try:
+        topic_id = _validate_topic_id(str(row["topic_id"]))
+        local_label = _validate_local_label(row.get("local_label"))
+        source_id = str(row["source_id"])
+        object_id = str(row["object_id"])
+        sha256 = str(row["sha256"])
+        start = int(row["start"])
+        end = int(row["end"])
+        recorded_at = str(row["recorded_at"])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise RuntimeError("provenance_record_invalid_fields") from exc
+    if start < 0 or end <= start:
+        raise RuntimeError("provenance_record_span_invalid")
+    if not source_id.startswith("src-") or not object_id.startswith("obj-") or len(sha256) != 64:
+        raise RuntimeError("provenance_record_identity_format_invalid")
+    try:
+        recorded = datetime.fromisoformat(recorded_at)
+    except ValueError as exc:
+        raise RuntimeError("provenance_recorded_at_invalid") from exc
+    if recorded.tzinfo is None:
+        raise RuntimeError("provenance_recorded_at_naive")
+
+    identity = _canonical_identity(
+        topic_id=topic_id,
+        local_label=local_label,
+        source_id=source_id,
+        object_id=object_id,
+        sha256=sha256,
+        start=start,
+        end=end,
+    )
+    record_id = str(row["record_id"])
+    if record_id != _record_id(identity):
+        raise RuntimeError("provenance_record_identity_digest_mismatch")
     return ExactProvenanceRecord(
-        record_id=str(row["record_id"]),
-        topic_id=str(row["topic_id"]),
-        source_id=str(row["source_id"]),
-        object_id=str(row["object_id"]),
-        sha256=str(row["sha256"]),
-        start=int(row["start"]),
-        end=int(row["end"]),
-        local_label=row.get("local_label"),
-        recorded_at=str(row["recorded_at"]),
+        record_id=record_id,
+        topic_id=topic_id,
+        source_id=source_id,
+        object_id=object_id,
+        sha256=sha256,
+        start=start,
+        end=end,
+        local_label=local_label,
+        recorded_at=recorded.astimezone(timezone.utc).isoformat(),
     )
 
 
@@ -104,7 +138,11 @@ def provenance_history(root: Path) -> list[ExactProvenanceRecord]:
     rows = []
     for line in path.read_text(encoding="utf-8").splitlines():
         if line.strip():
-            rows.append(_row_to_record(json.loads(line)))
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError as exc:
+                raise RuntimeError("provenance_history_invalid_json") from exc
+            rows.append(_row_to_record(row))
     return rows
 
 
@@ -142,9 +180,8 @@ def bind_exact_raw_span(
     if start < 0 or end <= start:
         raise ValueError("provenance_span_invalid")
 
-    # `find_source(... include_superseded=True)` is deliberately historical: a
-    # provenance record may target evidence that is no longer current, but it
-    # must belong to this topic and must resolve to immutable raw storage.
+    # Historical resolution is deliberate: precise provenance is a pointer to
+    # one evidence revision, not a request to follow whichever revision is now current.
     source = find_source(root, source_id, topic_id=topic_id)
     raw_bytes = source.raw_path.read_bytes()
     actual_sha = hashlib.sha256(raw_bytes).hexdigest()
@@ -173,8 +210,6 @@ def bind_exact_raw_span(
             continue
         if _record_identity(existing) != identity:
             raise RuntimeError(f"provenance_record_id_collision:{record_id}")
-        # Revalidate the historical target even for retries. Corrupt raw storage
-        # must fail closed instead of making an old pointer look healthy.
         resolve_exact_raw_span(root, existing.record_id, topic_id=topic_id)
         return existing, False
 
@@ -198,10 +233,7 @@ def find_exact_provenance(
     topic_id: str,
 ) -> ExactProvenanceRecord:
     topic_id = _validate_topic_id(topic_id)
-    matches = [
-        row for row in provenance_history(root)
-        if row.record_id == record_id and row.topic_id == topic_id
-    ]
+    matches = [row for row in provenance_history(root) if row.record_id == record_id and row.topic_id == topic_id]
     if len(matches) != 1:
         raise ValueError(f"provenance_record_not_found:{record_id}:scope={topic_id}")
     return matches[0]
@@ -229,7 +261,6 @@ def resolve_exact_raw_span(
 ) -> ResolvedExactProvenance:
     record = find_exact_provenance(root, record_id, topic_id=topic_id)
     source = find_source(root, record.source_id, topic_id=record.topic_id)
-
     if source.object_id != record.object_id or source.sha256 != record.sha256:
         raise RuntimeError("provenance_source_snapshot_mismatch")
 
@@ -241,12 +272,8 @@ def resolve_exact_raw_span(
         text = raw_bytes.decode("utf-8")
     except UnicodeDecodeError as exc:
         raise RuntimeError("provenance_raw_object_not_utf8") from exc
-    if record.start < 0 or record.end <= record.start or record.end > len(text):
+    if record.end > len(text):
         raise RuntimeError("provenance_record_span_invalid")
-
-    # `read_text` is intentionally checked as a second access path because core
-    # consumers resolve Source objects this way. The exact pointer still uses
-    # immutable character offsets, not fuzzy re-localization.
     if read_text(source) != text:
         raise RuntimeError("provenance_raw_read_path_mismatch")
     return ResolvedExactProvenance(record=record, text=text[record.start:record.end])
