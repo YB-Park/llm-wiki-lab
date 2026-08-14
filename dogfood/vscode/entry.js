@@ -37,6 +37,12 @@ function coreRoot(context, folder) {
   return path.resolve(context.extensionPath, '..', '..');
 }
 
+function pythonExecutable(folder) {
+  const configured = String(configuration().get('pythonExecutable', 'python3') || 'python3');
+  if (path.isAbsolute(configured) || (!configured.includes('/') && !configured.includes('\\'))) return configured;
+  return path.resolve(folder.uri.fsPath, configured);
+}
+
 function coreMode(context) {
   const configured = String(configuration().get('corePath', '') || '').trim();
   if (configured) return 'configured';
@@ -59,17 +65,12 @@ async function executableAvailable(executable, args, cwd) {
 }
 
 async function alphaIntegrity(context, folder) {
-  const python = String(configuration().get('pythonExecutable', 'python3') || 'python3');
   const core = coreRoot(context, folder);
-  const pythonPath = process.env.PYTHONPATH
-    ? `${core}${path.delimiter}${process.env.PYTHONPATH}`
-    : core;
   const result = await execFileAsync(
-    python,
+    pythonExecutable(folder),
     ['-m', 'dogfood.llm_wiki.cli', '--root', wikiRoot(folder), 'integrity'],
     {
-      cwd: folder.uri.fsPath,
-      env: { ...process.env, PYTHONPATH: pythonPath },
+      cwd: core,
       windowsHide: true,
       timeout: 10000,
       maxBuffer: 1024 * 1024,
@@ -80,7 +81,7 @@ async function alphaIntegrity(context, folder) {
 
 async function doctor(context) {
   const folder = firstWorkspaceFolder();
-  const python = String(configuration().get('pythonExecutable', 'python3') || 'python3');
+  const python = pythonExecutable(folder);
   const root = wikiRoot(folder);
   const pythonReady = await executableAvailable(python, ['--version'], folder.uri.fsPath);
 
