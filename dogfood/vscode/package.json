@@ -5,17 +5,9 @@
   "version": "0.1.4",
   "private": true,
   "publisher": "llm-wiki-lab",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/YB-Park/llm-wiki-lab.git",
-    "directory": "dogfood/vscode"
-  },
-  "engines": {
-    "vscode": "^1.90.0"
-  },
-  "categories": [
-    "Other"
-  ],
+  "repository": { "type": "git", "url": "https://github.com/YB-Park/llm-wiki-lab.git", "directory": "dogfood/vscode" },
+  "engines": { "vscode": "^1.90.0" },
+  "categories": ["Other"],
   "main": "./entry.js",
   "capabilities": {
     "untrustedWorkspaces": {
@@ -48,9 +40,9 @@
       { "command": "llmWiki.ingestActiveFile", "title": "LLM Wiki: Ingest Active File" },
       { "command": "llmWiki.ingestAuthoritativeUpdate", "title": "LLM Wiki: Ingest Active File as Authoritative Update" },
       { "command": "llmWiki.search", "title": "LLM Wiki: Search Topic" },
-      { "command": "llmWiki.discoverAcrossTopics", "title": "LLM Wiki: Find Evidence Across Topics" },
+      { "command": "llmWiki.discoverAcrossTopics", "title": "LLM Wiki: Global Search Current Evidence Across Topics" },
       { "command": "llmWiki.markCorrection", "title": "LLM Wiki: Record Correction" },
-      { "command": "llmWiki.markChange", "title": "LLM Wiki: Record Change Over Time" },
+      { "command": "llmWiki.markChange", "title": "LLM Wiki: Change Source Over Time" },
       { "command": "llmWiki.markDispute", "title": "LLM Wiki: Record Unresolved Dispute" },
       { "command": "llmWiki.feedback", "title": "LLM Wiki: Record Feedback" },
       { "command": "llmWiki.ask", "title": "LLM Wiki: Ask Luna (Read-only)" },
@@ -61,27 +53,10 @@
     "configuration": {
       "title": "LLM Wiki Dogfood",
       "properties": {
-        "llmWiki.pythonExecutable": {
-          "type": "string",
-          "default": "python3",
-          "description": "Python executable used to invoke the architecture-neutral dogfood core."
-        },
-        "llmWiki.corePath": {
-          "type": "string",
-          "default": "",
-          "description": "Optional repository/core root. Empty uses the bundled core in an installed VSIX and the repository core during extension development."
-        },
-        "llmWiki.workspaceDirectory": {
-          "type": "string",
-          "default": ".wiki-lab",
-          "description": "Per-workspace local wiki directory. Keep this outside Git commits."
-        },
-        "llmWiki.maxAiCredits": {
-          "type": "number",
-          "default": 30,
-          "minimum": 1,
-          "description": "Per-call Copilot AI-credit guard for explicit Ask Luna commands."
-        }
+        "llmWiki.pythonExecutable": { "type": "string", "default": "python3", "description": "Python executable used to invoke the architecture-neutral dogfood core." },
+        "llmWiki.corePath": { "type": "string", "default": "", "description": "Optional repository/core root. Empty uses the bundled core in an installed VSIX and the repository core during extension development." },
+        "llmWiki.workspaceDirectory": { "type": "string", "default": ".wiki-lab", "description": "Per-workspace local wiki directory. Keep this outside Git commits." },
+        "llmWiki.maxAiCredits": { "type": "number", "default": 30, "minimum": 1, "description": "Per-call Copilot AI-credit guard for explicit Ask Luna commands." }
       }
     }
   },
