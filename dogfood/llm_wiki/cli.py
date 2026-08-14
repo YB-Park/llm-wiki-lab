@@ -63,6 +63,13 @@ def parser() -> argparse.ArgumentParser:
     ingest.add_argument("files", nargs="+")
     ingest.add_argument("--topic", help="associate evidence with a local topic")
     ingest.add_argument(
+        "--origin-id",
+        help=(
+            "optional caller-asserted opaque origin token; use only a non-sensitive stable ID, "
+            "never a raw path/username. Core does not infer origin identity"
+        ),
+    )
+    ingest.add_argument(
         "--authoritative-update",
         action="store_true",
         help="explicitly start a new E013 maintenance cycle; requires --topic",
@@ -70,7 +77,7 @@ def parser() -> argparse.ArgumentParser:
     ingest.add_argument(
         "--supersedes",
         metavar="SOURCE_ID",
-        help="explicitly mark the single ingested source as replacing SOURCE_ID in the same topic; independent of --authoritative-update",
+        help="explicitly mark the single ingested source revision as replacing SOURCE_ID in the same topic; independent of --authoritative-update",
     )
 
     srch = sub.add_parser("search")
@@ -180,13 +187,14 @@ def main(argv: list[str] | None = None) -> int:
                     Path(value),
                     topic_id=topic_id,
                     supersedes_source_id=args.supersedes,
+                    origin_id=args.origin_id,
                 )
             except (ValueError, RuntimeError) as exc:
                 raise SystemExit(f"INGEST-STOP {exc}") from None
             completed.append((src, duplicate))
             print(
-                f"INGEST source={src.source_id} sha256={src.sha256} bytes={src.size_bytes} "
-                f"duplicate={'yes' if duplicate else 'no'} name={json.dumps(src.name, ensure_ascii=False)}"
+                f"INGEST source={src.source_id} object={src.object_id} sha256={src.sha256} bytes={src.size_bytes} "
+                f"duplicateObject={'yes' if duplicate else 'no'} name={json.dumps(src.name, ensure_ascii=False)}"
             )
             if args.supersedes:
                 print(f"SUPERSEDE predecessor={args.supersedes} successor={src.source_id} scope=topic")
@@ -211,15 +219,22 @@ def main(argv: list[str] | None = None) -> int:
             for h in rows:
                 print(json.dumps({
                     "source_id": h.source.source_id,
+                    "source_ids": list(h.source_ids),
+                    "object_id": h.object_id,
+                    "provenance_count": len(h.evidence_sources),
                     "sha256": h.source.sha256,
                     "name": h.source.name,
+                    "names": sorted({src.name for src in h.evidence_sources}),
                     "score": h.score,
                     "snippet": h.snippet,
                 }, ensure_ascii=False, sort_keys=True))
         else:
             for i, h in enumerate(rows, 1):
                 snippet = " ".join(h.snippet.split())
-                print(f"{i:02d} score={h.score:.6f} source={h.source.source_id} name={h.source.name}")
+                print(
+                    f"{i:02d} score={h.score:.6f} object={h.object_id} "
+                    f"sources={','.join(h.source_ids)} name={h.source.name}"
+                )
                 print(f"   {snippet}")
         return 0
 
@@ -277,13 +292,19 @@ def main(argv: list[str] | None = None) -> int:
                 state = source_status(root, src.source_id, topic_id=topic_id)
                 if state["status"] == "superseded":
                     print(
-                        f"SOURCE {src.source_id} name={src.name} sha256={src.sha256} "
+                        f"SOURCE {src.source_id} object={src.object_id} name={src.name} sha256={src.sha256} "
                         f"status=superseded supersededBy={state['superseded_by']}"
                     )
                 else:
-                    print(f"SOURCE {src.source_id} name={src.name} sha256={src.sha256} status=current")
+                    print(
+                        f"SOURCE {src.source_id} object={src.object_id} name={src.name} "
+                        f"sha256={src.sha256} status=current"
+                    )
             else:
-                print(f"SOURCE {src.source_id} name={src.name} sha256={src.sha256} status=unscoped")
+                print(
+                    f"SOURCE {src.source_id} object={src.object_id} name={src.name} "
+                    f"sha256={src.sha256} status=unscoped"
+                )
             print(read_text(src))
             return 0
 
@@ -336,8 +357,9 @@ def main(argv: list[str] | None = None) -> int:
                 print(json.dumps(row, ensure_ascii=False, sort_keys=True))
                 continue
             if row.get("event") == "ingest":
+                object_part = f" object={row.get('object_id')}" if row.get("object_id") else ""
                 print(
-                    f"{row['recorded_at']} event=ingest source={row['source_id']} "
+                    f"{row['recorded_at']} event=ingest source={row['source_id']}{object_part} "
                     f"duplicate={'yes' if row.get('duplicate_content') else 'no'} name={row['name']}"
                 )
             elif row.get("event") == "supersede":
