@@ -19,33 +19,34 @@ class JsonlIntegrityReport:
     ok: bool
 
 
+@dataclass(frozen=True)
+class CanonicalLogsIntegrityReport:
+    manifest: JsonlIntegrityReport
+    provenance: JsonlIntegrityReport
+    ok: bool
+
+
+def _clean_report() -> JsonlIntegrityReport:
+    return JsonlIntegrityReport(
+        durable_records=0,
+        blank_records=0,
+        torn_tail_bytes=0,
+        corrupt_durable_records=0,
+        invalid_utf8_records=0,
+        invalid_json_records=0,
+        non_object_records=0,
+        status="clean",
+        ok=True,
+    )
+
+
 def _scan(path: Path) -> tuple[list[dict], JsonlIntegrityReport]:
     if not path.exists():
-        return [], JsonlIntegrityReport(
-            durable_records=0,
-            blank_records=0,
-            torn_tail_bytes=0,
-            corrupt_durable_records=0,
-            invalid_utf8_records=0,
-            invalid_json_records=0,
-            non_object_records=0,
-            status="clean",
-            ok=True,
-        )
+        return [], _clean_report()
 
     data = path.read_bytes()
     if not data:
-        return [], JsonlIntegrityReport(
-            durable_records=0,
-            blank_records=0,
-            torn_tail_bytes=0,
-            corrupt_durable_records=0,
-            invalid_utf8_records=0,
-            invalid_json_records=0,
-            non_object_records=0,
-            status="clean",
-            ok=True,
-        )
+        return [], _clean_report()
 
     # A canonical record is durable/replayable only after its terminating LF is
     # present. Anything after the final LF is an incomplete append, even when
@@ -121,6 +122,17 @@ def audit_jsonl(path: Path) -> JsonlIntegrityReport:
     return _scan(path)[1]
 
 
+def audit_canonical_logs(root: Path) -> CanonicalLogsIntegrityReport:
+    """Audit canonical append logs without exposing local provenance details."""
+    manifest = audit_jsonl(root / "manifest.jsonl")
+    provenance = audit_jsonl(root / "provenance.jsonl")
+    return CanonicalLogsIntegrityReport(
+        manifest=manifest,
+        provenance=provenance,
+        ok=manifest.ok and provenance.ok,
+    )
+
+
 def read_jsonl_objects(path: Path, *, log_name: str) -> list[dict]:
     """Strict semantic replay of one canonical append log.
 
@@ -141,13 +153,20 @@ def append_jsonl_object(path: Path, row: dict) -> None:
 
     The reader contract, not an assumption of magical filesystem atomicity,
     contains failures: a crash during this append may leave a torn final tail,
-    which strict replay will detect and reject.
+    which strict replay will detect and reject. Existing damaged logs are never
+    extended automatically.
     """
     if not isinstance(row, dict):
         raise TypeError("jsonl_record_must_be_object")
     path.parent.mkdir(parents=True, exist_ok=True)
-    payload = (json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n").encode("utf-8")
 
+    existing = audit_jsonl(path)
+    if existing.corrupt_durable_records:
+        raise RuntimeError("jsonl_append_blocked_corrupt_prefix")
+    if existing.torn_tail_bytes:
+        raise RuntimeError("jsonl_append_blocked_torn_tail")
+
+    payload = (json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n").encode("utf-8")
     flags = os.O_WRONLY | os.O_CREAT | os.O_APPEND
     fd = os.open(path, flags, 0o600)
     try:
