@@ -1,371 +1,256 @@
 # Design Question Register
 
-This is the canonical list of unresolved design questions.
+This is the **current** register of architecture/product questions. Keep it concise and update statuses as accepted ADRs or active evidence gates change. Historical wording and abandoned candidate detail remain available in Git history, experiment artifacts, issues, and ADRs.
 
-A question remains open until an ADR explicitly resolves it. Research notes and experiment results may change our confidence but do not themselves constitute a decision.
+A question becomes `DECIDED` only when an accepted ADR actually resolves the policy. Experiment results can narrow a question without silently becoming policy.
 
 ## Status vocabulary
 
-- `OPEN` — unresolved.
-- `RESEARCHING` — active literature/implementation review.
-- `EXPERIMENTING` — a controlled experiment is in progress.
-- `DECIDED` — resolved by an ADR.
-- `REOPENED` — an earlier decision is being reconsidered.
-
----
+- `OPEN` — unresolved and not on the active critical path.
+- `RESEARCHING` — active prior-art/implementation review.
+- `EXPERIMENTING` — an active evidence gate or real dogfood observation is deciding the next move.
+- `DECIDED` — resolved by an accepted ADR.
+- `REOPENED` — an accepted decision is under explicit reconsideration.
 
 ## A. Ingestion and selection
 
 ### Q-INGEST-001 — What should be eligible for durable ingestion?
-
 **Status:** OPEN
 
-Should every useful-looking source enter the system, or should the wiki enforce a threshold such as expected future reuse, novelty, personal importance, or evidentiary value?
-
-Risks on each side:
-
-- ingest too much -> maintenance debt and retrieval noise,
-- ingest too little -> lost context and repeated rediscovery.
+We still need real-use evidence for the right capture threshold. Over-capture creates retrieval/maintenance debt; under-capture recreates rediscovery work.
 
 ### Q-INGEST-002 — Should raw sources be immutable?
+**Status:** **DECIDED — ADR-0004 / ADR-0007**
 
+Immutable SHA-addressed raw content is the authority floor. Evidence revisions are separate opaque identities; semantic reads verify the declared raw identity before use.
+
+### Q-INGEST-003 — Should new information update the Wiki immediately or enter staging?
 **Status:** OPEN
 
-Candidate policies:
-
-1. immutable raw source,
-2. append-only versions,
-3. editable source with Git history,
-4. external source pointer plus local metadata.
-
-### Q-INGEST-003 — Should new information update the wiki immediately or enter a staging area?
-
-**Status:** OPEN
-
-Compare immediate integration with buffered/periodic consolidation.
+Raw evidence is appended immediately. The unresolved part is derived/compiled maintenance. Persistent compilation stays disabled until E013 demonstrates a realistic high-reuse region.
 
 ### Q-INGEST-004 — How should conversations and personal thoughts enter the system?
-
 **Status:** OPEN
 
-They are neither primary external evidence nor ordinary wiki facts. We need an explicit epistemic category and promotion rule.
-
----
+They need an explicit epistemic treatment rather than silently masquerading as external evidence.
 
 ## B. Knowledge representation
 
 ### Q-REP-001 — What is the canonical knowledge unit?
+**Status:** EXPERIMENTING
 
-**Status:** OPEN
-
-Candidates:
-
-- source summary,
-- topic document,
-- atomic note,
-- claim,
-- entity page,
-- event/observation,
-- layered combination.
+The Alpha authority floor is decided enough for use: immutable content object + evidence revision + topic history. A persistent derived Wiki unit remains data-gated by E013 rather than assumed necessary.
 
 ### Q-REP-002 — Should fact, interpretation, hypothesis, preference, and decision use separate structures?
-
 **Status:** OPEN
 
-The objective is to avoid derived interpretation silently acquiring the status of sourced fact without creating excessive authoring overhead.
+Do not add schema until real use shows the minimum distinctions that materially improve trust or retrieval.
 
-### Q-REP-003 — How much structure belongs in frontmatter vs prose?
-
+### Q-REP-003 — How much structure belongs in metadata vs prose?
 **Status:** OPEN
 
-Potential metadata includes source IDs, dates, lifecycle state, aliases, confidence, validity interval, review date, and relationships.
+Current core metadata is deliberately narrow. Additional structure needs observed value and maintenance evidence.
 
-### Q-REP-004 — What is the optimal document granularity?
+### Q-REP-004 — What is the optimal document/retrieval granularity?
+**Status:** EXPERIMENTING — E015
 
-**Status:** OPEN
-
-Need criteria based on semantic cohesion, retrieval quality, edit locality, and maintenance cost rather than arbitrary token count alone.
-
----
+W0 whole-object lexical retrieval remains visible/default. E014-R1's structural rank-then-expand mechanism survives controlled testing but remains shadow-only until realistic divergent cases justify any change.
 
 ## C. Classification and schema
 
 ### Q-SCHEMA-001 — How much hierarchy should exist initially?
-
 **Status:** OPEN
 
-Flat/tag-first, shallow folders, deep taxonomy, dynamic maps-of-content, or hybrid.
-
-### Q-SCHEMA-002 — Who is allowed to create a new category or page type?
-
+### Q-SCHEMA-002 — Who may create a new category/page type?
 **Status:** OPEN
 
-Possible controls range from autonomous creation to proposal/review thresholds.
-
-### Q-SCHEMA-003 — How should taxonomy evolution be performed?
-
+### Q-SCHEMA-003 — How should taxonomy rename/split/merge/migration work?
 **Status:** OPEN
 
-Need explicit semantics for rename, redirect, split, merge, re-parent, and migration.
-
-### Q-SCHEMA-004 — How do we resolve entities and aliases?
-
+### Q-SCHEMA-004 — How should entities and aliases be resolved?
 **Status:** OPEN
 
-Duplicate entity creation can fragment evidence and retrieval.
-
----
+These are deliberately parked until real dogfood demonstrates that the current topic/file model is causing material retrieval or maintenance failures.
 
 ## D. Update, contradiction, and time
 
-### Q-UPD-001 — When should new information overwrite old information?
+### Q-UPD-001 — How should replacement, correction, change, and disagreement differ?
+**Status:** **DECIDED — ADR-0005**
 
-**Status:** OPEN
-
-We must distinguish:
-
-- correction of an error,
-- temporal change,
-- conflicting evidence,
-- changed personal belief/preference,
-- refinement with added detail.
+Generic replacement, explicit correction, change with separate `effective_at`/`recorded_at`, and symmetric unresolved dispute are distinct caller-explicit semantics. No winner or relation type is inferred by the LLM.
 
 ### Q-UPD-002 — Do we need temporal metadata as a first-class concept?
+**Status:** **DECIDED AT MINIMUM FLOOR — ADR-0005**
 
-**Status:** OPEN
-
-Candidate fields: `observed_at`, `valid_from`, `valid_to`, `supersedes`.
+The accepted floor preserves `effective_at` and `recorded_at` for explicit change. Full bitemporal/as-of machinery remains unearned.
 
 ### Q-UPD-003 — How should unresolved contradictions be represented?
+**Status:** **DECIDED AT MINIMUM FLOOR — ADR-0005**
 
-**Status:** OPEN
+Two current evidence revisions may be explicitly disputed while both remain current; answer context must preserve the unresolved disagreement.
 
-The system should not manufacture consensus simply to keep one canonical sentence.
+### Q-UPD-004 — What triggers reconsolidation of a derived page?
+**Status:** OPEN / E013-DEPENDENT
 
-### Q-UPD-004 — What triggers reconsolidation of an existing page?
-
-**Status:** OPEN
-
-Possibilities include source count, age, detected contradiction, page size, query failures, or scheduled review.
-
----
+Do not design recurring compiled maintenance until a durable compiled provider earns existence in realistic use.
 
 ## E. Lifecycle and forgetting
 
 ### Q-LIFE-001 — When should a page split?
-
 **Status:** OPEN
-
-Candidate signals: multiple independent subtopics, repeated partial retrieval, excessive edit conflicts, token/size threshold, weak internal cohesion.
 
 ### Q-LIFE-002 — When should pages merge?
-
 **Status:** OPEN
-
-Need to distinguish legitimate specialization from accidental duplication.
 
 ### Q-LIFE-003 — What does deletion mean?
-
 **Status:** OPEN
 
-Options include hard delete, archive, tombstone, supersede, redirect, or remove only from active retrieval.
-
-### Q-LIFE-004 — Should knowledge decay or require periodic reaffirmation?
-
+### Q-LIFE-004 — Should knowledge decay or require reaffirmation?
 **Status:** OPEN
 
-Some domains change quickly; others are effectively timeless. A single stale-age threshold is unlikely to work.
-
----
+These are post-Alpha unless observed dogfood friction makes one a concrete blocker.
 
 ## F. Provenance and trust
 
 ### Q-PROV-001 — What is the minimum viable provenance granularity?
+**Status:** **DECIDED AT LOCAL CAPABILITY FLOOR — ADR-0006**
 
+Optional exact `[source revision, raw character span]` pointers are accepted. A global claim graph and selective dual-bookkeeping policy were not justified.
+
+### Q-PROV-002 — Can derived Wiki pages be evidence for other Wiki pages?
+**Status:** OPEN WITH CURRENT SAFETY BOUNDARY
+
+Generated answers and derived text do not become canonical evidence automatically. Persistent compiled state remains disabled; any future derived layer must preserve raw fallback/authority unless separately justified.
+
+### Q-PROV-003 — Should model/prompt/generation metadata be durable?
 **Status:** OPEN
 
-Source-file-level attribution is cheap. Claim/span-level provenance is more precise but costly. We need evidence about the trade-off.
+### Q-PROV-004 — How should unsupported derived claims be detected?
+**Status:** OPEN / PARKED
 
-### Q-PROV-002 — Can derived wiki pages be used as evidence for other wiki pages?
+Verifier stacks and compilation-loss repair remain candidates only if a compiled layer is activated and real failures demand them.
 
-**Status:** OPEN
+### Q-PROV-005 — How should a customer navigate from immutable evidence back to the original local source?
+**Status:** **EXPERIMENTING — E010 PRODUCT BLOCKER**
 
-This is central to recursive contamination risk. Candidate rule: derived pages can guide retrieval but cannot be sole evidence for factual promotion.
-
-### Q-PROV-003 — Should we store model identity, prompt version, or generation metadata?
-
-**Status:** OPEN
-
-Useful for reproducibility and debugging, but potentially high-noise metadata.
-
-### Q-PROV-004 — How should unsupported claims be detected?
-
-**Status:** OPEN
-
-Potential methods: citation checks, source entailment checks, adversarial audit, sampled human review.
-
----
+E010 self-dogfood found 22 duplicate-basename groups while current ingest preserves no original relative workspace path. A safe local navigation locator is needed, but it must remain separate from evidence identity, trust, and corroboration.
 
 ## G. Retrieval and answering
 
 ### Q-RET-001 — What is the baseline retrieval strategy?
+**Status:** EXPERIMENTING — W0 DEFAULT / E015 SHADOW
 
-**Status:** OPEN
+Object-level lexical BM25 is the current floor. E010 full-repo self-dogfood achieved 12/12 target top-5 hits and MRR 0.753, supporting W0 as a credible Alpha floor. This is not proof that W0 is the final universal policy.
 
-Candidates:
+### Q-RET-002 — When must an answer descend to primary evidence?
+**Status:** EXPERIMENTING IN DOGFOOD
 
-- filesystem/index navigation,
-- lexical search,
-- embeddings,
-- hierarchical summaries,
-- graph traversal,
-- agentic mixed retrieval.
-
-### Q-RET-002 — When must an answer descend from synthesis to primary evidence?
-
-**Status:** OPEN
-
-Likely query-dependent: exact values, dates, controversial statements, and high-impact decisions may require source verification.
+E013 provenance-follow behavior and real-use failures should determine how much automatic escalation is justified.
 
 ### Q-RET-003 — How should negative evidence and uncertainty be retrieved?
-
 **Status:** OPEN
-
-A system optimized only for matching supporting facts can systematically miss disagreement and absence.
 
 ### Q-RET-004 — How should retrieval failures feed maintenance?
-
 **Status:** OPEN
 
-If information exists but cannot be found, that should generate a repair signal rather than merely a poor answer.
+### Q-RET-005 — How should users recover knowledge when they forgot the topic?
+**Status:** **EXPERIMENTING — E010 PRODUCT BLOCKER**
 
----
+Current VS Code search requires a selected topic. The fix must search topic-current views safely; do not solve this by feeding unscoped all-history evidence into model-backed Ask.
 
 ## H. Human review and automation
 
 ### Q-HUM-001 — Which operations can be autonomous?
+**Status:** OPEN WITH CURRENT FLOOR
 
+Read/query operations are safe; canonical semantic relations remain explicit. Autonomous canonical mutation is not justified.
+
+### Q-HUM-002 — What review workflow is sustainable?
+**Status:** EXPERIMENTING IN E010 REAL USE
+
+### Q-HUM-003 — How should corrections become durable system learning?
 **Status:** OPEN
-
-Candidate risk tiers:
-
-- additive observation: low risk,
-- derived-page edit: medium risk,
-- merge/split/rename: higher risk,
-- deletion/source mutation: highest risk.
-
-### Q-HUM-002 — What is the minimum review workflow that remains sustainable?
-
-**Status:** OPEN
-
-A perfect review policy that users bypass is worse than a lightweight policy they actually follow.
-
-### Q-HUM-003 — How should user corrections become durable system improvements?
-
-**Status:** OPEN
-
-Candidate mechanisms: error book, lint rule, prompt rule, regression test, ADR amendment.
-
----
 
 ## I. Evaluation
 
-### Q-EVAL-001 — What does "better wiki" mean operationally?
+### Q-EVAL-001 — What does “better Wiki” mean operationally?
+**Status:** **EXPERIMENTING — E010 + E013 + E015**
 
+Core correctness is no longer the whole question. Current evaluation combines: customer-like VS Code usefulness (E010), realistic reuse/query economics (E013), and realistic retrieval divergence (E015).
+
+### Q-EVAL-002 — What corpus best approximates personal use?
 **Status:** EXPERIMENTING
 
-Current focus: E011 Persistent Compilation Value Gate. Before optimizing Wiki representation, determine whether any persistent compiled layer earns a repeatable quality/effort/cost advantage over strong raw+retrieval baselines and at what reuse level that advantage repays build cost.
-
-### Q-EVAL-002 — What benchmark corpus best approximates real personal use?
-
-**Status:** OPEN
-
-We need both controlled synthetic cases and realistic heterogeneous personal-knowledge workloads.
+Controlled corpora remain useful for mechanisms; E010 adds the actual project repository as a self-hosting realistic corpus. Repeated private real-life dogfood is still required.
 
 ### Q-EVAL-003 — How do we measure maintenance debt?
-
 **Status:** OPEN
-
-Candidate signals: unresolved contradictions, duplicate pages, stale claims, orphaned pages, review backlog, mean repair effort.
 
 ### Q-EVAL-004 — How do we measure long-horizon contamination?
+**Status:** MECHANISM EVIDENCE COMPLETE / POLICY OPEN
 
-**Status:** OPEN
-
-The benchmark must test repeated derive-update-retrieve cycles, not only one-shot ingestion.
+E007 established important failure mechanisms. Additional work should be triggered by a concrete derived/compiled product decision, not repeated by default.
 
 ### Q-EVAL-005 — How do we measure compilation loss separately from hallucination?
+**Status:** OPEN / PARKED UNTIL COMPILED STATE EARNS USE
 
-**Status:** OPEN
-
-A wiki can remain factually correct in everything it states while silently dropping facts required by future questions. Research Batch A (especially WiCER) makes omission a first-class failure mode. Candidate methods include diagnostic probes, source-to-wiki coverage sampling, real-query regression sets, and exact/conditional fact preservation tests.
-
-### Q-EVAL-006 — How should wiki edits be regression-tested against downstream use?
-
-**Status:** OPEN
-
-A locally good rewrite may improve one question while making unrelated questions worse. Compare local quality checks with downstream query suites, guard sets, and sampled human review before accepting high-impact edits.
-
----
+### Q-EVAL-006 — How should derived Wiki edits be downstream-regression tested?
+**Status:** OPEN / PARKED UNTIL COMPILED STATE EARNS USE
 
 ## J. VS Code + GitHub Copilot integration
 
 ### Q-UX-001 — What interaction surface should the user actually use daily?
+**Status:** **EXPERIMENTING — E010**
 
-**Status:** OPEN
-
-Potentially Copilot prompt files/custom agents plus ordinary file operations. The system should minimize context switching.
+The current command-driven VS Code shell is useful enough to dogfood but not yet customer-ready. E010 product blockers, not speculative polish, drive the next UX changes.
 
 ### Q-UX-002 — What instructions should be global vs task-specific?
-
 **Status:** OPEN
 
-Overly broad Copilot instructions may unintentionally influence unrelated coding work.
+### Q-UX-003 — When would MCP/dedicated retrieval service be justified?
+**Status:** OPEN / NOT JUSTIFIED NOW
 
-### Q-UX-003 — When would MCP or a dedicated retrieval service become justified?
+### Q-UX-004 — What is the acceptable lifecycle cost of Wiki automation?
+**Status:** **EXPERIMENTING — E013**
 
-**Status:** OPEN
+E011/E012 established a controlled high-reuse region; E013 now decides whether that region exists materially in natural use.
 
-It should be introduced because measured corpus scale or retrieval failure requires it, not because it is architecturally fashionable.
+### Q-UX-005 — What events should trigger expensive maintenance?
+**Status:** OPEN / E013-DEPENDENT
 
-### Q-UX-004 — What is the acceptable lifecycle cost of wiki automation?
+### Q-UX-006 — Can the VS Code-native Copilot LM API replace the CLI adapter without model ambiguity?
+**Status:** **EXPERIMENTING — Issue #24**
 
-**Status:** EXPERIMENTING
+Zero-generation discovery tooling is shipped. The remaining gate requires the user's actual VS Code/Copilot Pro session and exact `gpt-5.6-luna` metadata; no silent model substitution.
 
-E011 measures static build/query amortization first. Maintenance/update cost enters only if the static value gate survives.
+### Q-UX-007 — How should product feedback be captured naturally?
+**Status:** **EXPERIMENTING — E010 PRODUCT BLOCKER**
 
-### Q-UX-005 — What events should trigger expensive maintenance work?
+E013 already supports fixed-code feedback, but VS Code does not expose it. Real dogfood needs a low-friction first-class path.
 
-**Status:** OPEN
+### Q-UX-008 — What is the minimum backup/restore story for valuable local knowledge?
+**Status:** **EXPERIMENTING — E010 PRODUCT BLOCKER**
 
-Candidate triggers include every ingest, contradiction, retrieval failure, user correction, structural pressure, explicit user request, or scheduled batch maintenance. The trigger policy is part of the automation philosophy and cost model.
+Fail-closed integrity checks are not recovery. Define a minimal safe local operating story before calling the product customer-ready.
 
----
+## K. Cross-cutting system questions
 
-## K. Cross-cutting questions surfaced by Research Batch A
+### Q-SYS-001 — Should the Wiki ever become an irreversible compression boundary?
+**Status:** **EXPERIMENTING — E013**
 
-### Q-SYS-001 — Should the wiki ever become an irreversible compression boundary?
-
-**Status:** EXPERIMENTING
-
-E011 includes a compiled-only condition and a compiled+raw condition against strong raw baselines. This tests whether raw fallback is merely a safety cost or part of the value-producing retrieval strategy.
+Current answer: no. Raw remains authoritative and persistent compilation is disabled. E013 decides whether any durable compiled region earns activation.
 
 ### Q-SYS-002 — Should knowledge maintenance be evaluated like software maintenance?
-
 **Status:** OPEN
 
-Investigate whether structural lint, grounding invariants, behavioral regression suites, migration checks, and reversible diffs form a useful quality model for probabilistic knowledge artifacts.
-
-### Q-SYS-003 — How should one-off failures mature into durable system learning?
-
+### Q-SYS-003 — How should one-off failures become durable system learning?
 **Status:** OPEN
-
-Candidate progression: correction -> failure example -> rule candidate -> regression test -> deterministic check where possible -> schema/process change. We must also measure damage from overgeneralized rules.
-
----
 
 ## Current critical path
 
-1. E011: determine whether persistent compilation earns lifecycle value at all.
-2. realistic/shadow workload validation for any surviving value region.
-3. only then resolve detailed representation, temporal/provenance, maintenance, and automation questions that remain necessary.
+1. **E010 product readiness:** fix the concrete self-dogfood blockers around source navigation, VS Code temporal operations, feedback, forgotten-topic recall, and backup/restore operating safety.
+2. **Issue #24 real-session gate:** test exact Luna availability in the user's real VS Code/Copilot Pro session; if exact Luna exists, allow only the preregistered tiny smoke before an adapter decision.
+3. **Repeated E010 dogfood:** use the installed Wiki across multiple real sessions; let natural E013/E015 events accumulate from actual work.
+4. **E013:** decide whether any persistent compiled provider earns a narrow product region.
+5. **E015:** decide whether realistic W0/X1 divergence warrants a quality trial or retrieval-default reconsideration.
+6. Reopen parked schema/graph/verifier/maintenance research only when one of the above produces a concrete need.
