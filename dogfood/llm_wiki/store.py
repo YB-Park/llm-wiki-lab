@@ -120,7 +120,7 @@ def _validate_supersession(
         raise ValueError(f"supersession_predecessor_not_found:{predecessor_source_id}")
 
     if predecessor_source_id not in active:
-        if superseded_by.get(predecessor_source_id) == successor_source_id:
+        if superseded_by.get(predecessor_source_id) == successor_source_id and successor_source_id in active:
             return False
         raise ValueError(f"supersession_predecessor_not_current:{predecessor_source_id}")
 
