@@ -1,8 +1,10 @@
 # E014 pre-run freeze v0
 
-Status: **FROZEN BEFORE HELD-OUT SCORING**
+Status: **FROZEN BEFORE HELD-OUT SCORING — A1 hash-record correction applied**
 
 Date: 2026-08-14
+
+Amendment: `prescore-freeze-amendment-a1.md` records a prescore-only correction of three file-hash values after the first SHA guard failed. No held-out score had run; no experiment/corpus/scorer bytes or thresholds changed.
 
 ## Disclosure
 
@@ -24,14 +26,16 @@ Development split canonical SHA-256, for disclosure only: `24c2f57b61804265ca79b
 
 ## Frozen code hashes
 
-File-content SHA-256 values at freeze:
+File-content SHA-256 values after the A1 hash-record correction:
 
 - `generate_corpus.py`: `cbd81df876f6bf42e10118737137be6b5bc24edc9b7a30d72f0e4f88f0500c73`
-- `retrieval_core.py`: `48c3aff5f365d4a305a5374abc90d0c196d7a312073c9de9f99e837623d3bba5`
-- `analysis_v0.py`: `79d9ede37d096679d826e394fc39fa91ae7759b35f3a986efffdfd0168e75853`
-- `validate_prescore.py`: `ef65c19751c6b64abc01c25a8655c60c89cdc9c6a001a822cf6f64008031332a`
+- `retrieval_core.py`: `30049ba687d3ee99574184a5eb9271896f0e08778ab28fda6455eaf2a94f2bb8`
+- `analysis_v0.py`: `ea3f5d3c369083660f880a49ebd4d52499ffe36d9c6b3f07b23f4a536e55c710`
+- `validate_prescore.py`: `85905196a600421ff18141d01918dbc96cc7afeabe6dd2b37c546b40da5f7aad`
 
-If repository bytes do not match these values, scored execution must stop until the discrepancy is explained and a new explicit freeze is created. Do not silently update hashes after seeing held-out outcomes.
+The original three mismatched recorded values remain auditable in Git history and are listed in `prescore-freeze-amendment-a1.md` together with the two prescore runs that failed before scoring.
+
+If repository bytes do not match these corrected values, scored execution must stop until the discrepancy is explained in a new explicit amendment/version. Do not silently update hashes after seeing held-out outcomes.
 
 ## Frozen primary comparison
 
