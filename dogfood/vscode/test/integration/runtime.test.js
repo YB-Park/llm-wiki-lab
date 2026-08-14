@@ -40,6 +40,7 @@ suite('LLM Wiki Dogfood Extension Host', () => {
       'llmWiki.search',
       'llmWiki.ask',
       'llmWiki.calibration',
+      'llmWiki.doctor',
     ]) {
       assert.ok(commands.has(command), `missing runtime command: ${command}`);
     }
@@ -55,6 +56,21 @@ suite('LLM Wiki Dogfood Extension Host', () => {
 
     const configPath = path.join(wikiRoot, 'config.json');
     assert.ok(fs.existsSync(configPath), 'VS Code command did not initialize the local wiki core');
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    assert.equal(config.compiled_provider, 'disabled');
+    assert.equal(config.format, 'llm-wiki-dogfood-v0');
+  });
+
+  test('Doctor reuses the real core boundary and preserves compiled-disabled with zero required model calls', async () => {
+    const folder = (vscode.workspace.workspaceFolders || [])[0];
+    assert.ok(folder, 'integration test workspace is not open');
+    const wikiRoot = path.join(folder.uri.fsPath, '.wiki-lab');
+    fs.rmSync(wikiRoot, { recursive: true, force: true });
+
+    await vscode.commands.executeCommand('llmWiki.doctor');
+
+    const configPath = path.join(wikiRoot, 'config.json');
+    assert.ok(fs.existsSync(configPath), 'Doctor did not reach the real local core boundary');
     const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
     assert.equal(config.compiled_provider, 'disabled');
     assert.equal(config.format, 'llm-wiki-dogfood-v0');
