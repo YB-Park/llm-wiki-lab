@@ -11,6 +11,20 @@ function finiteNumber(value) {
   return Number.isFinite(number) && number >= 0 ? number : null;
 }
 
+function emptyReport(apiAvailable, selectionStatus) {
+  return {
+    schema: 'llm-wiki-lm-discovery-v0',
+    generationCalls: 0,
+    requestedVendor: 'copilot',
+    requiredModel: REQUIRED_LUNA_ID,
+    apiAvailable,
+    selectionStatus,
+    modelCount: 0,
+    exactLuna: { idMatches: 0, familyMatches: 0, exactMetadataSignal: false },
+    models: [],
+  };
+}
+
 function sanitizeModel(model) {
   return {
     id: text(model && model.id),
@@ -35,6 +49,7 @@ function summarizeModels(models) {
     generationCalls: 0,
     requestedVendor: 'copilot',
     requiredModel: REQUIRED_LUNA_ID,
+    selectionStatus: 'OK',
     modelCount: rows.length,
     exactLuna: {
       idMatches: exactIdMatches,
@@ -48,20 +63,15 @@ function summarizeModels(models) {
 async function discoverCopilotModels(vscodeApi) {
   const api = vscodeApi || require('vscode');
   if (!api.lm || typeof api.lm.selectChatModels !== 'function') {
-    return {
-      schema: 'llm-wiki-lm-discovery-v0',
-      generationCalls: 0,
-      requestedVendor: 'copilot',
-      requiredModel: REQUIRED_LUNA_ID,
-      apiAvailable: false,
-      modelCount: 0,
-      exactLuna: { idMatches: 0, familyMatches: 0, exactMetadataSignal: false },
-      models: [],
-    };
+    return emptyReport(false, 'API_UNAVAILABLE');
   }
 
-  const models = await api.lm.selectChatModels({ vendor: 'copilot' });
-  return { apiAvailable: true, ...summarizeModels(models) };
+  try {
+    const models = await api.lm.selectChatModels({ vendor: 'copilot' });
+    return { apiAvailable: true, ...summarizeModels(models) };
+  } catch (_) {
+    return emptyReport(true, 'ERROR');
+  }
 }
 
 module.exports = {
