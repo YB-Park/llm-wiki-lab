@@ -16,6 +16,7 @@ from .calibration import (
     sanitized_json,
     topics,
 )
+from .integrity import audit_alpha_integrity
 from .retrieval import render_context, search
 from .shadow import compare_retrieval_modes
 from .shadow_calibration import (
@@ -99,6 +100,7 @@ def parser() -> argparse.ArgumentParser:
     sub = p.add_subparsers(dest="command", required=True)
 
     sub.add_parser("init")
+    sub.add_parser("integrity")
 
     topic = sub.add_parser("topic")
     topic_sub = topic.add_subparsers(dest="topic_command", required=True)
@@ -202,6 +204,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "init":
         ensure_workspace(root)
         print(f"WIKI-INIT root={root} compiledProvider=disabled network=none")
+        return 0
+
+    if args.command == "integrity":
+        print(json.dumps(audit_alpha_integrity(root), sort_keys=True, ensure_ascii=False))
         return 0
 
     if args.command == "topic":
