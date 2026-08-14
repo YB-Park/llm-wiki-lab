@@ -1,8 +1,22 @@
 # Alpha Core Readiness Gate
 
-Status: **active convergence rule**
+Status: **ALPHA CORE READY — convergence rule active**
 
 Date: 2026-08-14
+
+## Alpha Core Ready declaration
+
+The final planned Alpha infrastructure blocker is closed by ADR-0008 / #51 / #52.
+
+The raw-first core is therefore **Alpha Core Ready**.
+
+This is a readiness declaration for the trustworthy core loop, not a claim that the product, UI, retrieval policy, or persistent compiled Wiki is finished.
+
+From this point forward, the convergence rule is active:
+
+> **Stop adding core infrastructure by default.**
+
+New core work must be justified by an actual dogfood failure, a preregistered realistic-evidence boundary crossing, or a reproducible data-loss/trust failure in an existing Alpha invariant.
 
 ## Why this document exists
 
@@ -10,8 +24,8 @@ The project must not trade rigor for schedule, but it also must not turn every i
 
 This document defines the smallest **trustworthy raw-first Alpha core** and separates:
 
-1. implementation blockers that must be closed before calling the core Alpha-ready;
-2. evidence gates that require real dogfood data and therefore must run while Alpha is used;
+1. implementation blockers that had to be closed before calling the core Alpha-ready;
+2. evidence gates that require real dogfood data and therefore run while Alpha is used;
 3. post-Alpha research that is explicitly forbidden from delaying Alpha absent a newly observed blocker.
 
 The Alpha definition is architecture-neutral. A persistent compiled provider is **not required** to call the raw-first core Alpha-ready; compiled state remains disabled until realistic reuse evidence earns activation.
@@ -98,25 +112,22 @@ Evidence:
 - identical-byte source multiplicity is not treated as corroboration;
 - unresolved dispute cannot be silently collapsed into consensus.
 
-### G. Canonical append-log torn-tail/crash containment — **LAST IMPLEMENTATION BLOCKER**
+### G. Canonical append-log torn-tail/crash containment — READY
 
-Current risk:
+Evidence:
 
-- `manifest.jsonl` is the canonical source/current-history/temporal event log;
-- `provenance.jsonl` is an append-only exact-pointer log;
-- current writers/readers do not yet define a tested contract for a process/power failure that leaves a partially written final JSONL record.
+- `manifest.jsonl` and `provenance.jsonl` share one strict canonical JSONL contract (ADR-0008);
+- only newline-terminated JSON-object records are replayable;
+- a non-empty final tail is detected as `torn_tail`, even if it is syntactically valid JSON;
+- invalid UTF-8, invalid JSON, or non-object committed records are detected as `corrupt_prefix`;
+- semantic replay fails closed on either class and performs no automatic repair/truncation;
+- writers refuse to append onto a damaged log, use `O_APPEND`, terminate records with LF, and request `fsync`;
+- read-only aggregate canonical-log audit exposes status/counts only;
+- legacy blank-line/source replay remains compatible;
+- PR #52 pre-documentation implementation head passed **94/94 Python tests**, CLI smoke, development VS Code Extension Host **4/4**, bundled core, packaged VSIX Extension Host **4/4**, and frozen E004/E014/E014-R1 validations;
+- model calls / AI credits: **0 / 0**.
 
-Alpha requires a minimal failure-containment floor:
-
-- deterministic detection of incomplete/corrupt log records;
-- no silent acceptance of a partial event;
-- no automatic semantic repair or invented event;
-- safe distinction between a torn **final append** and corruption inside the durable prefix;
-- read-only aggregate integrity status suitable for Doctor later;
-- valid legacy/current logs must replay identically;
-- no signed-log, consensus, database, or transaction framework unless this minimal path fails.
-
-This is the final planned infrastructure blocker before declaring **Alpha Core Ready**.
+The implementation intentionally does not claim multi-writer transactions, hostile-tamper resistance, automatic recovery, or database-grade cross-file atomicity.
 
 ## Realistic evidence gates that run during Alpha, not before it
 
@@ -130,7 +141,7 @@ Alpha must be usable while these real workload observations accumulate. If reuse
 
 Still required before changing default retrieval.
 
-Alpha may keep W0 visible/default while X1 is measured in zero-extra-model-call shadow.
+Alpha keeps W0 visible/default while X1 is measured in zero-extra-model-call shadow.
 
 ### Exact-provenance realistic burden
 
@@ -138,7 +149,7 @@ E004 demonstrated mechanism value but also large D1 rewrite/reattachment burden.
 
 ## Explicitly not Alpha blockers
 
-Unless real dogfood exposes one as a blocker, the following must **not** delay Alpha:
+Unless real dogfood exposes one as a blocker, the following must **not** trigger another prerequisite chain before Alpha use:
 
 - global claim graph;
 - vector database / embeddings;
@@ -165,13 +176,11 @@ That does not authorize default activation.
 
 Promotion still requires E013 realistic evidence that such a high-reuse region occurs materially in natural use. Exact/provenance-heavy workloads remain raw-first/raw-backed even if compilation later activates elsewhere.
 
-## Convergence rule after blocker G
+## Active convergence rule
 
-Once canonical append-log torn-tail/crash containment is green and merged:
+Alpha Core Ready is now the baseline, not a reason to invent another infrastructure checklist.
 
-> **Declare Alpha Core Ready and stop adding core infrastructure by default.**
-
-After that point, new core work must be justified by one of:
+Further core work requires at least one of:
 
 1. an actual dogfood failure/blocker;
 2. E013/E015 realistic evidence crossing a preregistered decision boundary;
@@ -179,4 +188,4 @@ After that point, new core work must be justified by one of:
 
 “Interesting architecture”, “might be useful later”, or “would make the Wiki more sophisticated” are not sufficient reasons.
 
-This rule is intentionally stronger than the normal research backlog. It exists to ensure rigor converges into a usable LLM Wiki rather than becoming an endless prerequisite chain.
+Research may continue, but it must either test a concrete decision boundary or remain explicitly post-Alpha. This rule exists to ensure rigor converges into a usable LLM Wiki rather than becoming an endless prerequisite chain.
