@@ -2,7 +2,7 @@
   "name": "llm-wiki-dogfood",
   "displayName": "LLM Wiki Dogfood",
   "description": "VS Code-first dogfood shell over the architecture-neutral LLM Wiki core.",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "publisher": "llm-wiki-lab",
   "repository": {
