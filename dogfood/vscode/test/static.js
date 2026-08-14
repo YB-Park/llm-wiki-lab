@@ -38,6 +38,12 @@ assert(extension.includes("'gpt-5.6-luna'"), 'Luna must remain the pinned dogfoo
 assert(extension.includes("'--allow-model-call'"), 'Ask path must explicitly opt into the model call');
 assert(extension.includes('{ modal: true }'), 'Ask path must use an explicit modal confirmation');
 assert(extension.includes('Canonical mutation: none'), 'Ask output must state that it is read-only');
+assert(extension.includes("register('llmWiki.ask', () => askLuna(context));"), 'Ask command must not accept programmatic options that could bypass consent');
+assert(extension.includes("register('llmWiki.createTopic', (options)"), 'Create Topic should support safe programmatic local-only validation');
+assert(extension.includes("register('llmWiki.search', (options)"), 'Search should support safe programmatic local-only validation');
+assert(extension.includes('openFirstResult === true'), 'programmatic search may open provenance without UI monkeypatching');
+assert(!extension.includes('allowModelCall'), 'no command-option model authorization flag is permitted');
+assert(!extension.includes('skipConsent'), 'no command-option consent bypass is permitted');
 assert(extension.includes("const SOURCE_SCHEME = 'llm-wiki-source'"), 'provenance must use a read-only virtual document scheme');
 assert(extension.includes("['source', 'show'"), 'opening provenance must go through the core source-show path');
 assert(extension.includes("['calibration', 'export']"), 'calibration summary must come from the sanitized core export');
@@ -56,4 +62,4 @@ assert(!entry.includes('process.env'), 'Doctor output/probing must not inspect e
 assert(bundler.includes("path.join(dogfoodRoot, 'llm_wiki')"), 'bundler must copy from the shared core source of truth');
 assert(bundler.includes("path.join(bundleRoot, 'dogfood')"), 'bundler must preserve the dogfood Python package layout');
 
-console.log('VS-CODE-DOGFOOD-STATIC PASS commands=9 doctorModelCalls=0 trustedWorkspaceOnly=yes model=gpt-5.6-luna bundledCore=generated compiledProvider=not-implemented');
+console.log('VS-CODE-DOGFOOD-STATIC PASS commands=9 doctorModelCalls=0 programmaticLocalOnly=yes consentBypass=no trustedWorkspaceOnly=yes model=gpt-5.6-luna bundledCore=generated compiledProvider=not-implemented');
