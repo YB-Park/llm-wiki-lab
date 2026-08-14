@@ -17,6 +17,12 @@ from .calibration import (
     topics,
 )
 from .retrieval import render_context, search
+from .shadow import compare_retrieval_modes
+from .shadow_calibration import (
+    record_retrieval_shadow,
+    record_retrieval_shadow_failure,
+    summarize_shadow,
+)
 from .store import (
     ensure_workspace,
     find_source,
@@ -39,6 +45,39 @@ def _resolved_topic_id(root: Path, value: str | None) -> str | None:
         return resolve_topic(root, value)["topic_id"]
     except (ValueError, RuntimeError) as exc:
         raise SystemExit(f"TOPIC-STOP {exc}") from None
+
+
+def _safe_record_retrieval_shadow(
+    root: Path,
+    topic_id: str | None,
+    operation: str,
+    query: str,
+    query_class: str | None,
+    *,
+    top_k: int,
+    snippet_chars: int,
+    include_superseded: bool,
+) -> None:
+    """Run E015 shadow comparison without allowing it to break W0 behavior."""
+    if topic_id is None:
+        return
+    try:
+        observation = compare_retrieval_modes(
+            root,
+            query,
+            topic_id=topic_id,
+            top_k=top_k,
+            snippet_chars=snippet_chars,
+            include_superseded=include_superseded,
+        )
+        record_retrieval_shadow(root, topic_id, operation, observation, query_class)
+    except Exception:
+        # Shadow is explicitly non-authoritative. Never persist exception text,
+        # query/content/IDs, and never fail the user-visible W0 operation.
+        try:
+            record_retrieval_shadow_failure(root, topic_id, operation, query_class)
+        except Exception:
+            pass
 
 
 def _add_topic_and_class_args(cmd: argparse.ArgumentParser) -> None:
@@ -215,6 +254,16 @@ def main(argv: list[str] | None = None) -> int:
             topic_id=topic_id,
             include_superseded=args.include_superseded,
         )
+        _safe_record_retrieval_shadow(
+            root,
+            topic_id,
+            "search",
+            args.query,
+            args.query_class,
+            top_k=args.top_k,
+            snippet_chars=320,
+            include_superseded=args.include_superseded,
+        )
         if args.json:
             for h in rows:
                 print(json.dumps({
@@ -250,6 +299,16 @@ def main(argv: list[str] | None = None) -> int:
             topic_id=topic_id,
             include_superseded=args.include_superseded,
         )
+        _safe_record_retrieval_shadow(
+            root,
+            topic_id,
+            "context",
+            args.query,
+            args.query_class,
+            top_k=args.top_k,
+            snippet_chars=args.max_chars,
+            include_superseded=args.include_superseded,
+        )
         print(text)
         return 0
 
@@ -267,6 +326,16 @@ def main(argv: list[str] | None = None) -> int:
             top_k=args.top_k,
             max_chars_per_source=args.max_chars,
             topic_id=topic_id,
+            include_superseded=False,
+        )
+        _safe_record_retrieval_shadow(
+            root,
+            topic_id,
+            "ask",
+            args.query,
+            args.query_class,
+            top_k=args.top_k,
+            snippet_chars=args.max_chars,
             include_superseded=False,
         )
         if not context.strip():
@@ -346,7 +415,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "calibration":
         if args.calibration_command == "export":
-            print(sanitized_json(root), end="")
+            aggregate = json.loads(sanitized_json(root))
+            aggregate["retrieval_shadow"] = summarize_shadow(root)
+            print(json.dumps(aggregate, indent=2, sort_keys=True, ensure_ascii=False) + "\n", end="")
             return 0
         raise AssertionError(args.calibration_command)
 
