@@ -2,18 +2,26 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
+import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+
+ORIGIN_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
+SOURCE_RECORD_SCHEMA = "llm-wiki-source-v1"
 
 
 @dataclass(frozen=True)
 class Source:
     source_id: str
+    object_id: str
     sha256: str
     name: str
     size_bytes: int
     raw_path: Path
+    origin_id: str | None = None
+    legacy: bool = False
 
 
 def ensure_workspace(root: Path) -> None:
@@ -31,8 +39,17 @@ def _sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def _source_id(sha256: str) -> str:
-    return f"src-{sha256[:16]}"
+def _object_id(sha256: str) -> str:
+    return f"obj-{sha256}"
+
+
+def _validate_origin_id(origin_id: str | None) -> str | None:
+    if origin_id is None:
+        return None
+    value = origin_id.strip()
+    if not ORIGIN_ID_RE.fullmatch(value):
+        raise ValueError("origin_id_must_be_opaque_ascii_token")
+    return value
 
 
 def _append_event(root: Path, event: dict) -> None:
@@ -51,25 +68,63 @@ def history(root: Path) -> list[dict]:
     return rows
 
 
-def _ingest_rows(root: Path, *, topic_id: str | None = None) -> dict[str, dict]:
-    latest: dict[str, dict] = {}
+def _normalize_ingest(event: dict) -> dict:
+    if event.get("event") != "ingest":
+        raise ValueError("not_ingest_event")
+    normalized = dict(event)
+    sha = str(normalized["sha256"])
+    normalized.setdefault("object_id", _object_id(sha))
+    normalized.setdefault("origin_id", None)
+    normalized["legacy_source_record"] = normalized.get("record_schema") != SOURCE_RECORD_SCHEMA
+    return normalized
+
+
+def _source_rows(root: Path, *, topic_id: str | None = None) -> dict[str, dict]:
+    """Return immutable source-record metadata keyed by source_id.
+
+    Repeated ingest observations may reuse one source ID. The first ingest defines
+    that source record; later observations must not silently rewrite its metadata.
+    """
+    records: dict[str, dict] = {}
     for event in history(root):
         if event.get("event") != "ingest":
             continue
         if topic_id is not None and event.get("topic_id") != topic_id:
             continue
-        latest[event["source_id"]] = event
-    return latest
+        row = _normalize_ingest(event)
+        sid = row["source_id"]
+        existing = records.get(sid)
+        if existing is None:
+            records[sid] = row
+            continue
+        immutable = ("object_id", "sha256", "origin_id")
+        if any(existing.get(key) != row.get(key) for key in immutable):
+            raise RuntimeError(f"source_record_identity_mutated:{sid}")
+    return records
+
+
+def _all_source_ids(root: Path) -> set[str]:
+    return set(_source_rows(root))
+
+
+def _new_source_id(root: Path) -> str:
+    existing = _all_source_ids(root)
+    for _ in range(16):
+        sid = f"src-{uuid.uuid4().hex}"
+        if sid not in existing:
+            return sid
+    raise RuntimeError("source_id_generation_exhausted")
 
 
 def _topic_state(root: Path, *, topic_id: str) -> tuple[dict[str, dict], set[str], dict[str, str]]:
-    """Fold append-only topic events into historical metadata and current membership.
+    """Fold append-only topic events into source metadata and current membership.
 
-    Source IDs are content-addressed, so the same bytes can legitimately recur later.
-    A plain re-ingest of previously superseded bytes does not reactivate them. Only
-    an ingest event explicitly marked `reactivates_source=true` can do that.
+    New source-v1 IDs identify evidence revisions, not bytes, so a deliberate
+    A -> B -> A reversion creates a new source ID for the second A occurrence.
+    Legacy content-derived IDs remain readable; `reactivates_source` is retained
+    only for compatibility with source-lineage-v1 histories written before v2.
     """
-    latest: dict[str, dict] = {}
+    records: dict[str, dict] = {}
     active: set[str] = set()
     superseded_by: dict[str, str] = {}
     seen: set[str] = set()
@@ -79,8 +134,15 @@ def _topic_state(root: Path, *, topic_id: str) -> tuple[dict[str, dict], set[str
             continue
         kind = event.get("event")
         if kind == "ingest":
-            sid = event["source_id"]
-            latest[sid] = event
+            row = _normalize_ingest(event)
+            sid = row["source_id"]
+            existing = records.get(sid)
+            if existing is None:
+                records[sid] = row
+            else:
+                immutable = ("object_id", "sha256", "origin_id")
+                if any(existing.get(key) != row.get(key) for key in immutable):
+                    raise RuntimeError(f"source_record_identity_mutated:{sid}")
             first_in_topic = sid not in seen
             seen.add(sid)
             if first_in_topic or event.get("reactivates_source") is True:
@@ -99,36 +161,83 @@ def _topic_state(root: Path, *, topic_id: str) -> tuple[dict[str, dict], set[str
         active.remove(predecessor)
         superseded_by[predecessor] = successor
 
-    return latest, active, superseded_by
+    return records, active, superseded_by
 
 
-def _validate_supersession(
+def _source_from_row(root: Path, row: dict) -> Source:
+    raw = root / "raw" / f"{row['sha256']}.txt"
+    sid = row["source_id"]
+    if not raw.exists():
+        raise RuntimeError(f"missing_raw_object:{sid}")
+    return Source(
+        source_id=sid,
+        object_id=row["object_id"],
+        sha256=row["sha256"],
+        name=row["name"],
+        size_bytes=int(row["size_bytes"]),
+        raw_path=raw,
+        origin_id=row.get("origin_id"),
+        legacy=bool(row.get("legacy_source_record")),
+    )
+
+
+def _identity_matches(row: dict, *, object_id: str, origin_id: str | None) -> bool:
+    return row["object_id"] == object_id and row.get("origin_id") == origin_id
+
+
+def _find_topic_identity_matches(
+    root: Path,
+    *,
+    topic_id: str,
+    object_id: str,
+    origin_id: str | None,
+) -> tuple[list[str], list[str], dict[str, dict], dict[str, str]]:
+    records, active, superseded_by = _topic_state(root, topic_id=topic_id)
+    matching = [
+        sid for sid, row in records.items()
+        if _identity_matches(row, object_id=object_id, origin_id=origin_id)
+    ]
+    current = sorted(sid for sid in matching if sid in active)
+    historical = sorted(sid for sid in matching if sid not in active)
+    return current, historical, records, superseded_by
+
+
+def _find_unscoped_identity_match(
+    root: Path,
+    *,
+    object_id: str,
+    origin_id: str | None,
+) -> tuple[str | None, dict[str, dict]]:
+    records = _source_rows(root)
+    matching = sorted(
+        sid for sid, row in records.items()
+        if row.get("topic_id") is None and _identity_matches(row, object_id=object_id, origin_id=origin_id)
+    )
+    if len(matching) > 1:
+        raise RuntimeError("ambiguous_unscoped_source_identity")
+    return (matching[0] if matching else None), records
+
+
+def _validate_standalone_supersession(
     root: Path,
     predecessor_source_id: str,
     successor_source_id: str,
     *,
-    topic_id: str | None,
-    successor_will_be_ingested: bool,
+    topic_id: str,
 ) -> bool:
-    if topic_id is None:
-        raise ValueError("supersession_requires_topic")
     if predecessor_source_id == successor_source_id:
         raise ValueError("supersession_self_reference")
 
-    latest, active, superseded_by = _topic_state(root, topic_id=topic_id)
-    if predecessor_source_id not in latest:
+    records, active, superseded_by = _topic_state(root, topic_id=topic_id)
+    if predecessor_source_id not in records:
         raise ValueError(f"supersession_predecessor_not_found:{predecessor_source_id}")
+    if successor_source_id not in records:
+        raise ValueError(f"supersession_successor_not_found:{successor_source_id}")
 
     if predecessor_source_id not in active:
         if superseded_by.get(predecessor_source_id) == successor_source_id and successor_source_id in active:
             return False
         raise ValueError(f"supersession_predecessor_not_current:{predecessor_source_id}")
-
-    if successor_will_be_ingested:
-        return True
-
-    if successor_source_id not in latest:
-        raise ValueError(f"supersession_successor_not_found:{successor_source_id}")
     if successor_source_id not in active:
         raise ValueError(f"supersession_successor_not_current:{successor_source_id}")
     return True
@@ -162,21 +271,15 @@ def supersede_source(
 ) -> bool:
     """Append an explicit topic-scoped supersession event between current sources."""
     ensure_workspace(root)
-    should_write = _validate_supersession(
+    should_write = _validate_standalone_supersession(
         root,
         predecessor_source_id,
         successor_source_id,
         topic_id=topic_id,
-        successor_will_be_ingested=False,
     )
     if not should_write:
         return False
-    _record_supersession(
-        root,
-        predecessor_source_id,
-        successor_source_id,
-        topic_id=topic_id,
-    )
+    _record_supersession(root, predecessor_source_id, successor_source_id, topic_id=topic_id)
     return True
 
 
@@ -186,8 +289,18 @@ def ingest_file(
     *,
     topic_id: str | None = None,
     supersedes_source_id: str | None = None,
+    origin_id: str | None = None,
 ) -> tuple[Source, bool]:
+    """Ingest UTF-8 evidence while separating content and provenance identity.
+
+    `origin_id` is optional and caller-asserted. It must be an opaque token; the
+    core deliberately does not derive it from filenames or paths.
+    """
     ensure_workspace(root)
+    origin_id = _validate_origin_id(origin_id)
+    if supersedes_source_id is not None and topic_id is None:
+        raise ValueError("supersession_requires_topic")
+
     data = file_path.read_bytes()
     try:
         data.decode("utf-8")
@@ -195,21 +308,59 @@ def ingest_file(
         raise ValueError(f"not_utf8_text:{file_path.name}") from exc
 
     sha = _sha256(data)
-    sid = _source_id(sha)
+    object_id = _object_id(sha)
 
-    should_record_supersession = False
-    if supersedes_source_id is not None:
-        should_record_supersession = _validate_supersession(
-            root,
-            supersedes_source_id,
-            sid,
-            topic_id=topic_id,
-            successor_will_be_ingested=True,
-        )
+    retry_source_id: str | None = None
+    predecessor_row: dict | None = None
+    if topic_id is not None and supersedes_source_id is not None:
+        records, active, superseded_by = _topic_state(root, topic_id=topic_id)
+        predecessor_row = records.get(supersedes_source_id)
+        if predecessor_row is None:
+            raise ValueError(f"supersession_predecessor_not_found:{supersedes_source_id}")
+        if supersedes_source_id not in active:
+            successor_id = superseded_by.get(supersedes_source_id)
+            successor = records.get(successor_id) if successor_id else None
+            if (
+                successor_id in active
+                and successor is not None
+                and _identity_matches(successor, object_id=object_id, origin_id=origin_id)
+            ):
+                retry_source_id = successor_id
+            else:
+                raise ValueError(f"supersession_predecessor_not_current:{supersedes_source_id}")
+        elif _identity_matches(predecessor_row, object_id=object_id, origin_id=origin_id):
+            raise ValueError("supersession_no_identity_change")
+
+    if retry_source_id is not None:
+        records, _, _ = _topic_state(root, topic_id=topic_id)  # type: ignore[arg-type]
+        return _source_from_row(root, records[retry_source_id]), True
+
+    source_id: str | None = None
+    if supersedes_source_id is None:
+        if topic_id is None:
+            source_id, _ = _find_unscoped_identity_match(root, object_id=object_id, origin_id=origin_id)
+        else:
+            current, historical, records, _ = _find_topic_identity_matches(
+                root,
+                topic_id=topic_id,
+                object_id=object_id,
+                origin_id=origin_id,
+            )
+            if len(current) > 1:
+                raise RuntimeError("ambiguous_current_source_identity")
+            if current:
+                source_id = current[0]
+            elif historical:
+                if len(historical) == 1:
+                    raise ValueError(f"stale_source_requires_supersedes:{historical[0]}")
+                raise ValueError("ambiguous_stale_source_requires_supersedes")
+
+    if source_id is None:
+        source_id = _new_source_id(root)
 
     raw = root / "raw" / f"{sha}.txt"
-    duplicate = raw.exists()
-    if duplicate:
+    duplicate_content = raw.exists()
+    if duplicate_content:
         if raw.read_bytes() != data:
             raise RuntimeError("content_address_collision")
     else:
@@ -217,29 +368,28 @@ def ingest_file(
 
     event = {
         "event": "ingest",
+        "record_schema": SOURCE_RECORD_SCHEMA,
         "recorded_at": datetime.now(timezone.utc).isoformat(),
-        "source_id": sid,
+        "source_id": source_id,
+        "object_id": object_id,
         "sha256": sha,
+        "origin_id": origin_id,
         "name": file_path.name,
         "size_bytes": len(data),
-        "duplicate_content": duplicate,
+        "duplicate_content": duplicate_content,
     }
     if topic_id is not None:
         event["topic_id"] = topic_id
-    if supersedes_source_id is not None:
-        # This flag matters only when the same content-addressed source had been
-        # superseded earlier. Plain duplicate ingest never resurrects stale bytes.
-        event["reactivates_source"] = True
     _append_event(root, event)
 
-    if supersedes_source_id is not None and should_record_supersession:
+    if supersedes_source_id is not None:
         assert topic_id is not None
-        # If an I/O failure occurs between ingest and this append, both versions
-        # remain visible. That conservative failure mode is safer than hiding the
-        # predecessor without a durable successor relation.
-        _record_supersession(root, supersedes_source_id, sid, topic_id=topic_id)
+        # A new source revision is now durably visible. If relation append fails,
+        # ambiguity remains visible rather than hiding the predecessor.
+        _record_supersession(root, supersedes_source_id, source_id, topic_id=topic_id)
 
-    return Source(sid, sha, file_path.name, len(data), raw), duplicate
+    row = _normalize_ingest(event)
+    return _source_from_row(root, row), duplicate_content
 
 
 def sources(
@@ -249,40 +399,32 @@ def sources(
     include_superseded: bool = False,
 ) -> list[Source]:
     if topic_id is None:
-        # Unscoped retrieval cannot safely apply topic-local supersession semantics.
-        # It therefore remains an all-evidence view.
-        latest = _ingest_rows(root)
-        visible = set(latest)
+        records = _source_rows(root)
+        visible = set(records)
     else:
-        latest, active, _ = _topic_state(root, topic_id=topic_id)
-        visible = set(latest) if include_superseded else active
+        records, active, _ = _topic_state(root, topic_id=topic_id)
+        visible = set(records) if include_superseded else active
 
-    out = []
-    for sid, event in sorted(latest.items()):
-        if sid not in visible:
-            continue
-        raw = root / "raw" / f"{event['sha256']}.txt"
-        if not raw.exists():
-            raise RuntimeError(f"missing_raw_object:{sid}")
-        out.append(Source(sid, event["sha256"], event["name"], int(event["size_bytes"]), raw))
-    return out
+    return [
+        _source_from_row(root, records[sid])
+        for sid in sorted(visible)
+    ]
 
 
 def source_status(root: Path, source_id: str, *, topic_id: str) -> dict:
-    latest, active, superseded_by = _topic_state(root, topic_id=topic_id)
-    if source_id not in latest:
+    records, active, superseded_by = _topic_state(root, topic_id=topic_id)
+    row = records.get(source_id)
+    if row is None:
         raise ValueError(f"source_not_found:{source_id}:scope={topic_id}")
-    successor = superseded_by.get(source_id)
     return {
         "source_id": source_id,
+        "object_id": row["object_id"],
         "status": "current" if source_id in active else "superseded",
-        "superseded_by": successor,
+        "superseded_by": superseded_by.get(source_id),
     }
 
 
 def find_source(root: Path, source_id: str, *, topic_id: str | None = None) -> Source:
-    # Direct provenance lookup intentionally includes superseded evidence. A source
-    # ID that was once cited must remain resolvable after later updates.
     matches = [src for src in sources(root, topic_id=topic_id, include_superseded=True) if src.source_id == source_id]
     if len(matches) != 1:
         scope = topic_id if topic_id is not None else "all"
