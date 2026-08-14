@@ -69,23 +69,39 @@ class E013CalibrationTests(unittest.TestCase):
             out = summarize(root)
             self.assertEqual(out["completed_cycle_revisits"]["median"], 2)
 
-    def test_sanitized_export_contains_no_topic_label_or_stable_topic_id(self):
+    def test_sanitized_export_contains_no_topic_or_provenance_identity_metadata(self):
         with tempfile.TemporaryDirectory() as td:
-            root = Path(td) / "wiki"
+            base = Path(td)
+            root = base / "wiki"
             row = create_topic(root, "Highly Sensitive Human Label")
             tid = row["topic_id"]
+            evidence = base / "private-note.md"
+            evidence.write_text("private evidence text", encoding="utf-8")
+            source, _ = ingest_file(root, evidence, topic_id=tid, origin_id="origin-secret-token")
             record_ingest(root, tid, recorded_at=ts(0, 0))
             record_query(root, tid, "search", "other", recorded_at=ts(0, 5))
 
             raw_events_text = json.dumps(events(root), ensure_ascii=False)
             self.assertNotIn("query_text", raw_events_text)
             self.assertNotIn("Highly Sensitive Human Label", raw_events_text)
+
             exported = sanitized_json(root)
-            self.assertNotIn("Highly Sensitive Human Label", exported)
-            self.assertNotIn(tid, exported)
-            self.assertNotIn("source_id", exported)
-            self.assertNotIn("sha256", exported)
-            self.assertNotIn("recorded_at", exported)
+            for forbidden in (
+                "Highly Sensitive Human Label",
+                tid,
+                source.source_id,
+                source.object_id,
+                source.sha256,
+                "origin-secret-token",
+                "private-note.md",
+                "private evidence text",
+                "source_id",
+                "object_id",
+                "origin_id",
+                "sha256",
+                "recorded_at",
+            ):
+                self.assertNotIn(forbidden, exported)
 
     def test_topic_scoped_retrieval_never_crosses_topic_boundary(self):
         with tempfile.TemporaryDirectory() as td:

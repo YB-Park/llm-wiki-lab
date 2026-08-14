@@ -69,6 +69,9 @@ def answer_prompt(question: str, context: str) -> str:
     return (
         "Answer the question using only the evidence context below. "
         "Treat raw evidence as authoritative. If the evidence is insufficient, say so. "
-        "Cite source IDs inline for factual claims. Do not claim to update or remember canonical state.\n\n"
+        "Cite source IDs inline for factual claims. "
+        "If one EVIDENCE OBJECT lists multiple source IDs, those records point to identical bytes; "
+        "do not count that multiplicity as independent corroboration or additional semantic support. "
+        "Do not claim to update or remember canonical state.\n\n"
         f"QUESTION\n{question}\n\nEVIDENCE CONTEXT\n{context}\n"
     )

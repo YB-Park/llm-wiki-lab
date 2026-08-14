@@ -13,9 +13,21 @@ TOKEN_RE = re.compile(r"[0-9a-zA-Z_가-힣]+", re.UNICODE)
 
 @dataclass(frozen=True)
 class Hit:
+    # `source` is a deterministic representative kept for backwards-compatible
+    # consumers. `evidence_sources` contains every active evidence record that
+    # points to the same immutable content object.
     source: Source
     score: float
     snippet: str
+    evidence_sources: tuple[Source, ...]
+
+    @property
+    def source_ids(self) -> tuple[str, ...]:
+        return tuple(src.source_id for src in self.evidence_sources)
+
+    @property
+    def object_id(self) -> str:
+        return self.source.object_id
 
 
 def tokenize(text: str) -> list[str]:
@@ -37,6 +49,21 @@ def _best_snippet(text: str, query_tokens: set[str], max_chars: int) -> str:
     return block[: max_chars - 1].rstrip() + "…"
 
 
+def _object_groups(docs: list[Source]) -> dict[str, tuple[Source, ...]]:
+    grouped: dict[str, list[Source]] = {}
+    for src in docs:
+        grouped.setdefault(src.object_id, []).append(src)
+
+    out: dict[str, tuple[Source, ...]] = {}
+    for object_id, rows in grouped.items():
+        ordered = tuple(sorted(rows, key=lambda src: src.source_id))
+        shas = {src.sha256 for src in ordered}
+        if len(shas) != 1:
+            raise RuntimeError(f"object_identity_collision:{object_id}")
+        out[object_id] = ordered
+    return out
+
+
 def search(
     root: Path,
     query: str,
@@ -46,15 +73,20 @@ def search(
     topic_id: str | None = None,
     include_superseded: bool = False,
 ) -> list[Hit]:
-    docs = sources(root, topic_id=topic_id, include_superseded=include_superseded)
-    if not docs:
+    evidence = sources(root, topic_id=topic_id, include_superseded=include_superseded)
+    if not evidence:
         return []
     qtokens = tokenize(query)
     if not qtokens:
         return []
 
-    tokenized = {s.source_id: tokenize(read_text(s)) for s in docs}
-    n = len(docs)
+    groups = _object_groups(evidence)
+    representatives = {object_id: rows[0] for object_id, rows in groups.items()}
+    tokenized = {
+        object_id: tokenize(read_text(src))
+        for object_id, src in representatives.items()
+    }
+    n = len(groups)
     avgdl = sum(len(v) for v in tokenized.values()) / n
     dfs = Counter()
     for toks in tokenized.values():
@@ -65,8 +97,8 @@ def search(
     b = 0.75
     hits = []
     qset = set(qtokens)
-    for src in docs:
-        toks = tokenized[src.source_id]
+    for object_id, src in representatives.items():
+        toks = tokenized[object_id]
         tf = Counter(toks)
         dl = len(toks)
         score = 0.0
@@ -78,9 +110,16 @@ def search(
             denom = tf[term] + k1 * (1 - b + b * dl / avgdl)
             score += idf * (tf[term] * (k1 + 1)) / denom
         if score > 0:
-            hits.append(Hit(src, score, _best_snippet(read_text(src), qset, snippet_chars)))
+            hits.append(
+                Hit(
+                    source=src,
+                    score=score,
+                    snippet=_best_snippet(read_text(src), qset, snippet_chars),
+                    evidence_sources=groups[object_id],
+                )
+            )
 
-    hits.sort(key=lambda h: (-h.score, h.source.source_id))
+    hits.sort(key=lambda h: (-h.score, h.object_id, h.source.source_id))
     return hits[: max(0, top_k)]
 
 
@@ -103,9 +142,14 @@ def render_context(
     )
     parts = []
     for hit in hits:
+        source_ids = ", ".join(hit.source_ids)
+        names = ", ".join(sorted({src.name for src in hit.evidence_sources}))
         parts.append(
-            f"### SOURCE {hit.source.source_id} — {hit.source.name}\n"
+            f"### EVIDENCE OBJECT {hit.object_id}\n"
+            f"source_ids: {source_ids}\n"
+            f"names: {names}\n"
             f"sha256: {hit.source.sha256}\n"
+            f"provenance_records: {len(hit.evidence_sources)}\n"
             f"bm25: {hit.score:.6f}\n\n"
             f"{hit.snippet}"
         )
