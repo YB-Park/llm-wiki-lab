@@ -11,6 +11,7 @@ async function main() {
   const exactId = summarizeModels([
     { id: REQUIRED_LUNA_ID, family: 'gpt-5.6', version: '1', name: 'Luna', vendor: 'copilot', maxInputTokens: 200000 },
   ]);
+  assert.equal(exactId.selectionStatus, 'OK');
   assert.equal(exactId.exactLuna.idMatches, 1);
   assert.equal(exactId.exactLuna.familyMatches, 0);
   assert.equal(exactId.exactLuna.exactMetadataSignal, true);
@@ -42,15 +43,30 @@ async function main() {
   const discovered = await discoverCopilotModels(fakeApi);
   assert.equal(selectorCalls, 1);
   assert.equal(discovered.apiAvailable, true);
+  assert.equal(discovered.selectionStatus, 'OK');
   assert.equal(discovered.generationCalls, 0);
   assert.equal(discovered.exactLuna.exactMetadataSignal, false);
 
   const unavailable = await discoverCopilotModels({ lm: undefined });
   assert.equal(unavailable.apiAvailable, false);
+  assert.equal(unavailable.selectionStatus, 'API_UNAVAILABLE');
   assert.equal(unavailable.generationCalls, 0);
   assert.equal(unavailable.modelCount, 0);
 
-  console.log('LM-DISCOVERY-TEST PASS exactId=yes exactFamily=yes fuzzyFallback=no generationCalls=0');
+  const failed = await discoverCopilotModels({
+    lm: {
+      selectChatModels: async () => {
+        throw new Error('synthetic selector failure that must not be surfaced');
+      },
+    },
+  });
+  assert.equal(failed.apiAvailable, true);
+  assert.equal(failed.selectionStatus, 'ERROR');
+  assert.equal(failed.generationCalls, 0);
+  assert.equal(failed.modelCount, 0);
+  assert.deepEqual(Object.keys(failed).includes('error'), false);
+
+  console.log('LM-DISCOVERY-TEST PASS exactId=yes exactFamily=yes fuzzyFallback=no selectorFailure=contained generationCalls=0');
 }
 
 main().catch((error) => {
