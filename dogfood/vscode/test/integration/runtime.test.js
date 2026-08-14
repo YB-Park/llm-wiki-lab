@@ -106,6 +106,31 @@ suite('LLM Wiki Dogfood Extension Host', () => {
     assert.deepEqual(fs.readFileSync(manifest), before, 'Doctor must not truncate or repair the torn manifest');
   });
 
+  test('Doctor detects a missing initialized manifest without recreating empty history', async () => {
+    const folder = (vscode.workspace.workspaceFolders || [])[0];
+    assert.ok(folder, 'integration test workspace is not open');
+    const wikiRoot = path.join(folder.uri.fsPath, '.wiki-lab');
+    fs.rmSync(wikiRoot, { recursive: true, force: true });
+    await vscode.commands.executeCommand('llmWiki.init');
+
+    const manifest = path.join(wikiRoot, 'manifest.jsonl');
+    const rawSentinel = path.join(wikiRoot, 'raw', 'surviving-sentinel.txt');
+    fs.writeFileSync(rawSentinel, 'surviving raw bytes', 'utf8');
+    fs.rmSync(manifest, { force: true });
+    assert.equal(fs.existsSync(manifest), false);
+
+    const result = await vscode.commands.executeCommand('llmWiki.doctor');
+
+    assert.equal(result.coreReady, true);
+    assert.equal(result.integrityReady, false);
+    assert.equal(result.manifestIntegrityStatus, 'missing');
+    assert.equal(result.rawIntegrityStatus, 'not_checked_manifest_missing');
+    assert.equal(result.localReady, false);
+    assert.equal(result.realisticDogfoodReady, false);
+    assert.equal(fs.existsSync(manifest), false, 'Doctor must not recreate missing canonical history');
+    assert.equal(fs.readFileSync(rawSentinel, 'utf8'), 'surviving raw bytes', 'Doctor must not reinterpret or mutate surviving raw bytes');
+  });
+
   test('Doctor detects a missing referenced raw object while canonical logs remain clean', async () => {
     const folder = (vscode.workspace.workspaceFolders || [])[0];
     assert.ok(folder, 'integration test workspace is not open');
