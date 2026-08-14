@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .store import Source, read_text, sources
+from .temporal_context import evidence_temporal_metadata
 
 TOKEN_RE = re.compile(r"[0-9a-zA-Z_가-힣]+", re.UNICODE)
 HEADING_RE = re.compile(r"^#{1,6}\s+\S")
@@ -406,13 +407,15 @@ def render_context(
     for hit in hits:
         source_ids = ", ".join(hit.source_ids)
         names = ", ".join(sorted({src.name for src in hit.evidence_sources}))
-        parts.append(
-            f"### EVIDENCE OBJECT {hit.object_id}\n"
-            f"source_ids: {source_ids}\n"
-            f"names: {names}\n"
-            f"sha256: {hit.source.sha256}\n"
-            f"provenance_records: {len(hit.evidence_sources)}\n"
-            f"bm25: {hit.score:.6f}\n\n"
-            f"{hit.snippet}"
-        )
+        temporal_lines = evidence_temporal_metadata(root, topic_id, hit.source_ids)
+        header_lines = [
+            f"### EVIDENCE OBJECT {hit.object_id}",
+            f"source_ids: {source_ids}",
+            f"names: {names}",
+            f"sha256: {hit.source.sha256}",
+            f"provenance_records: {len(hit.evidence_sources)}",
+            f"bm25: {hit.score:.6f}",
+            *temporal_lines,
+        ]
+        parts.append("\n".join(header_lines) + "\n\n" + hit.snippet)
     return "\n\n".join(parts)
