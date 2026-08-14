@@ -46,16 +46,23 @@ class RawIntegrityReport:
     ok: bool
 
 
+def _has_surviving_raw(root: Path) -> bool:
+    raw_dir = root / "raw"
+    return raw_dir.is_dir() and any(child.is_file() for child in raw_dir.iterdir())
+
+
 def ensure_workspace(root: Path) -> None:
     ensure_private_directory(root)
     config = root / "config.json"
     manifest = root / "manifest.jsonl"
     raw_dir = root / "raw"
 
-    # `config.json` is the durable signal that this workspace has already been
-    # initialized. If its canonical manifest later disappears, never recreate
-    # an empty history over surviving raw/state artifacts.
-    if config.exists() and not manifest.exists():
+    # Existing initialized state must never be silently reinterpreted as a new
+    # empty Wiki after canonical-history loss. `config.json` is the normal
+    # durable initialization marker; surviving raw objects are an independent
+    # prior-use signal because raw evidence is only published after workspace
+    # initialization has already created the manifest/config.
+    if not manifest.exists() and (config.exists() or _has_surviving_raw(root)):
         if raw_dir.exists():
             ensure_private_directory(raw_dir)
         tighten_workspace_permissions(root)
@@ -94,7 +101,7 @@ def _append_event(root: Path, event: dict) -> None:
 
 def history(root: Path) -> list[dict]:
     manifest = root / "manifest.jsonl"
-    if not manifest.exists() and (root / "config.json").exists():
+    if not manifest.exists() and ((root / "config.json").exists() or _has_surviving_raw(root)):
         raise RuntimeError("canonical_manifest_missing")
     return read_jsonl_objects(manifest, log_name="manifest")
 

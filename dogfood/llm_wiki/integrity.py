@@ -16,16 +16,19 @@ def audit_alpha_integrity(root: Path) -> dict:
     than guessing at source identity from surviving raw files or a partial log.
     """
     config_present = (root / "config.json").is_file()
-    raw_dir_present = (root / "raw").is_dir()
+    raw_dir = root / "raw"
+    raw_dir_present = raw_dir.is_dir()
+    surviving_raw = raw_dir_present and any(child.is_file() for child in raw_dir.iterdir())
     manifest_present = (root / "manifest.jsonl").is_file()
     initialized = config_present and raw_dir_present and manifest_present
 
     canonical_report = audit_canonical_logs(root)
     canonical = asdict(canonical_report)
 
-    # `config.json` is the durable initialization marker. Once it exists, a
-    # missing manifest is canonical-state loss, not a clean empty log.
-    if config_present and not manifest_present:
+    # Config is the normal durable initialization marker. Surviving raw objects
+    # are an independent prior-use signal because raw publication occurs only
+    # after initialization has created canonical workspace state.
+    if not manifest_present and (config_present or surviving_raw):
         canonical["manifest"]["status"] = "missing"
         canonical["manifest"]["ok"] = False
         canonical["ok"] = False
