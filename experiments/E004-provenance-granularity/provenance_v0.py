@@ -50,40 +50,41 @@ def _derived_section_ref(topic: dict, section_id: str) -> dict:
 def _claim_exact_refs(topic: dict, claim: dict, wave: str) -> list[dict]:
     if wave == "W0":
         return [dict(ref) for ref in claim["cited_exact_refs"]]
-
     out = []
     for ref in claim["cited_exact_refs"]:
         if ref["kind"] == "derived":
             out.append(dict(ref))
-            continue
-        fact_key = ref["fact_key"]
-        out.append(dict(topic["w1_fact_refs"][fact_key]))
+        else:
+            out.append(dict(topic["w1_fact_refs"][ref["fact_key"]]))
     return out
 
 
 def _structuralize(topic: dict, claim: dict, ref: dict, wave: str) -> dict:
     if ref["kind"] == "derived":
         return _derived_section_ref(topic, claim["section_id"])
-    sources = _source_map(topic, wave)
-    return _unit_ref(sources[ref["source_id"]], ref["unit_id"])
+    return _unit_ref(_source_map(topic, wave)[ref["source_id"]], ref["unit_id"])
 
 
-def _dedupe_refs(refs: list[dict]) -> list[dict]:
+def _ref_key(ref: dict) -> tuple:
+    return (
+        ref["kind"], ref["source_id"], ref.get("unit_id"), ref.get("section_id"),
+        ref.get("start"), ref.get("end"), ref.get("fact_key"),
+    )
+
+
+def _dedupe_refs_ordered(refs: list[dict]) -> list[dict]:
     seen = set()
     out = []
     for ref in refs:
-        key = (
-            ref["kind"],
-            ref["source_id"],
-            ref.get("unit_id"),
-            ref.get("section_id"),
-            ref.get("start"),
-            ref.get("end"),
-            ref.get("fact_key"),
-        )
+        key = _ref_key(ref)
         if key not in seen:
             seen.add(key)
             out.append(ref)
+    return out
+
+
+def _dedupe_refs_sorted(refs: list[dict]) -> list[dict]:
+    out = _dedupe_refs_ordered(refs)
     out.sort(
         key=lambda ref: (
             ref["kind"], ref["source_id"], str(ref.get("unit_id", "")),
@@ -100,49 +101,49 @@ def build_condition(topic: dict, condition: str, wave: str = "W0") -> dict:
         raise ValueError(f"unknown_wave:{wave}")
 
     claims = topic["claims"]
-    exact_by_claim = {
-        claim["claim_id"]: _claim_exact_refs(topic, claim, wave)
-        for claim in claims
-    }
+    exact_by_claim = {claim["claim_id"]: _claim_exact_refs(topic, claim, wave) for claim in claims}
 
     page_refs = []
     for claim in claims:
         for ref in exact_by_claim[claim["claim_id"]]:
             page_refs.append({"kind": ref["kind"], "source_id": ref["source_id"]})
-    page_refs = _dedupe_refs(page_refs)
+    page_refs = _dedupe_refs_sorted(page_refs)
 
     section_refs: dict[str, list[dict]] = {}
     for claim in claims:
         rows = section_refs.setdefault(claim["section_id"], [])
         for ref in exact_by_claim[claim["claim_id"]]:
             rows.append(_structuralize(topic, claim, ref, wave))
-    section_refs = {key: _dedupe_refs(rows) for key, rows in section_refs.items()}
+    section_refs = {key: _dedupe_refs_sorted(rows) for key, rows in section_refs.items()}
 
     if condition == "P0":
-        state = {"condition": condition, "wave": wave, "page_refs": page_refs}
-    elif condition == "P1":
-        state = {"condition": condition, "wave": wave, "section_refs": section_refs}
-    elif condition == "P2":
-        state = {
+        return {"condition": condition, "wave": wave, "page_refs": page_refs}
+    if condition == "P1":
+        return {"condition": condition, "wave": wave, "section_refs": section_refs}
+    if condition == "P2":
+        return {
             "condition": condition,
             "wave": wave,
-            "claim_refs": {claim_id: _dedupe_refs(rows) for claim_id, rows in exact_by_claim.items()},
+            # Exact reference order is atom order. Do not sort it: source-order
+            # normalization would destroy claim-atom ownership identity.
+            "claim_refs": {
+                claim_id: _dedupe_refs_ordered(rows) for claim_id, rows in exact_by_claim.items()
+            },
         }
-    else:
-        # P3 is intentionally allowed to read only the frozen risk label to
-        # choose precision. It never branches on fault family or gold outcome.
-        precise = {
-            claim["claim_id"]: _dedupe_refs(exact_by_claim[claim["claim_id"]])
-            for claim in claims
-            if claim["risk"] == "high"
-        }
-        state = {
-            "condition": condition,
-            "wave": wave,
-            "section_refs": section_refs,
-            "claim_refs": precise,
-        }
-    return state
+
+    # P3 is intentionally allowed to read only the frozen risk label to choose
+    # precision. It never branches on fault family or gold outcome.
+    precise = {
+        claim["claim_id"]: _dedupe_refs_ordered(exact_by_claim[claim["claim_id"]])
+        for claim in claims
+        if claim["risk"] == "high"
+    }
+    return {
+        "condition": condition,
+        "wave": wave,
+        "section_refs": section_refs,
+        "claim_refs": precise,
+    }
 
 
 def serialized_metadata_bytes(state: dict) -> int:
@@ -185,8 +186,7 @@ def _structural_units_for_sources(topic: dict, source_ids: set[str], wave: str) 
 
 def _bm25_rank_units(units: list[dict], claim: dict) -> list[dict]:
     query = " ".join(
-        " ".join((atom["subject"], atom["predicate"], atom["value"]))
-        for atom in claim["atoms"]
+        " ".join((atom["subject"], atom["predicate"], atom["value"])) for atom in claim["atoms"]
     )
     qtokens = tokenize(query)
     if not units or not qtokens:
@@ -222,9 +222,8 @@ def _containing_unit(topic: dict, exact_ref: dict, wave: str) -> dict | None:
     source = _source_map(topic, wave).get(exact_ref["source_id"])
     if source is None:
         return None
-    unit_id = exact_ref.get("unit_id")
-    if unit_id is not None:
-        return _unit_ref(source, unit_id)
+    if exact_ref.get("unit_id") is not None:
+        return _unit_ref(source, exact_ref["unit_id"])
     for unit in source["units"]:
         if unit["start"] <= exact_ref["start"] and exact_ref["end"] <= unit["end"]:
             return _unit_ref(source, unit["unit_id"])
@@ -242,34 +241,16 @@ def _inspection_plan(topic: dict, claim: dict, state: dict) -> list[dict]:
 
     precise = condition == "P2" or (condition == "P3" and claim["risk"] == "high")
     if not precise:
-        return sorted(
-            refs,
-            key=lambda ref: (
-                ref["kind"], ref["source_id"], str(ref.get("unit_id", "")), int(ref.get("start", 0))
-            ),
-        )
+        return _dedupe_refs_sorted(refs)
 
-    plan = []
-    for ref in refs:
-        plan.append(ref)
+    # Frozen protocol order: exact atom spans first, then containing units.
+    # Order-preserving dedupe is essential here.
+    plan = list(refs)
     for ref in refs:
         unit = _containing_unit(topic, ref, wave)
         if unit is not None:
             plan.append(unit)
-    return _dedupe_refs(plan)
-
-
-def _slice_for_ref(topic: dict, ref: dict, wave: str, remaining: int) -> tuple[str, int]:
-    if remaining <= 0 or ref["kind"] != "raw":
-        return "", 0
-    source = _source_map(topic, wave).get(ref["source_id"])
-    if source is None:
-        return "", 0
-    start = int(ref.get("start", 0))
-    end = min(int(ref.get("end", start)), start + remaining)
-    if end <= start:
-        return "", 0
-    return source["text"][start:end], end - start
+    return _dedupe_refs_ordered(plan)
 
 
 def _observed_statements(texts: list[tuple[str, str]]) -> dict[tuple[str, str], list[tuple[str, str]]]:
@@ -295,6 +276,7 @@ def audit_claim(topic: dict, claim: dict, state: dict, budget: int = 1200) -> di
     visited_units: set[tuple[str, str]] = set()
     inspected_chars = 0
     seen_intervals: dict[str, list[tuple[int, int]]] = {}
+    source_lookup = _source_map(topic, state["wave"])
 
     for ref in plan:
         if remaining <= 0:
@@ -302,11 +284,12 @@ def audit_claim(topic: dict, claim: dict, state: dict, budget: int = 1200) -> di
         if ref["kind"] != "raw":
             continue
         source_id = ref["source_id"]
+        source = source_lookup.get(source_id)
+        if source is None:
+            continue
         start = int(ref.get("start", 0))
         end = int(ref.get("end", start))
         intervals = seen_intervals.setdefault(source_id, [])
-        # If an exact span was already inspected, expanding to its containing
-        # unit should charge only newly inspected characters, not overlap twice.
         pieces = [(start, end)]
         for old_start, old_end in intervals:
             next_pieces = []
@@ -319,16 +302,12 @@ def audit_claim(topic: dict, claim: dict, state: dict, budget: int = 1200) -> di
                     if old_end < b:
                         next_pieces.append((old_end, b))
             pieces = next_pieces
-        source = _source_map(topic, state["wave"]).get(source_id)
-        if source is None:
-            continue
         for a, b in pieces:
             if remaining <= 0:
                 break
             take_end = min(b, a + remaining)
             if take_end > a:
-                text = source["text"][a:take_end]
-                inspected.append((source_id, text))
+                inspected.append((source_id, source["text"][a:take_end]))
                 charged = take_end - a
                 inspected_chars += charged
                 remaining -= charged
@@ -343,15 +322,7 @@ def audit_claim(topic: dict, claim: dict, state: dict, budget: int = 1200) -> di
         key = (atom["subject"], atom["predicate"])
         rows = observed.get(key, [])
         values = {value for value, _ in rows}
-        supporters = {source_id for value, source_id in rows if value == atom["value"]}
-        atom_states.append(
-            {
-                "key": key,
-                "values": values,
-                "supporters": supporters,
-                "asserted_seen": atom["value"] in values,
-            }
-        )
+        atom_states.append({"values": values, "asserted_seen": atom["value"] in values})
 
     if any(len(atom["values"]) > 1 for atom in atom_states):
         outcome = "contested"
@@ -378,8 +349,8 @@ def ownership_exact(topic: dict, claim: dict, state: dict) -> float:
     refs = _claim_refs(topic, claim, state)
     condition = state["condition"]
     precise = condition == "P2" or (condition == "P3" and claim["risk"] == "high")
-
     intended = [ref["source_id"] for ref in claim["intended_exact_refs"]]
+
     if precise:
         actual = [ref["source_id"] for ref in refs if ref["kind"] == "raw"]
         if len(actual) != len(claim["atoms"]):
@@ -394,13 +365,9 @@ def ownership_exact(topic: dict, claim: dict, state: dict) -> float:
 
 def exact_raw_reversible(topic: dict, state: dict) -> bool:
     sources = _source_map(topic, state["wave"])
-    refs = []
-    if state["condition"] == "P2":
-        refs = [ref for rows in state["claim_refs"].values() for ref in rows]
-    elif state["condition"] == "P3":
-        refs = [ref for rows in state["claim_refs"].values() for ref in rows]
-    else:
+    if state["condition"] not in {"P2", "P3"}:
         return True
+    refs = [ref for rows in state["claim_refs"].values() for ref in rows]
     for ref in refs:
         if ref["kind"] != "raw":
             continue
@@ -422,7 +389,10 @@ def w1_update_actions(topic: dict, condition: str) -> int:
     source_map = topic["w1_source_map"]
 
     def changed(ref: dict) -> int:
-        return int(ref["kind"] == "raw" and source_map.get(ref["source_id"], ref["source_id"]) != ref["source_id"])
+        return int(
+            ref["kind"] == "raw"
+            and source_map.get(ref["source_id"], ref["source_id"]) != ref["source_id"]
+        )
 
     if condition == "P0":
         return sum(changed(ref) for ref in state["page_refs"])
@@ -447,9 +417,8 @@ def d1_reattachment_actions(topic: dict, condition: str) -> int:
     new_pos = {claim_id: i for i, claim_id in enumerate(new_order)}
     moved_claims = {claim_id for i, claim_id in enumerate(old_order) if new_pos[claim_id] != i}
 
-    old_sections = [f"{topic['topic_id'].replace('topic-', 't')}-section-{i}" for i in range(3)]
-    # Generator D1 reverses section order, so every non-central section moves.
-    moved_sections = {old_sections[0], old_sections[2]}
+    section_ids = [section["section_id"] for section in topic["derived"]["sections"]]
+    moved_sections = {section_ids[0], section_ids[-1]} if len(section_ids) > 1 else set()
 
     if condition == "P0":
         return 0
