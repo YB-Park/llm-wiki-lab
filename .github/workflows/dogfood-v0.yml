@@ -1,8 +1,9 @@
-name: Dogfood v0
+name: VS Code Dogfood
 
 on:
   push:
     branches:
+      - main
       - dogfood/minimal-shell-v0
       - dogfood/vscode-v1-hardening
     paths:
@@ -44,6 +45,7 @@ jobs:
       - name: VS Code extension syntax and static boundary checks
         run: |
           node --version
+          node --check dogfood/vscode/entry.js
           node --check dogfood/vscode/extension.js
           node dogfood/vscode/test/static.js
       - name: Install VS Code test/package tooling
