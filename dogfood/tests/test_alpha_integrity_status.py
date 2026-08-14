@@ -9,7 +9,7 @@ from pathlib import Path
 
 from dogfood.llm_wiki.cli import main as cli_main
 from dogfood.llm_wiki.integrity import audit_alpha_integrity
-from dogfood.llm_wiki.store import ensure_workspace, ingest_file
+from dogfood.llm_wiki.store import ensure_workspace, history, ingest_file
 
 
 class AlphaIntegrityStatusTests(unittest.TestCase):
@@ -72,6 +72,44 @@ class AlphaIntegrityStatusTests(unittest.TestCase):
             self.assertEqual(report["canonical_logs"]["manifest"]["status"], "torn_tail")
             self.assertEqual(report["raw"], {"status": "not_checked_manifest_damaged", "ok": False})
             self.assertEqual(manifest.read_bytes(), before)
+
+    def test_initialized_missing_manifest_fails_closed_without_recreating_history(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            root = base / "wiki"
+            note = base / "note.md"
+            note.write_text("surviving private raw evidence", encoding="utf-8")
+            source, _ = ingest_file(root, note, topic_id="topic-manifest-loss")
+            raw_before = source.raw_path.read_bytes()
+            manifest = root / "manifest.jsonl"
+            manifest.unlink()
+
+            report = audit_alpha_integrity(root)
+
+            self.assertFalse(report["workspace_initialized"])
+            self.assertFalse(report["ok"])
+            self.assertEqual(report["canonical_logs"]["manifest"]["status"], "missing")
+            self.assertFalse(report["canonical_logs"]["manifest"]["ok"])
+            self.assertEqual(report["raw"], {"status": "not_checked_manifest_missing", "ok": False})
+            self.assertFalse(manifest.exists())
+            self.assertEqual(source.raw_path.read_bytes(), raw_before)
+
+            with self.assertRaisesRegex(RuntimeError, "^canonical_manifest_missing$"):
+                history(root)
+            with self.assertRaisesRegex(RuntimeError, "^canonical_manifest_missing$"):
+                ensure_workspace(root)
+            self.assertFalse(manifest.exists())
+            self.assertEqual(source.raw_path.read_bytes(), raw_before)
+
+            output = StringIO()
+            with redirect_stdout(output):
+                code = cli_main(["--root", str(root), "integrity"])
+            self.assertEqual(code, 0)
+            payload = json.loads(output.getvalue())
+            self.assertEqual(payload["canonical_logs"]["manifest"]["status"], "missing")
+            self.assertEqual(payload["raw"]["status"], "not_checked_manifest_missing")
+            self.assertFalse(manifest.exists())
+            self.assertEqual(source.raw_path.read_bytes(), raw_before)
 
     def test_cli_integrity_emits_one_aggregate_json_object_and_never_repairs(self):
         with tempfile.TemporaryDirectory() as td:
