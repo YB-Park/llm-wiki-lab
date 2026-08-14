@@ -1,8 +1,10 @@
 # LLM Wiki Lab
 
-A research-first lab for designing a trustworthy personal LLM Wiki.
+A research-first lab for building and validating a trustworthy personal LLM Wiki.
 
-This repository is intentionally **not** the personal wiki itself. It is the place where we investigate, test, document, and justify the architecture and operating policies that a future personal LLM Wiki will use.
+The product target is a **VS Code-first LLM Wiki**. This repository contains the research, experiments, decisions, core implementation, and dogfood surfaces used to get there; it is not the user's personal wiki data.
+
+For the latest continuation state and next actions, start with [`HANDOFF.md`](HANDOFF.md).
 
 ## Why this exists
 
@@ -20,7 +22,7 @@ The hard problem is everything that follows:
 - How should retrieval traverse summaries, detail, and primary sources?
 - How do we know the system is actually getting better rather than merely getting larger?
 
-We will treat these as research and systems-engineering problems rather than prompt-writing problems.
+We treat these as research and systems-engineering problems rather than prompt-writing problems, while keeping the working LLM Wiki—not the research program itself—as the end goal.
 
 ## Core principle
 
@@ -39,31 +41,35 @@ question
   -> revision
 ```
 
+The complementary convergence rule is equally important: once the evidence is sufficient for a usable path, build and dogfood it rather than turning every interesting question into another prerequisite.
+
 ## Repository map
 
+- [`HANDOFF.md`](HANDOFF.md) — current continuation state, in-flight work, and next actions
 - [`docs/00-project-charter.md`](docs/00-project-charter.md) — mission, scope, risks, success criteria
 - [`docs/01-research-map.md`](docs/01-research-map.md) — research landscape and comparison framework
-- [`docs/02-design-questions.md`](docs/02-design-questions.md) — open design-question register
+- [`docs/02-design-questions.md`](docs/02-design-questions.md) — design-question register
 - [`docs/03-experiment-plan.md`](docs/03-experiment-plan.md) — experimental program and metrics
-- [`docs/04-operating-model.md`](docs/04-operating-model.md) — how this lab itself will be run
+- [`docs/04-operating-model.md`](docs/04-operating-model.md) — how this lab itself is run
+- [`docs/09-alpha-core-readiness-gate.md`](docs/09-alpha-core-readiness-gate.md) — Alpha Core invariants and convergence rule
+- [`dogfood/`](dogfood/) — usable raw-first core and VS Code dogfood surface
 - [`research/`](research/) — notes on papers, implementations, and adjacent systems
 - [`experiments/`](experiments/) — reproducible experiments and results
 - [`decisions/`](decisions/) — Architecture Decision Records (ADRs)
 
-## Current phase
+## Current program
 
-**Phase 0 — Problem framing and research design**
+The raw-first **Alpha Core is ready** under the convergence rule. The core now preserves immutable/verified raw evidence, explicit evidence revision and current/history semantics, minimum temporal/dispute semantics, deterministic provenance-preserving retrieval, optional exact raw-span provenance, and a read-only answer boundary.
 
-We are deliberately postponing the production wiki schema, Copilot prompts, retrieval stack, and automation until the major design questions have been mapped and the first baseline experiments are defined.
+The project is intentionally moving away from open-ended core infrastructure work and toward **real VS Code dogfood use**:
 
-## Near-term milestones
+- E013 measures realistic revisit/update/query mix before any durable compiled provider is enabled.
+- E015 measures W0 versus the E014-R1 structural-expand candidate in non-visible shadow before any retrieval-default change.
+- `whole_object_v0` remains the visible/default retrieval path.
+- persistent compiled state remains disabled pending realistic evidence.
+- VS Code UI work has already reached a useful early shape and is deliberately deferred until real use exposes repeated friction or preference.
 
-1. Build a landscape of real LLM Wiki implementations and relevant adjacent systems.
-2. Define failure modes and evaluation criteria before optimizing architecture.
-3. Construct a small controlled corpus and benchmark question set.
-4. Compare alternative representations, update strategies, and retrieval strategies.
-5. Record design choices as ADRs with evidence and explicit reversal conditions.
-6. Only then build the first VS Code + GitHub Copilot prototype.
+See [`HANDOFF.md`](HANDOFF.md) for the exact current in-flight item and immediate next steps.
 
 ## Status labels used in documents
 
