@@ -14,3 +14,6 @@ experiments/**/.local/**
 # Generic telemetry/log outputs if created outside ignored run directories
 *.otel.jsonl
 otel.jsonl
+
+# Local dogfood evidence store. Raw personal evidence is never committed by default.
+.wiki-lab/
