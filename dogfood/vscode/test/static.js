@@ -25,6 +25,7 @@ for (const command of [
 
 assert.equal(manifest.main, './extension.js');
 assert.equal(manifest.private, true);
+assert.equal(manifest.capabilities.untrustedWorkspaces.supported, false, 'extension must not run in untrusted workspaces');
 assert.equal(manifest.contributes.configuration.properties['llmWiki.maxAiCredits'].default, 30);
 
 assert(extension.includes("'gpt-5.6-luna'"), 'Luna must remain the pinned dogfood model');
@@ -37,4 +38,4 @@ assert(extension.includes("['calibration', 'export']"), 'calibration summary mus
 assert(!extension.includes('shell: true'), 'extension must not invoke CLI through a shell');
 assert(!extension.includes('compiled_provider ='), 'extension must not implement or enable a compiled provider');
 
-console.log('VS-CODE-DOGFOOD-STATIC PASS commands=8 model=gpt-5.6-luna compiledProvider=not-implemented');
+console.log('VS-CODE-DOGFOOD-STATIC PASS commands=8 trustedWorkspaceOnly=yes model=gpt-5.6-luna compiledProvider=not-implemented');
