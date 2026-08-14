@@ -8,11 +8,12 @@ The core remains authoritative for storage, retrieval, provenance, E013 calibrat
 
 After installing the VSIX, open a **trusted local workspace** in VS Code and use the Command Palette (`Cmd/Ctrl+Shift+P`):
 
-1. `LLM Wiki: Doctor (Zero Model Calls)` — checks Python, the bundled/local core, compiled-disabled state, and whether Copilot CLI is available. This makes zero model calls and ingests no evidence.
-2. `LLM Wiki: Create Topic` — create the first local topic.
-3. Open a file you want to preserve as evidence and run `LLM Wiki: Ingest Active File`.
-4. Run `LLM Wiki: Search Topic` and choose a result to open its read-only provenance document.
-5. Only when desired, run `LLM Wiki: Ask Luna (Read-only)` and explicitly approve the modal evidence-send warning.
+1. `LLM Wiki: Doctor (Zero Model Calls)` — checks Python, the bundled/local core, `compiled_provider=disabled`, Git raw-store safety, and whether Copilot CLI is available. This makes zero model calls and ingests no evidence.
+2. If Doctor reports `Git raw-store safety: UNPROTECTED` or `Realistic evidence dogfood: BLOCKED`, **do not ingest sensitive/realistic evidence yet**. Protect the local wiki directory from that Git repository first.
+3. `LLM Wiki: Create Topic` — create the first local topic.
+4. Open a file you want to preserve as evidence and run `LLM Wiki: Ingest Active File`.
+5. Run `LLM Wiki: Search Topic` and choose a result to open its read-only provenance document.
+6. Only when desired, run `LLM Wiki: Ask Luna (Read-only)` and explicitly approve the modal evidence-send warning.
 
 The selected topic appears in the VS Code status bar. Click it to switch topics.
 
@@ -37,9 +38,12 @@ Doctor is deliberately local and cheap. It:
 - checks whether the configured Python executable can start;
 - invokes the real `LLM Wiki: Initialize Workspace` editor-to-core boundary;
 - confirms the local config format and `compiled_provider=disabled`;
+- classifies the local raw store as `NOT_GIT`, `PROTECTED`, or `UNPROTECTED` using local Git inspection only;
 - reports whether Copilot CLI is present;
-- reports local raw/search/provenance readiness separately from Ask Luna readiness;
+- reports local raw/search/provenance readiness, realistic evidence dogfood readiness, and Ask Luna readiness separately;
 - makes **zero model calls**.
+
+`PROTECTED` means the configured local wiki directory is outside the workspace Git tree or ignored by that Git repository. `UNPROTECTED` means it is inside a Git work tree and not ignored. Version 0.1.2 warns but does **not** silently edit `.gitignore`, `.git/info/exclude`, or other Git metadata.
 
 Doctor does not print local paths, usernames, hostnames, environment variables, evidence, prompts, or answers.
 
@@ -69,7 +73,7 @@ CI builds `llm-wiki-dogfood.vsix`. The VSIX bundles the shared Python core **at 
 
 The installed extension therefore does not require a checkout of this repository for normal raw/retrieval/provenance use. It still requires Python to be available on the machine.
 
-CI runs the same Extension Host interaction suite twice: once against the repository development extension and once against the unpacked packaged VSIX. The packaged test exercises initialization, Doctor, topic creation, active-file ingest, topic search, and read-only provenance using the bundled core.
+CI runs the same Extension Host interaction suite twice: once against the repository development extension and once against the unpacked packaged VSIX. The packaged test exercises initialization, Doctor, topic creation, active-file ingest, topic search, and read-only provenance using the bundled core. Separate deterministic tests cover non-Git, unprotected Git, `.gitignore`-protected, local-exclude-protected, and external-store Git-safety cases.
 
 To install a downloaded VSIX in VS Code, use the Extensions view's `Install from VSIX...` action.
 
@@ -79,7 +83,7 @@ To install a downloaded VSIX in VS Code, use the Extensions view's `Install from
 - Python available as `python3` by default, configurable via `llmWiki.pythonExecutable`;
 - GitHub Copilot CLI installed and authenticated only if you choose `LLM Wiki: Ask Luna (Read-only)`.
 
-For realistic dogfood, use the extension in a workspace that contains only evidence you are permitted to process. The local `.wiki-lab/` directory should not be committed to Git.
+For realistic dogfood, use the extension in a workspace that contains only evidence you are permitted to process and run Doctor first. Treat `UNPROTECTED` as a stop condition for realistic evidence ingestion.
 
 ## Settings
 
@@ -91,5 +95,7 @@ For realistic dogfood, use the extension in a workspace that contains only evide
 ## Current limitations
 
 This is a first usable editor shell, not a polished Marketplace release. It currently uses Command Palette, Quick Pick, Output, status bar, and virtual documents rather than a dedicated sidebar or chat participant.
+
+Version 0.1.2 detects an unprotected Git raw store but does not yet provide an automatic protection action; any future action must be explicit, local, and reversible.
 
 Compiled knowledge remains disabled. E013 realistic workload evidence decides whether a compiled provider is ever allowed to advance to shadow/opt-in testing.

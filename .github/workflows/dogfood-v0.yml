@@ -6,6 +6,7 @@ on:
       - main
       - dogfood/minimal-shell-v0
       - dogfood/vscode-v1-hardening
+      - dogfood/git-safety
     paths:
       - 'dogfood/**'
       - '.vscode/**'
@@ -47,7 +48,9 @@ jobs:
           node --version
           node --check dogfood/vscode/entry.js
           node --check dogfood/vscode/extension.js
+          node --check dogfood/vscode/git-safety.js
           node dogfood/vscode/test/static.js
+          node dogfood/vscode/test/git-safety.js
       - name: Install VS Code test/package tooling
         working-directory: dogfood/vscode
         run: npm install --no-audit --no-fund
@@ -68,6 +71,7 @@ jobs:
           npm run package:vsix
           test -s dist/llm-wiki-dogfood.vsix
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/cli.py'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/git-safety.js'
       - name: Unpack and execute packaged VSIX in Extension Host
         working-directory: dogfood/vscode
         run: |
@@ -75,6 +79,7 @@ jobs:
           mkdir -p dist/unpacked
           unzip -q dist/llm-wiki-dogfood.vsix -d dist/unpacked
           test -f dist/unpacked/extension/python/dogfood/llm_wiki/cli.py
+          test -f dist/unpacked/extension/git-safety.js
           xvfb-run -a npm run test:packaged
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v7

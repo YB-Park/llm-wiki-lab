@@ -6,6 +6,7 @@ const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const vscode = require('vscode');
 const base = require('./extension');
+const { classifyGitSafety } = require('./git-safety');
 
 const execFileAsync = promisify(execFile);
 let doctorOutput;
@@ -49,6 +50,7 @@ async function executableAvailable(executable, args, cwd) {
 async function doctor(context) {
   const folder = firstWorkspaceFolder();
   const python = String(configuration().get('pythonExecutable', 'python3') || 'python3');
+  const root = wikiRoot(folder);
   const pythonReady = await executableAvailable(python, ['--version'], folder.uri.fsPath);
 
   // Reuse the real extension -> Python-core command boundary. This may initialize
@@ -58,15 +60,19 @@ async function doctor(context) {
   let coreReady = false;
   let compiledDisabled = false;
   try {
-    const config = JSON.parse(fs.readFileSync(path.join(wikiRoot(folder), 'config.json'), 'utf8'));
+    const config = JSON.parse(fs.readFileSync(path.join(root, 'config.json'), 'utf8'));
     coreReady = pythonReady && config.format === 'llm-wiki-dogfood-v0';
     compiledDisabled = config.compiled_provider === 'disabled';
   } catch (_) {
     coreReady = false;
   }
 
+  const gitSafety = await classifyGitSafety(folder.uri.fsPath, root);
+  const gitSafeForEvidence = gitSafety !== 'UNPROTECTED';
   const copilotReady = await executableAvailable('copilot', ['--version'], folder.uri.fsPath);
-  const askReady = coreReady && compiledDisabled && copilotReady;
+  const localReady = coreReady && compiledDisabled;
+  const askReady = localReady && copilotReady;
+  const realisticDogfoodReady = localReady && gitSafeForEvidence;
 
   doctorOutput.clear();
   doctorOutput.appendLine('LLM Wiki Doctor');
@@ -74,17 +80,34 @@ async function doctor(context) {
   doctorOutput.appendLine(`Python: ${pythonReady ? 'PASS' : 'FAIL'}`);
   doctorOutput.appendLine(`Core: ${coreReady ? 'PASS' : 'FAIL'} mode=${coreMode(context)}`);
   doctorOutput.appendLine(`Compiled provider: ${compiledDisabled ? 'disabled' : 'CHECK_FAILED'}`);
+  doctorOutput.appendLine(`Git raw-store safety: ${gitSafety}`);
   doctorOutput.appendLine(`Copilot CLI: ${copilotReady ? 'PASS' : 'NOT_FOUND'}`);
-  doctorOutput.appendLine(`Local raw/search/provenance: ${coreReady && compiledDisabled ? 'READY' : 'UNAVAILABLE'}`);
+  doctorOutput.appendLine(`Local raw/search/provenance: ${localReady ? 'READY' : 'UNAVAILABLE'}`);
+  doctorOutput.appendLine(`Realistic evidence dogfood: ${realisticDogfoodReady ? 'READY' : 'BLOCKED'}`);
   doctorOutput.appendLine(`Ask Luna: ${askReady ? 'READY' : 'UNAVAILABLE'}`);
   doctorOutput.show(true);
 
-  if (coreReady && compiledDisabled) {
+  if (localReady && !gitSafeForEvidence) {
+    vscode.window.showWarningMessage(
+      'LLM Wiki Doctor: local core is ready, but the local wiki store is not protected from this Git workspace. Do not ingest sensitive evidence until Git protection is configured.'
+    );
+  } else if (localReady) {
     const suffix = copilotReady ? 'Ask Luna is also ready.' : 'Local Wiki is ready; install/authenticate Copilot CLI only when you want Ask Luna.';
     vscode.window.showInformationMessage(`LLM Wiki Doctor: local core ready. ${suffix}`);
   } else {
     vscode.window.showWarningMessage('LLM Wiki Doctor: local core is not ready. Open the LLM Wiki Doctor output for the failing boundary.');
   }
+
+  return {
+    pythonReady,
+    coreReady,
+    compiledDisabled,
+    gitSafety,
+    copilotReady,
+    localReady,
+    realisticDogfoodReady,
+    askReady,
+  };
 }
 
 async function activate(context) {
