@@ -8,6 +8,20 @@ Do not silently turn hypotheses, examples, or LLM suggestions into project polic
 
 A policy is considered adopted only when it is recorded in an accepted ADR under `decisions/`.
 
+## Product interaction target
+
+The **primary product target is VS Code**. Product-facing work should assume that the first-class user experience will live in VS Code alongside Git/GitHub, GitHub Copilot, and local Markdown/code files.
+
+This is **VS Code-first, not VS Code-only**:
+
+- keep storage, retrieval, provenance, evaluation, and maintenance semantics editor-agnostic where practical;
+- treat CLI/Python commands as substrate, tests, automation hooks, and fallback surfaces rather than the intended long-term primary UX;
+- prefer VS Code commands, source navigation, editor context, panels/views, and Copilot-assisted workflows for dogfood interaction work;
+- do not duplicate or weaken epistemic rules inside the extension layer;
+- do not introduce VS Code-specific architecture into the trustworthy core unless evidence requires it.
+
+When there is a tension between a convenient CLI-only implementation and a reasonably small VS Code-first interaction surface, preserve the reusable core and add the VS Code adapter rather than declaring the CLI to be the finished product.
+
 ## Epistemic discipline
 
 When creating or editing research/design documents, distinguish:
@@ -80,9 +94,11 @@ Prefer reversible changes and explicit migration notes.
 
 ## Current project phase
 
-The project is in research/problem-framing phase.
+The project is in research plus architecture-neutral dogfood phase.
 
-Do not prematurely create the final production wiki folder structure, ingestion prompts, ontology, retrieval database, or autonomous maintenance workflow unless the task is explicitly an experiment intended to evaluate one of those choices.
+Do not prematurely create the final production wiki folder structure, ontology, retrieval database, graph layer, or autonomous maintenance workflow unless the task is explicitly an experiment intended to evaluate one of those choices.
+
+It is acceptable to build a VS Code-first dogfood shell over architecture-neutral raw/retrieval/provenance primitives, provided it does not silently promote a persistent compiled layer or canonical LLM-derived state before the evidence gates support that move.
 
 Read these before consequential changes:
 
