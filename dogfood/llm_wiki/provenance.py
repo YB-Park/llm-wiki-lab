@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
+from .jsonl_log import append_jsonl_object, read_jsonl_objects
 from .store import ensure_workspace, find_source, read_text
 
 PROVENANCE_FILE = "provenance.jsonl"
@@ -132,18 +133,7 @@ def _row_to_record(row: dict) -> ExactProvenanceRecord:
 
 
 def provenance_history(root: Path) -> list[ExactProvenanceRecord]:
-    path = _path(root)
-    if not path.exists():
-        return []
-    rows = []
-    for line in path.read_text(encoding="utf-8").splitlines():
-        if line.strip():
-            try:
-                row = json.loads(line)
-            except json.JSONDecodeError as exc:
-                raise RuntimeError("provenance_history_invalid_json") from exc
-            rows.append(_row_to_record(row))
-    return rows
+    return [_row_to_record(row) for row in read_jsonl_objects(_path(root), log_name="provenance")]
 
 
 def _record_identity(record: ExactProvenanceRecord) -> dict:
@@ -220,9 +210,7 @@ def bind_exact_raw_span(
         "recorded_at": datetime.now(timezone.utc).isoformat(),
         **identity,
     }
-    path = _path(root)
-    with path.open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n")
+    append_jsonl_object(_path(root), row)
     return _row_to_record(row), True
 
 
