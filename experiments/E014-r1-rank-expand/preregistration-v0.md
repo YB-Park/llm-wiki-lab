@@ -20,7 +20,11 @@ All conditions preserve ADR-0003/ADR-0004 current/history, content-object dedupe
 
 ### W0 — whole-object baseline
 
-Current whole-content-object BM25 ranking. One scoring unit per object.
+- Current whole-content-object BM25 ranking: one scoring unit per object.
+- For returned-context/signal diagnostics only, choose the paragraph with greatest query-token occurrence count, earliest paragraph as tie-break. If no multi-paragraph structure exists, use the whole object.
+- Use the full selected paragraph/whole-object span with no truncation in R1 metrics.
+
+This preserves whole-object ranking while preventing long-document signal coverage from becoming trivially 100% merely because the entire object is emitted as evaluation context.
 
 ### G1 — structural rank / no expansion
 
@@ -28,7 +32,7 @@ Current whole-content-object BM25 ranking. One scoring unit per object.
 - Else if >2 paragraphs: individual paragraphs are scoring units.
 - Else: whole object.
 - Final object score = max unit score.
-- Returned context = winning unit.
+- Returned context = full winning unit span, no truncation.
 
 ### X1 — primary rank-then-expand candidate
 
@@ -40,12 +44,12 @@ Current whole-content-object BM25 ranking. One scoring unit per object.
 - Neighbor score for expansion = count of query-token occurrences in that neighbor using the frozen tokenizer.
 - Choose the adjacent neighbor with greater query-token count.
 - Tie rule: choose the **next** paragraph if present; otherwise previous.
-- Returned context is the contiguous original-document span covering winning paragraph + chosen neighbor, in original document order.
+- Returned context is the full contiguous original-document span covering winning paragraph + chosen neighbor, in original document order, with no truncation.
 - Expansion changes context only; it may not alter object score/order/top-k membership.
 
 ### G2 — v0 overlapping-window reference
 
-Same structural rule as E014-v0 G2: headings as sections; otherwise paragraphs plus every adjacent two-paragraph window; final object score = max unit score. Included as a reference, not the primary candidate.
+Same structural rule as E014-v0 G2: headings as sections; otherwise paragraphs plus every adjacent two-paragraph window; final object score = max unit score. Returned context is the full winning unit span, no truncation. Included as a reference, not the primary candidate.
 
 ## Frozen lexical parameters
 
@@ -54,7 +58,7 @@ Same structural rule as E014-v0 G2: headings as sections; otherwise paragraphs p
 - primary object top-k: 5;
 - secondary object top-k: 8;
 - final object dedupe required;
-- returned context is the full winning/expanded structural span for Stage R1 metrics; context characters are measured explicitly rather than hidden by a truncation cap.
+- no returned-context truncation in R1 Stage A; context characters are measured explicitly so expansion cost remains visible.
 
 ## Fresh R1 corpus
 
