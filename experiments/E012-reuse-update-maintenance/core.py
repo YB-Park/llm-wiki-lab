@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import importlib.util
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -13,7 +14,14 @@ spec = importlib.util.spec_from_file_location("e012_e011_stage1a_core", E011 / "
 if spec is None or spec.loader is None:
     raise RuntimeError("cannot load E011 stage1a core")
 e011_core = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(e011_core)
+sys.path.insert(0, str(E011))
+try:
+    spec.loader.exec_module(e011_core)
+finally:
+    try:
+        sys.path.remove(str(E011))
+    except ValueError:
+        pass
 
 
 def raw_context(docs: list[dict]) -> str:
