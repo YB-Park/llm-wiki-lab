@@ -42,6 +42,19 @@ def _events(root: Path) -> list[dict]:
     return rows
 
 
+def _validate_common(operation: str, query_class: str | None) -> None:
+    if operation not in {"search", "context", "ask"}:
+        raise ValueError(f"unsupported_shadow_operation:{operation}")
+    if query_class is not None and query_class not in QUERY_CLASSES:
+        raise ValueError(f"unsupported_shadow_query_class:{query_class}")
+
+
+def _append(root: Path, row: dict) -> None:
+    root.mkdir(parents=True, exist_ok=True)
+    with _path(root).open("a", encoding="utf-8") as f:
+        f.write(json.dumps(row, sort_keys=True, ensure_ascii=False) + "\n")
+
+
 def record_retrieval_shadow(
     root: Path,
     topic_id: str,
@@ -51,10 +64,7 @@ def record_retrieval_shadow(
     *,
     recorded_at: datetime | None = None,
 ) -> None:
-    if operation not in {"search", "context", "ask"}:
-        raise ValueError(f"unsupported_shadow_operation:{operation}")
-    if query_class is not None and query_class not in QUERY_CLASSES:
-        raise ValueError(f"unsupported_shadow_query_class:{query_class}")
+    _validate_common(operation, query_class)
 
     fields = observation.as_telemetry_fields()
     numeric = (
@@ -81,10 +91,29 @@ def record_retrieval_shadow(
     }
     if query_class is not None:
         row["query_class"] = query_class
+    _append(root, row)
 
-    root.mkdir(parents=True, exist_ok=True)
-    with _path(root).open("a", encoding="utf-8") as f:
-        f.write(json.dumps(row, sort_keys=True, ensure_ascii=False) + "\n")
+
+def record_retrieval_shadow_failure(
+    root: Path,
+    topic_id: str,
+    operation: str,
+    query_class: str | None = None,
+    *,
+    recorded_at: datetime | None = None,
+) -> None:
+    """Record only that shadow infrastructure failed; never persist details."""
+    _validate_common(operation, query_class)
+    row: dict = {
+        "event": "shadow_failure",
+        "format": SHADOW_FORMAT,
+        "topic_id": topic_id,
+        "operation": operation,
+        "recorded_at": _iso(recorded_at),
+    }
+    if query_class is not None:
+        row["query_class"] = query_class
+    _append(root, row)
 
 
 def _topic_visits(rows: list[dict]) -> int:
@@ -103,12 +132,15 @@ def _topic_visits(rows: list[dict]) -> int:
 
 
 def summarize_shadow(root: Path) -> dict:
-    rows = _events(root)
+    all_rows = _events(root)
+    rows = [row for row in all_rows if row.get("event") == "retrieval_shadow"]
+    failures = [row for row in all_rows if row.get("event") == "shadow_failure"]
     total = len(rows)
     topics = {row["topic_id"] for row in rows}
     visits = _topic_visits(rows)
 
     operations = Counter(row["operation"] for row in rows)
+    failure_operations = Counter(row["operation"] for row in failures)
     classes = Counter(row.get("query_class") or "unknown" for row in rows)
     ordered_diff = sum(not bool(row["ordered_same"]) for row in rows)
     top1_diff = sum(not bool(row["top1_same"]) for row in rows)
@@ -133,8 +165,12 @@ def summarize_shadow(root: Path) -> dict:
     ready = total >= 50 and len(topics) >= 10 and visits >= 30
     return {
         "format": "E015-SANITIZED-AGGREGATE-v0",
-        "privacy": "aggregate_only_no_ids_queries_paths_sources_text_timestamps",
+        "privacy": "aggregate_only_no_ids_queries_paths_sources_text_timestamps_errors",
         "shadow_query_events": total,
+        "shadow_failures": {
+            "total": len(failures),
+            "operations": {key: failure_operations.get(key, 0) for key in ("search", "context", "ask")},
+        },
         "topics_with_shadow_activity": len(topics),
         "shadow_topic_visits": visits,
         "operations": {key: operations.get(key, 0) for key in ("search", "context", "ask")},
