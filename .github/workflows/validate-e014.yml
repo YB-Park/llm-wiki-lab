@@ -23,8 +23,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Verify frozen E014 scorer bytes
+      - name: Diagnose and verify frozen E014 scorer bytes
         run: |
+          echo 'E014-PRESCORE-HASH-DIAG actual repository bytes:'
+          sha256sum \
+            experiments/E014-lexical-retrieval-granularity/generate_corpus.py \
+            experiments/E014-lexical-retrieval-granularity/retrieval_core.py \
+            experiments/E014-lexical-retrieval-granularity/analysis_v0.py \
+            experiments/E014-lexical-retrieval-granularity/validate_prescore.py
           cat > /tmp/e014-sha256.txt <<'EOF'
           cbd81df876f6bf42e10118737137be6b5bc24edc9b7a30d72f0e4f88f0500c73  experiments/E014-lexical-retrieval-granularity/generate_corpus.py
           48c3aff5f365d4a305a5374abc90d0c196d7a312073c9de9f99e837623d3bba5  experiments/E014-lexical-retrieval-granularity/retrieval_core.py
