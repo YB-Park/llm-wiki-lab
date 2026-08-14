@@ -62,24 +62,44 @@ def _ingest_rows(root: Path, *, topic_id: str | None = None) -> dict[str, dict]:
     return latest
 
 
-def supersession_map(root: Path, *, topic_id: str) -> dict[str, str]:
-    """Return the explicit predecessor -> successor graph for one topic.
+def _topic_state(root: Path, *, topic_id: str) -> tuple[dict[str, dict], set[str], dict[str, str]]:
+    """Fold append-only topic events into historical metadata and current membership.
 
-    Supersession is deliberately topic-scoped in v1. A content-addressed source can
-    participate in multiple topics, so a relation in one topic must not silently
-    hide evidence in another topic or in the unscoped all-evidence view.
+    Source IDs are content-addressed, so the same bytes can legitimately recur later.
+    A plain re-ingest of previously superseded bytes does not reactivate them. Only
+    an ingest event explicitly marked `reactivates_source=true` can do that.
     """
-    graph: dict[str, str] = {}
+    latest: dict[str, dict] = {}
+    active: set[str] = set()
+    superseded_by: dict[str, str] = {}
+    seen: set[str] = set()
+
     for event in history(root):
-        if event.get("event") != "supersede" or event.get("topic_id") != topic_id:
+        if event.get("topic_id") != topic_id:
             continue
+        kind = event.get("event")
+        if kind == "ingest":
+            sid = event["source_id"]
+            latest[sid] = event
+            first_in_topic = sid not in seen
+            seen.add(sid)
+            if first_in_topic or event.get("reactivates_source") is True:
+                active.add(sid)
+                superseded_by.pop(sid, None)
+            continue
+        if kind != "supersede":
+            continue
+
         predecessor = event["predecessor_source_id"]
         successor = event["successor_source_id"]
-        existing = graph.get(predecessor)
-        if existing is not None and existing != successor:
-            raise RuntimeError(f"conflicting_supersession_history:{predecessor}")
-        graph[predecessor] = successor
-    return graph
+        if predecessor not in active:
+            raise RuntimeError(f"invalid_supersession_history_predecessor_not_current:{predecessor}")
+        if successor not in active:
+            raise RuntimeError(f"invalid_supersession_history_successor_not_current:{successor}")
+        active.remove(predecessor)
+        superseded_by[predecessor] = successor
+
+    return latest, active, superseded_by
 
 
 def _validate_supersession(
@@ -88,40 +108,29 @@ def _validate_supersession(
     successor_source_id: str,
     *,
     topic_id: str | None,
-    successor_may_be_pending: bool,
+    successor_will_be_ingested: bool,
 ) -> bool:
     if topic_id is None:
         raise ValueError("supersession_requires_topic")
     if predecessor_source_id == successor_source_id:
         raise ValueError("supersession_self_reference")
 
-    scoped = _ingest_rows(root, topic_id=topic_id)
-    if predecessor_source_id not in scoped:
+    latest, active, superseded_by = _topic_state(root, topic_id=topic_id)
+    if predecessor_source_id not in latest:
         raise ValueError(f"supersession_predecessor_not_found:{predecessor_source_id}")
-    if not successor_may_be_pending and successor_source_id not in scoped:
-        raise ValueError(f"supersession_successor_not_found:{successor_source_id}")
 
-    graph = supersession_map(root, topic_id=topic_id)
-    existing = graph.get(predecessor_source_id)
-    if existing is not None:
-        if existing == successor_source_id:
+    if predecessor_source_id not in active:
+        if superseded_by.get(predecessor_source_id) == successor_source_id:
             return False
-        raise ValueError(
-            f"supersession_conflict:{predecessor_source_id}:existing={existing}:requested={successor_source_id}"
-        )
+        raise ValueError(f"supersession_predecessor_not_current:{predecessor_source_id}")
 
-    if successor_source_id in graph:
-        raise ValueError(f"supersession_successor_already_superseded:{successor_source_id}")
+    if successor_will_be_ingested:
+        return True
 
-    cursor = successor_source_id
-    seen: set[str] = set()
-    while cursor in graph:
-        if cursor in seen:
-            raise RuntimeError("supersession_history_cycle")
-        seen.add(cursor)
-        cursor = graph[cursor]
-        if cursor == predecessor_source_id:
-            raise ValueError("supersession_cycle")
+    if successor_source_id not in latest:
+        raise ValueError(f"supersession_successor_not_found:{successor_source_id}")
+    if successor_source_id not in active:
+        raise ValueError(f"supersession_successor_not_current:{successor_source_id}")
     return True
 
 
@@ -151,18 +160,14 @@ def supersede_source(
     *,
     topic_id: str,
 ) -> bool:
-    """Append an explicit topic-scoped supersession relation.
-
-    Returns True when a new relation is written and False when the exact relation
-    already exists. Historical raw objects and ingest events are never changed.
-    """
+    """Append an explicit topic-scoped supersession event between current sources."""
     ensure_workspace(root)
     should_write = _validate_supersession(
         root,
         predecessor_source_id,
         successor_source_id,
         topic_id=topic_id,
-        successor_may_be_pending=False,
+        successor_will_be_ingested=False,
     )
     if not should_write:
         return False
@@ -199,7 +204,7 @@ def ingest_file(
             supersedes_source_id,
             sid,
             topic_id=topic_id,
-            successor_may_be_pending=True,
+            successor_will_be_ingested=True,
         )
 
     raw = root / "raw" / f"{sha}.txt"
@@ -221,6 +226,10 @@ def ingest_file(
     }
     if topic_id is not None:
         event["topic_id"] = topic_id
+    if supersedes_source_id is not None:
+        # This flag matters only when the same content-addressed source had been
+        # superseded earlier. Plain duplicate ingest never resurrects stale bytes.
+        event["reactivates_source"] = True
     _append_event(root, event)
 
     if supersedes_source_id is not None and should_record_supersession:
@@ -239,15 +248,18 @@ def sources(
     topic_id: str | None = None,
     include_superseded: bool = False,
 ) -> list[Source]:
-    latest = _ingest_rows(root, topic_id=topic_id)
-
-    hidden: set[str] = set()
-    if topic_id is not None and not include_superseded:
-        hidden = set(supersession_map(root, topic_id=topic_id))
+    if topic_id is None:
+        # Unscoped retrieval cannot safely apply topic-local supersession semantics.
+        # It therefore remains an all-evidence view.
+        latest = _ingest_rows(root)
+        visible = set(latest)
+    else:
+        latest, active, _ = _topic_state(root, topic_id=topic_id)
+        visible = set(latest) if include_superseded else active
 
     out = []
     for sid, event in sorted(latest.items()):
-        if sid in hidden:
+        if sid not in visible:
             continue
         raw = root / "raw" / f"{event['sha256']}.txt"
         if not raw.exists():
@@ -257,13 +269,13 @@ def sources(
 
 
 def source_status(root: Path, source_id: str, *, topic_id: str) -> dict:
-    scoped = _ingest_rows(root, topic_id=topic_id)
-    if source_id not in scoped:
+    latest, active, superseded_by = _topic_state(root, topic_id=topic_id)
+    if source_id not in latest:
         raise ValueError(f"source_not_found:{source_id}:scope={topic_id}")
-    successor = supersession_map(root, topic_id=topic_id).get(source_id)
+    successor = superseded_by.get(source_id)
     return {
         "source_id": source_id,
-        "status": "superseded" if successor else "current",
+        "status": "current" if source_id in active else "superseded",
         "superseded_by": successor,
     }
 
