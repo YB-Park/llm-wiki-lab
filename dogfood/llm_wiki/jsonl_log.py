@@ -5,6 +5,8 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from .private_fs import ensure_private_directory, restrict_private_file
+
 
 @dataclass(frozen=True)
 class JsonlIntegrityReport:
@@ -158,7 +160,8 @@ def append_jsonl_object(path: Path, row: dict) -> None:
     """
     if not isinstance(row, dict):
         raise TypeError("jsonl_record_must_be_object")
-    path.parent.mkdir(parents=True, exist_ok=True)
+    ensure_private_directory(path.parent)
+    restrict_private_file(path)
 
     existing = audit_jsonl(path)
     if existing.corrupt_durable_records:
@@ -179,3 +182,4 @@ def append_jsonl_object(path: Path, row: dict) -> None:
         os.fsync(fd)
     finally:
         os.close(fd)
+    restrict_private_file(path)

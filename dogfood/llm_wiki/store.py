@@ -9,6 +9,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .jsonl_log import append_jsonl_object, read_jsonl_objects
+from .private_fs import (
+    ensure_private_directory,
+    ensure_private_file,
+    tighten_workspace_permissions,
+    write_private_bytes,
+    write_private_text,
+)
 
 ORIGIN_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -40,14 +47,16 @@ class RawIntegrityReport:
 
 
 def ensure_workspace(root: Path) -> None:
-    (root / "raw").mkdir(parents=True, exist_ok=True)
-    (root / "manifest.jsonl").touch(exist_ok=True)
+    ensure_private_directory(root)
+    ensure_private_directory(root / "raw")
+    ensure_private_file(root / "manifest.jsonl")
     config = root / "config.json"
     if not config.exists():
-        config.write_text(
+        write_private_text(
+            config,
             json.dumps({"format": "llm-wiki-dogfood-v0", "compiled_provider": "disabled"}, indent=2) + "\n",
-            encoding="utf-8",
         )
+    tighten_workspace_permissions(root)
 
 
 def _sha256(data: bytes) -> str:
@@ -391,7 +400,7 @@ def ingest_file(
         if raw.read_bytes() != data:
             raise RuntimeError("content_address_collision")
     else:
-        raw.write_bytes(data)
+        write_private_bytes(raw, data)
 
     event = {
         "event": "ingest",
