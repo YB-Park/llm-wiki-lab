@@ -226,7 +226,7 @@ def main(argv: list[str] | None = None) -> int:
             raise SystemExit("INGEST-STOP --supersedes requires exactly one input file")
 
         topic_id = _resolved_topic_id(root, args.topic)
-        completed = []
+        calibration_kind: str | None = None
         for value in args.files:
             try:
                 src, duplicate = ingest_file(
@@ -238,17 +238,15 @@ def main(argv: list[str] | None = None) -> int:
                 )
             except (ValueError, RuntimeError) as exc:
                 raise SystemExit(f"INGEST-STOP {exc}") from None
-            completed.append((src, duplicate))
             print(
                 f"INGEST source={src.source_id} object={src.object_id} sha256={src.sha256} bytes={src.size_bytes} "
                 f"duplicateObject={'yes' if duplicate else 'no'} name={json.dumps(src.name, ensure_ascii=False)}"
             )
             if args.supersedes:
                 print(f"SUPERSEDE predecessor={args.supersedes} successor={src.source_id} scope=topic")
-
-        if topic_id is not None and completed:
-            kind = record_ingest(root, topic_id, authoritative_update=args.authoritative_update)
-            print(f"CALIBRATION ingest={kind} telemetry=local-only rawQueryStored=no")
+            if topic_id is not None and calibration_kind is None:
+                calibration_kind = record_ingest(root, topic_id, authoritative_update=args.authoritative_update)
+                print(f"CALIBRATION ingest={calibration_kind} telemetry=local-only rawQueryStored=no")
         return 0
 
     if args.command == "search":
