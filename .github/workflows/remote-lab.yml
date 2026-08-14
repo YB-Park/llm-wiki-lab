@@ -1,0 +1,48 @@
+name: Remote research lab
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'remote-lab/request.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  copilot-requests: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Install GitHub Copilot CLI
+        run: npm install -g @github/copilot
+
+      - name: Show runner versions
+        run: |
+          python3 --version
+          node --version
+          copilot --version
+
+      - name: Run guarded remote-lab request
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 remote-lab/run_request.py
+
+      - name: Upload synthetic lab artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: remote-lab-${{ github.run_id }}
+          path: remote-lab/out/
+          if-no-files-found: ignore
+          retention-days: 7
