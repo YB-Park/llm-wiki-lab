@@ -18,7 +18,23 @@ After installing the VSIX, open a **trusted local workspace** in VS Code and use
 
 The selected topic appears in the VS Code status bar. Click it to switch topics.
 
-Before entrusting valuable knowledge to the local store, read [`../../docs/11-local-backup-restore.md`](../../docs/11-local-backup-restore.md). Alpha integrity checks detect many failures but **detection is not backup**.
+Alpha integrity checks detect many failures but **detection is not backup**. Before entrusting valuable knowledge to the local store, use the backup/restore procedure below. The source repository also keeps the longer operating note in `docs/11-local-backup-restore.md`.
+
+## Minimal backup / restore procedure
+
+The local Wiki directory (`.wiki-lab/` by default) contains private raw evidence, canonical history, provenance, topics, and telemetry. Treat any backup as equally sensitive and use only a destination permitted for that data.
+
+**Snapshot:** stop Wiki writes (closing the VS Code workspace is the simplest Alpha procedure), then copy the **entire Wiki directory as one snapshot** to an approved local/offline location. Do not copy only `raw/` or only `manifest.jsonl`, and do not edit JSONL records in the snapshot. On a suitable private POSIX filesystem, for example:
+
+```bash
+cp -a .wiki-lab "$HOME/private-backups/my-project-wiki-2026-08-15"
+```
+
+Use an organization-approved equivalent on Windows/macOS. Company or sensitive evidence must follow the organization's backup policy; do not move it to a personal cloud account merely for convenience.
+
+**Restore:** stop Wiki writes, keep the current/damaged directory aside, copy a known-good **whole snapshot** back to the configured Wiki directory, then run `LLM Wiki: Doctor (Zero Model Calls)`. **Do not resume normal ingest/update work unless Doctor reports the local Alpha integrity boundary ready.** If Doctor reports missing/torn/corrupt canonical history or missing raw evidence, stop rather than manually reconstructing history from filenames or surviving files.
+
+This is an Alpha operating procedure, not live transactional backup, cloud sync, automatic retention, or multi-writer snapshotting.
 
 ## Current commands
 
