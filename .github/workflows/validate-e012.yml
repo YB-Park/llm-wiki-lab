@@ -31,6 +31,14 @@ jobs:
       - name: Validate E012 corpus and semantics
         working-directory: experiments/E012-reuse-update-maintenance
         run: python3 validate_prescore.py
+      - name: Verify fingerprints across Python hash seeds
+        working-directory: experiments/E012-reuse-update-maintenance
+        run: |
+          PYTHONHASHSEED=1 python3 validate_prescore.py | grep -E '^(docsSha|queriesSha)=' > /tmp/e012-seed1.txt
+          PYTHONHASHSEED=2 python3 validate_prescore.py | grep -E '^(docsSha|queriesSha)=' > /tmp/e012-seed2.txt
+          diff -u /tmp/e012-seed1.txt /tmp/e012-seed2.txt
+          cat /tmp/e012-seed1.txt
+          echo 'E012-HASHSEED-DETERMINISM PASS'
       - name: Validate E012 runner and analysis invariants
         working-directory: experiments/E012-reuse-update-maintenance
         run: |
