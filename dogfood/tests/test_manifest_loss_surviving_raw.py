@@ -5,6 +5,9 @@ import unittest
 from pathlib import Path
 
 from dogfood.llm_wiki.integrity import audit_alpha_integrity
+from dogfood.llm_wiki.jsonl_log import append_jsonl_object, audit_canonical_logs, read_jsonl_objects
+from dogfood.llm_wiki.private_fs import ensure_private_file
+from dogfood.llm_wiki.provenance import bind_exact_raw_span
 from dogfood.llm_wiki.store import ensure_workspace, history, ingest_file
 
 
@@ -33,8 +36,56 @@ class ManifestLossSurvivingRawTests(unittest.TestCase):
                 history(root)
             with self.assertRaisesRegex(RuntimeError, "canonical_manifest_missing"):
                 ensure_workspace(root)
+            with self.assertRaisesRegex(RuntimeError, "canonical_manifest_missing"):
+                read_jsonl_objects(root / "manifest.jsonl", log_name="manifest")
+            with self.assertRaisesRegex(RuntimeError, "canonical_manifest_missing"):
+                append_jsonl_object(root / "manifest.jsonl", {"event": "probe"})
+            with self.assertRaisesRegex(RuntimeError, "canonical_manifest_missing"):
+                ensure_private_file(root / "manifest.jsonl")
 
+            canonical = audit_canonical_logs(root)
+            self.assertEqual(canonical.manifest.status, "missing")
+            self.assertFalse(canonical.ok)
             self.assertEqual(raw_path.read_bytes(), raw_before)
+            self.assertFalse((root / "config.json").exists())
+            self.assertFalse((root / "manifest.jsonl").exists())
+
+    def test_surviving_provenance_alone_marks_missing_manifest_as_prior_state_loss(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            root = base / "wiki"
+            note = base / "evidence.md"
+            note.write_text("precise cedar evidence", encoding="utf-8")
+
+            source, _ = ingest_file(root, note, topic_id="topic-provenance-loss")
+            record, created = bind_exact_raw_span(
+                root,
+                topic_id="topic-provenance-loss",
+                source_id=source.source_id,
+                start=0,
+                end=7,
+                local_label="cedar",
+            )
+            self.assertTrue(created)
+            provenance = root / "provenance.jsonl"
+            provenance_before = provenance.read_bytes()
+            self.assertIn(record.record_id.encode("utf-8"), provenance_before)
+
+            (root / "config.json").unlink()
+            (root / "manifest.jsonl").unlink()
+            source.raw_path.unlink()
+            self.assertEqual(list((root / "raw").iterdir()), [])
+
+            report = audit_alpha_integrity(root)
+            self.assertFalse(report["ok"])
+            self.assertEqual(report["canonical_logs"]["manifest"]["status"], "missing")
+            self.assertEqual(report["raw"]["status"], "not_checked_manifest_missing")
+            with self.assertRaisesRegex(RuntimeError, "canonical_manifest_missing"):
+                ensure_workspace(root)
+            with self.assertRaisesRegex(RuntimeError, "canonical_manifest_missing"):
+                history(root)
+
+            self.assertEqual(provenance.read_bytes(), provenance_before)
             self.assertFalse((root / "config.json").exists())
             self.assertFalse((root / "manifest.jsonl").exists())
 
