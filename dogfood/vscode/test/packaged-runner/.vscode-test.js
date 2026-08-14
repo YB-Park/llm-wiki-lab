@@ -5,7 +5,7 @@ const { defineConfig } = require('@vscode/test-cli');
 
 module.exports = defineConfig({
   label: 'packaged-runtime',
-  files: path.resolve(__dirname, '../integration/**/*.test.js'),
+  files: '../integration/**/*.test.js',
   version: 'stable',
   workspaceFolder: path.resolve(__dirname, '../../../..'),
   extensionDevelopmentPath: path.resolve(__dirname, '../../dist/unpacked/extension'),
