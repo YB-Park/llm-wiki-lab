@@ -27,6 +27,22 @@ function wikiRoot(folder) {
   return path.isAbsolute(value) ? value : path.resolve(folder.uri.fsPath, value);
 }
 
+function coreRoot(context, folder) {
+  const configured = String(configuration().get('corePath', '') || '').trim();
+  if (configured) {
+    return path.isAbsolute(configured) ? configured : path.resolve(folder.uri.fsPath, configured);
+  }
+  const bundled = path.resolve(context.extensionPath, 'python');
+  if (fs.existsSync(path.join(bundled, 'dogfood', 'llm_wiki', 'cli.py'))) return bundled;
+  return path.resolve(context.extensionPath, '..', '..');
+}
+
+function pythonExecutable(folder) {
+  const configured = String(configuration().get('pythonExecutable', 'python3') || 'python3');
+  if (path.isAbsolute(configured) || (!configured.includes('/') && !configured.includes('\\'))) return configured;
+  return path.resolve(folder.uri.fsPath, configured);
+}
+
 function coreMode(context) {
   const configured = String(configuration().get('corePath', '') || '').trim();
   if (configured) return 'configured';
@@ -48,9 +64,24 @@ async function executableAvailable(executable, args, cwd) {
   }
 }
 
+async function alphaIntegrity(context, folder) {
+  const core = coreRoot(context, folder);
+  const result = await execFileAsync(
+    pythonExecutable(folder),
+    ['-m', 'dogfood.llm_wiki.cli', '--root', wikiRoot(folder), 'integrity'],
+    {
+      cwd: core,
+      windowsHide: true,
+      timeout: 10000,
+      maxBuffer: 1024 * 1024,
+    }
+  );
+  return JSON.parse(String(result.stdout || ''));
+}
+
 async function doctor(context) {
   const folder = firstWorkspaceFolder();
-  const python = String(configuration().get('pythonExecutable', 'python3') || 'python3');
+  const python = pythonExecutable(folder);
   const root = wikiRoot(folder);
   const pythonReady = await executableAvailable(python, ['--version'], folder.uri.fsPath);
 
@@ -66,10 +97,33 @@ async function doctor(context) {
     coreReady = false;
   }
 
+  let integrityReady = false;
+  let rawIntegrityStatus = 'not_checked';
+  let manifestIntegrityStatus = 'not_checked';
+  let provenanceIntegrityStatus = 'not_checked';
+  if (coreReady) {
+    try {
+      const report = await alphaIntegrity(context, folder);
+      integrityReady = report && report.ok === true;
+      rawIntegrityStatus = String((report.raw && report.raw.status) || 'check_failed');
+      manifestIntegrityStatus = String(
+        (report.canonical_logs && report.canonical_logs.manifest && report.canonical_logs.manifest.status) || 'check_failed'
+      );
+      provenanceIntegrityStatus = String(
+        (report.canonical_logs && report.canonical_logs.provenance && report.canonical_logs.provenance.status) || 'check_failed'
+      );
+    } catch (_) {
+      integrityReady = false;
+      rawIntegrityStatus = 'check_failed';
+      manifestIntegrityStatus = 'check_failed';
+      provenanceIntegrityStatus = 'check_failed';
+    }
+  }
+
   const gitSafety = await classifyGitSafety(folder.uri.fsPath, root);
   const gitSafeForEvidence = gitSafety !== 'UNPROTECTED';
   const copilotReady = await executableAvailable('copilot', ['--version'], folder.uri.fsPath);
-  const localReady = coreReady && compiledDisabled;
+  const localReady = coreReady && compiledDisabled && integrityReady;
   const askReady = localReady && copilotReady;
   const realisticDogfoodReady = localReady && gitSafeForEvidence;
 
@@ -79,6 +133,11 @@ async function doctor(context) {
   doctorOutput.appendLine(`Python: ${pythonReady ? 'PASS' : 'FAIL'}`);
   doctorOutput.appendLine(`Core: ${coreReady ? 'PASS' : 'FAIL'} mode=${coreMode(context)}`);
   doctorOutput.appendLine(`Compiled provider: ${compiledDisabled ? 'disabled' : 'CHECK_FAILED'}`);
+  doctorOutput.appendLine(`Raw integrity: ${rawIntegrityStatus === 'clean' ? 'PASS' : 'FAIL'} status=${rawIntegrityStatus}`);
+  doctorOutput.appendLine(
+    `Canonical logs: ${manifestIntegrityStatus === 'clean' && provenanceIntegrityStatus === 'clean' ? 'PASS' : 'FAIL'} ` +
+    `manifest=${manifestIntegrityStatus} provenance=${provenanceIntegrityStatus}`
+  );
   doctorOutput.appendLine(`Git raw-store safety: ${gitSafety}`);
   doctorOutput.appendLine(`Copilot CLI: ${copilotReady ? 'PASS' : 'NOT_FOUND'}`);
   doctorOutput.appendLine(`Local raw/search/provenance: ${localReady ? 'READY' : 'UNAVAILABLE'}`);
@@ -86,7 +145,11 @@ async function doctor(context) {
   doctorOutput.appendLine(`Ask Luna: ${askReady ? 'READY' : 'UNAVAILABLE'}`);
   doctorOutput.show(true);
 
-  if (localReady && !gitSafeForEvidence) {
+  if (coreReady && !integrityReady) {
+    vscode.window.showWarningMessage(
+      'LLM Wiki Doctor: local integrity check failed. No repair was attempted; inspect the Doctor output before using this Wiki.'
+    );
+  } else if (localReady && !gitSafeForEvidence) {
     vscode.window.showWarningMessage(
       'LLM Wiki Doctor: local core is ready, but the local wiki store is not protected from this Git workspace. Do not ingest sensitive evidence until Git protection is configured.'
     );
@@ -101,6 +164,10 @@ async function doctor(context) {
     pythonReady,
     coreReady,
     compiledDisabled,
+    integrityReady,
+    rawIntegrityStatus,
+    manifestIntegrityStatus,
+    provenanceIntegrityStatus,
     gitSafety,
     copilotReady,
     localReady,

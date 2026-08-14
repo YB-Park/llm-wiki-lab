@@ -48,9 +48,21 @@ class RawIntegrityReport:
 
 def ensure_workspace(root: Path) -> None:
     ensure_private_directory(root)
-    ensure_private_directory(root / "raw")
-    ensure_private_file(root / "manifest.jsonl")
     config = root / "config.json"
+    manifest = root / "manifest.jsonl"
+    raw_dir = root / "raw"
+
+    # `config.json` is the durable signal that this workspace has already been
+    # initialized. If its canonical manifest later disappears, never recreate
+    # an empty history over surviving raw/state artifacts.
+    if config.exists() and not manifest.exists():
+        if raw_dir.exists():
+            ensure_private_directory(raw_dir)
+        tighten_workspace_permissions(root)
+        raise RuntimeError("canonical_manifest_missing")
+
+    ensure_private_directory(raw_dir)
+    ensure_private_file(manifest)
     if not config.exists():
         write_private_text(
             config,
@@ -81,7 +93,10 @@ def _append_event(root: Path, event: dict) -> None:
 
 
 def history(root: Path) -> list[dict]:
-    return read_jsonl_objects(root / "manifest.jsonl", log_name="manifest")
+    manifest = root / "manifest.jsonl"
+    if not manifest.exists() and (root / "config.json").exists():
+        raise RuntimeError("canonical_manifest_missing")
+    return read_jsonl_objects(manifest, log_name="manifest")
 
 
 def _normalize_ingest(event: dict) -> dict:
