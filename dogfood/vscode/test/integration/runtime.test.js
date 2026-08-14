@@ -38,6 +38,7 @@ suite('LLM Wiki Dogfood Extension Host', () => {
       'llmWiki.ask',
       'llmWiki.calibration',
       'llmWiki.doctor',
+      'llmWiki.experimentalDiscoverCopilotModels',
     ]) {
       assert.ok(commands.has(command), `missing runtime command: ${command}`);
     }
