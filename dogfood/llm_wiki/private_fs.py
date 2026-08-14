@@ -24,6 +24,7 @@ def restrict_private_file(path: Path) -> None:
 
 def ensure_private_file(path: Path) -> None:
     ensure_private_directory(path.parent)
+    restrict_private_file(path)
     fd = os.open(path, os.O_WRONLY | os.O_CREAT, PRIVATE_FILE_MODE)
     os.close(fd)
     restrict_private_file(path)
@@ -40,6 +41,7 @@ def _write_all(fd: int, payload: bytes) -> None:
 
 def write_private_bytes(path: Path, payload: bytes) -> None:
     ensure_private_directory(path.parent)
+    restrict_private_file(path)
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, PRIVATE_FILE_MODE)
     try:
         _write_all(fd, payload)
@@ -54,6 +56,7 @@ def write_private_text(path: Path, text: str) -> None:
 
 def append_private_text(path: Path, text: str) -> None:
     ensure_private_directory(path.parent)
+    restrict_private_file(path)
     fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, PRIVATE_FILE_MODE)
     try:
         _write_all(fd, text.encode("utf-8"))
