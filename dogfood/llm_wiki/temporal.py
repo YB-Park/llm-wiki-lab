@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
+from .jsonl_log import append_jsonl_object
 from .store import ensure_workspace, history
 
 RELATION_GENERIC = "generic"
@@ -166,8 +166,7 @@ def temporal_projection(root: Path, *, topic_id: str) -> TemporalProjection:
 
 
 def _append_manifest(root: Path, event: dict) -> None:
-    with (root / "manifest.jsonl").open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps(event, ensure_ascii=False, sort_keys=True) + "\n")
+    append_jsonl_object(root / "manifest.jsonl", event)
 
 
 def _prepare_replacement(
