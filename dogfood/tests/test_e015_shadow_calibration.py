@@ -152,11 +152,12 @@ class E015ShadowCalibrationTests(unittest.TestCase):
             # 50 events across 10 topics and exactly 30 visits. Within-visit
             # repeats are five minutes apart; new visits are >30 minutes apart.
             event_count = 0
+            visit_count = 0
             for topic_index in range(10):
                 tid = f"topic-{topic_index}"
                 for visit_index in range(3):
                     visit_start = start + timedelta(days=topic_index, hours=visit_index * 2)
-                    repeats = 2 if event_count < 20 else 1
+                    repeats = 2 if visit_count < 20 else 1
                     for repeat in range(repeats):
                         record_retrieval_shadow(
                             root,
@@ -166,9 +167,10 @@ class E015ShadowCalibrationTests(unittest.TestCase):
                             recorded_at=visit_start + timedelta(minutes=5 * repeat),
                         )
                         event_count += 1
-            # The construction above yields 50 events: 20 visits with two
-            # events, then 10 visits with one event.
+                    visit_count += 1
+            # 20 visits with two events + 10 visits with one event = 50 events.
             self.assertEqual(event_count, 50)
+            self.assertEqual(visit_count, 30)
             summary = summarize_shadow(root)
             self.assertEqual(summary["shadow_query_events"], 50)
             self.assertEqual(summary["topics_with_shadow_activity"], 10)
