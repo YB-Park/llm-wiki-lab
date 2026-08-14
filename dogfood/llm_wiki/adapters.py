@@ -72,6 +72,9 @@ def answer_prompt(question: str, context: str) -> str:
         "Cite source IDs inline for factual claims. "
         "If one EVIDENCE OBJECT lists multiple source IDs, those records point to identical bytes; "
         "do not count that multiplicity as independent corroboration or additional semantic support. "
+        "If evidence is marked `epistemic_status: contested`, treat it as unresolved disagreement: "
+        "do not manufacture consensus, silently choose a winner, or collapse the competing evidence into one canonical fact. "
+        "State the disagreement or uncertainty explicitly and cite the relevant source IDs for the competing sides. "
         "Do not claim to update or remember canonical state.\n\n"
         f"QUESTION\n{question}\n\nEVIDENCE CONTEXT\n{context}\n"
     )
