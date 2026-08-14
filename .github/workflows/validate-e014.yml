@@ -1,0 +1,55 @@
+name: Validate E014 prescore
+
+on:
+  push:
+    branches:
+      - experiment/e014-lexical-granularity
+    paths:
+      - 'experiments/E014-lexical-retrieval-granularity/**'
+      - 'dogfood/**'
+      - '.github/workflows/validate-e014.yml'
+  pull_request:
+    paths:
+      - 'experiments/E014-lexical-retrieval-granularity/**'
+      - 'dogfood/**'
+      - '.github/workflows/validate-e014.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  prescore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Verify frozen E014 scorer bytes
+        run: |
+          cat > /tmp/e014-sha256.txt <<'EOF'
+          cbd81df876f6bf42e10118737137be6b5bc24edc9b7a30d72f0e4f88f0500c73  experiments/E014-lexical-retrieval-granularity/generate_corpus.py
+          48c3aff5f365d4a305a5374abc90d0c196d7a312073c9de9f99e837623d3bba5  experiments/E014-lexical-retrieval-granularity/retrieval_core.py
+          79d9ede37d096679d826e394fc39fa91ae7759b35f3a986efffdfd0168e75853  experiments/E014-lexical-retrieval-granularity/analysis_v0.py
+          ef65c19751c6b64abc01c25a8655c60c89cdc9c6a001a822cf6f64008031332a  experiments/E014-lexical-retrieval-granularity/validate_prescore.py
+          EOF
+          sha256sum -c /tmp/e014-sha256.txt
+
+      - name: Compile frozen experiment and core
+        run: |
+          python3 -m compileall -q dogfood experiments/E014-lexical-retrieval-granularity
+
+      - name: Existing core regression tests
+        run: python3 -m unittest discover -s dogfood/tests -v
+
+      - name: E014 prescore validation only
+        working-directory: experiments/E014-lexical-retrieval-granularity
+        env:
+          PYTHONPATH: ../..
+        run: python3 validate_prescore.py
+
+      - name: Assert workflow remains prescore-only
+        run: |
+          if grep -nE 'python3[[:space:]]+analysis_v0\.py|analysis_v0\.py[[:space:]]+--split' .github/workflows/validate-e014.yml; then
+            echo 'E014-PRESCORE-STOP scoring command present before prescore gate'
+            exit 1
+          fi
+          echo 'E014-PRESCORE-ONLY modelCalls=0 heldoutScoring=disabled'
