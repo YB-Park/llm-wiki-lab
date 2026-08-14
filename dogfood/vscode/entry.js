@@ -119,6 +119,8 @@ async function discoverModels() {
 
   if (!report.apiAvailable) {
     vscode.window.showWarningMessage('LLM Wiki LM spike: VS Code Language Model API is unavailable in this session. No generation call was made.');
+  } else if (report.selectionStatus === 'ERROR') {
+    vscode.window.showWarningMessage('LLM Wiki LM spike: Copilot model discovery failed in this session. No fallback and no generation call were used.');
   } else if (!report.exactLuna.exactMetadataSignal) {
     vscode.window.showWarningMessage('LLM Wiki LM spike: no exact gpt-5.6-luna id/family signal was found. No fallback and no generation call were used.');
   } else {
