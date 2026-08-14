@@ -17,7 +17,15 @@ from .calibration import (
     topics,
 )
 from .retrieval import render_context, search
-from .store import ensure_workspace, find_source, history, ingest_file, read_text
+from .store import (
+    ensure_workspace,
+    find_source,
+    history,
+    ingest_file,
+    read_text,
+    source_status,
+    supersede_source,
+)
 
 
 def _root(value: str) -> Path:
@@ -59,17 +67,32 @@ def parser() -> argparse.ArgumentParser:
         action="store_true",
         help="explicitly start a new E013 maintenance cycle; requires --topic",
     )
+    ingest.add_argument(
+        "--supersedes",
+        metavar="SOURCE_ID",
+        help="explicitly mark the single ingested source as replacing SOURCE_ID in the same topic; independent of --authoritative-update",
+    )
 
     srch = sub.add_parser("search")
     srch.add_argument("query")
     srch.add_argument("--top-k", type=int, default=8)
     srch.add_argument("--json", action="store_true")
+    srch.add_argument(
+        "--include-superseded",
+        action="store_true",
+        help="include historical superseded evidence; default topic search uses current evidence only",
+    )
     _add_topic_and_class_args(srch)
 
     ctx = sub.add_parser("context")
     ctx.add_argument("query")
     ctx.add_argument("--top-k", type=int, default=8)
     ctx.add_argument("--max-chars", type=int, default=1200)
+    ctx.add_argument(
+        "--include-superseded",
+        action="store_true",
+        help="include historical superseded evidence; intended for inspection/debugging",
+    )
     _add_topic_and_class_args(ctx)
 
     ask = sub.add_parser("ask")
@@ -81,7 +104,7 @@ def parser() -> argparse.ArgumentParser:
     ask.add_argument(
         "--allow-model-call",
         action="store_true",
-        help="required opt-in: sends rendered evidence context to the configured Copilot model",
+        help="required opt-in: sends rendered current-evidence context to the configured Copilot model",
     )
     _add_topic_and_class_args(ask)
 
@@ -90,6 +113,15 @@ def parser() -> argparse.ArgumentParser:
     source_show = source_sub.add_parser("show")
     source_show.add_argument("source_id")
     source_show.add_argument("--topic", help="scope source and record a local provenance-follow event")
+
+    source_status_cmd = source_sub.add_parser("status")
+    source_status_cmd.add_argument("source_id")
+    source_status_cmd.add_argument("--topic", required=True, help="topic label or opaque topic ID")
+
+    source_supersede = source_sub.add_parser("supersede")
+    source_supersede.add_argument("predecessor_source_id")
+    source_supersede.add_argument("successor_source_id")
+    source_supersede.add_argument("--topic", required=True, help="topic label or opaque topic ID")
 
     feedback = sub.add_parser("feedback")
     feedback.add_argument("outcome", choices=("helpful", "not_helpful"))
@@ -134,15 +166,31 @@ def main(argv: list[str] | None = None) -> int:
         ensure_workspace(root)
         if args.authoritative_update and not args.topic:
             raise SystemExit("INGEST-STOP --authoritative-update requires --topic")
+        if args.supersedes and not args.topic:
+            raise SystemExit("INGEST-STOP --supersedes requires --topic")
+        if args.supersedes and len(args.files) != 1:
+            raise SystemExit("INGEST-STOP --supersedes requires exactly one input file")
+
         topic_id = _resolved_topic_id(root, args.topic)
         completed = []
         for value in args.files:
-            src, duplicate = ingest_file(root, Path(value), topic_id=topic_id)
+            try:
+                src, duplicate = ingest_file(
+                    root,
+                    Path(value),
+                    topic_id=topic_id,
+                    supersedes_source_id=args.supersedes,
+                )
+            except (ValueError, RuntimeError) as exc:
+                raise SystemExit(f"INGEST-STOP {exc}") from None
             completed.append((src, duplicate))
             print(
                 f"INGEST source={src.source_id} sha256={src.sha256} bytes={src.size_bytes} "
                 f"duplicate={'yes' if duplicate else 'no'} name={json.dumps(src.name, ensure_ascii=False)}"
             )
+            if args.supersedes:
+                print(f"SUPERSEDE predecessor={args.supersedes} successor={src.source_id} scope=topic")
+
         if topic_id is not None and completed:
             kind = record_ingest(root, topic_id, authoritative_update=args.authoritative_update)
             print(f"CALIBRATION ingest={kind} telemetry=local-only rawQueryStored=no")
@@ -152,7 +200,13 @@ def main(argv: list[str] | None = None) -> int:
         topic_id = _resolved_topic_id(root, args.topic)
         if topic_id is not None:
             record_query(root, topic_id, "search", args.query_class)
-        rows = search(root, args.query, top_k=args.top_k, topic_id=topic_id)
+        rows = search(
+            root,
+            args.query,
+            top_k=args.top_k,
+            topic_id=topic_id,
+            include_superseded=args.include_superseded,
+        )
         if args.json:
             for h in rows:
                 print(json.dumps({
@@ -179,6 +233,7 @@ def main(argv: list[str] | None = None) -> int:
             top_k=args.top_k,
             max_chars_per_source=args.max_chars,
             topic_id=topic_id,
+            include_superseded=args.include_superseded,
         )
         print(text)
         return 0
@@ -197,6 +252,7 @@ def main(argv: list[str] | None = None) -> int:
             top_k=args.top_k,
             max_chars_per_source=args.max_chars,
             topic_id=topic_id,
+            include_superseded=False,
         )
         if not context.strip():
             raise SystemExit("ASK-STOP no_retrieved_evidence")
@@ -218,8 +274,45 @@ def main(argv: list[str] | None = None) -> int:
                 raise SystemExit(f"SOURCE-STOP {exc}") from None
             if topic_id is not None:
                 record_source_open(root, topic_id)
-            print(f"SOURCE {src.source_id} name={src.name} sha256={src.sha256}")
+                state = source_status(root, src.source_id, topic_id=topic_id)
+                if state["status"] == "superseded":
+                    print(
+                        f"SOURCE {src.source_id} name={src.name} sha256={src.sha256} "
+                        f"status=superseded supersededBy={state['superseded_by']}"
+                    )
+                else:
+                    print(f"SOURCE {src.source_id} name={src.name} sha256={src.sha256} status=current")
+            else:
+                print(f"SOURCE {src.source_id} name={src.name} sha256={src.sha256} status=unscoped")
             print(read_text(src))
+            return 0
+
+        if args.source_command == "status":
+            topic_id = _resolved_topic_id(root, args.topic)
+            assert topic_id is not None
+            try:
+                state = source_status(root, args.source_id, topic_id=topic_id)
+            except (ValueError, RuntimeError) as exc:
+                raise SystemExit(f"SOURCE-STOP {exc}") from None
+            print(json.dumps(state, sort_keys=True))
+            return 0
+
+        if args.source_command == "supersede":
+            topic_id = _resolved_topic_id(root, args.topic)
+            assert topic_id is not None
+            try:
+                created = supersede_source(
+                    root,
+                    args.predecessor_source_id,
+                    args.successor_source_id,
+                    topic_id=topic_id,
+                )
+            except (ValueError, RuntimeError) as exc:
+                raise SystemExit(f"SOURCE-STOP {exc}") from None
+            print(
+                f"SUPERSEDE predecessor={args.predecessor_source_id} successor={args.successor_source_id} "
+                f"scope=topic created={'yes' if created else 'no'}"
+            )
             return 0
         raise AssertionError(args.source_command)
 
@@ -241,11 +334,19 @@ def main(argv: list[str] | None = None) -> int:
         for row in rows:
             if args.json:
                 print(json.dumps(row, ensure_ascii=False, sort_keys=True))
-            else:
+                continue
+            if row.get("event") == "ingest":
                 print(
-                    f"{row['recorded_at']} event={row['event']} source={row['source_id']} "
+                    f"{row['recorded_at']} event=ingest source={row['source_id']} "
                     f"duplicate={'yes' if row.get('duplicate_content') else 'no'} name={row['name']}"
                 )
+            elif row.get("event") == "supersede":
+                print(
+                    f"{row['recorded_at']} event=supersede predecessor={row['predecessor_source_id']} "
+                    f"successor={row['successor_source_id']} topic={row['topic_id']}"
+                )
+            else:
+                print(f"{row.get('recorded_at', '?')} event={row.get('event', 'unknown')}")
         return 0
 
     raise AssertionError(args.command)
