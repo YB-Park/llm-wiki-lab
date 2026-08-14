@@ -9,6 +9,7 @@ const manifest = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'ut
 const entry = fs.readFileSync(path.join(root, 'entry.js'), 'utf8');
 const extension = fs.readFileSync(path.join(root, 'extension.js'), 'utf8');
 const gitSafety = fs.readFileSync(path.join(root, 'git-safety.js'), 'utf8');
+const lmDiscovery = fs.readFileSync(path.join(root, 'lm-discovery.js'), 'utf8');
 const bundler = fs.readFileSync(path.join(root, 'scripts', 'bundle-core.js'), 'utf8');
 
 const commands = new Set((manifest.contributes.commands || []).map((row) => row.command));
@@ -27,6 +28,8 @@ for (const command of [
 }
 assert(commands.has('llmWiki.doctor'), 'missing Doctor command');
 assert(entry.includes("'llmWiki.doctor'"), 'Doctor command not wired in entry.js');
+assert(commands.has('llmWiki.experimentalDiscoverCopilotModels'), 'missing experimental LM discovery command');
+assert(entry.includes("'llmWiki.experimentalDiscoverCopilotModels'"), 'LM discovery command not wired in entry.js');
 
 assert.equal(manifest.main, './entry.js');
 assert.equal(manifest.private, true);
@@ -59,9 +62,18 @@ assert(entry.includes("doctorOutput.appendLine('Model calls: 0')"), 'Doctor must
 assert(entry.includes('classifyGitSafety'), 'Doctor must classify Git raw-store safety');
 assert(entry.includes('Git raw-store safety:'), 'Doctor must report only the Git-safety classification');
 assert(entry.includes('Realistic evidence dogfood:'), 'Doctor must distinguish core readiness from safe evidence readiness');
-assert(!entry.includes('--allow-model-call'), 'Doctor wrapper must never authorize a model call');
-assert(!entry.includes('gpt-5.6-luna'), 'Doctor wrapper must not invoke or select a model');
-assert(!entry.includes('process.env'), 'Doctor output/probing must not inspect environment metadata');
+assert(!entry.includes('--allow-model-call'), 'entry wrapper must never authorize a model call');
+assert(!entry.includes('sendRequest'), 'entry wrapper must not generate via VS Code LM API during discovery spike');
+assert(!entry.includes('process.env'), 'Doctor/discovery wrapper must not inspect environment metadata');
+
+assert(lmDiscovery.includes("const REQUIRED_LUNA_ID = 'gpt-5.6-luna'"), 'LM discovery must use exact pinned Luna identifier');
+assert(lmDiscovery.includes("selectChatModels({ vendor: 'copilot' })"), 'LM discovery must query only Copilot model metadata');
+assert(lmDiscovery.includes('generationCalls: 0'), 'LM discovery must report zero generation calls');
+assert(lmDiscovery.includes('row.id === REQUIRED_LUNA_ID'), 'LM discovery must test exact id match');
+assert(lmDiscovery.includes('row.family === REQUIRED_LUNA_ID'), 'LM discovery must test exact family match');
+assert(!lmDiscovery.includes('sendRequest'), 'LM discovery must never generate text');
+assert(!lmDiscovery.includes('includes(REQUIRED_LUNA_ID)'), 'LM discovery must not use fuzzy/substring Luna matching');
+assert(!lmDiscovery.includes('toLowerCase'), 'LM discovery must not normalize fuzzy name matches into acceptance');
 
 assert(gitSafety.includes("['rev-parse', '--is-inside-work-tree']"), 'Git safety must detect local work-tree membership deterministically');
 assert(gitSafety.includes("['check-ignore', '-q', '--'"), 'Git safety must use local ignore inspection');
@@ -76,4 +88,4 @@ assert(!gitSafety.includes('process.env'), 'Git safety classifier must not inspe
 assert(bundler.includes("path.join(dogfoodRoot, 'llm_wiki')"), 'bundler must copy from the shared core source of truth');
 assert(bundler.includes("path.join(bundleRoot, 'dogfood')"), 'bundler must preserve the dogfood Python package layout');
 
-console.log('VS-CODE-DOGFOOD-STATIC PASS commands=9 doctorModelCalls=0 gitSafety=read-only programmaticLocalOnly=yes consentBypass=no trustedWorkspaceOnly=yes model=gpt-5.6-luna bundledCore=generated compiledProvider=not-implemented');
+console.log('VS-CODE-DOGFOOD-STATIC PASS commands=10 lmDiscoveryGeneration=0 exactLunaOnly=yes doctorModelCalls=0 gitSafety=read-only consentBypass=no bundledCore=generated compiledProvider=not-implemented');

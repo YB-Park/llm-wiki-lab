@@ -28,6 +28,7 @@ The selected topic appears in the VS Code status bar. Click it to switch topics.
 - `LLM Wiki: Search Topic`
 - `LLM Wiki: Ask Luna (Read-only)`
 - `LLM Wiki: Show Calibration Summary`
+- `LLM Wiki: Experimental — Discover Copilot Models (Zero Generation)`
 
 Search results are shown in the `LLM Wiki` Output channel and in a Quick Pick. Selecting a result opens the source through a read-only `llm-wiki-source:` virtual document. Opening that source goes through the core `source show` command so E013 provenance-follow semantics remain core-owned.
 
@@ -43,7 +44,7 @@ Doctor is deliberately local and cheap. It:
 - reports local raw/search/provenance readiness, realistic evidence dogfood readiness, and Ask Luna readiness separately;
 - makes **zero model calls**.
 
-`PROTECTED` means the configured local wiki directory is outside the workspace Git tree or ignored by that Git repository. `UNPROTECTED` means it is inside a Git work tree and not ignored. Version 0.1.2 warns but does **not** silently edit `.gitignore`, `.git/info/exclude`, or other Git metadata.
+`PROTECTED` means the configured local wiki directory is outside the workspace Git tree or ignored by that Git repository. `UNPROTECTED` means it is inside a Git work tree and not ignored. Version 0.1.3 warns but does **not** silently edit `.gitignore`, `.git/info/exclude`, or other Git metadata.
 
 Doctor does not print local paths, usernames, hostnames, environment variables, evidence, prompts, or answers.
 
@@ -59,6 +60,23 @@ Doctor does not print local paths, usernames, hostnames, environment variables, 
 
 The model is pinned to `gpt-5.6-luna`. The answer is displayed in the Output channel and is never written to canonical wiki state. Programmatic command arguments used by local-only runtime tests do **not** provide a model-consent bypass.
 
+The validated production-dogfood Ask adapter remains the Copilot CLI path until the VS Code-native Language Model API spike proves that the exact Luna model can be selected without silent substitution.
+
+## Experimental VS Code-native model discovery
+
+`LLM Wiki: Experimental — Discover Copilot Models (Zero Generation)` is a research/product-adapter probe for issue #24. It is safe to run before using real evidence because it does not send a prompt or evidence and does not call model generation.
+
+It asks the VS Code Language Model API only for Copilot model metadata and opens a JSON report containing:
+
+- `generationCalls: 0`;
+- API/selection status;
+- model id, family, version, name, vendor, and max-input-token metadata;
+- exact match counts for `gpt-5.6-luna`.
+
+The gate is intentionally strict. Only an exact `id === "gpt-5.6-luna"` or `family === "gpt-5.6-luna"` is treated as an exact metadata signal. A name that merely contains “Luna”, a preview label, or another GPT model does not pass. Selection failure does not trigger another model or fallback.
+
+Even if an exact metadata signal appears, this discovery command does **not** switch Ask Luna to the VS Code-native adapter. A separate bounded synthetic generation smoke is required first.
+
 ## Run in Extension Development Host
 
 Open the repository root in VS Code, then press `F5` and choose:
@@ -73,7 +91,7 @@ CI builds `llm-wiki-dogfood.vsix`. The VSIX bundles the shared Python core **at 
 
 The installed extension therefore does not require a checkout of this repository for normal raw/retrieval/provenance use. It still requires Python to be available on the machine.
 
-CI runs the same Extension Host interaction suite twice: once against the repository development extension and once against the unpacked packaged VSIX. The packaged test exercises initialization, Doctor, topic creation, active-file ingest, topic search, and read-only provenance using the bundled core. Separate deterministic tests cover non-Git, unprotected Git, `.gitignore`-protected, local-exclude-protected, and external-store Git-safety cases.
+CI runs the same Extension Host interaction suite twice: once against the repository development extension and once against the unpacked packaged VSIX. The packaged test exercises initialization, Doctor, topic creation, active-file ingest, topic search, and read-only provenance using the bundled core. Separate deterministic tests cover Git safety and the exact-Luna metadata gate. CI does not attempt authenticated Copilot model discovery because that requires the user's real VS Code/Copilot session.
 
 To install a downloaded VSIX in VS Code, use the Extensions view's `Install from VSIX...` action.
 
@@ -81,7 +99,8 @@ To install a downloaded VSIX in VS Code, use the Extensions view's `Install from
 
 - a trusted VS Code workspace;
 - Python available as `python3` by default, configurable via `llmWiki.pythonExecutable`;
-- GitHub Copilot CLI installed and authenticated only if you choose `LLM Wiki: Ask Luna (Read-only)`.
+- GitHub Copilot CLI installed and authenticated only if you choose the current `LLM Wiki: Ask Luna (Read-only)` path;
+- an authenticated Copilot-capable VS Code session only if you choose the experimental model-discovery command.
 
 For realistic dogfood, use the extension in a workspace that contains only evidence you are permitted to process and run Doctor first. Treat `UNPROTECTED` as a stop condition for realistic evidence ingestion.
 
@@ -96,6 +115,8 @@ For realistic dogfood, use the extension in a workspace that contains only evide
 
 This is a first usable editor shell, not a polished Marketplace release. It currently uses Command Palette, Quick Pick, Output, status bar, and virtual documents rather than a dedicated sidebar or chat participant.
 
-Version 0.1.2 detects an unprotected Git raw store but does not yet provide an automatic protection action; any future action must be explicit, local, and reversible.
+Version 0.1.3 detects an unprotected Git raw store but does not yet provide an automatic protection action; any future action must be explicit, local, and reversible.
+
+The VS Code-native LM API adapter remains experimental until exact Luna selection and a bounded synthetic smoke pass. The existing CLI adapter remains authoritative for Ask Luna in the meantime.
 
 Compiled knowledge remains disabled. E013 realistic workload evidence decides whether a compiled provider is ever allowed to advance to shadow/opt-in testing.

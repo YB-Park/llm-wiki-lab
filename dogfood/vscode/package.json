@@ -2,7 +2,7 @@
   "name": "llm-wiki-dogfood",
   "displayName": "LLM Wiki Dogfood",
   "description": "VS Code-first dogfood shell over the architecture-neutral LLM Wiki core.",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "publisher": "llm-wiki-lab",
   "repository": {
@@ -32,7 +32,8 @@
     "onCommand:llmWiki.search",
     "onCommand:llmWiki.ask",
     "onCommand:llmWiki.calibration",
-    "onCommand:llmWiki.doctor"
+    "onCommand:llmWiki.doctor",
+    "onCommand:llmWiki.experimentalDiscoverCopilotModels"
   ],
   "contributes": {
     "commands": [
@@ -71,6 +72,10 @@
       {
         "command": "llmWiki.doctor",
         "title": "LLM Wiki: Doctor (Zero Model Calls)"
+      },
+      {
+        "command": "llmWiki.experimentalDiscoverCopilotModels",
+        "title": "LLM Wiki: Experimental — Discover Copilot Models (Zero Generation)"
       }
     ],
     "configuration": {
