@@ -160,7 +160,7 @@ def parser() -> argparse.ArgumentParser:
         action="store_true",
         help="required opt-in: sends rendered current-evidence context to the configured Copilot model",
     )
-    _add_topic_and_class_args(ask, topic_required=True)
+    _add_topic_and_class_args(ask)
 
     source = sub.add_parser("source")
     source_sub = source.add_subparsers(dest="source_command", required=True)
@@ -325,6 +325,8 @@ def main(argv: list[str] | None = None) -> int:
             raise SystemExit(
                 "ASK-STOP model_call_not_authorized: rerun with --allow-model-call only for evidence you are permitted to send"
             )
+        if not args.topic:
+            raise SystemExit("ASK-STOP topic_required: model-backed Ask is topic-scoped and uses current evidence only")
         topic_id = _resolved_topic_id(root, args.topic)
         if topic_id is not None:
             record_query(root, topic_id, "ask", args.query_class)
