@@ -80,8 +80,16 @@ def _safe_record_retrieval_shadow(
             pass
 
 
-def _add_topic_and_class_args(cmd: argparse.ArgumentParser) -> None:
-    cmd.add_argument("--topic", help="local topic label or opaque topic ID; enables local-only E013 calibration")
+def _add_topic_and_class_args(cmd: argparse.ArgumentParser, *, topic_required: bool = False) -> None:
+    cmd.add_argument(
+        "--topic",
+        required=topic_required,
+        help=(
+            "local topic label or opaque topic ID; required for model-backed Ask so only topic-current evidence is sent"
+            if topic_required
+            else "local topic label or opaque topic ID; enables local-only E013 calibration"
+        ),
+    )
     cmd.add_argument("--class", dest="query_class", choices=QUERY_CLASSES, help="optional explicit E013 query class")
 
 
@@ -152,7 +160,7 @@ def parser() -> argparse.ArgumentParser:
         action="store_true",
         help="required opt-in: sends rendered current-evidence context to the configured Copilot model",
     )
-    _add_topic_and_class_args(ask)
+    _add_topic_and_class_args(ask, topic_required=True)
 
     source = sub.add_parser("source")
     source_sub = source.add_subparsers(dest="source_command", required=True)
