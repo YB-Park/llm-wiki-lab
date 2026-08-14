@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .private_fs import ensure_private_directory, restrict_private_file
+from .workspace_loss import missing_manifest_is_state_loss
 
 
 @dataclass(frozen=True)
@@ -39,6 +40,20 @@ def _clean_report() -> JsonlIntegrityReport:
         non_object_records=0,
         status="clean",
         ok=True,
+    )
+
+
+def _missing_report() -> JsonlIntegrityReport:
+    return JsonlIntegrityReport(
+        durable_records=0,
+        blank_records=0,
+        torn_tail_bytes=0,
+        corrupt_durable_records=0,
+        invalid_utf8_records=0,
+        invalid_json_records=0,
+        non_object_records=0,
+        status="missing",
+        ok=False,
     )
 
 
@@ -126,7 +141,8 @@ def audit_jsonl(path: Path) -> JsonlIntegrityReport:
 
 def audit_canonical_logs(root: Path) -> CanonicalLogsIntegrityReport:
     """Audit canonical append logs without exposing local provenance details."""
-    manifest = audit_jsonl(root / "manifest.jsonl")
+    manifest_path = root / "manifest.jsonl"
+    manifest = _missing_report() if missing_manifest_is_state_loss(root) else audit_jsonl(manifest_path)
     provenance = audit_jsonl(root / "provenance.jsonl")
     return CanonicalLogsIntegrityReport(
         manifest=manifest,
@@ -142,6 +158,8 @@ def read_jsonl_objects(path: Path, *, log_name: str) -> list[dict]:
     replaying any prefix that already contains a corrupt committed record is
     unsafe. No repair/truncation is attempted here.
     """
+    if log_name == "manifest" and missing_manifest_is_state_loss(path.parent):
+        raise RuntimeError("canonical_manifest_missing")
     rows, report = _scan(path)
     if report.corrupt_durable_records:
         raise RuntimeError(f"{log_name}_durable_prefix_corrupt")
@@ -161,6 +179,8 @@ def append_jsonl_object(path: Path, row: dict) -> None:
     if not isinstance(row, dict):
         raise TypeError("jsonl_record_must_be_object")
     ensure_private_directory(path.parent)
+    if path.name == "manifest.jsonl" and missing_manifest_is_state_loss(path.parent):
+        raise RuntimeError("canonical_manifest_missing")
     restrict_private_file(path)
 
     existing = audit_jsonl(path)

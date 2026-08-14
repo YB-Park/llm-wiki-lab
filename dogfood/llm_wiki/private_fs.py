@@ -5,6 +5,8 @@ import os
 import tempfile
 from pathlib import Path
 
+from .workspace_loss import missing_manifest_is_state_loss
+
 PRIVATE_DIR_MODE = 0o700
 PRIVATE_FILE_MODE = 0o600
 
@@ -26,6 +28,8 @@ def restrict_private_file(path: Path) -> None:
 
 def ensure_private_file(path: Path) -> None:
     ensure_private_directory(path.parent)
+    if path.name == "manifest.jsonl" and not path.exists() and missing_manifest_is_state_loss(path.parent):
+        raise RuntimeError("canonical_manifest_missing")
     restrict_private_file(path)
     fd = os.open(path, os.O_WRONLY | os.O_CREAT, PRIVATE_FILE_MODE)
     os.close(fd)
