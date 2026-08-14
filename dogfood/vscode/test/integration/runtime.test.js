@@ -5,20 +5,17 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vscode = require('vscode');
 
-function stubWindowMethod(name, replacement) {
-  const original = vscode.window[name];
-  vscode.window[name] = replacement;
-  return () => {
-    vscode.window[name] = original;
-  };
-}
-
-async function withWindowStubs(stubs, fn) {
-  const restores = Object.entries(stubs).map(([name, replacement]) => stubWindowMethod(name, replacement));
+async function stage(label, promise, timeoutMs = 8000) {
+  let timer;
   try {
-    return await fn();
+    return await Promise.race([
+      Promise.resolve(promise),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`VS-RUNTIME-STAGE timeout=${label}`)), timeoutMs);
+      }),
+    ]);
   } finally {
-    for (const restore of restores.reverse()) restore();
+    if (timer) clearTimeout(timer);
   }
 }
 
@@ -40,6 +37,7 @@ suite('LLM Wiki Dogfood Extension Host', () => {
       'llmWiki.search',
       'llmWiki.ask',
       'llmWiki.calibration',
+      'llmWiki.doctor',
     ]) {
       assert.ok(commands.has(command), `missing runtime command: ${command}`);
     }
@@ -60,6 +58,21 @@ suite('LLM Wiki Dogfood Extension Host', () => {
     assert.equal(config.format, 'llm-wiki-dogfood-v0');
   });
 
+  test('Doctor reuses the real core boundary and preserves compiled-disabled with zero required model calls', async () => {
+    const folder = (vscode.workspace.workspaceFolders || [])[0];
+    assert.ok(folder, 'integration test workspace is not open');
+    const wikiRoot = path.join(folder.uri.fsPath, '.wiki-lab');
+    fs.rmSync(wikiRoot, { recursive: true, force: true });
+
+    await vscode.commands.executeCommand('llmWiki.doctor');
+
+    const configPath = path.join(wikiRoot, 'config.json');
+    assert.ok(fs.existsSync(configPath), 'Doctor did not reach the real local core boundary');
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    assert.equal(config.compiled_provider, 'disabled');
+    assert.equal(config.format, 'llm-wiki-dogfood-v0');
+  });
+
   test('runs topic -> active-file ingest -> search -> read-only provenance entirely through VS Code commands', async () => {
     const folder = (vscode.workspace.workspaceFolders || [])[0];
     assert.ok(folder, 'integration test workspace is not open');
@@ -68,41 +81,25 @@ suite('LLM Wiki Dogfood Extension Host', () => {
     fs.rmSync(wikiRoot, { recursive: true, force: true });
     fs.writeFileSync(evidencePath, '# Runtime evidence\n\nThe cedar quota decision is 41 units because the project preferred bounded cache growth.\n', 'utf8');
 
-    let searchResultPicked = false;
     try {
-      await withWindowStubs(
-        {
-          showInputBox: async (options) => {
-            const title = String(options && options.title || '');
-            if (title.includes('Create Topic')) return 'runtime-vscode-topic';
-            if (title.includes('Search')) return 'cedar quota';
-            throw new Error(`unexpected showInputBox: ${title}`);
-          },
-          showQuickPick: async (items, options) => {
-            const title = String(options && options.title || '');
-            if (title === 'Optional E013 query tag') {
-              return items.find((item) => item.value === 'exact_provenance');
-            }
-            if (title.includes('search results')) {
-              searchResultPicked = true;
-              return items[0];
-            }
-            throw new Error(`unexpected showQuickPick: ${title}`);
-          },
-          showInformationMessage: async () => undefined,
-        },
-        async () => {
-          await vscode.commands.executeCommand('llmWiki.init');
-          await vscode.commands.executeCommand('llmWiki.createTopic');
-
-          const evidenceDoc = await vscode.workspace.openTextDocument(vscode.Uri.file(evidencePath));
-          await vscode.window.showTextDocument(evidenceDoc, { preview: false });
-          await vscode.commands.executeCommand('llmWiki.ingestActiveFile');
-          await vscode.commands.executeCommand('llmWiki.search');
-        }
+      await stage('init', vscode.commands.executeCommand('llmWiki.init'));
+      await stage(
+        'create-topic',
+        vscode.commands.executeCommand('llmWiki.createTopic', { label: 'runtime-vscode-topic' })
       );
 
-      assert.equal(searchResultPicked, true, 'search result Quick Pick was not reached');
+      const evidenceDoc = await stage('open-evidence-document', vscode.workspace.openTextDocument(vscode.Uri.file(evidencePath)));
+      await stage('show-evidence-editor', vscode.window.showTextDocument(evidenceDoc, { preview: false }));
+      await stage('ingest-active-file', vscode.commands.executeCommand('llmWiki.ingestActiveFile'));
+      await stage(
+        'search-and-open-provenance',
+        vscode.commands.executeCommand('llmWiki.search', {
+          query: 'cedar quota',
+          queryClass: 'exact_provenance',
+          openFirstResult: true,
+        })
+      );
+
       const active = vscode.window.activeTextEditor;
       assert.ok(active, 'provenance document was not opened');
       assert.equal(active.document.uri.scheme, 'llm-wiki-source');

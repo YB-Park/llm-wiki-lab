@@ -4,10 +4,21 @@ This extension is the first-class dogfood interaction surface for the project. I
 
 The core remains authoritative for storage, retrieval, provenance, E013 calibration semantics, and the explicit model-call boundary. The extension does not implement a second knowledge model and does not enable persistent compiled state.
 
+## First run
+
+After installing the VSIX, open a **trusted local workspace** in VS Code and use the Command Palette (`Cmd/Ctrl+Shift+P`):
+
+1. `LLM Wiki: Doctor (Zero Model Calls)` — checks Python, the bundled/local core, compiled-disabled state, and whether Copilot CLI is available. This makes zero model calls and ingests no evidence.
+2. `LLM Wiki: Create Topic` — create the first local topic.
+3. Open a file you want to preserve as evidence and run `LLM Wiki: Ingest Active File`.
+4. Run `LLM Wiki: Search Topic` and choose a result to open its read-only provenance document.
+5. Only when desired, run `LLM Wiki: Ask Luna (Read-only)` and explicitly approve the modal evidence-send warning.
+
+The selected topic appears in the VS Code status bar. Click it to switch topics.
+
 ## Current commands
 
-Open the Command Palette (`Cmd/Ctrl+Shift+P`) and run:
-
+- `LLM Wiki: Doctor (Zero Model Calls)`
 - `LLM Wiki: Initialize Workspace`
 - `LLM Wiki: Create Topic`
 - `LLM Wiki: Select Topic`
@@ -17,9 +28,20 @@ Open the Command Palette (`Cmd/Ctrl+Shift+P`) and run:
 - `LLM Wiki: Ask Luna (Read-only)`
 - `LLM Wiki: Show Calibration Summary`
 
-A selected topic appears in the VS Code status bar. Click it to change topics.
-
 Search results are shown in the `LLM Wiki` Output channel and in a Quick Pick. Selecting a result opens the source through a read-only `llm-wiki-source:` virtual document. Opening that source goes through the core `source show` command so E013 provenance-follow semantics remain core-owned.
+
+## Doctor boundary
+
+Doctor is deliberately local and cheap. It:
+
+- checks whether the configured Python executable can start;
+- invokes the real `LLM Wiki: Initialize Workspace` editor-to-core boundary;
+- confirms the local config format and `compiled_provider=disabled`;
+- reports whether Copilot CLI is present;
+- reports local raw/search/provenance readiness separately from Ask Luna readiness;
+- makes **zero model calls**.
+
+Doctor does not print local paths, usernames, hostnames, environment variables, evidence, prompts, or answers.
 
 ## Ask Luna boundary
 
@@ -31,21 +53,23 @@ Search results are shown in the `LLM Wiki` Output channel and in a Quick Pick. S
 4. approve a modal warning that retrieved evidence will be sent to GitHub Copilot;
 5. only then does the extension invoke the core `ask` path with `--allow-model-call`.
 
-The model is pinned to `gpt-5.6-luna`. The answer is displayed in the Output channel and is never written to canonical wiki state.
+The model is pinned to `gpt-5.6-luna`. The answer is displayed in the Output channel and is never written to canonical wiki state. Programmatic command arguments used by local-only runtime tests do **not** provide a model-consent bypass.
 
 ## Run in Extension Development Host
 
-Open the repository root in VS Code, switch to the `dogfood/minimal-shell-v0` branch, then press `F5` and choose:
+Open the repository root in VS Code, then press `F5` and choose:
 
 `Run LLM Wiki Dogfood Extension`
 
-A second Extension Development Host window opens with the extension loaded.
+A second Extension Development Host window opens with the extension loaded. Development mode uses the shared repository Python core rather than a generated bundled copy.
 
 ## Installable VSIX dogfood
 
-CI also builds `llm-wiki-dogfood.vsix`. The VSIX bundles the shared Python core **at package time** under the extension's `python/` directory. That generated copy is build output, not a second source-of-truth implementation.
+CI builds `llm-wiki-dogfood.vsix`. The VSIX bundles the shared Python core **at package time** under the extension's `python/` directory. That generated copy is build output, not a second source-of-truth implementation.
 
 The installed extension therefore does not require a checkout of this repository for normal raw/retrieval/provenance use. It still requires Python to be available on the machine.
+
+CI runs the same Extension Host interaction suite twice: once against the repository development extension and once against the unpacked packaged VSIX. The packaged test exercises initialization, Doctor, topic creation, active-file ingest, topic search, and read-only provenance using the bundled core.
 
 To install a downloaded VSIX in VS Code, use the Extensions view's `Install from VSIX...` action.
 
@@ -55,7 +79,7 @@ To install a downloaded VSIX in VS Code, use the Extensions view's `Install from
 - Python available as `python3` by default, configurable via `llmWiki.pythonExecutable`;
 - GitHub Copilot CLI installed and authenticated only if you choose `LLM Wiki: Ask Luna (Read-only)`.
 
-For realistic dogfood, use the extension in a workspace that contains only evidence you are permitted to process. The local `.wiki-lab/` directory is ignored by Git when working in this repository; other repositories should also ignore their local wiki directory if Git is enabled.
+For realistic dogfood, use the extension in a workspace that contains only evidence you are permitted to process. The local `.wiki-lab/` directory should not be committed to Git.
 
 ## Settings
 

@@ -1,0 +1,23 @@
+'use strict';
+
+const path = require('node:path');
+const { defineConfig } = require('@vscode/test-cli');
+
+module.exports = defineConfig({
+  label: 'packaged-runtime',
+  files: '../integration/**/*.test.js',
+  version: 'stable',
+  workspaceFolder: path.resolve(__dirname, '../../../..'),
+  extensionDevelopmentPath: path.resolve(__dirname, '../../dist/unpacked/extension'),
+  mocha: {
+    ui: 'tdd',
+    timeout: 30000,
+    color: true,
+  },
+  launchArgs: [
+    '--disable-extensions',
+    '--disable-telemetry',
+    '--disable-extension-update-checks',
+    '--disable-workspace-trust',
+  ],
+});

@@ -10,6 +10,7 @@ const execFileAsync = promisify(execFile);
 const SOURCE_SCHEME = 'llm-wiki-source';
 const SELECTED_TOPIC_KEY = 'llmWiki.selectedTopic';
 const MAX_BUFFER = 16 * 1024 * 1024;
+const QUERY_CLASSES = new Set(['exact_provenance', 'synthesis', 'decision_history', 'other']);
 
 let output;
 let status;
@@ -114,18 +115,20 @@ function updateStatus(context, folder, topic) {
   status.show();
 }
 
-async function createTopic(context, folder = firstWorkspaceFolder()) {
-  const label = await vscode.window.showInputBox({
+async function createTopic(context, folder = firstWorkspaceFolder(), options = {}) {
+  const suppliedLabel = options && typeof options.label === 'string' ? options.label.trim() : '';
+  const label = suppliedLabel || await vscode.window.showInputBox({
     title: 'LLM Wiki: Create Topic',
     prompt: 'Human-readable topic label. It stays in the local wiki registry.',
     ignoreFocusOut: true,
     validateInput: (value) => (value.trim() ? undefined : 'Topic label is required.'),
   });
   if (!label) return undefined;
+  const normalizedLabel = label.trim();
 
-  await runCli(context, folder, ['topic', 'add', label.trim()]);
+  await runCli(context, folder, ['topic', 'add', normalizedLabel]);
   const all = parseTopics(await runCli(context, folder, ['topic', 'list']));
-  const topic = [...all].reverse().find((row) => row.label === label.trim());
+  const topic = [...all].reverse().find((row) => row.label === normalizedLabel);
   if (!topic) throw new Error('Topic was created but could not be resolved from the local registry.');
   await setSelectedTopic(context, folder, topic);
   vscode.window.showInformationMessage(`LLM Wiki topic selected: ${topic.label}`);
@@ -177,6 +180,14 @@ async function pickQueryClass() {
     }
   );
   return picked ? picked.value : undefined;
+}
+
+function queryClassFromOptions(options) {
+  if (!options || !Object.prototype.hasOwnProperty.call(options, 'queryClass')) return undefined;
+  if (options.queryClass === undefined || options.queryClass === null || options.queryClass === '') return null;
+  const value = String(options.queryClass);
+  if (!QUERY_CLASSES.has(value)) throw new Error(`Unsupported query class: ${value}`);
+  return value;
 }
 
 function withClass(args, queryClass) {
@@ -242,17 +253,22 @@ async function ingestActive(context, authoritativeUpdate) {
   vscode.window.showInformationMessage(`LLM Wiki ingested ${path.basename(editor.document.uri.fsPath)} as ${mode} for ${topic.label}.`);
 }
 
-async function searchTopic(context) {
+async function searchTopic(context, options = {}) {
   const folder = firstWorkspaceFolder();
   const topic = await selectTopic(context, folder);
   if (!topic) return;
-  const query = await vscode.window.showInputBox({
+
+  const suppliedQuery = options && typeof options.query === 'string' ? options.query.trim() : '';
+  const query = suppliedQuery || await vscode.window.showInputBox({
     title: `LLM Wiki: Search — ${topic.label}`,
     prompt: 'Search local raw evidence. Query text is not stored in E013 telemetry.',
     ignoreFocusOut: true,
   });
   if (!query || !query.trim()) return;
-  const queryClass = await pickQueryClass();
+
+  const optionClass = queryClassFromOptions(options);
+  const hasProgrammaticClass = options && Object.prototype.hasOwnProperty.call(options, 'queryClass');
+  const queryClass = hasProgrammaticClass ? optionClass || undefined : await pickQueryClass();
   let args = ['search', query.trim(), '--json', '--topic', topic.id];
   args = withClass(args, queryClass);
 
@@ -270,6 +286,11 @@ async function searchTopic(context) {
 
   if (!rows.length) {
     vscode.window.showInformationMessage('LLM Wiki found no matching local evidence.');
+    return;
+  }
+
+  if (options && options.openFirstResult === true) {
+    await openSource(context, folder, topic, rows[0]);
     return;
   }
 
@@ -387,7 +408,7 @@ function activate(context) {
   context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(SOURCE_SCHEME, new SourceProvider(context)));
 
   const register = (command, fn) => {
-    context.subscriptions.push(vscode.commands.registerCommand(command, () => commandGuard(command, fn)));
+    context.subscriptions.push(vscode.commands.registerCommand(command, (...args) => commandGuard(command, () => fn(...args))));
   };
 
   register('llmWiki.init', async () => {
@@ -396,14 +417,14 @@ function activate(context) {
     updateStatus(context, folder);
     vscode.window.showInformationMessage('LLM Wiki local workspace initialized. Compiled provider remains disabled.');
   });
-  register('llmWiki.createTopic', () => createTopic(context));
+  register('llmWiki.createTopic', (options) => createTopic(context, firstWorkspaceFolder(), options || {}));
   register('llmWiki.selectTopic', async () => {
     const folder = firstWorkspaceFolder();
     await selectTopic(context, folder, true);
   });
   register('llmWiki.ingestActiveFile', () => ingestActive(context, false));
   register('llmWiki.ingestAuthoritativeUpdate', () => ingestActive(context, true));
-  register('llmWiki.search', () => searchTopic(context));
+  register('llmWiki.search', (options) => searchTopic(context, options || {}));
   register('llmWiki.ask', () => askLuna(context));
   register('llmWiki.calibration', () => showCalibration(context));
 
