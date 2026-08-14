@@ -6,10 +6,12 @@ on:
       - dogfood/minimal-shell-v0
     paths:
       - 'dogfood/**'
+      - '.vscode/**'
       - '.github/workflows/dogfood-v0.yml'
   pull_request:
     paths:
       - 'dogfood/**'
+      - '.vscode/**'
       - '.github/workflows/dogfood-v0.yml'
 
 permissions:
@@ -20,9 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Compile
+      - name: Compile Python core
         run: python3 -m compileall -q dogfood
-      - name: Unit tests
+      - name: Python unit tests
         run: python3 -m unittest discover -s dogfood/tests -v
       - name: CLI smoke
         run: |
@@ -34,3 +36,8 @@ jobs:
           python3 -m dogfood.llm_wiki.cli --root "$tmp/wiki" context 'cedar quota'
           test "$(find "$tmp/wiki/raw" -type f | wc -l)" -eq 1
           grep -q 'compiled_provider.*disabled' "$tmp/wiki/config.json"
+      - name: VS Code extension syntax and static boundary checks
+        run: |
+          node --version
+          node --check dogfood/vscode/extension.js
+          node dogfood/vscode/test/static.js
