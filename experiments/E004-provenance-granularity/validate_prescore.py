@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import copy
 import hashlib
-import re
 from collections import Counter
 
 from generate_corpus import (
@@ -25,7 +24,7 @@ from provenance_v0 import (
     exact_raw_reversible,
 )
 
-EXPECTED_CORPUS_SHA256 = "FREEZE_PENDING"
+EXPECTED_CORPUS_SHA256 = "68317ea91cac451ca59012f62506dbd1a249d76191ae9d06cc7777276a74ad80"
 FORBIDDEN_RAW_MARKERS = (
     "gold",
     "fault",
@@ -108,8 +107,7 @@ def validate_heldout_structure_only() -> str:
     assert corpus["claim_count"] == TOPIC_COUNT * CLAIMS_PER_TOPIC == 288
 
     actual_sha = corpus_sha256(corpus)
-    if EXPECTED_CORPUS_SHA256 != "FREEZE_PENDING":
-        assert actual_sha == EXPECTED_CORPUS_SHA256
+    assert actual_sha == EXPECTED_CORPUS_SHA256
 
     global_family = Counter()
     global_risk = Counter()
@@ -197,8 +195,6 @@ def validate_heldout_structure_only() -> str:
                 assert cited_raw[0]["source_id"] == intended_raw[0]["source_id"]
                 assert cited_raw[1]["source_id"] != intended_raw[1]["source_id"]
 
-        # P3 must not depend on fault-family/gold fields. Remove them entirely
-        # and require construction to stay byte-deterministic from risk + refs.
         stripped = copy.deepcopy(topic)
         for claim in stripped["claims"]:
             claim.pop("fault_family", None)
@@ -271,9 +267,6 @@ def validate_nonheldout_audit_contract() -> None:
         state = build_condition(topic, condition, "W0")
         row = audit_claim(topic, claim, state, budget=1200)
         outcomes[condition] = row["outcome"]
-    # All four representations have enough fixture evidence to see both
-    # passages. This checks conflict-preserving precision without revealing any
-    # held-out result.
     assert outcomes == {condition: "contested" for condition in CONDITIONS}
     p2 = build_condition(topic, "P2", "W0")
     assert exact_raw_reversible(topic, p2)
