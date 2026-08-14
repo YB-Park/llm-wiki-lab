@@ -77,8 +77,9 @@ class E013CalibrationTests(unittest.TestCase):
             record_ingest(root, tid, recorded_at=ts(0, 0))
             record_query(root, tid, "search", "other", recorded_at=ts(0, 5))
 
-            raw_events = events(root)
-            self.assertNotIn("query", json.dumps(raw_events))  # no raw query text field/value stored
+            raw_events_text = json.dumps(events(root), ensure_ascii=False)
+            self.assertNotIn("query_text", raw_events_text)
+            self.assertNotIn("Highly Sensitive Human Label", raw_events_text)
             exported = sanitized_json(root)
             self.assertNotIn("Highly Sensitive Human Label", exported)
             self.assertNotIn(tid, exported)
