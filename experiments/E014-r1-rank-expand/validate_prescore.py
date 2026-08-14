@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
+import sys
 from collections import Counter
 from pathlib import Path
 
@@ -23,6 +24,10 @@ def _load_v0_retrieval_module():
     if spec is None or spec.loader is None:
         raise RuntimeError("unable_to_load_e014_v0_retrieval_reference")
     module = importlib.util.module_from_spec(spec)
+    # Python 3.12 dataclasses resolve cls.__module__ through sys.modules while
+    # the module body executes. Register the isolated reference module before
+    # exec_module(); this changes prescore plumbing only, not frozen scoring.
+    sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
 
