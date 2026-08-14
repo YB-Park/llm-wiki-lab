@@ -37,8 +37,15 @@ def _best_snippet(text: str, query_tokens: set[str], max_chars: int) -> str:
     return block[: max_chars - 1].rstrip() + "…"
 
 
-def search(root: Path, query: str, top_k: int = 8, snippet_chars: int = 320) -> list[Hit]:
-    docs = sources(root)
+def search(
+    root: Path,
+    query: str,
+    top_k: int = 8,
+    snippet_chars: int = 320,
+    *,
+    topic_id: str | None = None,
+) -> list[Hit]:
+    docs = sources(root, topic_id=topic_id)
     if not docs:
         return []
     qtokens = tokenize(query)
@@ -76,8 +83,15 @@ def search(root: Path, query: str, top_k: int = 8, snippet_chars: int = 320) -> 
     return hits[: max(0, top_k)]
 
 
-def render_context(root: Path, query: str, top_k: int = 8, max_chars_per_source: int = 1200) -> str:
-    hits = search(root, query, top_k=top_k, snippet_chars=max_chars_per_source)
+def render_context(
+    root: Path,
+    query: str,
+    top_k: int = 8,
+    max_chars_per_source: int = 1200,
+    *,
+    topic_id: str | None = None,
+) -> str:
+    hits = search(root, query, top_k=top_k, snippet_chars=max_chars_per_source, topic_id=topic_id)
     parts = []
     for hit in hits:
         parts.append(
