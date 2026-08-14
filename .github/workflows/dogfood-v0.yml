@@ -1,0 +1,74 @@
+name: Dogfood v0
+
+on:
+  push:
+    branches:
+      - dogfood/minimal-shell-v0
+    paths:
+      - 'dogfood/**'
+      - '.vscode/**'
+      - '.github/workflows/dogfood-v0.yml'
+  pull_request:
+    paths:
+      - 'dogfood/**'
+      - '.vscode/**'
+      - '.github/workflows/dogfood-v0.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Compile Python core
+        run: python3 -m compileall -q dogfood
+      - name: Python unit tests
+        run: python3 -m unittest discover -s dogfood/tests -v
+      - name: CLI smoke
+        run: |
+          tmp="$(mktemp -d)"
+          printf 'alpha cache decision uses cedar quota\n' > "$tmp/a.md"
+          python3 -m dogfood.llm_wiki.cli --root "$tmp/wiki" init
+          python3 -m dogfood.llm_wiki.cli --root "$tmp/wiki" ingest "$tmp/a.md"
+          python3 -m dogfood.llm_wiki.cli --root "$tmp/wiki" search 'cache decision'
+          python3 -m dogfood.llm_wiki.cli --root "$tmp/wiki" context 'cedar quota'
+          test "$(find "$tmp/wiki/raw" -type f | wc -l)" -eq 1
+          grep -q 'compiled_provider.*disabled' "$tmp/wiki/config.json"
+      - name: VS Code extension syntax and static boundary checks
+        run: |
+          node --version
+          node --check dogfood/vscode/extension.js
+          node dogfood/vscode/test/static.js
+      - name: Install VS Code test/package tooling
+        working-directory: dogfood/vscode
+        run: npm install --no-audit --no-fund
+      - name: VS Code Extension Host integration test
+        working-directory: dogfood/vscode
+        run: xvfb-run -a npm run test:integration
+      - name: Bundle and verify shared Python core
+        working-directory: dogfood/vscode
+        run: |
+          npm run bundle:core
+          tmp="$(mktemp -d)"
+          PYTHONPATH="$PWD/python" python3 -m dogfood.llm_wiki.cli --root "$tmp/wiki" init
+          grep -q 'compiled_provider.*disabled' "$tmp/wiki/config.json"
+          test -f python/dogfood/llm_wiki/cli.py
+      - name: Package installable VSIX
+        working-directory: dogfood/vscode
+        run: |
+          npm run package:vsix
+          test -s dist/llm-wiki-dogfood.vsix
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/cli.py'
+      - name: Upload VSIX artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: llm-wiki-dogfood-vsix
+          path: dogfood/vscode/dist/llm-wiki-dogfood.vsix
+          if-no-files-found: error
+          retention-days: 14
