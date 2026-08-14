@@ -8,14 +8,13 @@ This file is the **current continuation state**, not a project history. Replace 
 
 Build a **proper VS Code-first LLM Wiki**: take the useful core idea behind the LLM Wiki concept seriously, fill in the trust/maintenance details that a sketch leaves open, incorporate real implementation experience and failure modes, and converge on something we actually use.
 
-Research and experiments are means, not the product. We should test architecture-relevant uncertainty rigorously, but avoid letting the research program delay a usable Wiki after the decision is sufficiently supported.
+Research and experiments are means, not the product. Test architecture-relevant uncertainty rigorously, but do not let the research program delay a usable Wiki after the decision is sufficiently supported.
 
 The product is VS Code-first, while the trustworthy storage/retrieval/provenance core should remain editor-agnostic enough to support later surfaces.
 
 ## Current state
 
-- **Raw-first Alpha Core:** declared ready by ADR-0008 / PR #52 (`2a54e96d...`).
-- **Immediate trust fix in flight:** #54 / PR #55. PR #52 left E003 correction/change/dispute writes on a direct text append path; #55 routes them through the canonical `O_APPEND` + full-write + `fsync` helper and adds focused regression coverage.
+- **Raw-first Alpha Core:** ready. ADR-0008 / PR #52 established canonical JSONL crash containment; the immediately discovered temporal-writer omission was corrected by #54 / PR #55 (`c551214...`).
 - **VS Code UI:** already implemented and exercised to a useful early product shape. Deliberately not the current optimization target; resume UX work from real dogfood friction/preferences rather than speculative polish.
 - **Retrieval:** `whole_object_v0` (W0) remains visible/default. E014-R1's `structural_expand_v1` (X1) is implemented only as a non-default shadow candidate.
 - **E015:** realistic W0-vs-X1 shadow collection is armed. Natural workload, not synthetic replay, determines whether the E014 mechanism matters in real use.
@@ -25,12 +24,11 @@ The product is VS Code-first, while the trustworthy storage/retrieval/provenance
 
 ## Next actions
 
-1. Finish #55 only after the full core/consumer/frozen regression suite is green, then close #54.
-2. Move the center of gravity from more core infrastructure to **real VS Code dogfood use**.
-3. Accumulate natural E013 and E015 evidence under the existing privacy/sessionization boundaries; do not manufacture readiness with synthetic activity.
-4. When a preregistered data-sufficiency/decision boundary is reached, analyze it and make the next narrow architecture decision.
-5. Reopen core work only for an observed dogfood blocker, an E013/E015 boundary crossing, or a reproducible trust/data-loss failure in an existing Alpha invariant.
-6. Resume UI refinement when repeated real-use friction or preference is visible; expect the UI to evolve with use.
+1. Move the center of gravity from more core infrastructure to **real VS Code dogfood use**.
+2. Accumulate natural E013 and E015 evidence under the existing privacy/sessionization boundaries; do not manufacture readiness with synthetic activity.
+3. When a preregistered data-sufficiency/decision boundary is reached, analyze it and make the next narrow architecture decision.
+4. Reopen core work only for an observed dogfood blocker, an E013/E015 boundary crossing, or a reproducible trust/data-loss failure in an existing Alpha invariant.
+5. Resume UI refinement when repeated real-use friction or preference is visible; expect the UI to evolve with use.
 
 ## Do not accidentally do
 
@@ -49,6 +47,5 @@ The product is VS Code-first, while the trustworthy storage/retrieval/provenance
 - Dogfood usage/current substrate: `dogfood/README.md`
 - Realistic compiled-provider gate: Issue #21 / E013
 - Realistic retrieval-shadow gate: Issue #38 / E015
-- Immediate Alpha trust fix: Issue #54 / PR #55
 
 If this file disagrees with merged code or an accepted ADR, **the code/ADR wins and this file should be corrected immediately**.
