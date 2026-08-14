@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
+from .eventlog import append_jsonl_record
 from .store import ensure_workspace, history
 
 RELATION_GENERIC = "generic"
@@ -145,8 +145,6 @@ def temporal_projection(root: Path, *, topic_id: str) -> TemporalProjection:
                 raise RuntimeError(f"invalid_temporal_history_successor_not_current:{successor}")
             active.remove(predecessor)
             replacements[predecessor] = relation
-            # Disagreement is revision-pair scoped. Replacing one endpoint ends
-            # that pair's current dispute; no conflict is inferred for successor.
             disputes = {pair for pair in disputes if predecessor not in pair}
             continue
 
@@ -166,8 +164,7 @@ def temporal_projection(root: Path, *, topic_id: str) -> TemporalProjection:
 
 
 def _append_manifest(root: Path, event: dict) -> None:
-    with (root / "manifest.jsonl").open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps(event, ensure_ascii=False, sort_keys=True) + "\n")
+    append_jsonl_record(root / "manifest.jsonl", event, log_label="manifest")
 
 
 def _prepare_replacement(
