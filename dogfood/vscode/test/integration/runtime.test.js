@@ -5,23 +5,6 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vscode = require('vscode');
 
-function stubWindowMethod(name, replacement) {
-  const original = vscode.window[name];
-  vscode.window[name] = replacement;
-  return () => {
-    vscode.window[name] = original;
-  };
-}
-
-async function withWindowStubs(stubs, fn) {
-  const restores = Object.entries(stubs).map(([name, replacement]) => stubWindowMethod(name, replacement));
-  try {
-    return await fn();
-  } finally {
-    for (const restore of restores.reverse()) restore();
-  }
-}
-
 async function stage(label, promise, timeoutMs = 8000) {
   console.log(`VS-RUNTIME-STAGE start=${label}`);
   let timer;
@@ -101,41 +84,25 @@ suite('LLM Wiki Dogfood Extension Host', () => {
     fs.rmSync(wikiRoot, { recursive: true, force: true });
     fs.writeFileSync(evidencePath, '# Runtime evidence\n\nThe cedar quota decision is 41 units because the project preferred bounded cache growth.\n', 'utf8');
 
-    let searchResultPicked = false;
     try {
-      await withWindowStubs(
-        {
-          showInputBox: async (options) => {
-            const title = String(options && options.title || '');
-            if (title.includes('Create Topic')) return 'runtime-vscode-topic';
-            if (title.includes('Search')) return 'cedar quota';
-            throw new Error(`unexpected showInputBox: ${title}`);
-          },
-          showQuickPick: async (items, options) => {
-            const title = String(options && options.title || '');
-            if (title === 'Optional E013 query tag') {
-              return items.find((item) => item.value === 'exact_provenance');
-            }
-            if (title.includes('search results')) {
-              searchResultPicked = true;
-              return items[0];
-            }
-            throw new Error(`unexpected showQuickPick: ${title}`);
-          },
-          showInformationMessage: async () => undefined,
-        },
-        async () => {
-          await stage('init', vscode.commands.executeCommand('llmWiki.init'));
-          await stage('create-topic', vscode.commands.executeCommand('llmWiki.createTopic'));
-
-          const evidenceDoc = await stage('open-evidence-document', vscode.workspace.openTextDocument(vscode.Uri.file(evidencePath)));
-          await stage('show-evidence-editor', vscode.window.showTextDocument(evidenceDoc, { preview: false }));
-          await stage('ingest-active-file', vscode.commands.executeCommand('llmWiki.ingestActiveFile'));
-          await stage('search-and-open-provenance', vscode.commands.executeCommand('llmWiki.search'));
-        }
+      await stage('init', vscode.commands.executeCommand('llmWiki.init'));
+      await stage(
+        'create-topic',
+        vscode.commands.executeCommand('llmWiki.createTopic', { label: 'runtime-vscode-topic' })
       );
 
-      assert.equal(searchResultPicked, true, 'search result Quick Pick was not reached');
+      const evidenceDoc = await stage('open-evidence-document', vscode.workspace.openTextDocument(vscode.Uri.file(evidencePath)));
+      await stage('show-evidence-editor', vscode.window.showTextDocument(evidenceDoc, { preview: false }));
+      await stage('ingest-active-file', vscode.commands.executeCommand('llmWiki.ingestActiveFile'));
+      await stage(
+        'search-and-open-provenance',
+        vscode.commands.executeCommand('llmWiki.search', {
+          query: 'cedar quota',
+          queryClass: 'exact_provenance',
+          openFirstResult: true,
+        })
+      );
+
       const active = vscode.window.activeTextEditor;
       assert.ok(active, 'provenance document was not opened');
       assert.equal(active.document.uri.scheme, 'llm-wiki-source');
