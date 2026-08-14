@@ -34,6 +34,8 @@ jobs:
           python -m compileall -q dogfood/llm_wiki experiments/E010-vscode-dogfood/self_repo_dogfood.py
 
       - name: Run full-repository self-dogfood
+        env:
+          PYTHONPATH: .
         run: |
           rm -rf /tmp/e010-self-dogfood
           python experiments/E010-vscode-dogfood/self_repo_dogfood.py \
