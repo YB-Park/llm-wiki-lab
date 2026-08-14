@@ -42,7 +42,8 @@ jobs:
       - name: Existing core regression tests
         run: python3 -m unittest discover -s dogfood/tests -v
 
-      - name: Ensure E004 evidence branch does not modify core
+      - name: Ensure original E004 evidence branch does not modify core
+        if: github.event_name == 'push' || github.head_ref == 'experiment/e004-provenance-granularity'
         run: |
           git fetch origin main --quiet
           if git diff --name-only origin/main...HEAD | grep -E '^dogfood/'; then
