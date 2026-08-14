@@ -80,8 +80,16 @@ def _safe_record_retrieval_shadow(
             pass
 
 
-def _add_topic_and_class_args(cmd: argparse.ArgumentParser) -> None:
-    cmd.add_argument("--topic", help="local topic label or opaque topic ID; enables local-only E013 calibration")
+def _add_topic_and_class_args(cmd: argparse.ArgumentParser, *, topic_required: bool = False) -> None:
+    cmd.add_argument(
+        "--topic",
+        required=topic_required,
+        help=(
+            "local topic label or opaque topic ID; required for model-backed Ask so only topic-current evidence is sent"
+            if topic_required
+            else "local topic label or opaque topic ID; enables local-only E013 calibration"
+        ),
+    )
     cmd.add_argument("--class", dest="query_class", choices=QUERY_CLASSES, help="optional explicit E013 query class")
 
 
@@ -317,6 +325,8 @@ def main(argv: list[str] | None = None) -> int:
             raise SystemExit(
                 "ASK-STOP model_call_not_authorized: rerun with --allow-model-call only for evidence you are permitted to send"
             )
+        if not args.topic:
+            raise SystemExit("ASK-STOP topic_required: model-backed Ask is topic-scoped and uses current evidence only")
         topic_id = _resolved_topic_id(root, args.topic)
         if topic_id is not None:
             record_query(root, topic_id, "ask", args.query_class)
