@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from dogfood.llm_wiki.adapters import answer_prompt
 from dogfood.llm_wiki.store import history, ingest_file, source_status, sources
 
 
@@ -42,6 +43,14 @@ class EvidenceIdentityV2EdgeTests(unittest.TestCase):
                 2,
                 "late lineage declaration must not invent a third source revision",
             )
+
+    def test_answer_prompt_forbids_treating_same_object_source_multiplicity_as_corroboration(self):
+        prompt = answer_prompt(
+            "What is the quota?",
+            "### EVIDENCE OBJECT obj-x\nsource_ids: src-a, src-b\nquota=41",
+        )
+        self.assertIn("identical bytes", prompt)
+        self.assertIn("do not count that multiplicity as independent corroboration", prompt)
 
 
 if __name__ == "__main__":
