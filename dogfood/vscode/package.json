@@ -1,0 +1,90 @@
+{
+  "name": "llm-wiki-dogfood",
+  "displayName": "LLM Wiki Dogfood",
+  "description": "VS Code-first dogfood shell over the architecture-neutral LLM Wiki core.",
+  "version": "0.1.0",
+  "private": true,
+  "publisher": "llm-wiki-lab",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onCommand:llmWiki.init",
+    "onCommand:llmWiki.createTopic",
+    "onCommand:llmWiki.selectTopic",
+    "onCommand:llmWiki.ingestActiveFile",
+    "onCommand:llmWiki.ingestAuthoritativeUpdate",
+    "onCommand:llmWiki.search",
+    "onCommand:llmWiki.ask",
+    "onCommand:llmWiki.calibration"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "llmWiki.init",
+        "title": "LLM Wiki: Initialize Workspace"
+      },
+      {
+        "command": "llmWiki.createTopic",
+        "title": "LLM Wiki: Create Topic"
+      },
+      {
+        "command": "llmWiki.selectTopic",
+        "title": "LLM Wiki: Select Topic"
+      },
+      {
+        "command": "llmWiki.ingestActiveFile",
+        "title": "LLM Wiki: Ingest Active File"
+      },
+      {
+        "command": "llmWiki.ingestAuthoritativeUpdate",
+        "title": "LLM Wiki: Ingest Active File as Authoritative Update"
+      },
+      {
+        "command": "llmWiki.search",
+        "title": "LLM Wiki: Search Topic"
+      },
+      {
+        "command": "llmWiki.ask",
+        "title": "LLM Wiki: Ask Luna (Read-only)"
+      },
+      {
+        "command": "llmWiki.calibration",
+        "title": "LLM Wiki: Show Calibration Summary"
+      }
+    ],
+    "configuration": {
+      "title": "LLM Wiki Dogfood",
+      "properties": {
+        "llmWiki.pythonExecutable": {
+          "type": "string",
+          "default": "python3",
+          "description": "Python executable used to invoke the architecture-neutral dogfood core."
+        },
+        "llmWiki.corePath": {
+          "type": "string",
+          "default": "",
+          "description": "Optional repository/core root containing the dogfood Python package. Empty uses the extension's repository root in development."
+        },
+        "llmWiki.workspaceDirectory": {
+          "type": "string",
+          "default": ".wiki-lab",
+          "description": "Per-workspace local wiki directory. Keep this outside Git commits."
+        },
+        "llmWiki.maxAiCredits": {
+          "type": "number",
+          "default": 30,
+          "minimum": 1,
+          "description": "Per-call Copilot AI-credit guard for explicit Ask Luna commands."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "check": "node --check extension.js && node test/static.js"
+  }
+}
