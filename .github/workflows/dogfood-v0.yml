@@ -41,3 +41,9 @@ jobs:
           node --version
           node --check dogfood/vscode/extension.js
           node dogfood/vscode/test/static.js
+      - name: Install VS Code integration-test harness
+        working-directory: dogfood/vscode
+        run: npm install --no-audit --no-fund
+      - name: VS Code Extension Host integration test
+        working-directory: dogfood/vscode
+        run: xvfb-run -a npm run test:integration
