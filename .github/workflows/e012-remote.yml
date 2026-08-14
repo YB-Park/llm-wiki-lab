@@ -1,0 +1,56 @@
+name: E012 maintenance gate remote
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'remote-lab/e012-request.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  copilot-requests: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Install GitHub Copilot CLI
+        run: npm install -g @github/copilot
+
+      - name: Show runtime versions
+        run: |
+          python3 --version
+          copilot --version
+
+      - name: Validate frozen E012 fixture
+        working-directory: experiments/E012-reuse-update-maintenance
+        run: python3 validate_frozen.py
+
+      - name: Run frozen E012
+        working-directory: experiments/E012-reuse-update-maintenance
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 run_remote_v0.py
+
+      - name: Analyze frozen E012
+        working-directory: experiments/E012-reuse-update-maintenance
+        run: python3 analysis_v0.py
+
+      - name: Upload E012 synthetic artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e012-remote-v0-${{ github.run_id }}
+          path: experiments/E012-reuse-update-maintenance/runs/remote-v0/
+          if-no-files-found: ignore
+          retention-days: 7
