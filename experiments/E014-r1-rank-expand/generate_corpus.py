@@ -3,7 +3,6 @@ from __future__ import annotations
 import hashlib
 import json
 import random
-from pathlib import Path
 
 FORMAT = "llm-wiki-e014-r1-corpus-v0"
 SEED = 20260823
@@ -268,6 +267,7 @@ def build_corpus() -> dict:
                     "topic_id": f"e014-r1-topic-{i:02d}",
                     "shape": shape,
                     "cross_boundary": shape == "flat_cross",
+                    "cross_directions": directions if shape == "flat_cross" else {},
                     "lure_count_per_class": lure_count,
                     "documents": docs,
                     "queries": queries,
