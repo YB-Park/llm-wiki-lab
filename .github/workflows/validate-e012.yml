@@ -20,12 +20,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Compile E012 deterministic tools
+      - name: Compile E012 tools
         run: |
           python3 -m py_compile \
             experiments/E012-reuse-update-maintenance/generate_corpus.py \
             experiments/E012-reuse-update-maintenance/core.py \
-            experiments/E012-reuse-update-maintenance/validate_prescore.py
+            experiments/E012-reuse-update-maintenance/validate_prescore.py \
+            experiments/E012-reuse-update-maintenance/run_remote_v0.py \
+            experiments/E012-reuse-update-maintenance/analysis_v0.py
       - name: Validate E012 corpus and semantics
         working-directory: experiments/E012-reuse-update-maintenance
         run: python3 validate_prescore.py
+      - name: Validate E012 runner and analysis invariants
+        working-directory: experiments/E012-reuse-update-maintenance
+        run: |
+          python3 - <<'PY'
+          import analysis_v0 as analysis
+          import generate_corpus as corpus
+          import run_remote_v0 as runner
+
+          docs, queries = corpus.generate()
+          dsha, qsha = runner.fingerprints(docs, queries)
+          assert dsha == runner.DOCS_SHA
+          assert qsha == runner.QUERIES_SHA
+          assert len(runner.build_tasks(sorted({d['topic_id'] for d in docs}))) == 36
+          assert len(runner.answer_tasks(queries)) == 216
+          assert set(runner.CONDS) == {'R1', 'C0'}
+          assert tuple(analysis.REUSE) == (1, 3, 6, 10, 20)
+          assert analysis.break_even(100, 200, 100) == 1
+          assert analysis.break_even(100, 100, 100) is None
+          print('E012-RUNNER-ANALYSIS-INVARIANTS PASS')
+          PY
