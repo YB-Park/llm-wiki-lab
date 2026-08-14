@@ -1,0 +1,54 @@
+name: Validate E014 frozen result
+
+on:
+  push:
+    branches:
+      - experiment/e014-lexical-granularity
+    paths:
+      - 'experiments/E014-lexical-retrieval-granularity/**'
+      - 'dogfood/**'
+      - '.github/workflows/validate-e014.yml'
+  pull_request:
+    paths:
+      - 'experiments/E014-lexical-retrieval-granularity/**'
+      - 'dogfood/**'
+      - '.github/workflows/validate-e014.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  frozen-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Verify A1-corrected frozen E014 scorer bytes
+        run: |
+          cat > /tmp/e014-sha256.txt <<'EOF'
+          cbd81df876f6bf42e10118737137be6b5bc24edc9b7a30d72f0e4f88f0500c73  experiments/E014-lexical-retrieval-granularity/generate_corpus.py
+          30049ba687d3ee99574184a5eb9271896f0e08778ab28fda6455eaf2a94f2bb8  experiments/E014-lexical-retrieval-granularity/retrieval_core.py
+          ea3f5d3c369083660f880a49ebd4d52499ffe36d9c6b3f07b23f4a536e55c710  experiments/E014-lexical-retrieval-granularity/analysis_v0.py
+          85905196a600421ff18141d01918dbc96cc7afeabe6dd2b37c546b40da5f7aad  experiments/E014-lexical-retrieval-granularity/validate_prescore.py
+          EOF
+          sha256sum -c /tmp/e014-sha256.txt
+
+      - name: Compile frozen experiment and core
+        run: python3 -m compileall -q dogfood experiments/E014-lexical-retrieval-granularity
+
+      - name: Existing core regression tests
+        run: python3 -m unittest discover -s dogfood/tests -v
+
+      - name: E014 frozen prescore validation
+        working-directory: experiments/E014-lexical-retrieval-granularity
+        env:
+          PYTHONPATH: ../..
+        run: python3 validate_prescore.py
+
+      - name: Assert v0 official score is locked
+        run: |
+          if grep -nE 'python3[[:space:]]+analysis_v0\.py|analysis_v0\.py[[:space:]]+--split' .github/workflows/validate-e014.yml; then
+            echo 'E014-V0-LOCK-STOP automatic rescoring command present after official run'
+            exit 1
+          fi
+          echo 'E014-V0-LOCKED officialScoreRun=31782899247 artifact=9212361877 gate=DOES_NOT_SURVIVE_DETERMINISTIC_GATE modelCalls=0'
