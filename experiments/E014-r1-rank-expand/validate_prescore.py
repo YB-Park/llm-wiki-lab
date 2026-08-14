@@ -10,7 +10,7 @@ from retrieval_r1 import condition_units, paragraph_spans, rank_objects, ranking
 
 EXPECTED_TOPICS = 40
 EXPECTED_QUERIES = 120
-EXPECTED_CORPUS_SHA256: str | None = None  # filled only after generator-only hash discovery, before freeze
+EXPECTED_CORPUS_SHA256 = "f3126cc8e61455c4b962a7f2efb7505003ec92767f342a4eefb43f105348b442"
 
 
 def _repo_root() -> Path:
@@ -94,8 +94,7 @@ def validate_heldout_structure_only() -> str:
     assert corpus["query_count"] == EXPECTED_QUERIES
 
     actual_sha = corpus_sha256(corpus)
-    if EXPECTED_CORPUS_SHA256 is not None:
-        assert actual_sha == EXPECTED_CORPUS_SHA256
+    assert actual_sha == EXPECTED_CORPUS_SHA256
 
     shape_counts = Counter(topic["shape"] for topic in corpus["topics"])
     assert shape_counts == Counter({shape: TOPICS_PER_SHAPE for shape in SHAPES})
@@ -214,11 +213,10 @@ def validate_nonheldout_scoring_contracts() -> None:
 def main() -> int:
     heldout_sha = validate_heldout_structure_only()
     validate_nonheldout_scoring_contracts()
-    expected = EXPECTED_CORPUS_SHA256 or "FREEZE_PENDING"
     print(
         "E014-R1-PRESCORE-VALIDATION PASS "
         f"topics={EXPECTED_TOPICS} queries={EXPECTED_QUERIES} shapes=8x5 heldoutSha={heldout_sha} "
-        f"expectedSha={expected} crossDirections=verified provenance=verified "
+        f"expectedSha={EXPECTED_CORPUS_SHA256} crossDirections=verified provenance=verified "
         "v0RankingEquivalence=yes x1G1RankingFixture=yes heldoutScoring=no modelCalls=0"
     )
     return 0
