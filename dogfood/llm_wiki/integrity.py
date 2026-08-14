@@ -12,19 +12,27 @@ def audit_alpha_integrity(root: Path) -> dict:
 
     This audit is read-only. It never repairs, truncates, quarantines, or invents
     canonical state. Raw integrity depends on a replayable manifest; when the
-    manifest itself is damaged we report raw as not checked rather than guessing
-    at source identity from a partial prefix.
+    manifest itself is missing or damaged we report raw as not checked rather
+    than guessing at source identity from surviving raw files or a partial log.
     """
-    initialized = (
-        (root / "config.json").is_file()
-        and (root / "raw").is_dir()
-        and (root / "manifest.jsonl").is_file()
-    )
-    canonical = audit_canonical_logs(root)
+    config_present = (root / "config.json").is_file()
+    raw_dir_present = (root / "raw").is_dir()
+    manifest_present = (root / "manifest.jsonl").is_file()
+    initialized = config_present and raw_dir_present and manifest_present
 
-    if not initialized:
-        raw: dict = {"status": "not_checked_uninitialized", "ok": False}
-    elif not canonical.manifest.ok:
+    canonical_report = audit_canonical_logs(root)
+    canonical = asdict(canonical_report)
+
+    # `config.json` is the durable initialization marker. Once it exists, a
+    # missing manifest is canonical-state loss, not a clean empty log.
+    if config_present and not manifest_present:
+        canonical["manifest"]["status"] = "missing"
+        canonical["manifest"]["ok"] = False
+        canonical["ok"] = False
+        raw: dict = {"status": "not_checked_manifest_missing", "ok": False}
+    elif not initialized:
+        raw = {"status": "not_checked_uninitialized", "ok": False}
+    elif not canonical_report.manifest.ok:
         raw = {"status": "not_checked_manifest_damaged", "ok": False}
     else:
         try:
@@ -42,6 +50,6 @@ def audit_alpha_integrity(root: Path) -> dict:
         "privacy": "aggregate_only_no_ids_paths_hashes_names_or_content",
         "workspace_initialized": initialized,
         "raw": raw,
-        "canonical_logs": asdict(canonical),
-        "ok": bool(initialized and raw.get("ok") is True and canonical.ok),
+        "canonical_logs": canonical,
+        "ok": bool(initialized and raw.get("ok") is True and canonical["ok"] is True),
     }
