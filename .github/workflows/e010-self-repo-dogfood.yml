@@ -1,0 +1,51 @@
+name: E010 self-repo dogfood
+
+on:
+  pull_request:
+    paths:
+      - 'dogfood/**'
+      - 'docs/**'
+      - 'decisions/**'
+      - 'experiments/**'
+      - 'research/**'
+      - 'remote-lab/**'
+      - 'README.md'
+      - 'HANDOFF.md'
+      - '.github/workflows/e010-self-repo-dogfood.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  self-repo-dogfood:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Compile core and E010 harness
+        run: |
+          python -m compileall -q dogfood/llm_wiki experiments/E010-vscode-dogfood/self_repo_dogfood.py
+
+      - name: Run full-repository self-dogfood
+        env:
+          PYTHONPATH: .
+        run: |
+          rm -rf /tmp/e010-self-dogfood
+          python experiments/E010-vscode-dogfood/self_repo_dogfood.py \
+            --repo . \
+            --output /tmp/e010-self-dogfood
+          cat /tmp/e010-self-dogfood/result.md
+
+      - name: Upload E010 result
+        uses: actions/upload-artifact@v4
+        with:
+          name: e010-self-repo-dogfood
+          path: /tmp/e010-self-dogfood/
+          if-no-files-found: error
