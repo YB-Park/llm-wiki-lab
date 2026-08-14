@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
+from .append_log import append_jsonl_record, read_committed_jsonl
+
 ORIGIN_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 SOURCE_RECORD_SCHEMA = "llm-wiki-source-v1"
@@ -66,19 +68,11 @@ def _validate_origin_id(origin_id: str | None) -> str | None:
 
 
 def _append_event(root: Path, event: dict) -> None:
-    with (root / "manifest.jsonl").open("a", encoding="utf-8") as f:
-        f.write(json.dumps(event, sort_keys=True, ensure_ascii=False) + "\n")
+    append_jsonl_record(root / "manifest.jsonl", event)
 
 
 def history(root: Path) -> list[dict]:
-    manifest = root / "manifest.jsonl"
-    if not manifest.exists():
-        return []
-    rows = []
-    for line in manifest.read_text(encoding="utf-8").splitlines():
-        if line.strip():
-            rows.append(json.loads(line))
-    return rows
+    return read_committed_jsonl(root / "manifest.jsonl")
 
 
 def _normalize_ingest(event: dict) -> dict:
