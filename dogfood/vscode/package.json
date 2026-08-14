@@ -12,6 +12,12 @@
     "Other"
   ],
   "main": "./extension.js",
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "LLM Wiki invokes a local Python core and can send retrieved evidence to Copilot only after explicit consent. Trust the workspace before using it."
+    }
+  },
   "activationEvents": [
     "onCommand:llmWiki.init",
     "onCommand:llmWiki.createTopic",
