@@ -86,7 +86,7 @@ def generate() -> tuple[list[dict], list[dict]]:
         old_factor = s["factors"][0]
         current_factors = [revised] + list(s["factors"][1:])
         old_rationale = list(s["rationale_indices"])
-        omitted = ({0, 1, 2, 3} - set(old_rationale)).pop()
+        omitted = next(iter({0, 1, 2, 3} - set(old_rationale)))
         new_rationale = sorted((set(old_rationale) - {old_rationale[0]}) | {omitted})
 
         w1_exact_sid = f"{topic}-S33"
@@ -138,8 +138,7 @@ def generate() -> tuple[list[dict], list[dict]]:
                 ),
             },
         ]
-        topic_docs = docs + updates
-        all_docs.extend(topic_docs)
+        all_docs.extend(docs + updates)
 
         baseline_decision_source = _role_source(docs, "decision")
         wave_specs = {
@@ -160,6 +159,7 @@ def generate() -> tuple[list[dict], list[dict]]:
             },
         }
 
+        exact_values = (s["current_value"], w1_value, w2_value)
         for wave in WAVES:
             x = wave_specs[wave]
             qprefix = f"{topic}-W{wave}"
@@ -167,7 +167,7 @@ def generate() -> tuple[list[dict], list[dict]]:
                 "query_id": f"{qprefix}-Q1", "topic_id": topic, "wave": wave, "class": "current_exact",
                 "question": f"At wave {wave}, what is the current {s['exact_label']} for {s['name']}, and which source states the current value?",
                 "required_signals": [x["value"].lower()], "required_source_ids": [x["exact_source"]],
-                "forbidden_current_signals": [v.lower() for v in {s["current_value"], w1_value, w2_value} if v != x["value"]],
+                "forbidden_current_signals": [v.lower() for v in exact_values if v != x["value"]],
             })
             all_queries.append({
                 "query_id": f"{qprefix}-Q2", "topic_id": topic, "wave": wave, "class": "current_synthesis",
@@ -182,18 +182,16 @@ def generate() -> tuple[list[dict], list[dict]]:
                     "and which three current constraints support the current decision?"
                 )
                 required = [x["choice"].lower(), x["prior"].lower()] + rationale_names
-                forbidden = []
             else:
                 question = (
                     f"At wave {wave}, what option is currently selected for {s['name']} rather than the alternative, "
                     "and which three current constraints support that decision?"
                 )
                 required = [x["choice"].lower()] + rationale_names
-                forbidden = []
             all_queries.append({
                 "query_id": f"{qprefix}-Q3", "topic_id": topic, "wave": wave, "class": "decision_history",
                 "question": question, "required_signals": required, "required_source_ids": [x["decision_source"]],
-                "forbidden_current_signals": forbidden,
+                "forbidden_current_signals": [],
             })
 
     all_docs.sort(key=lambda x: (x["topic_id"], x["source_id"]))
