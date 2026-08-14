@@ -1,0 +1,64 @@
+name: Validate E004 prescore
+
+on:
+  push:
+    branches:
+      - experiment/e004-provenance-granularity
+    paths:
+      - 'experiments/E004-provenance-granularity/**'
+      - 'dogfood/**'
+      - '.github/workflows/prescore-e004.yml'
+  pull_request:
+    paths:
+      - 'experiments/E004-provenance-granularity/**'
+      - 'dogfood/**'
+      - '.github/workflows/prescore-e004.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  prescore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Verify frozen E004 score-affecting bytes
+        run: |
+          cat > /tmp/e004-frozen-sha256.txt <<'EOF'
+          f13b35577028b8fa0aca32e942f1fa140f51584fc7db5392d7ea67c752d7dd1b  experiments/E004-provenance-granularity/generate_corpus.py
+          c7922b38404aac4af0469a79a59ee7f506bb23d04e1d2787141425be57684a3a  experiments/E004-provenance-granularity/provenance_v0.py
+          56a8b3f95ab9cddff41a35ecb434c2033a92d36ac0e6462ab26207ae84cd1aad  experiments/E004-provenance-granularity/analysis_v0.py
+          8ba66358a05d2485f103db9fccc537d2f6162069589617496f08e6be276d8bfa  experiments/E004-provenance-granularity/validate_prescore.py
+          EOF
+          sha256sum -c /tmp/e004-frozen-sha256.txt
+          echo 'E004-FROZEN-BYTES PASS corpusSha=68317ea91cac451ca59012f62506dbd1a249d76191ae9d06cc7777276a74ad80'
+
+      - name: Compile experiment and current core
+        run: python3 -m compileall -q experiments/E004-provenance-granularity dogfood
+
+      - name: Existing core regression tests
+        run: python3 -m unittest discover -s dogfood/tests -v
+
+      - name: Ensure E004 evidence branch does not modify core
+        run: |
+          git fetch origin main --quiet
+          if git diff --name-only origin/main...HEAD | grep -E '^dogfood/'; then
+            echo 'E004-PRESCORE-STOP core mutation present in evidence branch'
+            exit 1
+          fi
+          echo 'E004-CORE-IMMUTABILITY PASS dogfoodChanges=0'
+
+      - name: E004 structural prescore validation only
+        working-directory: experiments/E004-provenance-granularity
+        run: python3 validate_prescore.py
+
+      - name: Assert prescore workflow cannot score heldout
+        run: |
+          if grep -nE 'python3[[:space:]]+analysis_v0\.py|analysis_v0\.py[[:space:]]+--out' .github/workflows/prescore-e004.yml; then
+            echo 'E004-PRESCORE-STOP scoring command present before authorization'
+            exit 1
+          fi
+          echo 'E004-PRESCORE-ONLY heldoutScoring=disabled modelCalls=0 aiCredits=0'
