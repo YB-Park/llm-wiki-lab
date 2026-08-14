@@ -26,6 +26,7 @@ jobs:
             experiments/E012-reuse-update-maintenance/generate_corpus.py \
             experiments/E012-reuse-update-maintenance/core.py \
             experiments/E012-reuse-update-maintenance/validate_prescore.py \
+            experiments/E012-reuse-update-maintenance/validate_frozen.py \
             experiments/E012-reuse-update-maintenance/run_remote_v0.py \
             experiments/E012-reuse-update-maintenance/analysis_v0.py
       - name: Validate E012 corpus and semantics
@@ -55,7 +56,12 @@ jobs:
           assert len(runner.answer_tasks(queries)) == 216
           assert set(runner.CONDS) == {'R1', 'C0'}
           assert tuple(analysis.REUSE) == (1, 3, 6, 10, 20)
+          assert analysis.BOOT_SEED == 20260820
+          assert analysis.BOOT_N == 20000
           assert analysis.break_even(100, 200, 100) == 1
           assert analysis.break_even(100, 100, 100) is None
           print('E012-RUNNER-ANALYSIS-INVARIANTS PASS')
           PY
+      - name: Validate frozen E012 fixture lock
+        working-directory: experiments/E012-reuse-update-maintenance
+        run: python3 validate_frozen.py
