@@ -74,7 +74,7 @@
         "llmWiki.corePath": {
           "type": "string",
           "default": "",
-          "description": "Optional repository/core root containing the dogfood Python package. Empty uses the extension's repository root in development."
+          "description": "Optional repository/core root. Empty uses the bundled core in an installed VSIX and the repository core during extension development."
         },
         "llmWiki.workspaceDirectory": {
           "type": "string",
@@ -92,10 +92,13 @@
   },
   "scripts": {
     "check": "node --check extension.js && node test/static.js",
-    "test:integration": "vscode-test --label runtime"
+    "test:integration": "vscode-test --label runtime",
+    "bundle:core": "node scripts/bundle-core.js",
+    "package:vsix": "npm run bundle:core && mkdir -p dist && vsce package --out dist/llm-wiki-dogfood.vsix"
   },
   "devDependencies": {
     "@vscode/test-cli": "0.0.6",
-    "@vscode/test-electron": "2.4.0"
+    "@vscode/test-electron": "2.4.0",
+    "@vscode/vsce": "3.9.2"
   }
 }
