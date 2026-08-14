@@ -1,4 +1,4 @@
-name: Score E004 official heldout
+name: Validate E004 frozen result
 
 on:
   push:
@@ -6,12 +6,17 @@ on:
       - experiment/e004-provenance-granularity
     paths:
       - '.github/workflows/score-e004.yml'
+      - 'experiments/E004-provenance-granularity/**'
+  pull_request:
+    paths:
+      - '.github/workflows/score-e004.yml'
+      - 'experiments/E004-provenance-granularity/**'
 
 permissions:
   contents: read
 
 jobs:
-  official-score:
+  frozen-result:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -25,20 +30,15 @@ jobs:
           8ba66358a05d2485f103db9fccc537d2f6162069589617496f08e6be276d8bfa  experiments/E004-provenance-granularity/validate_prescore.py
           EOF
           sha256sum -c /tmp/e004-frozen-sha256.txt
-          echo 'E004-OFFICIAL-SCORE-START frozenBytes=yes corpusSha=68317ea91cac451ca59012f62506dbd1a249d76191ae9d06cc7777276a74ad80'
 
-      - name: Revalidate prescore boundary
+      - name: Revalidate frozen structure only
         working-directory: experiments/E004-provenance-granularity
         run: python3 validate_prescore.py
 
-      - name: Official frozen E004 heldout score
-        working-directory: experiments/E004-provenance-granularity
-        run: python3 analysis_v0.py --out /tmp/e004-results-v0.json
-
-      - name: Preserve synthetic scored result artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: e004-heldout-v0
-          path: /tmp/e004-results-v0.json
-          if-no-files-found: error
-          retention-days: 30
+      - name: Assert automatic rescoring remains disabled
+        run: |
+          if grep -nE 'python3[[:space:]]+analysis_v0\.py|analysis_v0\.py[[:space:]]+--out' .github/workflows/score-e004.yml; then
+            echo 'E004-FROZEN-RESULT-STOP scorer re-enabled'
+            exit 1
+          fi
+          echo 'E004-FROZEN-RESULT PASS officialScoreRun=31796083458 automaticRescore=disabled modelCalls=0 aiCredits=0'
