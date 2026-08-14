@@ -1,0 +1,67 @@
+name: Discover E004 freeze hashes
+
+on:
+  push:
+    branches:
+      - experiment/e004-provenance-granularity
+    paths:
+      - 'experiments/E004-provenance-granularity/**'
+      - '.github/workflows/discover-e004-freeze.yml'
+  pull_request:
+    paths:
+      - 'experiments/E004-provenance-granularity/**'
+      - '.github/workflows/discover-e004-freeze.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Compile experiment only
+        run: python3 -m compileall -q experiments/E004-provenance-granularity
+
+      - name: Corpus shape and canonical hash only
+        working-directory: experiments/E004-provenance-granularity
+        run: python3 generate_corpus.py
+
+      - name: Structural prescore validation with non-heldout fixture only
+        working-directory: experiments/E004-provenance-granularity
+        run: python3 validate_prescore.py
+
+      - name: Assert discovery workflow cannot score heldout
+        run: |
+          if grep -nE 'python3[[:space:]]+analysis_v0\.py|analysis_v0\.py[[:space:]]+--out' .github/workflows/discover-e004-freeze.yml; then
+            echo 'E004-HASH-DISCOVERY-STOP scoring command present'
+            exit 1
+          fi
+          echo 'E004-HASH-DISCOVERY-ONLY heldoutScoring=disabled modelCalls=0 aiCredits=0'
+
+      - name: Write freeze hash manifest
+        working-directory: experiments/E004-provenance-granularity
+        run: |
+          python3 - <<'PY' > /tmp/e004-freeze-hashes.txt
+          import hashlib
+          from pathlib import Path
+          from generate_corpus import build_corpus, corpus_sha256
+
+          print(f"corpus {corpus_sha256(build_corpus())}")
+          for name in ('generate_corpus.py', 'provenance_v0.py', 'analysis_v0.py', 'validate_prescore.py'):
+              digest = hashlib.sha256(Path(name).read_bytes()).hexdigest()
+              print(f"{name} {digest}")
+          print('heldoutScoring 0')
+          print('modelCalls 0')
+          print('aiCredits 0')
+          PY
+          cat /tmp/e004-freeze-hashes.txt
+
+      - name: Preserve hash manifest
+        uses: actions/upload-artifact@v7
+        with:
+          name: e004-freeze-hashes
+          path: /tmp/e004-freeze-hashes.txt
+          if-no-files-found: error
+          retention-days: 30
