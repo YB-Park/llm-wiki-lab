@@ -1,7 +1,5 @@
 'use strict';
 
-const vscode = require('vscode');
-
 const REQUIRED_LUNA_ID = 'gpt-5.6-luna';
 
 function text(value) {
@@ -47,8 +45,9 @@ function summarizeModels(models) {
   };
 }
 
-async function discoverCopilotModels() {
-  if (!vscode.lm || typeof vscode.lm.selectChatModels !== 'function') {
+async function discoverCopilotModels(vscodeApi) {
+  const api = vscodeApi || require('vscode');
+  if (!api.lm || typeof api.lm.selectChatModels !== 'function') {
     return {
       schema: 'llm-wiki-lm-discovery-v0',
       generationCalls: 0,
@@ -61,7 +60,7 @@ async function discoverCopilotModels() {
     };
   }
 
-  const models = await vscode.lm.selectChatModels({ vendor: 'copilot' });
+  const models = await api.lm.selectChatModels({ vendor: 'copilot' });
   return { apiAvailable: true, ...summarizeModels(models) };
 }
 
