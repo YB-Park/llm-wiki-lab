@@ -8,6 +8,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Iterable
 
+from .private_fs import append_private_text, ensure_private_directory, write_private_text
+
 SESSION_GAP = timedelta(minutes=30)
 QUERY_CLASSES = ("exact_provenance", "synthesis", "decision_history", "other")
 EVENTS_FILE = "workload-events.jsonl"
@@ -52,10 +54,10 @@ def _load_registry(root: Path) -> dict:
 
 
 def _save_registry(root: Path, obj: dict) -> None:
-    root.mkdir(parents=True, exist_ok=True)
-    _registry_path(root).write_text(
+    ensure_private_directory(root)
+    write_private_text(
+        _registry_path(root),
         json.dumps(obj, indent=2, sort_keys=True, ensure_ascii=False) + "\n",
-        encoding="utf-8",
     )
 
 
@@ -88,9 +90,8 @@ def resolve_topic(root: Path, value: str) -> dict:
 
 
 def _append(root: Path, event: dict) -> None:
-    root.mkdir(parents=True, exist_ok=True)
-    with _events_path(root).open("a", encoding="utf-8") as f:
-        f.write(json.dumps(event, sort_keys=True, ensure_ascii=False) + "\n")
+    ensure_private_directory(root)
+    append_private_text(_events_path(root), json.dumps(event, sort_keys=True, ensure_ascii=False) + "\n")
 
 
 def events(root: Path) -> list[dict]:
