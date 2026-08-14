@@ -1,5 +1,6 @@
 'use strict';
 
+const fs = require('node:fs');
 const path = require('node:path');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
@@ -30,6 +31,12 @@ function coreRoot(context, folder) {
   if (configured) {
     return path.isAbsolute(configured) ? configured : path.resolve(folder.uri.fsPath, configured);
   }
+
+  const bundled = path.resolve(context.extensionPath, 'python');
+  if (fs.existsSync(path.join(bundled, 'dogfood', 'llm_wiki', 'cli.py'))) {
+    return bundled;
+  }
+
   return path.resolve(context.extensionPath, '..', '..');
 }
 
