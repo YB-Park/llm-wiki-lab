@@ -44,8 +44,9 @@ def search(
     snippet_chars: int = 320,
     *,
     topic_id: str | None = None,
+    include_superseded: bool = False,
 ) -> list[Hit]:
-    docs = sources(root, topic_id=topic_id)
+    docs = sources(root, topic_id=topic_id, include_superseded=include_superseded)
     if not docs:
         return []
     qtokens = tokenize(query)
@@ -90,8 +91,16 @@ def render_context(
     max_chars_per_source: int = 1200,
     *,
     topic_id: str | None = None,
+    include_superseded: bool = False,
 ) -> str:
-    hits = search(root, query, top_k=top_k, snippet_chars=max_chars_per_source, topic_id=topic_id)
+    hits = search(
+        root,
+        query,
+        top_k=top_k,
+        snippet_chars=max_chars_per_source,
+        topic_id=topic_id,
+        include_superseded=include_superseded,
+    )
     parts = []
     for hit in hits:
         parts.append(

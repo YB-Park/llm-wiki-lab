@@ -6,9 +6,17 @@ import unittest
 from pathlib import Path
 
 from dogfood.llm_wiki.adapters import _final_message, answer_prompt
+from dogfood.llm_wiki.calibration import create_topic
 from dogfood.llm_wiki.cli import main as cli_main
 from dogfood.llm_wiki.retrieval import render_context, search, tokenize
-from dogfood.llm_wiki.store import history, ingest_file, sources
+from dogfood.llm_wiki.store import (
+    find_source,
+    history,
+    ingest_file,
+    source_status,
+    sources,
+    supersede_source,
+)
 
 
 class DogfoodV0Tests(unittest.TestCase):
@@ -42,6 +50,224 @@ class DogfoodV0Tests(unittest.TestCase):
             self.assertNotEqual(one.source_id, two.source_id)
             self.assertEqual(len(sources(root)), 2)
             self.assertEqual(len(list((root / "raw").iterdir())), 2)
+
+    def test_explicit_supersession_separates_current_and_history_views(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            root = base / "wiki"
+            topic = "topic-lineage"
+            note = base / "decision.md"
+
+            note.write_text("legacy cedar quota was 17 units", encoding="utf-8")
+            old, _ = ingest_file(root, note, topic_id=topic)
+            note.write_text("current cedar quota is 41 units", encoding="utf-8")
+            new, _ = ingest_file(root, note, topic_id=topic, supersedes_source_id=old.source_id)
+
+            current_ids = [src.source_id for src in sources(root, topic_id=topic)]
+            historical_ids = [src.source_id for src in sources(root, topic_id=topic, include_superseded=True)]
+            self.assertEqual(current_ids, [new.source_id])
+            self.assertEqual(set(historical_ids), {old.source_id, new.source_id})
+            self.assertEqual(len(list((root / "raw").iterdir())), 2)
+
+            self.assertEqual(search(root, "legacy", topic_id=topic), [])
+            historical_hits = search(root, "legacy", topic_id=topic, include_superseded=True)
+            self.assertEqual(historical_hits[0].source.source_id, old.source_id)
+
+            resolved_old = find_source(root, old.source_id, topic_id=topic)
+            self.assertEqual(resolved_old.source_id, old.source_id)
+            self.assertEqual(
+                source_status(root, old.source_id, topic_id=topic),
+                {"source_id": old.source_id, "status": "superseded", "superseded_by": new.source_id},
+            )
+            self.assertEqual(source_status(root, new.source_id, topic_id=topic)["status"], "current")
+
+    def test_plain_reingest_does_not_reactivate_superseded_content(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            root = base / "wiki"
+            topic = "topic-no-implicit-reactivation"
+            old_file = base / "old.md"
+            new_file = base / "new.md"
+            old_file.write_text("state alpha", encoding="utf-8")
+            new_file.write_text("state beta", encoding="utf-8")
+
+            old, _ = ingest_file(root, old_file, topic_id=topic)
+            new, _ = ingest_file(root, new_file, topic_id=topic, supersedes_source_id=old.source_id)
+            duplicate_old, duplicate = ingest_file(root, old_file, topic_id=topic)
+
+            self.assertTrue(duplicate)
+            self.assertEqual(duplicate_old.source_id, old.source_id)
+            self.assertEqual([src.source_id for src in sources(root, topic_id=topic)], [new.source_id])
+            self.assertEqual(source_status(root, old.source_id, topic_id=topic)["status"], "superseded")
+
+    def test_explicit_reversion_can_reactivate_identical_historical_bytes(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            root = base / "wiki"
+            topic = "topic-revert"
+            note = base / "state.md"
+
+            note.write_text("state alpha", encoding="utf-8")
+            a, _ = ingest_file(root, note, topic_id=topic)
+            note.write_text("state beta", encoding="utf-8")
+            b, _ = ingest_file(root, note, topic_id=topic, supersedes_source_id=a.source_id)
+
+            note.write_text("state alpha", encoding="utf-8")
+            reverted, duplicate = ingest_file(root, note, topic_id=topic, supersedes_source_id=b.source_id)
+
+            self.assertTrue(duplicate)
+            self.assertEqual(reverted.source_id, a.source_id)
+            self.assertEqual([src.source_id for src in sources(root, topic_id=topic)], [a.source_id])
+            self.assertEqual(source_status(root, a.source_id, topic_id=topic)["status"], "current")
+            self.assertEqual(
+                source_status(root, b.source_id, topic_id=topic),
+                {"source_id": b.source_id, "status": "superseded", "superseded_by": a.source_id},
+            )
+            self.assertEqual(len(list((root / "raw").iterdir())), 2)
+
+    def test_supersession_chain_keeps_only_latest_current(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            root = base / "wiki"
+            topic = "topic-chain"
+            note = base / "state.md"
+
+            note.write_text("state alpha", encoding="utf-8")
+            a, _ = ingest_file(root, note, topic_id=topic)
+            note.write_text("state beta", encoding="utf-8")
+            b, _ = ingest_file(root, note, topic_id=topic, supersedes_source_id=a.source_id)
+            note.write_text("state gamma", encoding="utf-8")
+            c, _ = ingest_file(root, note, topic_id=topic, supersedes_source_id=b.source_id)
+
+            self.assertEqual([src.source_id for src in sources(root, topic_id=topic)], [c.source_id])
+            self.assertEqual(
+                set(src.source_id for src in sources(root, topic_id=topic, include_superseded=True)),
+                {a.source_id, b.source_id, c.source_id},
+            )
+            self.assertEqual(len(list((root / "raw").iterdir())), 3)
+            self.assertEqual(sum(1 for row in history(root) if row.get("event") == "supersede"), 2)
+
+    def test_supersession_rejects_self_conflict_and_inactive_successor(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            root = base / "wiki"
+            topic = "topic-guards"
+            sources_by_name = {}
+            for name in ("a", "b", "c"):
+                p = base / f"{name}.md"
+                p.write_text(f"value {name}", encoding="utf-8")
+                sources_by_name[name], _ = ingest_file(root, p, topic_id=topic)
+
+            a = sources_by_name["a"]
+            b = sources_by_name["b"]
+            c = sources_by_name["c"]
+
+            with self.assertRaises(ValueError):
+                supersede_source(root, a.source_id, a.source_id, topic_id=topic)
+
+            self.assertTrue(supersede_source(root, a.source_id, b.source_id, topic_id=topic))
+            self.assertFalse(supersede_source(root, a.source_id, b.source_id, topic_id=topic))
+
+            with self.assertRaises(ValueError):
+                supersede_source(root, a.source_id, c.source_id, topic_id=topic)
+            with self.assertRaises(ValueError):
+                supersede_source(root, b.source_id, a.source_id, topic_id=topic)
+            with self.assertRaises(ValueError):
+                supersede_source(root, c.source_id, a.source_id, topic_id=topic)
+
+            relations = [row for row in history(root) if row.get("event") == "supersede"]
+            self.assertEqual(len(relations), 1)
+            self.assertEqual(relations[0]["predecessor_source_id"], a.source_id)
+            self.assertEqual(relations[0]["successor_source_id"], b.source_id)
+
+    def test_stale_old_relation_cannot_reactivate_superseded_successor(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            root = base / "wiki"
+            topic = "topic-stale-idempotence"
+            note = base / "state.md"
+
+            note.write_text("state alpha", encoding="utf-8")
+            a, _ = ingest_file(root, note, topic_id=topic)
+            note.write_text("state beta", encoding="utf-8")
+            b, _ = ingest_file(root, note, topic_id=topic, supersedes_source_id=a.source_id)
+            note.write_text("state gamma", encoding="utf-8")
+            c, _ = ingest_file(root, note, topic_id=topic, supersedes_source_id=b.source_id)
+
+            note.write_text("state beta", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                ingest_file(root, note, topic_id=topic, supersedes_source_id=a.source_id)
+
+            self.assertEqual([src.source_id for src in sources(root, topic_id=topic)], [c.source_id])
+            self.assertEqual(source_status(root, b.source_id, topic_id=topic)["status"], "superseded")
+
+    def test_topic_scoped_supersession_does_not_hide_other_topic_or_unscoped_view(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            root = base / "wiki"
+            old_file = base / "old.md"
+            new_file = base / "new.md"
+            old_file.write_text("legacy shared evidence", encoding="utf-8")
+            new_file.write_text("current shared evidence", encoding="utf-8")
+
+            old_a, _ = ingest_file(root, old_file, topic_id="topic-a")
+            new_a, _ = ingest_file(root, new_file, topic_id="topic-a")
+            old_b, _ = ingest_file(root, old_file, topic_id="topic-b")
+            new_b, _ = ingest_file(root, new_file, topic_id="topic-b")
+            self.assertEqual(old_a.source_id, old_b.source_id)
+            self.assertEqual(new_a.source_id, new_b.source_id)
+
+            supersede_source(root, old_a.source_id, new_a.source_id, topic_id="topic-a")
+
+            self.assertEqual([src.source_id for src in sources(root, topic_id="topic-a")], [new_a.source_id])
+            self.assertEqual(
+                set(src.source_id for src in sources(root, topic_id="topic-b")),
+                {old_b.source_id, new_b.source_id},
+            )
+            self.assertEqual(
+                set(src.source_id for src in sources(root)),
+                {old_a.source_id, new_a.source_id},
+            )
+
+    def test_authoritative_update_is_not_implicit_supersession(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            root = base / "wiki"
+            topic = create_topic(root, "Update semantics")
+            note = base / "state.md"
+            note.write_text("old state", encoding="utf-8")
+            cli_main(["--root", str(root), "ingest", str(note), "--topic", topic["topic_id"]])
+            note.write_text("new state", encoding="utf-8")
+            cli_main([
+                "--root", str(root), "ingest", str(note), "--topic", topic["topic_id"], "--authoritative-update"
+            ])
+
+            self.assertEqual(len(sources(root, topic_id=topic["topic_id"])), 2)
+            self.assertEqual(sum(1 for row in history(root) if row.get("event") == "supersede"), 0)
+
+    def test_cli_ingest_can_explicitly_supersede_with_independent_update_boundary(self):
+        with tempfile.TemporaryDirectory() as td:
+            base = Path(td)
+            root = base / "wiki"
+            topic = create_topic(root, "Explicit lineage")
+            note = base / "state.md"
+            note.write_text("first state", encoding="utf-8")
+            cli_main(["--root", str(root), "ingest", str(note), "--topic", topic["topic_id"]])
+            old = sources(root, topic_id=topic["topic_id"])[0]
+
+            note.write_text("second state", encoding="utf-8")
+            cli_main([
+                "--root", str(root),
+                "ingest", str(note),
+                "--topic", topic["topic_id"],
+                "--authoritative-update",
+                "--supersedes", old.source_id,
+            ])
+
+            current = sources(root, topic_id=topic["topic_id"])
+            self.assertEqual(len(current), 1)
+            self.assertNotEqual(current[0].source_id, old.source_id)
+            self.assertEqual(source_status(root, old.source_id, topic_id=topic["topic_id"])["status"], "superseded")
 
     def test_bm25_is_deterministic_and_relevant(self):
         with tempfile.TemporaryDirectory() as td:
