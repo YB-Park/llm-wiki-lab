@@ -231,23 +231,27 @@ class E003TemporalSemanticsTests(unittest.TestCase):
             base = Path(td)
             root = base / "wiki"
             shared = self._write(base, "shared.md", "shared alpha state")
-            a, _ = ingest_file(root, shared, topic_id="topic-a", origin_id="origin-a")
-            # Same source ID may be reused when exactly the same evidence identity
-            # is observed in a second topic.
+            a_a, _ = ingest_file(root, shared, topic_id="topic-a", origin_id="origin-a")
             a_b, _ = ingest_file(root, shared, topic_id="topic-b", origin_id="origin-a")
-            self.assertEqual(a.source_id, a_b.source_id)
+            # ADR-0004 separates byte identity from evidence-revision identity:
+            # topic contexts may have distinct source IDs while sharing object ID.
+            self.assertNotEqual(a_a.source_id, a_b.source_id)
+            self.assertEqual(a_a.object_id, a_b.object_id)
+
             successor_path = self._write(base, "new.md", "shared beta state")
             b_a, _ = ingest_file(root, successor_path, topic_id="topic-a", origin_id="origin-b")
             b_b, _ = ingest_file(root, successor_path, topic_id="topic-b", origin_id="origin-b")
-            self.assertEqual(b_a.source_id, b_b.source_id)
+            self.assertNotEqual(b_a.source_id, b_b.source_id)
+            self.assertEqual(b_a.object_id, b_b.object_id)
 
-            correct_source(root, a.source_id, b_a.source_id, topic_id="topic-a")
-            self.assertEqual(temporal_source_status(root, a.source_id, topic_id="topic-a")["status"], "superseded")
-            self.assertEqual(temporal_source_status(root, a.source_id, topic_id="topic-b")["status"], "current")
+            correct_source(root, a_a.source_id, b_a.source_id, topic_id="topic-a")
+            self.assertEqual(temporal_source_status(root, a_a.source_id, topic_id="topic-a")["status"], "superseded")
+            self.assertEqual(temporal_source_status(root, a_b.source_id, topic_id="topic-b")["status"], "current")
             self.assertEqual(
                 {src.source_id for src in sources(root, topic_id="topic-b")},
-                {a.source_id, b_b.source_id},
+                {a_b.source_id, b_b.source_id},
             )
+            self.assertEqual(temporal_projection(root, topic_id="topic-b").replacements, {})
 
     def test_recurrence_remains_possible_after_typed_relation_and_reuses_raw_object(self):
         with tempfile.TemporaryDirectory() as td:
