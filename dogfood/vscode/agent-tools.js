@@ -11,6 +11,7 @@ const execFileAsync = promisify(execFile);
 const SELECTED_TOPIC_KEY = 'llmWiki.selectedTopic';
 const SOURCE_LOCATORS_KEY = 'llmWiki.sourceLocators.v1';
 const AGENT_INBOX_LABEL = 'Agent Inbox';
+const AGENT_WIKI_MODEL = 'gpt-5.6-luna';
 const MAX_BUFFER = 16 * 1024 * 1024;
 const SEARCH_TOOL = 'llmWiki_searchMemory';
 const REMEMBER_TOOL = 'llmWiki_rememberSource';
@@ -23,6 +24,16 @@ function firstWorkspaceFolder() {
 
 function configuration() {
   return vscode.workspace.getConfiguration('llmWiki');
+}
+
+function maintenanceEnabled() {
+  return configuration().get('agentWikiMaintenanceEnabled', false) === true;
+}
+
+function maintenanceCreditGuard() {
+  const raw = Number(configuration().get('agentWikiMaintenanceMaxAiCredits', 30));
+  if (!Number.isFinite(raw)) return 30;
+  return Math.max(30, Math.min(100, Math.trunc(raw)));
 }
 
 function wikiRoot(folder) {
@@ -38,11 +49,11 @@ function coreRoot(context, folder) {
   return path.resolve(context.extensionPath, '..', '..');
 }
 
-async function runCli(context, folder, args) {
+async function runPythonModule(context, folder, moduleName, args) {
   const python = String(configuration().get('pythonExecutable', 'python3') || 'python3');
   const root = coreRoot(context, folder);
   const pythonPath = process.env.PYTHONPATH ? `${root}${path.delimiter}${process.env.PYTHONPATH}` : root;
-  const fullArgs = ['-m', 'dogfood.llm_wiki.cli', '--root', wikiRoot(folder), ...args];
+  const fullArgs = ['-m', moduleName, '--root', wikiRoot(folder), ...args];
   try {
     const result = await execFileAsync(python, fullArgs, {
       cwd: folder.uri.fsPath,
@@ -57,6 +68,14 @@ async function runCli(context, folder, args) {
     const detail = stderr || stdout || (error && error.message) || String(error);
     throw new Error(detail);
   }
+}
+
+function runCli(context, folder, args) {
+  return runPythonModule(context, folder, 'dogfood.llm_wiki.cli', args);
+}
+
+function runAgentWikiCli(context, folder, args) {
+  return runPythonModule(context, folder, 'dogfood.llm_wiki.agent_wiki_cli', args);
 }
 
 function parseJsonLines(stdout) {
@@ -116,18 +135,21 @@ function normalizeMaxResults(value) {
   return Math.max(1, Math.min(8, Math.trunc(parsed)));
 }
 
-function formatMemoryResult(rows) {
+function formatMemoryResult(rawRows, derivedRows = []) {
   const lines = [
-    'LLM_WIKI_MEMORY_RESULT v1',
+    'LLM_WIKI_MEMORY_RESULT v2',
     'authority=read_only',
-    'scope=current_evidence_across_topics',
+    'raw_scope=current_evidence_across_topics',
+    'derived_scope=current_source_agent_wiki_notes',
     'canonical_mutation=none',
-    `candidate_count=${rows.length}`,
+    `raw_candidate_count=${rawRows.length}`,
+    `derived_candidate_count=${derivedRows.length}`,
     '',
   ];
-  rows.forEach((row, index) => {
+  rawRows.forEach((row, index) => {
     const sourceIds = Array.isArray(row.source_ids) && row.source_ids.length ? row.source_ids : [row.source_id].filter(Boolean);
-    lines.push(`MEMORY M${index + 1}`);
+    lines.push(`RAW_MEMORY R${index + 1}`);
+    lines.push('epistemic_status=canonical_raw_evidence');
     lines.push(`topic=${row.topic_label || row.topic_id || ''}`);
     lines.push(`topic_id=${row.topic_id || ''}`);
     lines.push(`source_ids=${sourceIds.join(',')}`);
@@ -138,11 +160,23 @@ function formatMemoryResult(rows) {
     lines.push(String(row.snippet || '').trim());
     lines.push('');
   });
+  derivedRows.forEach((row, index) => {
+    lines.push(`DERIVED_MEMORY D${index + 1}`);
+    lines.push('epistemic_status=derived_noncanonical_agent_wiki');
+    lines.push(`topic_id=${row.topic_id || ''}`);
+    lines.push(`source_ids=${row.source_id || ''}`);
+    lines.push(`title=${row.title || ''}`);
+    lines.push(`score=${Number(row.score || 0).toFixed(6)}`);
+    lines.push('snippet:');
+    lines.push(String(row.snippet || '').trim());
+    lines.push('');
+  });
   lines.push('POLICY');
   lines.push('- Use only memories that materially help the current user request.');
-  lines.push('- source_ids are provenance handles; duplicate source IDs for identical bytes are not independent corroboration.');
+  lines.push('- RAW_MEMORY is the factual/provenance authority. Duplicate raw source IDs for identical bytes are not independent corroboration.');
+  lines.push('- DERIVED_MEMORY is model-generated, noncanonical synthesis/navigation aid. It is not raw evidence, independent corroboration, or Human Knowledge authorship.');
+  lines.push('- For load-bearing factual claims surfaced by DERIVED_MEMORY, prefer the underlying current RAW_MEMORY/source provenance and preserve uncertainty/conflict.');
   lines.push('- This tool result authorizes reading only. It never authorizes persistence, correction, change, dispute, supersession, or deletion.');
-  lines.push('- If the evidence is insufficient or conflicting, preserve that uncertainty in the answer.');
   return lines.join('\n');
 }
 
@@ -194,14 +228,18 @@ class WikiMemorySearchTool {
     if (!query) throw new Error('A non-empty memory query is required.');
     if (!isWikiInitialized(folder)) {
       return new vscode.LanguageModelToolResult([
-        new vscode.LanguageModelTextPart('LLM_WIKI_MEMORY_RESULT v1\nauthority=read_only\nstate=not_initialized\ncandidate_count=0\ncanonical_mutation=none'),
+        new vscode.LanguageModelTextPart('LLM_WIKI_MEMORY_RESULT v2\nauthority=read_only\nstate=not_initialized\nraw_candidate_count=0\nderived_candidate_count=0\ncanonical_mutation=none'),
       ]);
     }
     const maxResults = normalizeMaxResults(options.input && options.input.maxResults);
-    const rows = parseJsonLines(await runCli(this.context, folder, ['discover', query, '--top-k-per-topic', '3', '--json']))
-      .slice(0, maxResults);
+    const [rawStdout, derivedStdout] = await Promise.all([
+      runCli(this.context, folder, ['discover', query, '--top-k-per-topic', '3', '--json']),
+      runAgentWikiCli(this.context, folder, ['search', query, '--top-k', String(Math.min(3, maxResults)), '--json']),
+    ]);
+    const rawRows = parseJsonLines(rawStdout).slice(0, maxResults);
+    const derivedRows = parseJsonLines(derivedStdout);
     return new vscode.LanguageModelToolResult([
-      new vscode.LanguageModelTextPart(formatMemoryResult(rows)),
+      new vscode.LanguageModelTextPart(formatMemoryResult(rawRows, derivedRows)),
     ]);
   }
 }
@@ -214,11 +252,16 @@ class WikiRememberSourceTool {
   prepareInvocation(options) {
     const requested = String((options.input && options.input.filePath) || '').trim();
     const target = requested || 'the active editor file';
+    const maintenance = maintenanceEnabled();
+    const guard = maintenanceCreditGuard();
+    const maintenanceText = maintenance
+      ? ` Your standing workspace Agent Wiki maintenance grant is ON: after admission, the admitted source bytes may be sent to exact ${AGENT_WIKI_MODEL} to create/reuse a noncanonical derived source note (per-call guard ${guard} AI credits).`
+      : ' Agent Wiki model maintenance is OFF, so this invocation makes no model call.';
     return {
       invocationMessage: `Remembering ${target} in LLM Wiki`,
       confirmationMessages: {
         title: 'Remember source in LLM Wiki?',
-        message: `This admits ${target} as immutable raw evidence. LLM Wiki will reuse the selected topic when one exists, otherwise file it into a deterministic Agent Inbox. This does not authorize correction/change/dispute, Human Knowledge authorship, deletion, or a model call.`,
+        message: `This admits ${target} as immutable raw evidence. LLM Wiki reuses the selected topic when available, otherwise files it into deterministic Agent Inbox.${maintenanceText} This never authorizes correction/change/dispute, Human Knowledge inference, supersession, or deletion.`,
       },
     };
   }
@@ -240,20 +283,52 @@ class WikiRememberSourceTool {
     if (!receipt) throw new Error('LLM Wiki ingest completed without a parseable source receipt.');
     await rememberLocator(this.context, folder, receipt.sourceId, target.relativePath, receipt.sha256);
 
+    let maintenance = {
+      status: 'SKIPPED_NO_WORKSPACE_GRANT',
+      modelCalls: 0,
+      model: '',
+      policy: '',
+    };
+    if (maintenanceEnabled()) {
+      try {
+        const maintenanceStdout = await runAgentWikiCli(this.context, folder, [
+          'build', receipt.sourceId,
+          '--topic', topic.id,
+          '--model', AGENT_WIKI_MODEL,
+          '--max-ai-credits', String(maintenanceCreditGuard()),
+          '--allow-model-call',
+        ]);
+        const row = JSON.parse(maintenanceStdout.trim());
+        maintenance = {
+          status: String(row.status || 'UNKNOWN'),
+          modelCalls: Number(row.model_calls || 0),
+          model: String(row.model || AGENT_WIKI_MODEL),
+          policy: String(row.policy || ''),
+        };
+      } catch (error) {
+        maintenance = { status: 'FAILED_AFTER_RAW_ADMISSION', modelCalls: 'unknown', model: AGENT_WIKI_MODEL, policy: '' };
+        vscode.window.showWarningMessage(
+          `LLM Wiki remembered the raw source, but Agent Wiki maintenance failed. Raw admission was preserved. ${error && error.message ? error.message : error}`
+        );
+      }
+    }
+
     const text = [
-      'LLM_WIKI_REMEMBER_RESULT v1',
+      'LLM_WIKI_REMEMBER_RESULT v2',
       'authority=explicit_source_admission',
       `topic=${topic.label}`,
       `topic_id=${topic.id}`,
       `source_id=${receipt.sourceId}`,
       `sha256=${receipt.sha256}`,
       `workspace_file=${target.relativePath}`,
-      'model_calls=0',
+      `model_calls=${maintenance.modelCalls}`,
+      `derived_agent_wiki_maintenance=${maintenance.status}`,
+      `maintenance_model=${maintenance.model}`,
+      `maintenance_policy=${maintenance.policy}`,
       'human_authorship_persisted=no',
       'canonical_semantic_mutation=none',
-      'derived_agent_wiki_maintenance=not_run_in_slice_1',
       '',
-      'The source is admitted as raw/provenance evidence because the user explicitly asked to remember it. Filing into a selected topic or Agent Inbox is organizational only. Do not reinterpret this admission as correction, change, dispute, supersession, or a durable statement of the user’s belief.',
+      'The source is admitted as raw/provenance evidence because the user explicitly asked to remember it. Filing is organizational only. Any Agent Wiki note is derived/noncanonical/rebuildable and is not raw evidence or Human Knowledge. Do not reinterpret this admission or maintenance as correction, change, dispute, supersession, or a durable statement of the user’s belief.',
     ].join('\n');
     return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(text)]);
   }
@@ -269,9 +344,12 @@ function registerAgentTools(context) {
 
 module.exports = {
   AGENT_INBOX_LABEL,
+  AGENT_WIKI_MODEL,
   REMEMBER_TOOL,
   SEARCH_TOOL,
   formatMemoryResult,
+  maintenanceCreditGuard,
+  maintenanceEnabled,
   normalizeMaxResults,
   registerAgentTools,
 };
