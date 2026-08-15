@@ -6,70 +6,99 @@ This is the **current continuation state**, not project history. Replace or dele
 
 ## North Star
 
-Build a **proper VS Code-first LLM Wiki** where the user owns a verifiable knowledge system and AI participates in retrieval/reasoning rather than becoming the unquestioned owner of memory.
+Build a **proper VS Code-first LLM Wiki** where the user owns a verifiable knowledge system and the LLM genuinely uses and maintains persistent knowledge rather than appearing as a bolt-on `Ask` button.
 
-Research is a means, not the product. Preserve the trust substrate while moving the center of gravity to real use, human knowledge compounding, and product operations.
+Research is a means, not the product. Preserve the trust substrate, but do not let trust work accidentally remove the central LLM-maintained-Wiki product loop.
 
 ## Current product state
 
-- **Dogfood 0.1.7 is the current installable Alpha.** It packages the 0.1.6 global forgotten-topic discovery fix, fail-closed `C1/C2/...` citation transport, the #101 P0 hardening, and the first human-owned Knowledge Note product slice.
+- **Dogfood 0.1.8 is the current installable Alpha.** 0.1.8 hotfixed the real installed-user Python 3.9 startup blocker from #108/#109. CI now has an explicit Python 3.9 bundled-core compatibility job in addition to the normal dev + packaged VSIX Extension Host regression.
 - **Raw-first Alpha Core remains ready and red-team hardened.** Keep the convergence rule: do not restart open-ended core infrastructure without an observed product blocker, an E013/E015 boundary crossing, or a reproducible trust/data-loss failure.
-- **Copilot prompt privacy:** #102 moved the complete question/evidence prompt out of process argv. Copilot receives the transformed prompt over stdin; argv contains control/model flags only. Existing consent, exact-Luna pinning, no-tools mode, and citation validation remain.
-- **Single-writer semantic safety:** #104 / #103 added one private store-level OS advisory writer lock across public read/validate/write mutations: ingest, supersede, correction/change, dispute, and exact provenance bind. A deterministic race regression proves a competing correction cannot commit against stale pre-state. This is not a DB/WAL or cross-file transaction claim.
-- **Human Knowledge Note v0:** #106 / #105 adds `LLM Wiki: New Human Knowledge Note`. It opens an untitled human-owned Markdown draft with `Current statement`, `Why / reasoning`, `Supporting evidence`, and `Open questions`. Draft creation uses zero model calls, requires no topic, creates no telemetry, and does not mutate canonical Wiki state. Saving is ordinary user file ownership; explicit ingest is still separate.
-- **Knowledge Note is deliberately schema-light.** No `Type`, `Status`, ontology, graph, automatic promotion, or LLM-authored durable truth has been introduced. A richer knowledge object must earn its shape through repeated dogfood.
-- **Deterministic self-hosting:** frozen E010 v1 remains **278/278 files, 11/12 expected-source top-5, MRR 0.736, context 12/12**. Later growing-repo runs remained above the frozen Stage A gate; do not rewrite frozen historical scores as the corpus grows.
+- **Copilot prompt privacy:** #102 moved the complete question/evidence prompt out of process argv. Copilot receives the transformed prompt over stdin; argv contains control/model flags only.
+- **Single-writer semantic safety:** #104 / #103 added one private store-level OS advisory writer lock across public read/validate/write mutations.
+- **Human Knowledge Note v0:** #106 / #105 adds `LLM Wiki: New Human Knowledge Note`, a human-owned Markdown draft. It does not auto-ingest, call the model, or mutate canonical Wiki state.
+- **Deterministic self-hosting:** frozen E010 v1 remains **278/278 files, 11/12 expected-source top-5, MRR 0.736, context 12/12**. Later growing-repo runs remained above the frozen Stage A gate.
 - **Real-model self-use:** completed with exact `gpt-5.6-luna`, including returning/forgetful discovery, Ask, provenance, correction, dispute, manifest-loss reasoning, and citation failure/retest.
-- **External E017 dogfood:** completed on 1,515 Kubernetes Markdown docs, 557 CPython RST docs, and 10 NASA Artemis II pages. Kubernetes and NASA produced useful grounded W0 answers. CPython exposed a real context-construction limit.
-- **Retrieval:** W0 remains default; X1 remains non-default/shadow. E015-D1 is one full real-user X1 repair and E017-D2 is a second independent material partial repair. That is meaningful real evidence that context granularity matters, but still not enough for global X1 promotion.
-- **Known retrieval limit:** long non-Markdown objects can require multiple separated regions. In CPython RST, X1 recovered the current `forkserver` default/rationale but still omitted the distant exact `DeprecationWarning` paragraph. Do not build a broad parser/index stack from one mechanism unless it recurs.
-- **Persistent compiled Wiki:** disabled pending natural E013 revisit/update/query-mix evidence.
-- **Customer readiness:** **NOT READY YET.** The missing proof is repeated natural multi-session installed use where human notes/evidence are created, left alone, recovered later, corrected/changed/disputed, and reused.
+- **External E017 dogfood:** completed on Kubernetes Markdown, CPython RST, and NASA Artemis II pages. It found the uneven-topic global discovery bug and a real same-object context-granularity limit.
+- **Retrieval:** W0 remains default; X1 remains non-default/shadow. E015-D1 and E017-D2 are two meaningful real-user cases where X1 materially helped, but they are still not enough for global promotion.
+- **Customer readiness:** **NOT READY YET.** Installed use has now exposed that the current command-driven interaction is not yet representative of the intended LLM-maintained Wiki product.
 
-## #101 product-review response
+## Current top priority — #110 autonomy / UX design gate
 
-Treat Issue #101 as strong adversarial product input, **not a roadmap that silently overrides evidence**.
+A short real install produced a more important product question than another retrieval experiment:
 
-Accepted and shipped:
-- Copilot prompt argv -> stdin: #102.
-- store-level semantic single-writer protection: #103 / #104.
+> **What should the LLM do autonomously, what should require human intent/approval, and what must never be silently delegated?**
 
-Accepted but deliberately narrowed:
-- Evidence Wiki -> Human Knowledge compounding: #105 / #106 Knowledge Note v0, human-owned Markdown first, no ontology.
+Do **not** jump directly to MCP, VS Code Language Model Tools, Chat Participants, or a background worker. Those are transport choices. First settle the product authority model in `docs/12-autonomy-ux-philosophy.md` and Issue #110.
 
-Conditional on real recurrence/friction:
-- X2 format-aware / same-object multi-region retrieval: only when natural cases repeat the CPython mechanism.
-- Personal Store / Project Store federation: when cross-workspace knowledge reuse becomes real pain.
-- Inbox/staging capture: when repeated capture ceremony becomes observed friction; automate preparation, not truth.
-- Tree View / Health UI: when command-driven use reveals repeated navigation/health friction.
-- Scale optimization: measure first; start with staged low-cost 1k/10k gates before inventing a persistent index.
+Working thesis:
 
-Product/Beta engineering backlog, not current Alpha architecture research:
-- verified snapshot / restore preview;
-- durable migration framework;
-- Windows/macOS/WSL/Remote/Codespaces product matrix;
-- Python runtime distribution strategy;
-- Marketplace/release metadata and support/privacy docs.
+> **The user controls admission and epistemic commitment. The LLM controls compilation and maintenance inside the authority it has been granted.**
 
-Do not do now:
-- vector DB or knowledge graph merely because they are available;
-- global X1/X2 promotion from two favorable real cases;
-- broad document-format parser infrastructure from the single RST case;
-- verifier stack revival without an answer contradicting a limitation demonstrably present in the exact model prompt;
-- LLM-generated answers/notes automatically becoming canonical truth.
+Working ownership model:
+
+1. **Raw evidence / canonical history** — human-admitted trust substrate; immutable/provenance-first; LLM may read but not silently reinterpret correction/change/dispute semantics.
+2. **Human Knowledge Notes** — human-owned beliefs/decisions/reasoning; explicit user instruction can authorize writing, inferred human commitments should be proposals.
+3. **Agent Wiki** — missing LLM-owned persistent derived layer; provenance-linked, inspectable, reversible/rebuildable, explicitly noncanonical. This is where routine autonomous compilation/linking/maintenance should live.
+
+Important distinction:
+
+- **Persistent compiled provider as trusted/default retrieval substrate** remains gated by E013 realistic reuse/cost/update evidence.
+- **Persistent Agent Wiki as an LLM-owned derived product artifact** is a different thing and should not be blocked merely because the compiled-provider promotion gate has not passed.
+
+The E013 gate still protects a default/query architecture decision. It must not accidentally become a ban on dogfooding the central Karpathy-style persistent Wiki hypothesis.
+
+## Working UX principles
+
+- **Approve intent and authority, not routine mechanics.** A high-level `Remember this` or standing maintenance grant should not lead to approval dialogs for every search, link, summary, or derived-page edit.
+- **Human controls admission by default.** The user chooses which source/file/folder/class enters memory. Mechanical ingest and filing may happen automatically after that grant.
+- **Agent Wiki reads should be ambient.** During ordinary agent conversation, the agent should consult Wiki memory automatically within granted scope; the user should not have to remember topic names or manually run `Search -> Ask` every time.
+- **Automatic must remain legible.** Answers should show that LLM Wiki was used and provide citations/provenance; derived maintenance should have compact activity/diff/revert visibility.
+- **Derived maintenance can be autonomous.** Once maintenance/model/budget scope is granted, LLM-owned Agent Wiki pages should not require per-page human approval.
+- **Epistemic mutations remain special.** Correction/change/dispute/supersession and destructive provenance loss are not ordinary filing operations; agent may detect/propose, human arbitrates by default.
+- **Human authorship is protected.** Explicit `remember that we decided X because Y` can count as authorization; model-inferred beliefs should not silently become the user's durable statement.
+- **No surprise external exposure or spend.** Sending evidence to an external model and paid maintenance need explicit standing scope/budget.
+- **Query output must not recursively become evidence.** Reusable synthesis may update Agent Wiki from underlying admitted evidence, but a model answer is not promoted into raw/canonical evidence merely because it was generated.
+
+## Representative product loop to design before long-run P7
+
+Do not spend weeks evaluating the current command ceremony as if it were the finished product.
+
+The smallest representative loop should feel like:
+
+1. User says **“remember this source”** or explicitly admits a source.
+2. Raw/provenance capture happens under the existing trust rules.
+3. LLM autonomously updates a small **derived Agent Wiki** within granted budget/privacy scope.
+4. Later the user asks an **ordinary Copilot/agent question**, without `Ask Wiki` ceremony.
+5. The agent autonomously consults the Wiki and answers with inspectable provenance.
+6. If a high-consequence semantic conflict appears, the system surfaces a **pending human decision** rather than silently choosing correction/change/dispute.
+
+Only after this loop is coherent should we choose Language Model Tool vs MCP vs another transport and resume representative multi-session P7.
+
+0.1.8 remains useful for runtime/core smoke and can still produce product friction, but its command-driven `Create Topic -> Ingest -> Search -> Ask Luna` flow is **not sufficient evidence for the intended UX**.
+
+## Other active constraints
+
+- **Known retrieval limit:** long non-Markdown objects can require multiple separated regions. Do not build broad parser/index infrastructure until the mechanism recurs naturally.
+- **Persistent compiled provider:** still disabled as a trusted/default provider pending natural E013 evidence.
+- **E015:** let natural W0/X1 divergences arise; do not manufacture them.
+- **Paid Luna calls:** do not spend more on frozen E017 cases. Use paid calls only when a new real-user question can change a product decision.
+- **#101 review:** accepted P0s are shipped; X2/federation/inbox/Tree View/scale work remain conditional on real recurrence/friction.
 
 ## Immediate next work
 
-1. **Use installed 0.1.7 naturally over multiple sessions.** The product loop is now: capture evidence and/or write a Human Knowledge Note -> leave -> return later -> global recover -> Ask -> provenance -> update/correct/change/dispute -> feedback -> reuse.
-2. **Dogfood Knowledge Note v0, not its template.** The question is whether human reasoning/decisions become meaningfully easier to recover later. If nobody repeatedly uses it, do not promote it into a canonical knowledge schema.
-3. **Let E013/E015 arise naturally.** Do not manufacture visits, updates, query classes, or divergences to hit thresholds.
-4. **Quality-label natural W0/X1 divergence narrowly.** D1/D2 justify inspection, not automatic promotion.
-5. **Treat product interaction changes faster than epistemic architecture changes.** Navigation/onboarding/note UX can iterate quickly; canonical semantics/retrieval defaults/automatic mutation still require strong evidence.
-6. **Do not spend more Luna calls on frozen E017 cases.** Use paid calls only when a new real-user question can change a product decision.
-7. Re-evaluate customer readiness from repeated installed use, operational reliability, and recovered human knowledge—not from CI confidence alone.
+1. **Design first, no agent integration code yet:** refine and challenge Issue #110 / `docs/12-autonomy-ux-philosophy.md` until the authority model is coherent.
+2. Decide the **minimal end-to-end Agent Wiki slice**, including admission boundary, autonomous derived writes, model/privacy/budget grant, inspectability, and pending human decisions.
+3. Only then choose the **transport** (VS Code Language Model Tool, MCP, Chat Participant, direct extension flow, or combination) that best preserves the product contract.
+4. Implement the smallest representative loop and dogfood that loop over multiple sessions.
+5. Keep E013/E015 natural; do not bend user behavior to hit research thresholds.
+6. Re-evaluate customer readiness from the real agent-maintained Wiki experience, not from command-surface CI confidence.
 
 ## Fast pointers
 
+- **Autonomy / agent-first UX design gate:** Issue #110
+- **Working autonomy philosophy:** `docs/12-autonomy-ux-philosophy.md`
+- Python 3.9 installed-user hotfix: Issue #108 / PR #109
 - External product review: Issue #101
 - Human Knowledge Note v0: Issue #105 / PR #106
 - P0 prompt transport: PR #102
@@ -80,8 +109,6 @@ Do not do now:
 - E015 realistic shadow: Issue #38
 - E013 realistic workload gate: Issue #21
 - Optional VS Code-native exact-Luna adapter: Issue #24
-- Alpha readiness/convergence: `docs/09-alpha-core-readiness-gate.md`
 - Backup/restore Alpha procedure: `docs/11-local-backup-restore.md`
-- Dogfood docs: `dogfood/README.md`, `dogfood/vscode/README.md`
 
 If this file conflicts with merged code or an accepted ADR, **code/ADR wins and this file must be corrected immediately**.
