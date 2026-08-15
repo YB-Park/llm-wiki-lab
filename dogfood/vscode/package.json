@@ -81,7 +81,7 @@
       {
         "name": "llmWiki_rememberSource",
         "displayName": "Remember Source in LLM Wiki",
-        "modelDescription": "Admits a local workspace file as immutable raw evidence in the user's currently selected LLM Wiki topic. Invoke only when the user explicitly asks to remember, save, capture, or add that source to LLM Wiki. This tool does not infer human beliefs and cannot perform correction, change, dispute, supersession, deletion, or model-backed maintenance.",
+        "modelDescription": "Admits a local workspace file as immutable raw evidence only when the user explicitly asks to remember, save, capture, or add that source to LLM Wiki. Filing reuses the human-selected topic when available; otherwise LLM Wiki uses a deterministic Agent Inbox so the user does not need topic ceremony. This tool does not infer human beliefs and cannot perform correction, change, dispute, supersession, deletion, or model-backed maintenance.",
         "canBeReferencedInPrompt": true,
         "toolReferenceName": "rememberWikiSource",
         "icon": "$(save)",
