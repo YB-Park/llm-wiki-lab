@@ -8,7 +8,7 @@ from pathlib import Path
 from dogfood.llm_wiki import agent_wiki
 from dogfood.llm_wiki.adapters import Answer
 from dogfood.llm_wiki.calibration import create_topic
-from dogfood.llm_wiki.store import ensure_workspace, history, ingest_file
+from dogfood.llm_wiki.store import ensure_workspace, history, ingest_file, supersede_source
 
 
 class AgentWikiTests(unittest.TestCase):
@@ -95,6 +95,32 @@ class AgentWikiTests(unittest.TestCase):
         self.assertEqual(len(hits), 1)
         self.assertEqual(hits[0].source_id, source.source_id)
         self.assertIn("noncanonical", hits[0].snippet.casefold())
+
+    def test_superseded_source_note_is_not_returned_as_current_derived_memory(self):
+        temp, root, topic, source = self._wiki_with_source("Old cobalt timeout was 15 seconds.")
+        self.addCleanup(temp.cleanup)
+        original = agent_wiki.ask_copilot
+        agent_wiki.ask_copilot = lambda *_args, **kwargs: Answer(
+            text=json.dumps(self._payload(source.source_id)),
+            model=kwargs.get("model", "gpt-5.6-luna"),
+        )
+        self.addCleanup(setattr, agent_wiki, "ask_copilot", original)
+        agent_wiki.build_agent_source_note(
+            root,
+            source.source_id,
+            topic_id=topic["topic_id"],
+            allow_model_call=True,
+        )
+        self.assertEqual(len(agent_wiki.search_agent_notes(root, "cobalt timeout", top_k=3)), 1)
+
+        successor_path = Path(temp.name) / "successor.md"
+        successor_path.write_text("Current cobalt timeout is 20 seconds.", encoding="utf-8")
+        successor, _ = ingest_file(root, successor_path, topic_id=topic["topic_id"])
+        supersede_source(root, source.source_id, successor.source_id, topic_id=topic["topic_id"])
+
+        hits = agent_wiki.search_agent_notes(root, "cobalt timeout", top_k=3)
+        self.assertEqual(hits, [], "a derived note for a superseded source must not surface as current Agent Wiki memory")
+        self.assertIsNotNone(agent_wiki.read_agent_source_note(root, source.source_id), "derived history may remain inspectable even when no longer current")
 
     def test_maintenance_requires_explicit_model_authorization(self):
         temp, root, topic, source = self._wiki_with_source()
