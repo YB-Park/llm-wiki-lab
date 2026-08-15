@@ -197,10 +197,57 @@ async function discoverModels() {
   return report;
 }
 
+function humanKnowledgeNoteTemplate(title) {
+  return [
+    `# ${title}`,
+    '',
+    '> Human-owned draft. Saving this file does not ingest, promote, or mutate LLM Wiki state.',
+    '',
+    '## Current statement',
+    '',
+    'Write what you currently believe, learned, or decided.',
+    '',
+    '## Why / reasoning',
+    '',
+    'Capture the reasoning you want your future self to recover.',
+    '',
+    '## Supporting evidence',
+    '',
+    '- Add links, filenames, or LLM Wiki source IDs that you personally verified.',
+    '',
+    '## Open questions',
+    '',
+    '- What remains uncertain or worth revisiting?',
+    '',
+  ].join('\n');
+}
+
+async function newHumanKnowledgeNote(options = {}) {
+  const suppliedTitle = options && typeof options.title === 'string' ? options.title.trim() : '';
+  const title = suppliedTitle || await vscode.window.showInputBox({
+    title: 'LLM Wiki: New Human Knowledge Note',
+    prompt: 'A human-owned Markdown draft. Creating it does not mutate Wiki state.',
+    ignoreFocusOut: true,
+    validateInput: (value) => (value.trim() ? undefined : 'A note title is required.'),
+  });
+  if (!title || !title.trim()) return undefined;
+
+  const doc = await vscode.workspace.openTextDocument({
+    content: humanKnowledgeNoteTemplate(title.trim()),
+    language: 'markdown',
+  });
+  await vscode.window.showTextDocument(doc, { preview: false });
+  vscode.window.showInformationMessage(
+    'LLM Wiki opened a human-owned draft. Save it where you want; ingest remains a separate explicit action.'
+  );
+  return doc;
+}
+
 async function activate(context) {
   await base.activate(context);
   doctorOutput = vscode.window.createOutputChannel('LLM Wiki Doctor');
   context.subscriptions.push(doctorOutput);
+  context.subscriptions.push(vscode.commands.registerCommand('llmWiki.newKnowledgeNote', (options) => newHumanKnowledgeNote(options || {})));
   context.subscriptions.push(vscode.commands.registerCommand('llmWiki.doctor', () => doctor(context)));
   context.subscriptions.push(vscode.commands.registerCommand('llmWiki.experimentalDiscoverCopilotModels', () => discoverModels()));
 }
