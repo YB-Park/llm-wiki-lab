@@ -1,0 +1,74 @@
+name: E015 D1 real-user X1 divergent case
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E015-realistic-retrieval-shadow/divergent-case-d1-preregistration-v0.md'
+      - 'experiments/E015-realistic-retrieval-shadow/run_divergent_case_d1.py'
+      - 'remote-lab/e015-d1-request.json'
+      - '.github/workflows/e015-d1-real-user-x1.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E015-realistic-retrieval-shadow/divergent-case-d1-preregistration-v0.md'
+      - 'experiments/E015-realistic-retrieval-shadow/run_divergent_case_d1.py'
+      - 'remote-lab/e015-d1-request.json'
+      - '.github/workflows/e015-d1-real-user-x1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  copilot-requests: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile D1 runner
+        run: python -m py_compile experiments/E015-realistic-retrieval-shadow/run_divergent_case_d1.py
+      - name: Freeze D1 request
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          row = json.loads(Path('remote-lab/e015-d1-request.json').read_text())
+          assert row == {
+            'request_id': 'e015-d1-real-user-x1-20260815-1',
+            'model': 'gpt-5.6-luna',
+            'max_model_calls': 1,
+            'max_ai_credits': 30,
+          }
+          print('E015-D1-PRESCORE PASS modelCalls=0')
+          PY
+
+  run:
+    if: github.event_name != 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - run: npm install -g @github/copilot
+      - name: Run D1 X1-backed user question exactly once
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PYTHONPATH: .
+        run: python experiments/E015-realistic-retrieval-shadow/run_divergent_case_d1.py
+      - name: Upload D1 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e015-d1-${{ github.run_id }}
+          path: remote-lab/out/e015-d1/
+          if-no-files-found: error
+          retention-days: 14
