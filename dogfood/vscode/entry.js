@@ -127,6 +127,8 @@ async function doctor(context) {
   const localReady = coreReady && compiledDisabled && integrityReady;
   const askReady = localReady && copilotReady;
   const realisticDogfoodReady = localReady && gitSafeForEvidence;
+  const maintenanceOn = configuration().get('agentWikiMaintenanceEnabled', false) === true;
+  const maintenanceGuard = Number(configuration().get('agentWikiMaintenanceMaxAiCredits', 30));
 
   doctorOutput.clear();
   doctorOutput.appendLine('LLM Wiki Doctor');
@@ -144,6 +146,7 @@ async function doctor(context) {
   doctorOutput.appendLine(`Local raw/search/provenance: ${localReady ? 'READY' : 'UNAVAILABLE'}`);
   doctorOutput.appendLine(`Realistic evidence dogfood: ${realisticDogfoodReady ? 'READY' : 'BLOCKED'}`);
   doctorOutput.appendLine(`Ask Luna: ${askReady ? 'READY' : 'UNAVAILABLE'}`);
+  doctorOutput.appendLine(`Agent Wiki maintenance: ${maintenanceOn ? 'ENABLED' : 'DISABLED'} model=gpt-5.6-luna guard=${maintenanceGuard}`);
   doctorOutput.show(true);
 
   if (coreReady && !integrityReady) {
@@ -174,6 +177,8 @@ async function doctor(context) {
     localReady,
     realisticDogfoodReady,
     askReady,
+    maintenanceOn,
+    maintenanceGuard,
   };
 }
 
@@ -244,12 +249,49 @@ async function newHumanKnowledgeNote(options = {}) {
   return doc;
 }
 
+async function configureAgentWikiMaintenance() {
+  firstWorkspaceFolder();
+  const config = configuration();
+  const enabled = config.get('agentWikiMaintenanceEnabled', false) === true;
+  const action = await vscode.window.showQuickPick(
+    [
+      { label: 'Enable Agent Wiki maintenance for this workspace', value: true },
+      { label: 'Disable Agent Wiki maintenance for this workspace', value: false },
+    ],
+    {
+      title: 'LLM Wiki: Configure Agent Wiki Maintenance',
+      placeHolder: enabled ? 'Currently enabled' : 'Currently disabled',
+      ignoreFocusOut: true,
+    }
+  );
+  if (!action) return undefined;
+
+  if (action.value) {
+    const guard = Number(config.get('agentWikiMaintenanceMaxAiCredits', 30));
+    const choice = await vscode.window.showWarningMessage(
+      `Enable Agent Wiki maintenance for this workspace? After you explicitly remember a source, its admitted bytes may be sent to exact gpt-5.6-luna to create/reuse a noncanonical, rebuildable derived note. Per-call AI-credit guard: ${guard}. Raw evidence/Human Knowledge/canonical correction-change-dispute semantics remain outside this grant.`,
+      { modal: true },
+      'Enable Maintenance'
+    );
+    if (choice !== 'Enable Maintenance') return undefined;
+  }
+
+  await config.update('agentWikiMaintenanceEnabled', action.value, vscode.ConfigurationTarget.Workspace);
+  vscode.window.showInformationMessage(
+    action.value
+      ? 'LLM Wiki Agent Wiki maintenance enabled for this workspace. It runs only after explicit source admission.'
+      : 'LLM Wiki Agent Wiki maintenance disabled for this workspace. Remember still captures raw evidence without model maintenance.'
+  );
+  return action.value;
+}
+
 async function activate(context) {
   await base.activate(context);
   registerAgentTools(context);
   doctorOutput = vscode.window.createOutputChannel('LLM Wiki Doctor');
   context.subscriptions.push(doctorOutput);
   context.subscriptions.push(vscode.commands.registerCommand('llmWiki.newKnowledgeNote', (options) => newHumanKnowledgeNote(options || {})));
+  context.subscriptions.push(vscode.commands.registerCommand('llmWiki.configureAgentWikiMaintenance', () => configureAgentWikiMaintenance()));
   context.subscriptions.push(vscode.commands.registerCommand('llmWiki.doctor', () => doctor(context)));
   context.subscriptions.push(vscode.commands.registerCommand('llmWiki.experimentalDiscoverCopilotModels', () => discoverModels()));
 }
