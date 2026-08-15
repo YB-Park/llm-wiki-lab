@@ -77,15 +77,22 @@ class RealUserAnswerGroundingTests(unittest.TestCase):
 
     @mock.patch("dogfood.llm_wiki.adapters.shutil.which", return_value="/usr/bin/copilot")
     @mock.patch("dogfood.llm_wiki.adapters.subprocess.run")
-    def test_ask_copilot_sends_handles_and_returns_canonical_ids(self, run, _which):
+    def test_ask_copilot_sends_handles_over_stdin_and_returns_canonical_ids(self, run, _which):
         run.return_value = mock.Mock(returncode=0, stdout=stdout("Claim [C1]."), stderr="")
-        answer = ask_copilot(answer_prompt("What is supported?", context()))
+        question = "What is supported?"
+        answer = ask_copilot(answer_prompt(question, context()))
         self.assertEqual(answer.text, f"Claim [{GOOD}].")
-        sent = run.call_args.args[0]
-        model_prompt = sent[sent.index("--prompt") + 1]
-        self.assertIn("citation_handles: C1, C2", model_prompt)
-        self.assertIn(f"> Historical example mentions {FAKE}", model_prompt)
-        self.assertNotIn(f"source_ids: {GOOD}", model_prompt)
+
+        sent_argv = run.call_args.args[0]
+        sent_stdin = run.call_args.kwargs["input"]
+        self.assertNotIn("--prompt", sent_argv)
+        self.assertFalse(any(question in str(arg) for arg in sent_argv))
+        self.assertFalse(any("Historical example" in str(arg) for arg in sent_argv))
+        self.assertFalse(any(GOOD in str(arg) for arg in sent_argv))
+        self.assertIn("citation_handles: C1, C2", sent_stdin)
+        self.assertIn(f"> Historical example mentions {FAKE}", sent_stdin)
+        self.assertNotIn(f"source_ids: {GOOD}", sent_stdin)
+        self.assertTrue(run.call_args.kwargs["text"])
 
     @mock.patch("dogfood.llm_wiki.adapters.shutil.which", return_value="/usr/bin/copilot")
     @mock.patch("dogfood.llm_wiki.adapters.subprocess.run")
