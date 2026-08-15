@@ -19,7 +19,7 @@ async function stage(label, promise, timeoutMs = 10000) {
   }
 }
 
-suite('LLM Wiki 0.1.4 Product Surface', () => {
+suite('LLM Wiki 0.1.5 Product Surface', () => {
   test('registers the E010 P1-P4 customer command surface', async () => {
     const extension = vscode.extensions.getExtension('llm-wiki-lab.llm-wiki-dogfood');
     assert.ok(extension, 'LLM Wiki extension was not discovered');

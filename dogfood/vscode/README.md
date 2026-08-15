@@ -58,7 +58,7 @@ This is an Alpha operating procedure, not live transactional backup, cloud sync,
 
 Canonical evidence deliberately stores an immutable content object and opaque evidence revision identity; it does **not** use a workspace path as evidence identity or corroboration.
 
-Version 0.1.4 adds a separate VS Code-local navigation hint after active-file ingest:
+Version 0.1.5 retains the separate VS Code-local navigation hint introduced in 0.1.4:
 
 - only a workspace-relative path plus evidence SHA is kept in extension workspace state;
 - search display can use that relative path to disambiguate repeated basenames such as `README.md`;
@@ -75,7 +75,7 @@ The Alpha core distinguishes three meanings that should not be inferred automati
 - **Change Source Over Time** — both states may have been correct at different times; the user supplies a timezone-aware effective instant.
 - **Unresolved Dispute** — two current evidence revisions disagree and neither is silently chosen as the winner.
 
-Version 0.1.4 exposes these accepted ADR-0005 semantics directly from the Command Palette. The user explicitly chooses the participating current evidence revisions. Raw evidence and history remain preserved.
+Version 0.1.5 retains the accepted ADR-0005 commands introduced in 0.1.4. The user explicitly chooses the participating current evidence revisions. Raw evidence and history remain preserved.
 
 `Ingest Active File as Authoritative Update` is a separate E013 workload boundary; it is not automatically a correction/change/supersession relation.
 
@@ -114,6 +114,8 @@ Doctor does not print local paths, usernames, hostnames, environment variables, 
 
 The model is pinned to `gpt-5.6-luna`. The answer is displayed in the Output channel and is never written to canonical wiki state. Programmatic command arguments used by local-only runtime tests do **not** provide a model-consent bypass.
 
+Version 0.1.5 hardens the answer/provenance transport from real-user dogfood findings. The model no longer has to emit canonical `src-...` identifiers directly. The transient model context exposes short per-call citation handles such as `C1`/`C2`; the core validates those handles and deterministically maps them back to canonical source IDs before the answer is returned. Unknown handles, raw source IDs emitted by the model, or missing citations fail closed instead of masquerading as provenance. These handles are never stored as evidence identity or trust signals.
+
 The validated production-dogfood Ask adapter remains the Copilot CLI path until the VS Code-native Language Model API spike proves that the exact Luna model can be selected without silent substitution.
 
 ## Experimental VS Code-native model discovery
@@ -143,7 +145,7 @@ CI builds `llm-wiki-dogfood.vsix`. The VSIX bundles the shared Python core **at 
 
 The installed extension therefore does not require a checkout of this repository for normal raw/retrieval/provenance use. It still requires Python to be available on the machine.
 
-CI runs the Extension Host interaction suite against both the repository development extension and the unpacked packaged VSIX. Separate deterministic tests cover the product helpers, typed temporal CLI operations, current-only cross-topic discovery, Git safety, and exact-Luna metadata gate. CI does not attempt authenticated Copilot generation because that requires the user's real VS Code/Copilot session.
+CI runs the Extension Host interaction suite against both the repository development extension and the unpacked packaged VSIX. Separate deterministic tests cover the product helpers, typed temporal CLI operations, current-only cross-topic discovery, Git safety, and exact-Luna metadata gate. Authenticated generation is evaluated separately in the guarded remote-lab/dogfood workflows so packaging CI does not consume Copilot quota.
 
 To install a downloaded VSIX in VS Code, use the Extensions view's `Install from VSIX...` action.
 
@@ -165,13 +167,16 @@ For realistic dogfood, use the extension in a workspace that contains only evide
 
 ## Current limitations
 
-This is an **Alpha/dogfood** product, not a polished Marketplace/customer-ready release. It currently uses Command Palette, Quick Pick, Output, status bar, and virtual documents rather than a dedicated sidebar or chat participant.
+This is an **Alpha/dogfood** product, not a polished Marketplace/customer-ready release.
 
-The E010 automated P1–P5 blockers are addressed in 0.1.4, but customer readiness still requires two kinds of evidence CI cannot manufacture:
+Real assistant-as-user dogfood has now exercised the full repository with exact Luna, cross-topic recovery, model answers, provenance follow-through, correction, dispute, and fail-closed answer handling. That testing found and fixed the citation transport issue shipped in 0.1.5. It also found one realistic default-W0 case where the correct E015 document was retrieved but the decisive neighboring paragraphs were omitted from the answer context; the existing X1 candidate repaired that frozen case in one bounded real-Luna retest. One case is not sufficient to promote X1 globally.
 
-1. the exact-Luna gate in the user's real VS Code/Copilot Pro session;
-2. repeated multi-session customer-like use (capture → leave → recall later → provenance → correction/change/dispute/feedback).
+Customer readiness therefore still requires:
 
-The VS Code-native LM API adapter remains experimental until exact Luna selection and a bounded synthetic smoke pass. The existing CLI adapter remains authoritative for Ask Luna in the meantime.
+1. repeated natural multi-session use in the user's own VS Code workflow, so E013/E015 evidence arises without manufactured activity;
+2. additional natural W0/X1 divergent cases, if they occur, to determine whether the first real X1 repair is representative before any default/routing change;
+3. the separate VS Code-native LM API exact-Luna question only if replacing the validated CLI adapter is still valuable.
+
+The UI remains intentionally command-driven for Alpha. Additional visual UX should follow repeated real-use friction rather than speculative polish.
 
 Compiled knowledge remains disabled. E013 realistic workload evidence decides whether a compiled provider is ever allowed to advance to shadow/opt-in testing.
