@@ -43,9 +43,9 @@ assert(commands.has('llmWiki.doctor'), 'missing Doctor command');
 assert(entry.includes("'llmWiki.doctor'"), 'Doctor command not wired in entry.js');
 assert(commands.has('llmWiki.experimentalDiscoverCopilotModels'), 'missing experimental LM discovery command');
 assert(entry.includes("'llmWiki.experimentalDiscoverCopilotModels'"), 'LM discovery command not wired in entry.js');
-assert.equal(commands.size, 16, '0.1.7 command surface count changed unexpectedly');
+assert.equal(commands.size, 16, '0.1.8 command surface count changed unexpectedly');
 
-assert.equal(manifest.version, '0.1.7');
+assert.equal(manifest.version, '0.1.8');
 assert.equal(manifest.main, './entry.js');
 assert.equal(manifest.private, true);
 assert.equal(manifest.capabilities.untrustedWorkspaces.supported, false, 'extension must not run in untrusted workspaces');
@@ -118,4 +118,4 @@ assert(!gitSafety.includes('process.env'), 'Git safety classifier must not inspe
 assert(bundler.includes("path.join(dogfoodRoot, 'llm_wiki')"), 'bundler must copy from the shared core source of truth');
 assert(bundler.includes("path.join(bundleRoot, 'dogfood')"), 'bundler must preserve the dogfood Python package layout');
 
-console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.7 commands=16 knowledgeNote=human-owned-no-auto-mutation productP1P4=sealed citationBoundary=core-bundled lmDiscoveryGeneration=0 exactLunaOnly=yes doctorModelCalls=0 gitSafety=read-only consentBypass=no bundledCore=generated compiledProvider=not-implemented');
+console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.8 commands=16 python39Compat=required knowledgeNote=human-owned-no-auto-mutation productP1P4=sealed citationBoundary=core-bundled lmDiscoveryGeneration=0 exactLunaOnly=yes doctorModelCalls=0 gitSafety=read-only consentBypass=no bundledCore=generated compiledProvider=not-implemented');

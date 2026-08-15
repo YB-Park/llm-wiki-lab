@@ -22,6 +22,35 @@ permissions:
   contents: read
 
 jobs:
+  python39-compat:
+    name: Python 3.9 bundled-core compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.9'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Compile and test Python 3.9 core
+        run: |
+          python3 --version
+          python3 -m compileall -q dogfood
+          python3 -m unittest discover -s dogfood/tests -v
+          tmp="$(mktemp -d)"
+          python3 -m dogfood.llm_wiki.cli --root "$tmp/wiki" init
+          grep -q 'compiled_provider.*disabled' "$tmp/wiki/config.json"
+      - name: Bundle shared core and execute it with Python 3.9
+        working-directory: dogfood/vscode
+        run: |
+          node scripts/bundle-core.js
+          tmp="$(mktemp -d)"
+          PYTHONPATH="$PWD/python" python3 -m dogfood.llm_wiki.cli --root "$tmp/wiki" init
+          PYTHONPATH="$PWD/python" python3 -c 'from dogfood.llm_wiki.writer_lock import store_writer_lock, serialized_writer; print("PY39-BUNDLED-CORE PASS")'
+          test -f python/dogfood/llm_wiki/writer_lock.py
+
   test:
     runs-on: ubuntu-latest
     steps:
@@ -74,6 +103,7 @@ jobs:
           npm run package:vsix
           test -s dist/llm-wiki-dogfood.vsix
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/cli.py'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/writer_lock.py'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/git-safety.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/lm-discovery.js'
       - name: Unpack and execute packaged VSIX in Extension Host
@@ -83,6 +113,7 @@ jobs:
           mkdir -p dist/unpacked
           unzip -q dist/llm-wiki-dogfood.vsix -d dist/unpacked
           test -f dist/unpacked/extension/python/dogfood/llm_wiki/cli.py
+          test -f dist/unpacked/extension/python/dogfood/llm_wiki/writer_lock.py
           test -f dist/unpacked/extension/git-safety.js
           test -f dist/unpacked/extension/lm-discovery.js
           xvfb-run -a npm run test:packaged
