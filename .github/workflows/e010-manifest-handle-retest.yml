@@ -1,0 +1,70 @@
+name: E010 manifest citation-handle retest
+
+on:
+  pull_request:
+    paths:
+      - 'remote-lab/e010_manifest_handle_retest.py'
+      - 'remote-lab/e010-manifest-handle-request.json'
+      - '.github/workflows/e010-manifest-handle-retest.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'remote-lab/e010_manifest_handle_retest.py'
+      - 'remote-lab/e010-manifest-handle-request.json'
+      - '.github/workflows/e010-manifest-handle-retest.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  copilot-requests: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: python -m py_compile remote-lab/e010_manifest_handle_retest.py
+      - name: Freeze one-call request
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          row = json.loads(Path('remote-lab/e010-manifest-handle-request.json').read_text())
+          assert row == {
+            'request_id': 'manifest-handle-retest-20260815-1',
+            'model': 'gpt-5.6-luna',
+            'max_model_calls': 1,
+            'max_ai_credits': 30,
+          }
+          print('E010-MANIFEST-PRESCORE PASS modelCalls=0')
+          PY
+
+  run:
+    if: github.event_name != 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - run: npm install -g @github/copilot
+      - name: Run frozen manifest-loss user question once
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python remote-lab/e010_manifest_handle_retest.py
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e010-manifest-handle-${{ github.run_id }}
+          path: remote-lab/out/e010-manifest-handle/
+          if-no-files-found: error
+          retention-days: 14
