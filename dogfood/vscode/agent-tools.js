@@ -10,6 +10,7 @@ const { parseIngestReceipt, workspaceRelativePath } = require('./product-helpers
 const execFileAsync = promisify(execFile);
 const SELECTED_TOPIC_KEY = 'llmWiki.selectedTopic';
 const SOURCE_LOCATORS_KEY = 'llmWiki.sourceLocators.v1';
+const AGENT_INBOX_LABEL = 'Agent Inbox';
 const MAX_BUFFER = 16 * 1024 * 1024;
 const SEARCH_TOOL = 'llmWiki_searchMemory';
 const REMEMBER_TOOL = 'llmWiki_rememberSource';
@@ -84,18 +85,24 @@ function sourceLocatorKey(folder) {
   return `${SOURCE_LOCATORS_KEY}:${folder.uri.toString()}`;
 }
 
-async function resolveSelectedTopic(context, folder) {
-  const all = parseTopics(await runCli(context, folder, ['topic', 'list']));
-  if (!all.length) {
-    throw new Error('No LLM Wiki topic exists. Create a topic before asking the agent to remember a source.');
-  }
+async function resolveAdmissionTopic(context, folder) {
+  let all = parseTopics(await runCli(context, folder, ['topic', 'list']));
   const saved = context.workspaceState.get(selectedTopicKey(folder));
   if (saved && all.some((row) => row.id === saved.id)) return all.find((row) => row.id === saved.id);
   if (all.length === 1) {
     await context.workspaceState.update(selectedTopicKey(folder), all[0]);
     return all[0];
   }
-  throw new Error('Multiple LLM Wiki topics exist and none is selected. Run “LLM Wiki: Select Topic” once, then retry the remember request.');
+
+  let inbox = all.find((row) => row.label === AGENT_INBOX_LABEL);
+  if (!inbox) {
+    await runCli(context, folder, ['topic', 'add', AGENT_INBOX_LABEL]);
+    all = parseTopics(await runCli(context, folder, ['topic', 'list']));
+    inbox = [...all].reverse().find((row) => row.label === AGENT_INBOX_LABEL);
+  }
+  if (!inbox) throw new Error('LLM Wiki could not resolve the deterministic Agent Inbox filing topic.');
+  await context.workspaceState.update(selectedTopicKey(folder), inbox);
+  return inbox;
 }
 
 function isWikiInitialized(folder) {
@@ -211,7 +218,7 @@ class WikiRememberSourceTool {
       invocationMessage: `Remembering ${target} in LLM Wiki`,
       confirmationMessages: {
         title: 'Remember source in LLM Wiki?',
-        message: `This admits **${target}** as immutable raw evidence in the currently selected LLM Wiki topic. It does not authorize correction/change/dispute, Human Knowledge authorship, deletion, or a model call.`,
+        message: `This admits ${target} as immutable raw evidence. LLM Wiki will reuse the selected topic when one exists, otherwise file it into a deterministic Agent Inbox. This does not authorize correction/change/dispute, Human Knowledge authorship, deletion, or a model call.`,
       },
     };
   }
@@ -227,7 +234,7 @@ class WikiRememberSourceTool {
     }
 
     await runCli(this.context, folder, ['init']);
-    const topic = await resolveSelectedTopic(this.context, folder);
+    const topic = await resolveAdmissionTopic(this.context, folder);
     const stdout = await runCli(this.context, folder, ['ingest', target.filePath, '--topic', topic.id]);
     const receipt = parseIngestReceipt(stdout);
     if (!receipt) throw new Error('LLM Wiki ingest completed without a parseable source receipt.');
@@ -246,7 +253,7 @@ class WikiRememberSourceTool {
       'canonical_semantic_mutation=none',
       'derived_agent_wiki_maintenance=not_run_in_slice_1',
       '',
-      'The source is admitted as raw/provenance evidence because the user explicitly asked to remember it. Do not reinterpret this admission as correction, change, dispute, supersession, or a durable statement of the user’s belief.',
+      'The source is admitted as raw/provenance evidence because the user explicitly asked to remember it. Filing into a selected topic or Agent Inbox is organizational only. Do not reinterpret this admission as correction, change, dispute, supersession, or a durable statement of the user’s belief.',
     ].join('\n');
     return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(text)]);
   }
@@ -261,6 +268,7 @@ function registerAgentTools(context) {
 }
 
 module.exports = {
+  AGENT_INBOX_LABEL,
   REMEMBER_TOOL,
   SEARCH_TOOL,
   formatMemoryResult,
