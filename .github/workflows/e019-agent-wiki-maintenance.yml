@@ -1,0 +1,86 @@
+name: E019 Agent Wiki Maintenance
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E019-agent-wiki-maintenance/preregistration-v0.md'
+      - 'experiments/E019-agent-wiki-maintenance/run_e019.py'
+      - 'remote-lab/e019-agent-wiki-maintenance-request.json'
+      - '.github/workflows/e019-agent-wiki-maintenance.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'remote-lab/e019-agent-wiki-maintenance-request.json'
+      - '.github/workflows/e019-agent-wiki-maintenance.yml'
+
+jobs:
+  preflight:
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile E019 runner
+        run: python -m py_compile experiments/E019-agent-wiki-maintenance/run_e019.py
+      - name: Freeze-check source, prompt boundary, and call budget with zero model calls
+        env:
+          PYTHONPATH: .
+        run: python experiments/E019-agent-wiki-maintenance/run_e019.py
+      - name: Assert zero-call preflight
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          row = json.loads(Path('remote-lab/out/e019-agent-wiki-maintenance/result.json').read_text())
+          assert row['status'] == 'PREFLIGHT_PASS', row
+          assert row['model_calls'] == 0, row
+          assert row['preflight']['model_calls_if_executed'] == 1, row
+          assert row['request']['model'] == 'gpt-5.6-luna', row
+          assert row['request']['max_ai_credits'] == 30, row
+          assert all(row['preflight']['source_anchor_checks'].values()), row
+          print('E019-PREFLIGHT PASS model_calls=0 scored_calls=1 exact_model=gpt-5.6-luna')
+          PY
+      - name: Upload E019 preflight
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e019-agent-wiki-preflight-${{ github.run_id }}
+          path: remote-lab/out/e019-agent-wiki-maintenance/
+          if-no-files-found: error
+          retention-days: 14
+
+  real-maintenance:
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      copilot-requests: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - run: npm install -g @github/copilot
+      - name: Run frozen Agent Wiki maintenance call exactly once
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PYTHONPATH: .
+          E019_EXECUTE_MODEL: '1'
+        run: python experiments/E019-agent-wiki-maintenance/run_e019.py
+      - name: Upload E019 scored evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e019-agent-wiki-maintenance-${{ github.run_id }}
+          path: remote-lab/out/e019-agent-wiki-maintenance/
+          if-no-files-found: error
+          retention-days: 14
