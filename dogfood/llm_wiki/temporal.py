@@ -6,6 +6,7 @@ from pathlib import Path
 
 from .jsonl_log import append_jsonl_object
 from .store import ensure_workspace, history
+from .writer_lock import serialized_writer
 
 RELATION_GENERIC = "generic"
 RELATION_CORRECTION = "correction"
@@ -188,6 +189,7 @@ def _prepare_replacement(
     return recorded_at, relation_kind, normalized_effective
 
 
+@serialized_writer
 def replace_source(
     root: Path,
     predecessor_source_id: str,
@@ -279,6 +281,7 @@ def change_source(
     )
 
 
+@serialized_writer
 def dispute_sources(
     root: Path,
     left_source_id: str,
