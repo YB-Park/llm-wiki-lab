@@ -2,11 +2,11 @@
   "name": "llm-wiki-dogfood",
   "displayName": "LLM Wiki Dogfood",
   "description": "VS Code-first dogfood shell over the architecture-neutral LLM Wiki core.",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "private": true,
   "publisher": "llm-wiki-lab",
   "repository": { "type": "git", "url": "https://github.com/YB-Park/llm-wiki-lab.git", "directory": "dogfood/vscode" },
-  "engines": { "vscode": "^1.90.0" },
+  "engines": { "vscode": "^1.95.0" },
   "categories": ["Other"],
   "main": "./entry.js",
   "capabilities": {
@@ -31,7 +31,9 @@
     "onCommand:llmWiki.markCorrection",
     "onCommand:llmWiki.markChange",
     "onCommand:llmWiki.markDispute",
-    "onCommand:llmWiki.feedback"
+    "onCommand:llmWiki.feedback",
+    "onLanguageModelTool:llmWiki_searchMemory",
+    "onLanguageModelTool:llmWiki_rememberSource"
   ],
   "contributes": {
     "commands": [
@@ -52,6 +54,49 @@
       { "command": "llmWiki.doctor", "title": "LLM Wiki: Doctor (Zero Model Calls)" },
       { "command": "llmWiki.experimentalDiscoverCopilotModels", "title": "LLM Wiki: Experimental — Discover Copilot Models (Zero Generation)" }
     ],
+    "languageModelTools": [
+      {
+        "name": "llmWiki_searchMemory",
+        "displayName": "Search LLM Wiki Memory",
+        "modelDescription": "Searches the current local LLM Wiki across topics and returns a small read-only set of provenance-preserving evidence candidates. Use this when prior project knowledge, decisions, evidence, rationale, or history may help answer the user's current request. The tool never writes Wiki state.",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "wikiMemory",
+        "icon": "$(book)",
+        "tags": ["llm-wiki", "search", "memory"],
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "A concise semantic search query for the user's current information need. Do not include secrets that are not already part of the user's request."
+            },
+            "maxResults": {
+              "type": "number",
+              "description": "Maximum number of evidence candidates to return, from 1 to 8. Prefer 3-5 unless the task clearly needs more."
+            }
+          },
+          "required": ["query"]
+        }
+      },
+      {
+        "name": "llmWiki_rememberSource",
+        "displayName": "Remember Source in LLM Wiki",
+        "modelDescription": "Admits a local workspace file as immutable raw evidence only when the user explicitly asks to remember, save, capture, or add that source to LLM Wiki. Filing reuses the human-selected topic when available; otherwise LLM Wiki uses a deterministic Agent Inbox so the user does not need topic ceremony. This tool does not infer human beliefs and cannot perform correction, change, dispute, supersession, deletion, or model-backed maintenance.",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "rememberWikiSource",
+        "icon": "$(save)",
+        "tags": ["llm-wiki", "memory", "write"],
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "filePath": {
+              "type": "string",
+              "description": "Absolute path of the local workspace file the user explicitly asked to remember. Omit only when the active editor file is unambiguous."
+            }
+          }
+        }
+      }
+    ],
     "configuration": {
       "title": "LLM Wiki Dogfood",
       "properties": {
@@ -63,7 +108,7 @@
     }
   },
   "scripts": {
-    "check": "node --check entry.js && node --check extension.js && node --check product-helpers.js && node test/product-helpers.js && node test/static.js",
+    "check": "node --check entry.js && node --check extension.js && node --check agent-tools.js && node --check product-helpers.js && node test/product-helpers.js && node test/static.js",
     "test:integration": "vscode-test --label runtime",
     "test:packaged": "cd test/packaged-runner && ../../node_modules/.bin/vscode-test",
     "bundle:core": "node scripts/bundle-core.js",
