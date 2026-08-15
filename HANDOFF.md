@@ -151,7 +151,7 @@ Do **not** prematurely choose MCP, Language Model Tools, hooks, Chat Participant
 
 ## Immediate next work
 
-1. Finish #113 documentation/triage and keep #110 open as the product-design gate.
+1. **Keep #110 open as the product-design gate; #113 / E018 is complete and closed.**
 2. Turn the post-E018 authority contract into the **smallest Agent-Wiki product slice**, not another broad architecture program.
 3. Choose transport only against concrete requirements: ambient bounded reads, typed intents, deterministic capability enforcement, explicit admission, derived maintenance, and inspectable activity.
 4. Treat **Luna maintenance-agent** suitability as a separate narrow question from the rejected mandatory per-turn policy judge.
@@ -164,7 +164,7 @@ Do **not** prematurely choose MCP, Language Model Tools, hooks, Chat Participant
 - **Autonomy philosophy:** `docs/12-autonomy-ux-philosophy.md`
 - **Steward hypothesis after test:** `docs/13-luna-wiki-steward-hypothesis.md`
 - **E018 Phase-1 result:** `experiments/E018-steward-policy/results-phase1-v0.md`
-- E018 experiment: Issue #113
+- E018 experiment: Issue #113 (completed)
 - Python 3.9 installed-user hotfix: Issue #108 / PR #109
 - External product review: Issue #101
 - Human Knowledge Note v0: Issue #105 / PR #106
