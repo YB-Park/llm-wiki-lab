@@ -1,0 +1,84 @@
+name: E019 Product Agent Wiki Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E019-agent-wiki-maintenance/run_product_path_smoke.py'
+      - 'remote-lab/e019-product-path-smoke-request.json'
+      - '.github/workflows/e019-product-path-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'remote-lab/e019-product-path-smoke-request.json'
+      - '.github/workflows/e019-product-path-smoke.yml'
+
+jobs:
+  preflight:
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile product smoke runner
+        run: python -m py_compile experiments/E019-agent-wiki-maintenance/run_product_path_smoke.py
+      - name: Verify real product module and one-call budget with zero model calls
+        env:
+          PYTHONPATH: .
+        run: python experiments/E019-agent-wiki-maintenance/run_product_path_smoke.py
+      - name: Assert zero-call preflight
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          row = json.loads(Path('remote-lab/out/e019-product-path-smoke/result.json').read_text())
+          assert row['status'] == 'PREFLIGHT_PASS', row
+          assert row['model_calls'] == 0, row
+          assert row['preflight']['model_calls_if_executed'] == 1, row
+          assert row['preflight']['product_module_exists'], row
+          assert row['preflight']['product_cli_exists'], row
+          print('E019-PRODUCT-PREFLIGHT PASS model_calls=0 scored_calls=1')
+          PY
+      - name: Upload product-smoke preflight
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e019-product-smoke-preflight-${{ github.run_id }}
+          path: remote-lab/out/e019-product-path-smoke/
+          if-no-files-found: error
+          retention-days: 14
+
+  production-smoke:
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      copilot-requests: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - run: npm install -g @github/copilot
+      - name: Run real product Agent Wiki build exactly once
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PYTHONPATH: .
+          E019_PRODUCT_SMOKE_EXECUTE_MODEL: '1'
+        run: python experiments/E019-agent-wiki-maintenance/run_product_path_smoke.py
+      - name: Upload production-path smoke evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e019-product-smoke-${{ github.run_id }}
+          path: remote-lab/out/e019-product-path-smoke/
+          if-no-files-found: error
+          retention-days: 14
