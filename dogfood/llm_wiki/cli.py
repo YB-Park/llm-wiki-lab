@@ -16,6 +16,7 @@ from .calibration import (
     sanitized_json,
     topics,
 )
+from .discovery import discover_current
 from .integrity import audit_alpha_integrity
 from .retrieval import render_context, search
 from .shadow import compare_retrieval_modes
@@ -184,28 +185,28 @@ def parser() -> argparse.ArgumentParser:
 
     source_status_cmd = source_sub.add_parser("status")
     source_status_cmd.add_argument("source_id")
-    source_status_cmd.add_argument("--topic", required=True, help="topic label or opaque topic ID")
+    source_status_cmd.add_argument("--topic", required=True, help="scope source and record a local provenance-follow event")
 
     source_supersede = source_sub.add_parser("supersede")
     source_supersede.add_argument("predecessor_source_id")
     source_supersede.add_argument("successor_source_id")
-    source_supersede.add_argument("--topic", required=True, help="topic label or opaque topic ID")
+    source_supersede.add_argument("--topic", required=True, help="local topic label or opaque topic ID")
 
     source_correct = source_sub.add_parser("correct")
     source_correct.add_argument("predecessor_source_id")
     source_correct.add_argument("successor_source_id")
-    source_correct.add_argument("--topic", required=True, help="topic label or opaque topic ID")
+    source_correct.add_argument("--topic", required=True, help="local topic label or opaque topic ID")
 
     source_change = source_sub.add_parser("change")
     source_change.add_argument("predecessor_source_id")
     source_change.add_argument("successor_source_id")
-    source_change.add_argument("--topic", required=True, help="topic label or opaque topic ID")
+    source_change.add_argument("--topic", required=True, help="local topic label or opaque topic ID")
     source_change.add_argument("--effective-at", required=True, help="timezone-aware ISO-8601 effective instant")
 
     source_dispute = source_sub.add_parser("dispute")
     source_dispute.add_argument("left_source_id")
     source_dispute.add_argument("right_source_id")
-    source_dispute.add_argument("--topic", required=True, help="topic label or opaque topic ID")
+    source_dispute.add_argument("--topic", required=True, help="local topic label or opaque topic ID")
 
     feedback = sub.add_parser("feedback")
     feedback.add_argument("outcome", choices=("helpful", "not_helpful"))
@@ -329,40 +330,36 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "discover":
         ensure_workspace(root)
-        any_hits = False
-        for topic_row in topics(root):
-            topic_id = topic_row["topic_id"]
-            hits = search(
-                root,
-                args.query,
-                top_k=max(0, args.top_k_per_topic),
-                topic_id=topic_id,
-                include_superseded=False,
-            )
-            for hit in hits:
-                any_hits = True
-                row = {
-                    "topic_id": topic_id,
-                    "topic_label": topic_row["label"],
-                    "source_id": hit.source.source_id,
-                    "source_ids": list(hit.source_ids),
-                    "object_id": hit.object_id,
-                    "sha256": hit.source.sha256,
-                    "name": hit.source.name,
-                    "names": sorted({src.name for src in hit.evidence_sources}),
-                    "score": hit.score,
-                    "snippet": hit.snippet,
-                }
-                if args.json:
-                    print(json.dumps(row, ensure_ascii=False, sort_keys=True))
-                else:
-                    print(
-                        f"topic={json.dumps(topic_row['label'], ensure_ascii=False)} "
-                        f"source={hit.source.source_id} score={hit.score:.6f} name={hit.source.name}"
-                    )
-                    print(f"   {' '.join(hit.snippet.split())}")
-        if not any_hits and not args.json:
+        rows = discover_current(
+            root,
+            args.query,
+            top_k_per_topic=max(0, args.top_k_per_topic),
+            snippet_chars=320,
+        )
+        if not rows and not args.json:
             print("DISCOVER no_current_topic_hits")
+            return 0
+        for hit in rows:
+            row = {
+                "topic_id": hit.topic_id,
+                "topic_label": hit.topic_label,
+                "source_id": hit.source.source_id,
+                "source_ids": list(hit.source_ids),
+                "object_id": hit.object_id,
+                "sha256": hit.source.sha256,
+                "name": hit.source.name,
+                "names": sorted({src.name for src in hit.evidence_sources}),
+                "score": hit.score,
+                "snippet": hit.snippet,
+            }
+            if args.json:
+                print(json.dumps(row, ensure_ascii=False, sort_keys=True))
+            else:
+                print(
+                    f"topic={json.dumps(hit.topic_label, ensure_ascii=False)} "
+                    f"source={hit.source.source_id} score={hit.score:.6f} name={hit.source.name}"
+                )
+                print(f"   {' '.join(hit.snippet.split())}")
         return 0
 
     if args.command == "context":
