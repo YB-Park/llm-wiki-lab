@@ -6,6 +6,7 @@ const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const vscode = require('vscode');
 const base = require('./extension');
+const { registerAgentTools } = require('./agent-tools');
 const { classifyGitSafety } = require('./git-safety');
 const { discoverCopilotModels } = require('./lm-discovery');
 
@@ -245,6 +246,7 @@ async function newHumanKnowledgeNote(options = {}) {
 
 async function activate(context) {
   await base.activate(context);
+  registerAgentTools(context);
   doctorOutput = vscode.window.createOutputChannel('LLM Wiki Doctor');
   context.subscriptions.push(doctorOutput);
   context.subscriptions.push(vscode.commands.registerCommand('llmWiki.newKnowledgeNote', (options) => newHumanKnowledgeNote(options || {})));
