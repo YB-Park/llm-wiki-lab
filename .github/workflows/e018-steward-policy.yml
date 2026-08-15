@@ -1,0 +1,86 @@
+name: E018 Steward Policy
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E018-steward-policy/preregistration-v0.md'
+      - 'experiments/E018-steward-policy/preregistration-addendum-v0.md'
+      - 'experiments/E018-steward-policy/cases-v0.json'
+      - 'experiments/E018-steward-policy/run_e018.py'
+      - 'remote-lab/e018-steward-policy-request.json'
+      - '.github/workflows/e018-steward-policy.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'remote-lab/e018-steward-policy-request.json'
+      - '.github/workflows/e018-steward-policy.yml'
+
+jobs:
+  preflight:
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile runner
+        run: python -m py_compile experiments/E018-steward-policy/run_e018.py
+      - name: Freeze-check cases, request, and call budget with zero model calls
+        env:
+          PYTHONPATH: .
+        run: python experiments/E018-steward-policy/run_e018.py
+      - name: Assert zero-call preflight result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          row = json.loads(Path('remote-lab/out/e018-steward-policy/result.json').read_text())
+          assert row['status'] == 'PREFLIGHT_PASS', row
+          assert row['model_calls'] == 0, row
+          assert row['preflight']['phase1_calls_if_executed'] == 24, row
+          assert row['preflight']['phase2_reserved_followup_calls'] == 4, row
+          print('E018-PREFLIGHT PASS model_calls=0 phase1=24 phase2_reserved=4')
+          PY
+      - name: Upload E018 preflight
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e018-steward-preflight-${{ github.run_id }}
+          path: remote-lab/out/e018-steward-policy/
+          if-no-files-found: error
+          retention-days: 14
+
+  phase1:
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      copilot-requests: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - run: npm install -g @github/copilot
+      - name: Run frozen 24-call E018 policy matrix
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PYTHONPATH: .
+          E018_EXECUTE_MODEL: '1'
+        run: python experiments/E018-steward-policy/run_e018.py
+      - name: Upload E018 phase-1 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e018-steward-phase1-${{ github.run_id }}
+          path: remote-lab/out/e018-steward-policy/
+          if-no-files-found: error
+          retention-days: 14
