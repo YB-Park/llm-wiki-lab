@@ -2,7 +2,7 @@
   "name": "llm-wiki-dogfood",
   "displayName": "LLM Wiki Dogfood",
   "description": "VS Code-first dogfood shell over the architecture-neutral LLM Wiki core.",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "private": true,
   "publisher": "llm-wiki-lab",
   "repository": { "type": "git", "url": "https://github.com/YB-Park/llm-wiki-lab.git", "directory": "dogfood/vscode" },
@@ -12,7 +12,7 @@
   "capabilities": {
     "untrustedWorkspaces": {
       "supported": false,
-      "description": "LLM Wiki invokes a local Python core and can send retrieved evidence to Copilot only after explicit consent. Trust the workspace before using it."
+      "description": "LLM Wiki invokes a local Python core and can send explicitly admitted evidence to Copilot only under explicit user grants. Trust the workspace before using it."
     }
   },
   "activationEvents": [
@@ -20,6 +20,7 @@
     "onCommand:llmWiki.createTopic",
     "onCommand:llmWiki.selectTopic",
     "onCommand:llmWiki.newKnowledgeNote",
+    "onCommand:llmWiki.configureAgentWikiMaintenance",
     "onCommand:llmWiki.ingestActiveFile",
     "onCommand:llmWiki.ingestAuthoritativeUpdate",
     "onCommand:llmWiki.search",
@@ -41,6 +42,7 @@
       { "command": "llmWiki.createTopic", "title": "LLM Wiki: Create Topic" },
       { "command": "llmWiki.selectTopic", "title": "LLM Wiki: Select Topic" },
       { "command": "llmWiki.newKnowledgeNote", "title": "LLM Wiki: New Human Knowledge Note" },
+      { "command": "llmWiki.configureAgentWikiMaintenance", "title": "LLM Wiki: Configure Agent Wiki Maintenance" },
       { "command": "llmWiki.ingestActiveFile", "title": "LLM Wiki: Ingest Active File" },
       { "command": "llmWiki.ingestAuthoritativeUpdate", "title": "LLM Wiki: Ingest Active File as Authoritative Update" },
       { "command": "llmWiki.search", "title": "LLM Wiki: Search Topic" },
@@ -58,7 +60,7 @@
       {
         "name": "llmWiki_searchMemory",
         "displayName": "Search LLM Wiki Memory",
-        "modelDescription": "Searches the current local LLM Wiki across topics and returns a small read-only set of provenance-preserving evidence candidates. Use this when prior project knowledge, decisions, evidence, rationale, or history may help answer the user's current request. The tool never writes Wiki state.",
+        "modelDescription": "Searches current local raw LLM Wiki evidence across topics and any current-source noncanonical Agent Wiki notes. Use this when prior project knowledge, decisions, evidence, rationale, or history may help. Raw evidence remains the factual/provenance authority; derived Agent Wiki notes are synthesis/navigation aids only. The tool never writes Wiki state.",
         "canBeReferencedInPrompt": true,
         "toolReferenceName": "wikiMemory",
         "icon": "$(book)",
@@ -72,7 +74,7 @@
             },
             "maxResults": {
               "type": "number",
-              "description": "Maximum number of evidence candidates to return, from 1 to 8. Prefer 3-5 unless the task clearly needs more."
+              "description": "Maximum number of raw evidence candidates to return, from 1 to 8. Up to three separately labeled derived Agent Wiki notes may also be returned."
             }
           },
           "required": ["query"]
@@ -81,7 +83,7 @@
       {
         "name": "llmWiki_rememberSource",
         "displayName": "Remember Source in LLM Wiki",
-        "modelDescription": "Admits a local workspace file as immutable raw evidence only when the user explicitly asks to remember, save, capture, or add that source to LLM Wiki. Filing reuses the human-selected topic when available; otherwise LLM Wiki uses a deterministic Agent Inbox so the user does not need topic ceremony. This tool does not infer human beliefs and cannot perform correction, change, dispute, supersession, deletion, or model-backed maintenance.",
+        "modelDescription": "Admits a local workspace file as immutable raw evidence only when the user explicitly asks to remember, save, capture, or add that source to LLM Wiki. Filing reuses a selected topic or deterministic Agent Inbox. If the user has separately enabled the workspace Agent Wiki maintenance grant, the admitted bytes may then be sent to exact gpt-5.6-luna to create or reuse a provenance-linked noncanonical derived source note. This tool never infers Human Knowledge and cannot perform correction, change, dispute, supersession, or deletion.",
         "canBeReferencedInPrompt": true,
         "toolReferenceName": "rememberWikiSource",
         "icon": "$(save)",
@@ -103,7 +105,9 @@
         "llmWiki.pythonExecutable": { "type": "string", "default": "python3", "description": "Python executable used to invoke the architecture-neutral dogfood core." },
         "llmWiki.corePath": { "type": "string", "default": "", "description": "Optional repository/core root. Empty uses the bundled core in an installed VSIX and the repository core during extension development." },
         "llmWiki.workspaceDirectory": { "type": "string", "default": ".wiki-lab", "description": "Per-workspace local wiki directory. Keep this outside Git commits." },
-        "llmWiki.maxAiCredits": { "type": "number", "default": 30, "minimum": 1, "description": "Per-call Copilot AI-credit guard for explicit Ask Luna commands." }
+        "llmWiki.maxAiCredits": { "type": "number", "default": 30, "minimum": 30, "maximum": 100, "description": "Per-call Copilot AI-credit guard for explicit Ask Luna commands. Current Copilot CLI requires a minimum guard of 30." },
+        "llmWiki.agentWikiMaintenanceEnabled": { "type": "boolean", "default": false, "scope": "resource", "description": "Standing workspace grant. When enabled, after you explicitly remember a source its admitted bytes may be sent to exact gpt-5.6-luna to create/reuse a provenance-linked noncanonical Agent Wiki note. Off by default." },
+        "llmWiki.agentWikiMaintenanceMaxAiCredits": { "type": "number", "default": 30, "minimum": 30, "maximum": 100, "scope": "resource", "description": "Per-source Agent Wiki maintenance AI-credit guard. This is a ceiling, not expected spend; current Copilot CLI requires a minimum guard of 30." }
       }
     }
   },
