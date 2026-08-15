@@ -13,12 +13,12 @@ Research and experiments are means, not the product. The product is VS Code-firs
 ## Current state
 
 - **Raw-first Alpha Core:** ready and post-Alpha red-team hardened. Keep the convergence rule active: no open-ended core infrastructure without an observed product blocker, an E013/E015 boundary crossing, or a reproducible trust/data-loss failure.
-- **Packaged Dogfood 0.1.5:** last installable artifact. It includes fail-closed model citations and per-context `C1/C2/...` citation handles. **Main is now ahead of that package** because E017 fixed global forgotten-topic discovery under uneven topic sizes. Before starting the next real installed P7 cycle, cut and packaged-test a small 0.1.6 containing the merged discovery fix rather than knowingly using stale 0.1.5 behavior.
+- **Dogfood 0.1.6:** current installable Alpha after packaged-VSIX validation. It contains the 0.1.5 fail-closed citation / per-context `C1/C2/...` provenance transport plus the E017 global forgotten-topic discovery correctness repair for uneven topic sizes. Use this rather than the stale 0.1.5 artifact for the next installed P7 cycle.
 - **Deterministic self-hosting:** frozen E010 v1 remains **278/278 files, 11/12 expected-source top-5, MRR 0.736, context 12/12**. A later 303-file run remained above the gate at **11/12 top-5, MRR 0.674, context 12/12**. Do not rewrite frozen historical scores as the repo grows.
 - **Real-model self-use:** completed with exact `gpt-5.6-luna`; project-repo Ask/provenance/correction/dispute/citation handling were exercised and real failures were preserved. See `experiments/E010-vscode-dogfood/results-v2-real-user-luna.md`.
 - **Citation reliability:** real Luna fabricated/non-context `src-...` citations in early dogfood. #83/#87 now fail closed and expose only per-call citation handles, then deterministically materialize canonical provenance. The frozen post-fix manifest-loss retest PASSed.
 - **E017 external real-user dogfood:** completed on three unfamiliar public corpora: **1,515 Kubernetes Markdown docs, 557 CPython reStructuredText docs, and 10 official NASA Artemis II pages**. First pass used exactly three Luna calls; only the CPython failure earned one narrow X1 follow-up. See `experiments/E017-external-real-user-corpora/results-v0.md`.
-- **Global forgotten-topic discovery:** E017 zero-model preflight found a correctness bug before any paid call. Topic-local BM25 scores from very uneven corpora were being sorted globally; the NASA question selected CPython. Main now scores the union of topic-current immutable objects in one shared BM25 space for `discover`, while topic W0 search/Ask remains unchanged. Regression coverage preserves current-only/no-E013-visit semantics.
+- **Global forgotten-topic discovery:** E017 zero-model preflight found a correctness bug before any paid call. Topic-local BM25 scores from very uneven corpora were being sorted globally; the NASA question selected CPython. Main now scores the union of topic-current immutable objects in one shared BM25 space for `discover`, while topic W0 search/Ask remains unchanged. Regression coverage preserves current-only/no-E013-visit semantics. This fix is bundled in 0.1.6.
 - **Kubernetes external case:** manual **PASS**. W0 produced a useful non-overclaiming answer: `maxUnavailable: 0` blocks PDB-respecting voluntary eviction but does not guarantee zero downtime or prevent involuntary node failure. All citations resolved.
 - **NASA external case:** **PASS**. W0 reconstructed launch -> Earth-orbit departure -> splashdown with supported dates/times, refused unsupported precision, and correctly treated the May 7 editor update as a mileage correction rather than a new mission event. All citations resolved.
 - **CPython external case:** W0 was safely insufficient rather than hallucinating, but failed the user's actual question because its best paragraph from the correct `multiprocessing.rst` object was irrelevant to start methods. X1 materially repaired the same frozen question in one additional Luna call: POSIX=`forkserver`, Python 3.14, and the multithread-safety rationale were recovered with resolvable citations and clean integrity.
@@ -31,14 +31,13 @@ Research and experiments are means, not the product. The product is VS Code-firs
 
 ## Immediate next work
 
-1. **Package 0.1.6 from current main before installed P7.** Keep it a small release: merged global discovery correctness fix plus already-current 0.1.5 boundaries; packaged VSIX Extension Host must pass before use.
-2. **Start/continue real P7 use in VS Code.** Capture -> leave -> recover later -> Ask -> provenance -> update/correct/change/dispute -> feedback -> reuse again.
-3. **Let E013/E015 arise naturally.** Do not manufacture visits, updates, topics, queries, or feedback to hit thresholds.
-4. **Quality-label natural W0/X1 divergence narrowly.** E015-D1 and E017-D2 justify looking. Do not promote X1 from disagreement frequency alone.
-5. **Watch for recurrence of the CPython mechanism.** If multi-aspect questions over long non-Markdown objects repeatedly lose a second relevant region, preregister the smallest candidate that can recover multiple relevant units or format structure without exploding context/index cost.
-6. **Do not spend more Luna calls on the frozen E017 cases.** The 3+1 calls already separated useful success, W0 context failure, X1 repair, and the remaining X1 boundary.
-7. **Use UI friction as product evidence.** Resume UI work from repeated real installed-use friction/preferences, not speculative polish.
-8. Re-evaluate customer readiness after repeated natural use and enough realistic retrieval evidence, not from CI confidence alone.
+1. **Start/continue installed P7 with 0.1.6.** Capture -> leave -> recover later -> Ask -> provenance -> update/correct/change/dispute -> feedback -> reuse again.
+2. **Let E013/E015 arise naturally.** Do not manufacture visits, updates, topics, queries, or feedback to hit thresholds.
+3. **Quality-label natural W0/X1 divergence narrowly.** E015-D1 and E017-D2 justify looking. Do not promote X1 from disagreement frequency alone.
+4. **Watch for recurrence of the CPython mechanism.** If multi-aspect questions over long non-Markdown objects repeatedly lose a second relevant region, preregister the smallest candidate that can recover multiple relevant units or format structure without exploding context/index cost.
+5. **Do not spend more Luna calls on the frozen E017 cases.** The 3+1 calls already separated useful success, W0 context failure, X1 repair, and the remaining X1 boundary.
+6. **Use UI friction as product evidence.** Resume UI work from repeated real installed-use friction/preferences, not speculative polish.
+7. Re-evaluate customer readiness after repeated natural use and enough realistic retrieval evidence, not from CI confidence alone.
 
 ## Do not accidentally do
 
