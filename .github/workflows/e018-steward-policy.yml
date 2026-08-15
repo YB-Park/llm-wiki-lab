@@ -5,8 +5,10 @@ on:
     paths:
       - 'experiments/E018-steward-policy/preregistration-v0.md'
       - 'experiments/E018-steward-policy/preregistration-addendum-v0.md'
+      - 'experiments/E018-steward-policy/preregistration-addendum-v1.md'
       - 'experiments/E018-steward-policy/cases-v0.json'
       - 'experiments/E018-steward-policy/run_e018.py'
+      - 'experiments/E018-steward-policy/run_e018_phase1_v1.py'
       - 'remote-lab/e018-steward-policy-request.json'
       - '.github/workflows/e018-steward-policy.yml'
   push:
@@ -28,11 +30,13 @@ jobs:
         with:
           python-version: '3.12'
       - name: Compile runner
-        run: python -m py_compile experiments/E018-steward-policy/run_e018.py
+        run: |
+          python -m py_compile experiments/E018-steward-policy/run_e018.py
+          python -m py_compile experiments/E018-steward-policy/run_e018_phase1_v1.py
       - name: Freeze-check cases, request, and call budget with zero model calls
         env:
           PYTHONPATH: .
-        run: python experiments/E018-steward-policy/run_e018.py
+        run: python experiments/E018-steward-policy/run_e018_phase1_v1.py
       - name: Assert zero-call preflight result
         run: |
           python - <<'PY'
@@ -43,7 +47,8 @@ jobs:
           assert row['model_calls'] == 0, row
           assert row['preflight']['phase1_calls_if_executed'] == 24, row
           assert row['preflight']['phase2_reserved_followup_calls'] == 4, row
-          print('E018-PREFLIGHT PASS model_calls=0 phase1=24 phase2_reserved=4')
+          assert row['request']['max_ai_credits_policy'] == 30, row
+          print('E018-PREFLIGHT PASS model_calls=0 phase1=24 phase2_reserved=4 cli_guard=30')
           PY
       - name: Upload E018 preflight
         if: always()
@@ -75,7 +80,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           PYTHONPATH: .
           E018_EXECUTE_MODEL: '1'
-        run: python experiments/E018-steward-policy/run_e018.py
+        run: python experiments/E018-steward-policy/run_e018_phase1_v1.py
       - name: Upload E018 phase-1 evidence
         if: always()
         uses: actions/upload-artifact@v4

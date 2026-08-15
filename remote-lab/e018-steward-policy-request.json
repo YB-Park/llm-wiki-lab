@@ -5,6 +5,6 @@
   "steward_model": "gpt-5.6-luna",
   "baseline_models": ["gpt-5.4", "claude-sonnet-4.6"],
   "phase2_case_ids": ["C1-relevant-read", "C6-conflict-pending-decision"],
-  "max_ai_credits_policy": 3,
-  "max_ai_credits_answer": 6
+  "max_ai_credits_policy": 30,
+  "max_ai_credits_answer": 30
 }
