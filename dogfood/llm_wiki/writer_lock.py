@@ -6,7 +6,7 @@ import os
 import time
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Callable, Iterator, ParamSpec, TypeVar
+from typing import Callable, Iterator, TypeVar
 
 from .private_fs import PRIVATE_FILE_MODE, ensure_private_directory, restrict_private_file
 
@@ -14,7 +14,6 @@ LOCK_FILE = ".writer.lock"
 DEFAULT_TIMEOUT_SECONDS = 5.0
 POLL_SECONDS = 0.025
 
-P = ParamSpec("P")
 R = TypeVar("R")
 
 
@@ -110,11 +109,15 @@ def store_writer_lock(root: Path, *, timeout_seconds: float = DEFAULT_TIMEOUT_SE
             os.close(fd)
 
 
-def serialized_writer(fn: Callable[P, R]) -> Callable[P, R]:
-    """Decorate a public mutation whose first argument is the Wiki root Path."""
+def serialized_writer(fn: Callable[..., R]) -> Callable[..., R]:
+    """Decorate a public mutation whose first argument is the Wiki root Path.
+
+    Keep the decorator runtime-compatible with Python 3.9. Precise ParamSpec
+    typing is not worth raising the product runtime floor for this wrapper.
+    """
 
     @functools.wraps(fn)
-    def wrapped(root: Path, *args: P.args, **kwargs: P.kwargs) -> R:
+    def wrapped(root: Path, *args, **kwargs) -> R:
         with store_writer_lock(root):
             return fn(root, *args, **kwargs)
 
