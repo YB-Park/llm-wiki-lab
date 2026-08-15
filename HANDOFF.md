@@ -2,71 +2,86 @@
 
 Last updated: 2026-08-15 KST
 
-This file is the **current continuation state**, not a project history. Replace or delete stale items as the project moves. Detailed evidence, experiments, ADRs, issues, and code history stay in their canonical locations.
+This is the **current continuation state**, not project history. Replace or delete stale items as the project moves. Detailed evidence stays in code, ADRs, experiments, issues, PRs, and Git history.
 
 ## North Star
 
-Build a **proper VS Code-first LLM Wiki**: take the useful core idea behind the LLM Wiki concept seriously, fill in the trust/maintenance details that a sketch leaves open, incorporate real implementation experience and failure modes, and converge on something we actually use.
+Build a **proper VS Code-first LLM Wiki** where the user owns a verifiable knowledge system and AI participates in retrieval/reasoning rather than becoming the unquestioned owner of memory.
 
-Research and experiments are means, not the product. The product is VS Code-first while the trustworthy storage/retrieval/provenance core remains editor-agnostic.
+Research is a means, not the product. Preserve the trust substrate while moving the center of gravity to real use, human knowledge compounding, and product operations.
 
-## Current state
+## Current product state
 
-- **Raw-first Alpha Core:** ready and post-Alpha red-team hardened. Keep the convergence rule active: no open-ended core infrastructure without an observed product blocker, an E013/E015 boundary crossing, or a reproducible trust/data-loss failure.
-- **Dogfood 0.1.6:** current installable Alpha after packaged-VSIX validation. It contains the 0.1.5 fail-closed citation / per-context `C1/C2/...` provenance transport plus the E017 global forgotten-topic discovery correctness repair for uneven topic sizes. Use this rather than the stale 0.1.5 artifact for the next installed P7 cycle.
-- **Deterministic self-hosting:** frozen E010 v1 remains **278/278 files, 11/12 expected-source top-5, MRR 0.736, context 12/12**. A later 303-file run remained above the gate at **11/12 top-5, MRR 0.674, context 12/12**. Do not rewrite frozen historical scores as the repo grows.
-- **Real-model self-use:** completed with exact `gpt-5.6-luna`; project-repo Ask/provenance/correction/dispute/citation handling were exercised and real failures were preserved. See `experiments/E010-vscode-dogfood/results-v2-real-user-luna.md`.
-- **Citation reliability:** real Luna fabricated/non-context `src-...` citations in early dogfood. #83/#87 now fail closed and expose only per-call citation handles, then deterministically materialize canonical provenance. The frozen post-fix manifest-loss retest PASSed.
-- **E017 external real-user dogfood:** completed on three unfamiliar public corpora: **1,515 Kubernetes Markdown docs, 557 CPython reStructuredText docs, and 10 official NASA Artemis II pages**. First pass used exactly three Luna calls; only the CPython failure earned one narrow X1 follow-up. See `experiments/E017-external-real-user-corpora/results-v0.md`.
-- **Global forgotten-topic discovery:** E017 zero-model preflight found a correctness bug before any paid call. Topic-local BM25 scores from very uneven corpora were being sorted globally; the NASA question selected CPython. Main now scores the union of topic-current immutable objects in one shared BM25 space for `discover`, while topic W0 search/Ask remains unchanged. Regression coverage preserves current-only/no-E013-visit semantics. This fix is bundled in 0.1.6.
-- **Kubernetes external case:** manual **PASS**. W0 produced a useful non-overclaiming answer: `maxUnavailable: 0` blocks PDB-respecting voluntary eviction but does not guarantee zero downtime or prevent involuntary node failure. All citations resolved.
-- **NASA external case:** **PASS**. W0 reconstructed launch -> Earth-orbit departure -> splashdown with supported dates/times, refused unsupported precision, and correctly treated the May 7 editor update as a mileage correction rather than a new mission event. All citations resolved.
-- **CPython external case:** W0 was safely insufficient rather than hallucinating, but failed the user's actual question because its best paragraph from the correct `multiprocessing.rst` object was irrelevant to start methods. X1 materially repaired the same frozen question in one additional Luna call: POSIX=`forkserver`, Python 3.14, and the multithread-safety rationale were recovered with resolvable citations and clean integrity.
-- **Remaining CPython/RST limit:** D2 is only a **partial repair**. The exact 3.12 `DeprecationWarning` paragraph exists in the same long `multiprocessing.rst` source but was still absent from X1 context. Current structural splitting recognizes Markdown `#` headings; reStructuredText falls back to paragraphs, and X1 currently keeps one best unit per object plus one neighbor. This is concrete evidence for a possible non-Markdown / multi-aspect same-object limitation, not permission to build a parser/index stack yet.
-- **X1 evidence:** E015-D1 is one full real-user repair on the project repo; E017-D2 is a second independent external case with **material partial repair**. This strengthens the case that context granularity matters in reality, but is still not enough for global X1 promotion. Continue quality-labeling natural divergent cases.
-- **E016 verifier detour:** stopped. Do not restart verification unless a future real answer contradicts a material limitation demonstrably present in the exact model context.
-- **Copilot/Luna:** exact `gpt-5.6-luna` access is proven. Issue #24 is only the optional VS Code-native LM API transport question, not a model-availability blocker.
-- **Persistent compiled Wiki:** disabled pending realistic E013 revisit/update/query-mix evidence.
-- **Customer readiness:** **NOT READY YET.** Repeated natural multi-session installed VS Code use is still missing; retrieval now has stronger real-world evidence but also a newly observed non-Markdown/multi-aspect limit.
+- **Dogfood 0.1.7 is the current installable Alpha.** It packages the 0.1.6 global forgotten-topic discovery fix, fail-closed `C1/C2/...` citation transport, the #101 P0 hardening, and the first human-owned Knowledge Note product slice.
+- **Raw-first Alpha Core remains ready and red-team hardened.** Keep the convergence rule: do not restart open-ended core infrastructure without an observed product blocker, an E013/E015 boundary crossing, or a reproducible trust/data-loss failure.
+- **Copilot prompt privacy:** #102 moved the complete question/evidence prompt out of process argv. Copilot receives the transformed prompt over stdin; argv contains control/model flags only. Existing consent, exact-Luna pinning, no-tools mode, and citation validation remain.
+- **Single-writer semantic safety:** #104 / #103 added one private store-level OS advisory writer lock across public read/validate/write mutations: ingest, supersede, correction/change, dispute, and exact provenance bind. A deterministic race regression proves a competing correction cannot commit against stale pre-state. This is not a DB/WAL or cross-file transaction claim.
+- **Human Knowledge Note v0:** #106 / #105 adds `LLM Wiki: New Human Knowledge Note`. It opens an untitled human-owned Markdown draft with `Current statement`, `Why / reasoning`, `Supporting evidence`, and `Open questions`. Draft creation uses zero model calls, requires no topic, creates no telemetry, and does not mutate canonical Wiki state. Saving is ordinary user file ownership; explicit ingest is still separate.
+- **Knowledge Note is deliberately schema-light.** No `Type`, `Status`, ontology, graph, automatic promotion, or LLM-authored durable truth has been introduced. A richer knowledge object must earn its shape through repeated dogfood.
+- **Deterministic self-hosting:** frozen E010 v1 remains **278/278 files, 11/12 expected-source top-5, MRR 0.736, context 12/12**. Later growing-repo runs remained above the frozen Stage A gate; do not rewrite frozen historical scores as the corpus grows.
+- **Real-model self-use:** completed with exact `gpt-5.6-luna`, including returning/forgetful discovery, Ask, provenance, correction, dispute, manifest-loss reasoning, and citation failure/retest.
+- **External E017 dogfood:** completed on 1,515 Kubernetes Markdown docs, 557 CPython RST docs, and 10 NASA Artemis II pages. Kubernetes and NASA produced useful grounded W0 answers. CPython exposed a real context-construction limit.
+- **Retrieval:** W0 remains default; X1 remains non-default/shadow. E015-D1 is one full real-user X1 repair and E017-D2 is a second independent material partial repair. That is meaningful real evidence that context granularity matters, but still not enough for global X1 promotion.
+- **Known retrieval limit:** long non-Markdown objects can require multiple separated regions. In CPython RST, X1 recovered the current `forkserver` default/rationale but still omitted the distant exact `DeprecationWarning` paragraph. Do not build a broad parser/index stack from one mechanism unless it recurs.
+- **Persistent compiled Wiki:** disabled pending natural E013 revisit/update/query-mix evidence.
+- **Customer readiness:** **NOT READY YET.** The missing proof is repeated natural multi-session installed use where human notes/evidence are created, left alone, recovered later, corrected/changed/disputed, and reused.
+
+## #101 product-review response
+
+Treat Issue #101 as strong adversarial product input, **not a roadmap that silently overrides evidence**.
+
+Accepted and shipped:
+- Copilot prompt argv -> stdin: #102.
+- store-level semantic single-writer protection: #103 / #104.
+
+Accepted but deliberately narrowed:
+- Evidence Wiki -> Human Knowledge compounding: #105 / #106 Knowledge Note v0, human-owned Markdown first, no ontology.
+
+Conditional on real recurrence/friction:
+- X2 format-aware / same-object multi-region retrieval: only when natural cases repeat the CPython mechanism.
+- Personal Store / Project Store federation: when cross-workspace knowledge reuse becomes real pain.
+- Inbox/staging capture: when repeated capture ceremony becomes observed friction; automate preparation, not truth.
+- Tree View / Health UI: when command-driven use reveals repeated navigation/health friction.
+- Scale optimization: measure first; start with staged low-cost 1k/10k gates before inventing a persistent index.
+
+Product/Beta engineering backlog, not current Alpha architecture research:
+- verified snapshot / restore preview;
+- durable migration framework;
+- Windows/macOS/WSL/Remote/Codespaces product matrix;
+- Python runtime distribution strategy;
+- Marketplace/release metadata and support/privacy docs.
+
+Do not do now:
+- vector DB or knowledge graph merely because they are available;
+- global X1/X2 promotion from two favorable real cases;
+- broad document-format parser infrastructure from the single RST case;
+- verifier stack revival without an answer contradicting a limitation demonstrably present in the exact model prompt;
+- LLM-generated answers/notes automatically becoming canonical truth.
 
 ## Immediate next work
 
-1. **Start/continue installed P7 with 0.1.6.** Capture -> leave -> recover later -> Ask -> provenance -> update/correct/change/dispute -> feedback -> reuse again.
-2. **Let E013/E015 arise naturally.** Do not manufacture visits, updates, topics, queries, or feedback to hit thresholds.
-3. **Quality-label natural W0/X1 divergence narrowly.** E015-D1 and E017-D2 justify looking. Do not promote X1 from disagreement frequency alone.
-4. **Watch for recurrence of the CPython mechanism.** If multi-aspect questions over long non-Markdown objects repeatedly lose a second relevant region, preregister the smallest candidate that can recover multiple relevant units or format structure without exploding context/index cost.
-5. **Do not spend more Luna calls on the frozen E017 cases.** The 3+1 calls already separated useful success, W0 context failure, X1 repair, and the remaining X1 boundary.
-6. **Use UI friction as product evidence.** Resume UI work from repeated real installed-use friction/preferences, not speculative polish.
-7. Re-evaluate customer readiness after repeated natural use and enough realistic retrieval evidence, not from CI confidence alone.
-
-## Do not accidentally do
-
-- Do not treat the research repo as the end goal; the working LLM Wiki is the goal.
-- Do not equate Alpha Core, deterministic self-retrieval, external-corpus success, or packaged-VSIX CI with customer readiness.
-- Do not use full `source show` content as a proxy for what the model actually received; inspect exact rendered context before diagnosing semantic failure.
-- Do not disable fail-closed citation validation to make Ask look more reliable.
-- Do not compare raw BM25 scores produced independently by different topics; global discovery now has a shared scoring space for this reason.
-- Do not store citation handles or workspace paths as canonical evidence identity/trust signals.
-- Do not add a verifier stack because E016 exists.
-- Do not promote X1 globally from E014 synthetic evidence, E015 disagreement rate, E015-D1, or E017-D2 alone.
-- Do not immediately add RST/AsciiDoc/parser/index infrastructure from one CPython case; require recurrence or a strong low-cost candidate test.
-- Do not enable persistent compiled state from E011/E012 alone.
-- Do not turn cross-topic discovery into unscoped all-history model Ask.
-- Do not add vector/graph/automation complexity merely because it is available.
-- Do not rewrite raw evidence or let generated answers become canonical truth automatically.
+1. **Use installed 0.1.7 naturally over multiple sessions.** The product loop is now: capture evidence and/or write a Human Knowledge Note -> leave -> return later -> global recover -> Ask -> provenance -> update/correct/change/dispute -> feedback -> reuse.
+2. **Dogfood Knowledge Note v0, not its template.** The question is whether human reasoning/decisions become meaningfully easier to recover later. If nobody repeatedly uses it, do not promote it into a canonical knowledge schema.
+3. **Let E013/E015 arise naturally.** Do not manufacture visits, updates, query classes, or divergences to hit thresholds.
+4. **Quality-label natural W0/X1 divergence narrowly.** D1/D2 justify inspection, not automatic promotion.
+5. **Treat product interaction changes faster than epistemic architecture changes.** Navigation/onboarding/note UX can iterate quickly; canonical semantics/retrieval defaults/automatic mutation still require strong evidence.
+6. **Do not spend more Luna calls on frozen E017 cases.** Use paid calls only when a new real-user question can change a product decision.
+7. Re-evaluate customer readiness from repeated installed use, operational reliability, and recovered human knowledge—not from CI confidence alone.
 
 ## Fast pointers
 
+- External product review: Issue #101
+- Human Knowledge Note v0: Issue #105 / PR #106
+- P0 prompt transport: PR #102
+- P0 single writer: Issue #103 / PR #104
 - Project-repo real-user verdict: `experiments/E010-vscode-dogfood/results-v2-real-user-luna.md`
-- External real-user first pass: `experiments/E017-external-real-user-corpora/results-v0.md`
-- CPython X1 follow-up: `experiments/E017-external-real-user-corpora/cpython-d2-x1-preregistration-v0.md`, `cpython-d2-x1-result-v0.md`
-- First full realistic X1 repair: `experiments/E015-realistic-retrieval-shadow/divergent-case-d1-result-v0.md`
-- E015 realistic shadow gate: Issue #38
-- E013 realistic compiled-provider gate: Issue #21
-- Optional VS Code-native exact-Luna adapter gate: Issue #24
-- Stopped semantic-verifier candidate: Issue #86 / `experiments/E016-semantic-constraint-gate/`
+- External real-user result: `experiments/E017-external-real-user-corpora/results-v0.md`
+- CPython X1 partial repair: `experiments/E017-external-real-user-corpora/cpython-d2-x1-result-v0.md`
+- E015 realistic shadow: Issue #38
+- E013 realistic workload gate: Issue #21
+- Optional VS Code-native exact-Luna adapter: Issue #24
 - Alpha readiness/convergence: `docs/09-alpha-core-readiness-gate.md`
 - Backup/restore Alpha procedure: `docs/11-local-backup-restore.md`
-- Dogfood usage/current substrate: `dogfood/README.md`, `dogfood/vscode/README.md`
+- Dogfood docs: `dogfood/README.md`, `dogfood/vscode/README.md`
 
-If this file disagrees with merged code or an accepted ADR, **the code/ADR wins and this file should be corrected immediately**.
+If this file conflicts with merged code or an accepted ADR, **code/ADR wins and this file must be corrected immediately**.
