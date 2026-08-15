@@ -1,0 +1,72 @@
+name: E017 D2 CPython X1
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E017-external-real-user-corpora/cpython-d2-x1-preregistration-v0.md'
+      - 'experiments/E017-external-real-user-corpora/run_cpython_d2_x1.py'
+      - 'remote-lab/e017-cpython-d2-request.json'
+      - '.github/workflows/e017-d2-cpython-x1.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'remote-lab/e017-cpython-d2-request.json'
+      - '.github/workflows/e017-d2-cpython-x1.yml'
+
+jobs:
+  preflight:
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile D2 runner
+        run: python -m py_compile experiments/E017-external-real-user-corpora/run_cpython_d2_x1.py
+      - name: Rebuild pinned CPython corpus and assert X1 evidence boundary with zero model calls
+        env:
+          PYTHONPATH: .
+        run: python experiments/E017-external-real-user-corpora/run_cpython_d2_x1.py
+      - name: Upload D2 preflight
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e017-cpython-d2-preflight-${{ github.run_id }}
+          path: remote-lab/out/e017-cpython-d2/
+          if-no-files-found: error
+          retention-days: 14
+
+  real-user:
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      copilot-requests: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - run: npm install -g @github/copilot
+      - name: Run the frozen CPython X1 question exactly once
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PYTHONPATH: .
+          E017_D2_EXECUTE_MODEL: '1'
+        run: python experiments/E017-external-real-user-corpora/run_cpython_d2_x1.py
+      - name: Upload D2 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e017-cpython-d2-${{ github.run_id }}
+          path: remote-lab/out/e017-cpython-d2/
+          if-no-files-found: error
+          retention-days: 14
