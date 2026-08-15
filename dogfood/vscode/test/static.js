@@ -33,13 +33,19 @@ for (const command of extensionCommands) {
   assert(commands.has(command), `missing command: ${command}`);
   assert(extension.includes(`'${command}'`), `command not wired in extension.js: ${command}`);
 }
+assert(commands.has('llmWiki.newKnowledgeNote'), 'missing human Knowledge Note command');
+assert(entry.includes("registerCommand('llmWiki.newKnowledgeNote'"), 'Knowledge Note command not wired in entry.js');
+assert(entry.includes('Human-owned draft. Saving this file does not ingest, promote, or mutate LLM Wiki state.'), 'Knowledge Note must state no Wiki mutation');
+assert(entry.includes("language: 'markdown'"), 'Knowledge Note must open as Markdown');
+assert(!entry.includes("executeCommand('llmWiki.ingestActiveFile')"), 'Knowledge Note creation must never auto-ingest');
+assert(!entry.includes("executeCommand('llmWiki.ask')"), 'Knowledge Note creation must never auto-call the model');
 assert(commands.has('llmWiki.doctor'), 'missing Doctor command');
 assert(entry.includes("'llmWiki.doctor'"), 'Doctor command not wired in entry.js');
 assert(commands.has('llmWiki.experimentalDiscoverCopilotModels'), 'missing experimental LM discovery command');
 assert(entry.includes("'llmWiki.experimentalDiscoverCopilotModels'"), 'LM discovery command not wired in entry.js');
-assert.equal(commands.size, 15, '0.1.6 command surface count changed unexpectedly');
+assert.equal(commands.size, 16, '0.1.7 command surface count changed unexpectedly');
 
-assert.equal(manifest.version, '0.1.6');
+assert.equal(manifest.version, '0.1.7');
 assert.equal(manifest.main, './entry.js');
 assert.equal(manifest.private, true);
 assert.equal(manifest.capabilities.untrustedWorkspaces.supported, false, 'extension must not run in untrusted workspaces');
@@ -112,4 +118,4 @@ assert(!gitSafety.includes('process.env'), 'Git safety classifier must not inspe
 assert(bundler.includes("path.join(dogfoodRoot, 'llm_wiki')"), 'bundler must copy from the shared core source of truth');
 assert(bundler.includes("path.join(bundleRoot, 'dogfood')"), 'bundler must preserve the dogfood Python package layout');
 
-console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.6 commands=15 productP1P4=sealed citationBoundary=core-bundled lmDiscoveryGeneration=0 exactLunaOnly=yes doctorModelCalls=0 gitSafety=read-only consentBypass=no bundledCore=generated compiledProvider=not-implemented');
+console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.7 commands=16 knowledgeNote=human-owned-no-auto-mutation productP1P4=sealed citationBoundary=core-bundled lmDiscoveryGeneration=0 exactLunaOnly=yes doctorModelCalls=0 gitSafety=read-only consentBypass=no bundledCore=generated compiledProvider=not-implemented');
