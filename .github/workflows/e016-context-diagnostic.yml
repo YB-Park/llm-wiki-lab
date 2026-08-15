@@ -1,0 +1,32 @@
+name: E016 zero-model context diagnostic
+
+on:
+  pull_request:
+    paths:
+      - 'remote-lab/e016_context_diagnostic.py'
+      - '.github/workflows/e016-context-diagnostic.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile diagnostic
+        run: python -m py_compile remote-lab/e016_context_diagnostic.py
+      - name: Rebuild current Wiki and inspect retrieval only
+        env:
+          PYTHONPATH: .
+        run: python remote-lab/e016_context_diagnostic.py
+      - name: Upload diagnostic
+        uses: actions/upload-artifact@v4
+        with:
+          name: e016-context-diagnostic-${{ github.run_id }}
+          path: remote-lab/out/e016-context-diagnostic/
+          if-no-files-found: error
+          retention-days: 7
