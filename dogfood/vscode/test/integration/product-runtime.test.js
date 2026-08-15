@@ -19,14 +19,15 @@ async function stage(label, promise, timeoutMs = 10000) {
   }
 }
 
-suite('LLM Wiki 0.1.6 Product Surface', () => {
-  test('registers the E010 P1-P4 customer command surface', async () => {
+suite('LLM Wiki 0.1.7 Product Surface', () => {
+  test('registers the current customer command surface', async () => {
     const extension = vscode.extensions.getExtension('llm-wiki-lab.llm-wiki-dogfood');
     assert.ok(extension, 'LLM Wiki extension was not discovered');
     await extension.activate();
 
     const commands = new Set(await vscode.commands.getCommands(true));
     for (const command of [
+      'llmWiki.newKnowledgeNote',
       'llmWiki.discoverAcrossTopics',
       'llmWiki.markCorrection',
       'llmWiki.markChange',
