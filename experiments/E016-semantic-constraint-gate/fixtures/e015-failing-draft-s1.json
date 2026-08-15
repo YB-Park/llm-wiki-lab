@@ -1,0 +1,22 @@
+{
+  "source_run": 31861379614,
+  "question": "E014-R1 passed. Why is structural_expand_v1 still not the default, and what can E015 actually tell us?",
+  "draft": "structural_expand_v1 is not yet the default because E014-R1 established an advantage only on a fresh synthetic stressed-mechanism corpus, plus production-core equivalence; it did not show that the mechanism matters often in natural use. E015 can therefore provide evidence about real-use frequency and quality only if its actual design and results measure those questions. The supplied evidence does not include E015's protocol, results, or threshold, so it cannot establish that E015 passed, justify a default switch, or quantify production benefit.",
+  "constraint_check": {
+    "supported": [
+      "E014-R1 showed structural_expand_v1 can outperform whole-object BM25 on a fresh synthetic stressed-mechanism corpus and established production-core equivalence.",
+      "E014-R1 did not establish that the mechanism occurs often in natural use.",
+      "The supplied evidence does not state E015's design, results, or decision threshold."
+    ],
+    "forbidden": [
+      "Do not conclude from E014-R1 alone that structural_expand_v1 should become the default.",
+      "Do not treat production-core equivalence as proof of real-world mechanism frequency or usefulness.",
+      "Do not claim what E015 demonstrates beyond the supplied evidence."
+    ],
+    "insufficient_or_conflicted": [
+      "The evidence is insufficient to identify the precise reason for withholding the default beyond the missing natural-use evidence.",
+      "E015-specific evidence is absent; the available E015-related record is only a truncated task definition."
+    ]
+  },
+  "citation_transport_note": "Prior-run random canonical source IDs are intentionally stripped from this semantic verifier fixture; the fresh verifier context supplies its own current citation handles. No semantic wording is rerolled."
+}
