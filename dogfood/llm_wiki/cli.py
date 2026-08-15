@@ -185,28 +185,28 @@ def parser() -> argparse.ArgumentParser:
 
     source_status_cmd = source_sub.add_parser("status")
     source_status_cmd.add_argument("source_id")
-    source_status_cmd.add_argument("--topic", required=True, help="topic label or opaque topic ID")
+    source_status_cmd.add_argument("--topic", required=True, help="scope source and record a local provenance-follow event")
 
     source_supersede = source_sub.add_parser("supersede")
     source_supersede.add_argument("predecessor_source_id")
     source_supersede.add_argument("successor_source_id")
-    source_supersede.add_argument("--topic", required=True, help="topic label or opaque topic ID")
+    source_supersede.add_argument("--topic", required=True, help="local topic label or opaque topic ID")
 
     source_correct = source_sub.add_parser("correct")
     source_correct.add_argument("predecessor_source_id")
     source_correct.add_argument("successor_source_id")
-    source_correct.add_argument("--topic", required=True, help="topic label or opaque topic ID")
+    source_correct.add_argument("--topic", required=True, help="local topic label or opaque topic ID")
 
     source_change = source_sub.add_parser("change")
     source_change.add_argument("predecessor_source_id")
     source_change.add_argument("successor_source_id")
-    source_change.add_argument("--topic", required=True, help="topic label or opaque topic ID")
+    source_change.add_argument("--topic", required=True, help="local topic label or opaque topic ID")
     source_change.add_argument("--effective-at", required=True, help="timezone-aware ISO-8601 effective instant")
 
     source_dispute = source_sub.add_parser("dispute")
     source_dispute.add_argument("left_source_id")
     source_dispute.add_argument("right_source_id")
-    source_dispute.add_argument("--topic", required=True, help="topic label or opaque topic ID")
+    source_dispute.add_argument("--topic", required=True, help="local topic label or opaque topic ID")
 
     feedback = sub.add_parser("feedback")
     feedback.add_argument("outcome", choices=("helpful", "not_helpful"))
@@ -415,76 +415,85 @@ def main(argv: list[str] | None = None) -> int:
             snippet_chars=args.max_chars,
             include_superseded=False,
         )
-        prompt = answer_prompt(context, args.query)
-        try:
-            answer = ask_copilot(
-                prompt,
-                model=args.model,
-                max_ai_credits=args.max_ai_credits,
-            )
-        except RuntimeError as exc:
-            raise SystemExit(f"ASK-STOP {exc}") from None
-        print(f"MODEL {args.model}")
-        print(answer)
+        if not context.strip():
+            raise SystemExit("ASK-STOP no_retrieved_evidence")
+        answer = ask_copilot(
+            answer_prompt(args.query, context),
+            model=args.model,
+            max_ai_credits=args.max_ai_credits,
+        )
+        print(f"MODEL {answer.model or args.model}")
+        print(answer.text)
         return 0
 
     if args.command == "source":
-        ensure_workspace(root)
         if args.source_command == "show":
             topic_id = _resolved_topic_id(root, args.topic)
             try:
                 src = find_source(root, args.source_id, topic_id=topic_id)
-                text = read_text(src)
-            except (ValueError, RuntimeError) as exc:
+            except ValueError as exc:
                 raise SystemExit(f"SOURCE-STOP {exc}") from None
             if topic_id is not None:
                 record_source_open(root, topic_id)
-            print(
-                f"SOURCE id={src.source_id} object={src.object_id} sha256={src.sha256} "
-                f"bytes={src.size_bytes} name={json.dumps(src.name, ensure_ascii=False)}"
-            )
-            print(text)
+                state = source_status(root, src.source_id, topic_id=topic_id)
+                if state["status"] == "superseded":
+                    print(
+                        f"SOURCE {src.source_id} object={src.object_id} name={src.name} sha256={src.sha256} "
+                        f"status=superseded supersededBy={state['superseded_by']}"
+                    )
+                else:
+                    print(
+                        f"SOURCE {src.source_id} object={src.object_id} name={src.name} "
+                        f"sha256={src.sha256} status=current"
+                    )
+            else:
+                print(
+                    f"SOURCE {src.source_id} object={src.object_id} name={src.name} "
+                    f"sha256={src.sha256} status=unscoped"
+                )
+            print(read_text(src))
             return 0
 
         if args.source_command == "list":
             topic_id = _resolved_topic_id(root, args.topic)
-            rows = sources(root, topic_id=topic_id, include_superseded=args.include_superseded)
-            if args.json:
-                for src in rows:
-                    temporal = temporal_source_status(root, topic_id, src.source_id)
-                    print(json.dumps({
-                        "source_id": src.source_id,
-                        "object_id": src.object_id,
-                        "sha256": src.sha256,
-                        "name": src.name,
-                        "size_bytes": src.size_bytes,
-                        "status": temporal["status"],
-                        "replacement_kind": temporal["replacement_kind"],
-                        "superseded_by": temporal["superseded_by"],
-                        "effective_at": temporal["effective_at"],
-                        "contested": temporal["contested"],
-                    }, ensure_ascii=False, sort_keys=True))
-            else:
-                for src in rows:
-                    temporal = temporal_source_status(root, topic_id, src.source_id)
+            assert topic_id is not None
+            try:
+                rows = sources(root, topic_id=topic_id, include_superseded=args.include_superseded)
+                states = [temporal_source_status(root, src.source_id, topic_id=topic_id) for src in rows]
+            except (ValueError, RuntimeError) as exc:
+                raise SystemExit(f"SOURCE-STOP {exc}") from None
+            for src, state in zip(rows, states):
+                row = {
+                    "source_id": src.source_id,
+                    "object_id": src.object_id,
+                    "sha256": src.sha256,
+                    "name": src.name,
+                    **state,
+                }
+                if args.json:
+                    print(json.dumps(row, ensure_ascii=False, sort_keys=True))
+                else:
                     print(
-                        f"{src.source_id} {temporal['status']} {src.name} sha256={src.sha256} "
-                        f"replacement={temporal['replacement_kind'] or '-'} contested={'yes' if temporal['contested'] else 'no'}"
+                        f"SOURCE {src.source_id} status={state['status']} "
+                        f"contested={'yes' if state['contested'] else 'no'} name={src.name}"
                     )
             return 0
 
         if args.source_command == "status":
             topic_id = _resolved_topic_id(root, args.topic)
+            assert topic_id is not None
             try:
-                print(json.dumps(temporal_source_status(root, topic_id, args.source_id), sort_keys=True, ensure_ascii=False))
+                state = temporal_source_status(root, args.source_id, topic_id=topic_id)
             except (ValueError, RuntimeError) as exc:
                 raise SystemExit(f"SOURCE-STOP {exc}") from None
+            print(json.dumps(state, sort_keys=True))
             return 0
 
         if args.source_command == "supersede":
             topic_id = _resolved_topic_id(root, args.topic)
+            assert topic_id is not None
             try:
-                written = supersede_source(
+                created = supersede_source(
                     root,
                     args.predecessor_source_id,
                     args.successor_source_id,
@@ -494,84 +503,91 @@ def main(argv: list[str] | None = None) -> int:
                 raise SystemExit(f"SOURCE-STOP {exc}") from None
             print(
                 f"SUPERSEDE predecessor={args.predecessor_source_id} successor={args.successor_source_id} "
-                f"scope=topic written={'yes' if written else 'no'}"
+                f"scope=topic created={'yes' if created else 'no'}"
             )
             return 0
 
-        if args.source_command == "correct":
+        if args.source_command in {"correct", "change", "dispute"}:
             topic_id = _resolved_topic_id(root, args.topic)
+            assert topic_id is not None
             try:
-                written = correct_source(
-                    root,
-                    args.predecessor_source_id,
-                    args.successor_source_id,
-                    topic_id=topic_id,
-                )
+                if args.source_command == "correct":
+                    created = correct_source(
+                        root,
+                        args.predecessor_source_id,
+                        args.successor_source_id,
+                        topic_id=topic_id,
+                    )
+                    print(
+                        f"CORRECTION predecessor={args.predecessor_source_id} successor={args.successor_source_id} "
+                        f"scope=topic created={'yes' if created else 'no'}"
+                    )
+                elif args.source_command == "change":
+                    created = change_source(
+                        root,
+                        args.predecessor_source_id,
+                        args.successor_source_id,
+                        topic_id=topic_id,
+                        effective_at=args.effective_at,
+                    )
+                    print(
+                        f"CHANGE predecessor={args.predecessor_source_id} successor={args.successor_source_id} "
+                        f"effectiveAt={args.effective_at} scope=topic created={'yes' if created else 'no'}"
+                    )
+                else:
+                    created = dispute_sources(
+                        root,
+                        args.left_source_id,
+                        args.right_source_id,
+                        topic_id=topic_id,
+                    )
+                    print(
+                        f"DISPUTE left={args.left_source_id} right={args.right_source_id} "
+                        f"scope=topic created={'yes' if created else 'no'}"
+                    )
             except (ValueError, RuntimeError) as exc:
                 raise SystemExit(f"SOURCE-STOP {exc}") from None
-            print(
-                f"CORRECTION predecessor={args.predecessor_source_id} successor={args.successor_source_id} "
-                f"scope=topic written={'yes' if written else 'no'}"
-            )
             return 0
-
-        if args.source_command == "change":
-            topic_id = _resolved_topic_id(root, args.topic)
-            try:
-                written = change_source(
-                    root,
-                    args.predecessor_source_id,
-                    args.successor_source_id,
-                    topic_id=topic_id,
-                    effective_at=args.effective_at,
-                )
-            except (ValueError, RuntimeError) as exc:
-                raise SystemExit(f"SOURCE-STOP {exc}") from None
-            print(
-                f"CHANGE predecessor={args.predecessor_source_id} successor={args.successor_source_id} "
-                f"scope=topic effective_at={args.effective_at} written={'yes' if written else 'no'}"
-            )
-            return 0
-
-        if args.source_command == "dispute":
-            topic_id = _resolved_topic_id(root, args.topic)
-            try:
-                written = dispute_sources(
-                    root,
-                    args.left_source_id,
-                    args.right_source_id,
-                    topic_id=topic_id,
-                )
-            except (ValueError, RuntimeError) as exc:
-                raise SystemExit(f"SOURCE-STOP {exc}") from None
-            print(
-                f"DISPUTE left={args.left_source_id} right={args.right_source_id} "
-                f"scope=topic written={'yes' if written else 'no'}"
-            )
-            return 0
+        raise AssertionError(args.source_command)
 
     if args.command == "feedback":
         topic_id = _resolved_topic_id(root, args.topic)
+        assert topic_id is not None
         record_feedback(root, topic_id, args.outcome, args.reason)
-        print(f"FEEDBACK outcome={args.outcome} reason={args.reason or '-'} telemetry=local-only freeTextStored=no")
+        print(f"FEEDBACK outcome={args.outcome} telemetry=local-only")
         return 0
 
     if args.command == "calibration":
         if args.calibration_command == "export":
-            payload = sanitized_json(root)
-            payload["retrieval_shadow"] = summarize_shadow(root)
-            print(json.dumps(payload, sort_keys=True, ensure_ascii=False))
+            aggregate = json.loads(sanitized_json(root))
+            aggregate["retrieval_shadow"] = summarize_shadow(root)
+            print(json.dumps(aggregate, indent=2, sort_keys=True, ensure_ascii=False) + "\n", end="")
             return 0
         raise AssertionError(args.calibration_command)
 
     if args.command == "history":
-        rows = history(root, limit=max(args.limit, 0))
-        if args.json:
-            for row in rows:
-                print(json.dumps(row, sort_keys=True, ensure_ascii=False))
-        else:
-            for row in rows:
-                print(json.dumps(row, sort_keys=True, ensure_ascii=False))
+        rows = history(root)[-max(0, args.limit):]
+        for row in rows:
+            if args.json:
+                print(json.dumps(row, ensure_ascii=False, sort_keys=True))
+                continue
+            if row.get("event") == "ingest":
+                object_part = f" object={row.get('object_id')}" if row.get("object_id") else ""
+                print(
+                    f"{row['recorded_at']} event=ingest source={row['source_id']}{object_part} "
+                    f"duplicate={'yes' if row.get('duplicate_content') else 'no'} name={row['name']}"
+                )
+            elif row.get("event") == "supersede":
+                print(
+                    f"{row['recorded_at']} event=supersede predecessor={row['predecessor_source_id']} "
+                    f"successor={row['successor_source_id']} topic={row['topic_id']}"
+                )
+            else:
+                print(f"{row.get('recorded_at', '?')} event={row.get('event', 'unknown')}")
         return 0
 
     raise AssertionError(args.command)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
