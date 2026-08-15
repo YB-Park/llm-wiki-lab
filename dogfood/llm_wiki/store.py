@@ -16,6 +16,7 @@ from .private_fs import (
     write_private_bytes,
     write_private_text,
 )
+from .writer_lock import serialized_writer
 
 ORIGIN_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -306,6 +307,7 @@ def _record_supersession(
     )
 
 
+@serialized_writer
 def supersede_source(
     root: Path,
     predecessor_source_id: str,
@@ -327,6 +329,7 @@ def supersede_source(
     return True
 
 
+@serialized_writer
 def ingest_file(
     root: Path,
     file_path: Path,

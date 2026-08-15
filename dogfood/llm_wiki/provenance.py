@@ -9,6 +9,7 @@ from pathlib import Path
 
 from .jsonl_log import append_jsonl_object, read_jsonl_objects
 from .store import ensure_workspace, find_source, read_text
+from .writer_lock import serialized_writer
 
 PROVENANCE_FILE = "provenance.jsonl"
 PROVENANCE_SCHEMA = "llm-wiki-exact-provenance-v1"
@@ -148,6 +149,7 @@ def _record_identity(record: ExactProvenanceRecord) -> dict:
     )
 
 
+@serialized_writer
 def bind_exact_raw_span(
     root: Path,
     *,

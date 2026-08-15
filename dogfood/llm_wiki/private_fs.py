@@ -135,5 +135,6 @@ def tighten_workspace_permissions(root: Path) -> None:
         "topics.json",
         "workload-events.jsonl",
         "retrieval-shadow-events.jsonl",
+        ".writer.lock",
     ):
         restrict_private_file(root / name)
