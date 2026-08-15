@@ -1,86 +1,53 @@
 # E016 — read-only verifier V1 preregistration
 
-Status: **PREREGISTERED BEFORE VERIFIER SCORING**  
+Status: **ABORTED BEFORE VERIFIER MODEL CALL — ROOT CAUSE CORRECTED**  
 Date: 2026-08-15 KST
 
-## Entry evidence
+## Original question
 
-The observed E015 answer failure survived:
+V1 was preregistered to ask whether a separate read-only Luna verifier could catch the observed E015 answer overclaim, but only if the **actual retrieved model context first contained** the literal limitation:
 
-1. ordinary one-call answering twice;
-2. stronger prose negative-constraint prompting;
-3. a one-call structured `supported / forbidden / insufficient` extraction gate (S1).
+> E015 is not a quality proof
 
-S1 failed before its control set, so S2 was not run.
+That prerequisite was intentional: without it, the experiment would conflate retrieval/context failure with answer verification.
 
-## V1 question
+## What happened
 
-Can a **separate read-only Luna verifier call** reliably identify the exact observed forbidden/unsupported claims when given:
+Main run `31861598269` rebuilt the current full-repo Wiki and checked the prerequisite before `ask_copilot`.
 
-- the user's E015 question;
-- the current retrieved Wiki evidence context, which must contain the literal E015 limitation `E015 is not a quality proof` before the verifier call is allowed;
-- the exact frozen failing S1 draft answer/constraint payload;
-- no tools and no ability to mutate canonical state?
+The prerequisite failed:
 
-## Frozen failing draft
+`RuntimeError:prerequisite_context_missing_e015_quality_limit`
 
-The verifier receives the exact S1 user-facing draft:
+Therefore **zero verifier model calls were made**. No verifier ACCEPT/REJECT result exists.
 
-> `structural_expand_v1` is not yet the default because E014-R1 established an advantage only on a fresh synthetic stressed-mechanism corpus, plus production-core equivalence; it did not show that the mechanism matters often in natural use. E015 can therefore provide evidence about real-use frequency **and quality** only if its actual design and results measure those questions. The supplied evidence does not include E015's protocol, results, or threshold, so it cannot establish that E015 passed, justify a default switch, or quantify production benefit.
+## Why the prerequisite failed
 
-The frozen structured fields are stored separately as fixture data. No draft regeneration call is permitted in V1.
+Zero-model diagnostic `31861868445` / artifact `9240822200` reconstructed W0 retrieval/context and showed:
 
-## V1 verifier output contract
+- the correct E015 preregistration object was retrieved;
+- W0's single best-paragraph excerpt omitted the adjacent `diverge` / `not a quality proof` paragraphs;
+- increasing W0 top-k did not repair that within-object excerpt loss;
+- X1 context on the same corpus/topic/query included both decisive statements.
 
-Return exactly one JSON object:
+The prior semantic-failure premise was therefore corrected: the demonstrated problem was first **context granularity**, not a model contradicting a limitation present in its prompt.
 
-```json
-{
-  "verdict": "ACCEPT or REJECT",
-  "unsupported_or_forbidden_claims": [],
-  "evidence_misreadings": [],
-  "missing_required_limitations": [],
-  "reason": "..."
-}
-```
+## Subsequent evidence
 
-The verifier must cite Wiki evidence handles in its `reason` or finding strings. Product citation-handle validation/materialization remains active.
+E015-D1 preregistered one real-model check of the simpler explanation. W0 current-only discovery selected the topic; X1 rendered the answer context; the runner asserted both decisive E015 statements were present before calling Luna.
 
-## V1 GO
+Run `31862013373` / artifact `9240865801`: **PASS**.
 
-One verifier call passes only if all hold:
+The real answer correctly said:
 
-1. exact model is `gpt-5.6-luna`;
-2. verdict is `REJECT`;
-3. the verifier identifies the **quality** overclaim as unsupported/forbidden because E015 is explicitly not a quality proof / cannot determine which mode is correct;
-4. it identifies the draft's claim that E015 evidence/protocol is absent as an evidence misreading, because the E015 preregistration is actually in context;
-5. materialized citations resolve through `source show`;
-6. no canonical mutation or semantic reroll occurs.
+- E014-R1 does not justify default promotion by itself;
+- E015 measures realistic W0/X1 divergence/prevalence;
+- E015 is not a quality proof and cannot establish which mode is correct or promote X1 by itself.
 
-## V1 KILL
+All citations resolved and integrity was clean.
 
-Any `ACCEPT`, failure to flag the quality overclaim, failure to notice the false `evidence absent` assertion, unusable structured output, or citation failure kills this verifier candidate. If V1 fails, do not spend control calls.
+## Decision
 
-## V2 controls — only after V1 GO
+V1 and its planned V2 controls are **not run further**. Do not spend verifier calls on a symptom already explained and repaired by a simpler retrieval/context mechanism.
 
-Four verifier calls, no draft-generation calls:
-
-1. ordinary positive supported draft — must ACCEPT;
-2. explicit insufficient-evidence draft — must ACCEPT the refusal/insufficiency;
-3. correct correction-vs-change draft — must ACCEPT;
-4. correct unresolved-dispute draft — must ACCEPT.
-
-Primary V2 purpose is false-refusal detection. A verifier that catches bad drafts but rejects useful good answers does not earn product integration.
-
-## Cost / execution boundary
-
-- V1: exactly **1** Luna verifier call;
-- V2: exactly 4 only after V1 GO;
-- per-call CLI guard: 30 AI credits;
-- no draft-generation calls inside verifier stages;
-- no rerolls;
-- no company/private evidence;
-- no tools, no canonical mutation;
-- current retrieval/provenance/citation-handle behavior unchanged.
-
-Even V1+V2 success does not automatically ship a verifier. It only earns a product-integration candidate whose extra latency/cost must be explicit and whose user-facing fail behavior must remain inspectable.
+Reopen a semantic verifier experiment only if a future real answer materially contradicts an explicit limitation that is demonstrably present in the exact model context. Such a future gate must be preregistered separately.
