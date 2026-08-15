@@ -1,0 +1,56 @@
+{
+  "format": "E018-PHASE1-SEED-v0",
+  "source_run_id": 31888767216,
+  "source_artifact_id": 9247969739,
+  "note": "Two model generations completed before the model-specific JSONL parser failed. These exact parsed decisions are reused so E018 does not reroll them.",
+  "rows": [
+    {
+      "condition": "baseline",
+      "case_id": "C1-relevant-read",
+      "model": "gpt-5.4",
+      "raw_jsonl_sha256": "1c2c82802c91c7b7baaf534f8e543a2d7c45e26b21812e33200997a2f55167d3",
+      "memory": {
+        "use_memory": true,
+        "selected_candidates": ["M1"],
+        "intent": "query",
+        "action": "inject_context"
+      },
+      "assistant_reply": "We kept **W0** as the default because **X1 showed only limited real-user gains so far**—meaningful, but not enough to justify a global switch. The decision was to wait for **more natural, divergent quality evidence** before promoting X1.",
+      "call": {
+        "elapsed_seconds": 6.141,
+        "reported_model": "gpt-5.4",
+        "model_match": true,
+        "prompt_chars": 2967,
+        "response_chars": 360,
+        "usage_fields": [
+          {"path": "assistant.message.data", "fields": {"outputTokens": 220}},
+          {"path": "result.usage", "fields": {"premiumRequests": 0}}
+        ]
+      }
+    },
+    {
+      "condition": "baseline",
+      "case_id": "C1-relevant-read",
+      "model": "claude-sonnet-4.6",
+      "raw_jsonl_sha256": "64f4a245bd5cd72267b76ea24d46c57fdfca29c2f64d6f91fb45901c2b8b47b1",
+      "memory": {
+        "use_memory": true,
+        "selected_candidates": ["M1"],
+        "intent": "query",
+        "action": "inject_context"
+      },
+      "assistant_reply": "Per our earlier decision (M1): X1 showed two meaningful real-user improvements, but that wasn't considered sufficient for global promotion. The bar was set at needing more *natural, divergent* quality evidence — not just isolated wins. W0 stays default until broader evidence accumulates.",
+      "call": {
+        "elapsed_seconds": 4.711,
+        "reported_model": "claude-sonnet-4.6",
+        "model_match": true,
+        "prompt_chars": 2967,
+        "response_chars": 421,
+        "usage_fields": [
+          {"path": "assistant.message.data", "fields": {"outputTokens": 140}},
+          {"path": "result.usage", "fields": {"premiumRequests": 1}}
+        ]
+      }
+    }
+  ]
+}

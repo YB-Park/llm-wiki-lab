@@ -6,15 +6,17 @@ on:
       - 'experiments/E018-steward-policy/preregistration-v0.md'
       - 'experiments/E018-steward-policy/preregistration-addendum-v0.md'
       - 'experiments/E018-steward-policy/preregistration-addendum-v1.md'
+      - 'experiments/E018-steward-policy/preregistration-addendum-v2.md'
       - 'experiments/E018-steward-policy/cases-v0.json'
+      - 'experiments/E018-steward-policy/phase1-seed-run-31888767216.json'
       - 'experiments/E018-steward-policy/run_e018.py'
       - 'experiments/E018-steward-policy/run_e018_phase1_v1.py'
+      - 'experiments/E018-steward-policy/run_e018_phase1_resume_v2.py'
       - 'remote-lab/e018-steward-policy-request.json'
       - '.github/workflows/e018-steward-policy.yml'
   push:
     branches: [main]
     paths:
-      - 'remote-lab/e018-steward-policy-request.json'
       - '.github/workflows/e018-steward-policy.yml'
 
 jobs:
@@ -33,11 +35,12 @@ jobs:
         run: |
           python -m py_compile experiments/E018-steward-policy/run_e018.py
           python -m py_compile experiments/E018-steward-policy/run_e018_phase1_v1.py
-      - name: Freeze-check cases, request, and call budget with zero model calls
+          python -m py_compile experiments/E018-steward-policy/run_e018_phase1_resume_v2.py
+      - name: Validate seed, frozen cases, request, and resume budget with zero model calls
         env:
           PYTHONPATH: .
-        run: python experiments/E018-steward-policy/run_e018_phase1_v1.py
-      - name: Assert zero-call preflight result
+        run: python experiments/E018-steward-policy/run_e018_phase1_resume_v2.py
+      - name: Assert zero-call resume preflight
         run: |
           python - <<'PY'
           import json
@@ -45,10 +48,11 @@ jobs:
           row = json.loads(Path('remote-lab/out/e018-steward-policy/result.json').read_text())
           assert row['status'] == 'PREFLIGHT_PASS', row
           assert row['model_calls'] == 0, row
-          assert row['preflight']['phase1_calls_if_executed'] == 24, row
+          assert row['seeded_completed_calls'] == 2, row
+          assert row['preflight']['new_calls_if_executed'] == 22, row
+          assert row['preflight']['total_scored_calls_if_executed'] == 24, row
           assert row['preflight']['phase2_reserved_followup_calls'] == 4, row
-          assert row['request']['max_ai_credits_policy'] == 30, row
-          print('E018-PREFLIGHT PASS model_calls=0 phase1=24 phase2_reserved=4 cli_guard=30')
+          print('E018-RESUME-PREFLIGHT PASS new_calls=22 seeded=2 total=24 phase2_reserved=4')
           PY
       - name: Upload E018 preflight
         if: always()
@@ -75,12 +79,12 @@ jobs:
         with:
           node-version: '22'
       - run: npm install -g @github/copilot
-      - name: Run frozen 24-call E018 policy matrix
+      - name: Resume frozen E018 Phase 1 with exactly 22 remaining calls
         env:
           GITHUB_TOKEN: ${{ github.token }}
           PYTHONPATH: .
           E018_EXECUTE_MODEL: '1'
-        run: python experiments/E018-steward-policy/run_e018_phase1_v1.py
+        run: python experiments/E018-steward-policy/run_e018_phase1_resume_v2.py
       - name: Upload E018 phase-1 evidence
         if: always()
         uses: actions/upload-artifact@v4
