@@ -10,11 +10,12 @@ After installing the VSIX, open a **trusted local workspace** in VS Code and use
 
 1. `LLM Wiki: Doctor (Zero Model Calls)` — checks Python, the bundled/local core, `compiled_provider=disabled`, Git raw-store safety, and whether Copilot CLI is available. This makes zero model calls and ingests no evidence.
 2. If Doctor reports `Git raw-store safety: UNPROTECTED` or `Realistic evidence dogfood: BLOCKED`, **do not ingest sensitive/realistic evidence yet**. Protect the local wiki directory from that Git repository first.
-3. `LLM Wiki: Create Topic` — create the first local topic.
-4. Open a file you want to preserve as evidence and run `LLM Wiki: Ingest Active File`.
-5. Run `LLM Wiki: Search Topic`. When that file still exists with exactly the ingested bytes, the result can navigate to the original workspace-relative file; if it moved or changed, LLM Wiki falls back to the immutable read-only evidence snapshot.
-6. If you forgot which topic contains something, use `LLM Wiki: Global Search Current Evidence Across Topics` to discover it without treating superseded history as current or manufacturing an E013 visit.
-7. Only when desired, run `LLM Wiki: Ask Luna (Read-only)` and explicitly approve the modal evidence-send warning.
+3. `LLM Wiki: New Human Knowledge Note` — optionally open a human-owned Markdown draft for what you learned, believe, or decided. Creating the draft does not initialize, ingest, or mutate Wiki state.
+4. `LLM Wiki: Create Topic` — create the first local topic.
+5. Open a file you want to preserve as evidence and run `LLM Wiki: Ingest Active File`.
+6. Run `LLM Wiki: Search Topic`. When that file still exists with exactly the ingested bytes, the result can navigate to the original workspace-relative file; if it moved or changed, LLM Wiki falls back to the immutable read-only evidence snapshot.
+7. If you forgot which topic contains something, use `LLM Wiki: Global Search Current Evidence Across Topics` to discover it without treating superseded history as current or manufacturing an E013 visit.
+8. Only when desired, run `LLM Wiki: Ask Luna (Read-only)` and explicitly approve the modal evidence-send warning.
 
 The selected topic appears in the VS Code status bar. Click it to switch topics.
 
@@ -42,6 +43,7 @@ This is an Alpha operating procedure, not live transactional backup, cloud sync,
 - `LLM Wiki: Initialize Workspace`
 - `LLM Wiki: Create Topic`
 - `LLM Wiki: Select Topic`
+- `LLM Wiki: New Human Knowledge Note`
 - `LLM Wiki: Ingest Active File`
 - `LLM Wiki: Ingest Active File as Authoritative Update`
 - `LLM Wiki: Search Topic`
@@ -53,6 +55,23 @@ This is an Alpha operating procedure, not live transactional backup, cloud sync,
 - `LLM Wiki: Ask Luna (Read-only)`
 - `LLM Wiki: Show Calibration Summary`
 - `LLM Wiki: Experimental — Discover Copilot Models (Zero Generation)`
+
+## Human-owned Knowledge Note boundary
+
+Version 0.1.7 adds the smallest product step from evidence management toward human knowledge compounding: `LLM Wiki: New Human Knowledge Note`.
+
+The command opens an **untitled Markdown document owned by the user** with only four lightweight prompts:
+
+- Current statement
+- Why / reasoning
+- Supporting evidence
+- Open questions
+
+Creating this draft makes **zero model calls**, requires no topic, writes no E013 telemetry, and does not ingest or mutate canonical Wiki state. There is deliberately no `Type`, `Status`, ontology, graph, automatic promotion, or LLM-authored durable truth in v0.
+
+Saving the Markdown file is ordinary user file ownership. If the user later wants that note preserved as Wiki evidence, `LLM Wiki: Ingest Active File` remains a separate explicit action with the normal topic/trust semantics. This separation is intentional: the product can help a human preserve reasoning without quietly granting the LLM mutation authority.
+
+Whether Knowledge Notes deserve a richer first-class schema is a **dogfood question**, not an assumption. The v0 feature succeeds only if users repeatedly create and later recover useful human reasoning.
 
 ## Source navigation boundary
 
@@ -120,6 +139,15 @@ Doctor is deliberately local and cheap. It:
 
 Doctor does not print local paths, usernames, hostnames, environment variables, evidence, prompts, or answers.
 
+## 0.1.7 product hardening
+
+Version 0.1.7 also packages two concrete product-security/correctness fixes accepted from external review #101:
+
+- **Copilot prompt transport:** the complete question + retrieved evidence prompt is no longer placed in process argv. The Copilot CLI receives the transformed model prompt through stdin; argv contains only non-evidence control flags/model configuration. Existing citation-handle validation and explicit consent remain unchanged.
+- **Single-writer semantic mutations:** ingest, supersession, correction/change, dispute, and exact-provenance bind operations use one private store-level OS advisory writer lock across their read/validate/write boundary. A competing writer waits briefly or fails with `wiki_writer_busy`, then replays current state rather than committing against a stale pre-state. OS lock ownership dies with the process; the lock file is only a private rendezvous point, not canonical state.
+
+The writer lock does **not** claim cross-file transactional atomicity, multi-host locking, live snapshotting, or a database/WAL. Existing append/fsync/torn-tail/fail-closed contracts remain the durability boundary.
+
 ## Ask Luna boundary
 
 `Ask Luna` is deliberately explicit:
@@ -132,13 +160,13 @@ Doctor does not print local paths, usernames, hostnames, environment variables, 
 
 The model is pinned to `gpt-5.6-luna`. The answer is displayed in the Output channel and is never written to canonical wiki state. Programmatic command arguments used by local-only runtime tests do **not** provide a model-consent bypass.
 
-Version 0.1.6 retains the answer/provenance hardening introduced in 0.1.5. The model no longer has to emit canonical `src-...` identifiers directly. The transient model context exposes short per-call citation handles such as `C1`/`C2`; the core validates those handles and deterministically maps them back to canonical source IDs before the answer is returned. Unknown handles, raw source IDs emitted by the model, or missing citations fail closed instead of masquerading as provenance. These handles are never stored as evidence identity or trust signals.
+Version 0.1.7 retains the answer/provenance hardening introduced in 0.1.5 and sends the transformed prompt to Copilot over stdin rather than process argv. The model no longer has to emit canonical `src-...` identifiers directly. The transient model context exposes short per-call citation handles such as `C1`/`C2`; the core validates those handles and deterministically maps them back to canonical source IDs before the answer is returned. Unknown handles, raw source IDs emitted by the model, or missing citations fail closed instead of masquerading as provenance. These handles are never stored as evidence identity or trust signals.
 
 The validated production-dogfood Ask adapter remains the Copilot CLI path until the VS Code-native Language Model API spike proves that the exact Luna model can be selected without silent substitution.
 
 ## Experimental VS Code-native model discovery
 
-`LLM Wiki: Experimental — Discover Copilot Models (Zero Generation)` is a product-adapter probe for issue #24. It is safe to run before using real evidence because it does not send a prompt or evidence and does not call model generation.
+`LLM Wiki: Experimental — Discover Copilot Models (Zero Generation)` is a product-adapter probe for issue [#24](https://github.com/YB-Park/llm-wiki-lab/issues/24). It is safe to run before using real evidence because it does not send a prompt or evidence and does not call model generation.
 
 It asks the VS Code Language Model API only for Copilot model metadata and opens a JSON report containing:
 
@@ -187,7 +215,7 @@ For realistic dogfood, use the extension in a workspace that contains only evide
 
 This is an **Alpha/dogfood** product, not a polished Marketplace/customer-ready release.
 
-Real assistant-as-user dogfood has now covered both the project repository and three unfamiliar external corpora. External E017 testing found and fixed the uneven-topic forgotten-topic discovery bug included in 0.1.6. It also added a second independent real-user case where X1 materially improved W0 context: a CPython reStructuredText question recovered the current POSIX `forkserver` default and 3.14 rationale under X1. That repair remained partial because the exact multithreaded-fork warning lived in another region of the same long `.rst` document and was still omitted.
+Real assistant-as-user dogfood has now covered both the project repository and three unfamiliar external corpora. External E017 testing found and fixed the uneven-topic forgotten-topic discovery bug included in 0.1.6. Version 0.1.7 additionally begins dogfooding human-owned durable reasoning with a deliberately schema-light Knowledge Note draft while packaging the argv→stdin and single-writer hardening from review #101. It also added a second independent real-user case where X1 materially improved W0 context: a CPython reStructuredText question recovered the current POSIX `forkserver` default and 3.14 rationale under X1. That repair remained partial because the exact multithreaded-fork warning lived in another region of the same long `.rst` document and was still omitted.
 
 Customer readiness therefore still requires:
 
