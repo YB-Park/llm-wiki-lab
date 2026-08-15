@@ -130,9 +130,11 @@ def ask_copilot(prompt: str, model: str = "gpt-5.6-luna", max_ai_credits: int = 
     if not exe:
         raise RuntimeError("copilot_cli_not_found")
     model_prompt, handle_to_source = prepare_citation_handle_prompt(prompt)
+    # Keep private/user evidence out of process argv. GitHub Copilot CLI supports
+    # non-interactive piped input; using stdin avoids exposing the prompt through
+    # command-line inspection while preserving the existing programmatic mode.
     cmd = [
         exe,
-        "--prompt", model_prompt,
         "--model", model,
         "--output-format=json",
         "--stream=off",
@@ -146,7 +148,7 @@ def ask_copilot(prompt: str, model: str = "gpt-5.6-luna", max_ai_credits: int = 
         "--excluded-tools=bash,powershell,list_bash,list_powershell,read_bash,read_powershell,stop_bash,stop_powershell,write_bash,write_powershell,apply_patch,create,edit,view,glob,grep,rg,web_fetch,task,list_agents,read_agent,write_agent,skill,ask_user",
         f"--max-ai-credits={max_ai_credits}",
     ]
-    proc = subprocess.run(cmd, text=True, capture_output=True, timeout=900, check=False)
+    proc = subprocess.run(cmd, input=model_prompt, text=True, capture_output=True, timeout=900, check=False)
     if proc.returncode != 0:
         raise RuntimeError(f"copilot_call_failed:{proc.returncode}")
     answer = _final_message(proc.stdout)
