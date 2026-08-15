@@ -5,9 +5,18 @@ import json
 import tempfile
 from pathlib import Path
 
+from dogfood.llm_wiki.calibration import resolve_topic
+from dogfood.llm_wiki.retrieval import (
+    RETRIEVAL_STRUCTURAL_EXPAND_V1,
+    RETRIEVAL_WHOLE_OBJECT_V0,
+    render_context,
+    search,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 QUESTION = "E014-R1 passed. Why is structural_expand_v1 still not the default, and what can E015 actually tell us?"
 LITERAL = "E015 is not a quality proof"
+DIVERGENCE_LITERAL = "E015 measures **how often the existing default W0 and candidate X1 actually diverge"
 EXCLUDE = {
     "remote-lab/e016_context_diagnostic.py",
     ".github/workflows/e016-context-diagnostic.yml",
@@ -22,6 +31,27 @@ def load_e010_module():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+def hit_rows(hits):
+    return [
+        {
+            "rank": index,
+            "source_ids": list(hit.source_ids),
+            "name": hit.source.name,
+            "object_id": hit.object_id,
+            "score": hit.score,
+            "snippet": hit.snippet,
+            "contains_quality_literal": LITERAL in hit.snippet,
+            "contains_divergence_literal": DIVERGENCE_LITERAL in hit.snippet,
+            "ranking_locator": hit.ranking_locator,
+            "context_locator": hit.context_locator,
+            "context_start": hit.context_start,
+            "context_end": hit.context_end,
+            "retrieval_mode": hit.retrieval_mode,
+        }
+        for index, hit in enumerate(hits, start=1)
+    ]
 
 
 def main() -> int:
@@ -78,6 +108,10 @@ def main() -> int:
         default_context = ""
         default_topic_search = []
         expanded_context = ""
+        w0_rows = []
+        x1_rows = []
+        w0_mode_context = ""
+        x1_mode_context = ""
         if selected_topic:
             default_topic_search = e010.parse_json_lines(
                 e010.run_cli(
@@ -94,8 +128,44 @@ def main() -> int:
                 ["context", QUESTION, "--topic", selected_topic, "--class", "decision_history", "--top-k", "12"],
             ).stdout
 
+            topic_id = resolve_topic(wiki, selected_topic)["topic_id"]
+            w0_hits = search(
+                wiki,
+                QUESTION,
+                top_k=8,
+                snippet_chars=1200,
+                topic_id=topic_id,
+                mode=RETRIEVAL_WHOLE_OBJECT_V0,
+            )
+            x1_hits = search(
+                wiki,
+                QUESTION,
+                top_k=8,
+                snippet_chars=1200,
+                topic_id=topic_id,
+                mode=RETRIEVAL_STRUCTURAL_EXPAND_V1,
+            )
+            w0_rows = hit_rows(w0_hits)
+            x1_rows = hit_rows(x1_hits)
+            w0_mode_context = render_context(
+                wiki,
+                QUESTION,
+                top_k=8,
+                max_chars_per_source=1200,
+                topic_id=topic_id,
+                mode=RETRIEVAL_WHOLE_OBJECT_V0,
+            )
+            x1_mode_context = render_context(
+                wiki,
+                QUESTION,
+                top_k=8,
+                max_chars_per_source=1200,
+                topic_id=topic_id,
+                mode=RETRIEVAL_STRUCTURAL_EXPAND_V1,
+            )
+
         result = {
-            "format": "E016-CONTEXT-DIAGNOSTIC-v0",
+            "format": "E016-CONTEXT-DIAGNOSTIC-v1",
             "model_calls": 0,
             "question": QUESTION,
             "corpus_utf8_files": len(files),
@@ -109,6 +179,14 @@ def main() -> int:
             "selected_topic_search_top20": default_topic_search,
             "default_context": default_context,
             "expanded_context_top12": expanded_context,
+            "w0_hits": w0_rows,
+            "x1_hits": x1_rows,
+            "w0_context": w0_mode_context,
+            "x1_context": x1_mode_context,
+            "w0_context_contains_quality_literal": LITERAL in w0_mode_context,
+            "x1_context_contains_quality_literal": LITERAL in x1_mode_context,
+            "w0_context_contains_divergence_literal": DIVERGENCE_LITERAL in w0_mode_context,
+            "x1_context_contains_divergence_literal": DIVERGENCE_LITERAL in x1_mode_context,
         }
         (out_dir / "result.json").write_text(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         summary = {
@@ -123,9 +201,24 @@ def main() -> int:
                 {"rank": x["global_rank"], "topic": x["topic_label"], "name": x["name"], "score": x["score"]}
                 for x in literal_hits
             ],
-            "top10": [
-                {"rank": x["global_rank"], "topic": x["topic_label"], "name": x["name"], "score": x["score"], "e016": x["contains_e016"]}
-                for x in enriched[:10]
+            "w0_context_contains_quality_literal": result["w0_context_contains_quality_literal"],
+            "x1_context_contains_quality_literal": result["x1_context_contains_quality_literal"],
+            "w0_context_contains_divergence_literal": result["w0_context_contains_divergence_literal"],
+            "x1_context_contains_divergence_literal": result["x1_context_contains_divergence_literal"],
+            "w0_top8": [
+                {"rank": x["rank"], "name": x["name"], "score": x["score"], "quality": x["contains_quality_literal"]}
+                for x in w0_rows
+            ],
+            "x1_top8": [
+                {
+                    "rank": x["rank"],
+                    "name": x["name"],
+                    "score": x["score"],
+                    "quality": x["contains_quality_literal"],
+                    "ranking_locator": x["ranking_locator"],
+                    "context_locator": x["context_locator"],
+                }
+                for x in x1_rows
             ],
         }
         print(json.dumps(summary, ensure_ascii=False, indent=2))
