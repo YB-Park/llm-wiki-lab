@@ -1,177 +1,186 @@
 # Current Handoff
 
-Last updated: 2026-08-15 KST
+Last updated: 2026-08-16 KST
 
-This is the **current continuation state**, not project history. Replace or delete stale items as the project moves. Detailed evidence stays in code, ADRs, experiments, issues, PRs, and Git history.
+This is the **current continuation state**, not project history. Replace stale items as the product moves. Detailed evidence stays in code, experiments, issues, PRs, and Git history.
 
 ## North Star
 
-Build a **proper VS Code-first LLM Wiki** where the user owns a verifiable knowledge system and the LLM genuinely uses and maintains persistent knowledge rather than appearing as a bolt-on `Ask` button.
+Build a **proper VS Code-first LLM Wiki** where the user owns a verifiable knowledge system and the LLM naturally uses and maintains persistent knowledge inside explicit authority boundaries.
 
-Research is a means, not the product. Preserve the trust substrate, but do not let trust work remove the central LLM-maintained-Wiki product loop.
+Research is a means, not the product. The next evidence should come primarily from installed use of the representative product loop.
 
 ## Current product state
 
-- **Dogfood 0.1.8 is the current installable Alpha.** It includes the Python 3.9 installed-runtime hotfix from #108/#109, prompt-over-stdin privacy hardening, store-level single-writer semantic protection, global-current discovery, fail-closed citation handling, and Human Knowledge Note v0.
-- **Raw-first Alpha Core remains ready and red-team hardened.** Keep the convergence rule: do not restart open-ended core infrastructure without an observed product blocker, an E013/E015 boundary crossing, or a reproducible trust/data-loss failure.
-- **Human Knowledge Note v0** is human-owned Markdown. It does not auto-ingest, call a model, or mutate canonical Wiki state merely by being created.
-- **Retrieval:** W0 remains default; X1 remains non-default/shadow. E015-D1 and E017-D2 show meaningful real-user improvement, but still do not justify global promotion.
-- **Persistent compiled provider as trusted/default query substrate:** still E013-gated.
-- **Derived Agent Wiki as an LLM-owned product artifact:** a separate product hypothesis and **not blocked by E013** as long as it remains provenance-linked, inspectable, reversible/rebuildable, and noncanonical.
-- **Customer readiness:** **NOT READY YET.** Real installed use showed that the current command-driven `Create Topic -> Ingest -> Search -> Ask Luna` interaction is not representative of the intended LLM-maintained Wiki experience.
+- **Dogfood 0.1.10 is the current installable Alpha.** Product merge: PR #125, `f3451640e0f39361394217e9b1d925cff95c9f89`.
+- **Raw-first Alpha Core remains the trust substrate:** immutable/content-addressed raw evidence, explicit temporal semantics, fail-closed integrity/citations, provenance navigation, prompt-over-stdin privacy hardening, and store-level single-writer protection.
+- **Human Knowledge Note v0** remains human-owned Markdown. Creating it does not auto-ingest, call a model, or silently become canonical state.
+- **Retrieval:** W0 remains default. X1 remains non-default/shadow despite meaningful E015-D1 and E017-D2 improvements. Do not promote without more natural quality evidence.
+- **Persistent compiled provider:** still E013-gated as a trusted/default provider.
+- **Customer readiness:** **NOT READY YET.** The product now has the first representative Agent Wiki loop, but needs real multi-session installed use before broader UX/marketplace claims.
 
-## Current top priority — #110 autonomy / agent-first UX
+## Shipped Agent Wiki loop
 
-The key product question is:
+### Ordinary agent conversation — ambient bounded read
 
-> **What should happen automatically inside ordinary LLM use, what authority belongs to the human, and what must deterministic code prevent a model from doing silently?**
+0.1.10 contributes the stable VS Code Language Model Tool:
 
-Working ownership model:
+- `llmWiki_searchMemory` / prompt reference `#wikiMemory`
 
-1. **Raw evidence / canonical history** — human-admitted trust substrate; immutable/provenance-first.
-2. **Human Knowledge** — human-owned beliefs/decisions/reasoning; explicit authorship matters.
-3. **Agent Wiki** — LLM-owned derived layer for persistent synthesis/linking/maintenance; noncanonical and rebuildable.
+The user's selected main model can invoke it during ordinary agent conversation. The tool performs local deterministic current-view retrieval and makes **zero model calls** itself.
 
-Working thesis:
+Tool output keeps two epistemic classes separate:
 
-> **The user controls admission and epistemic commitment. The LLM controls compilation and routine maintenance inside granted authority.**
+1. **RAW_MEMORY** — current canonical raw evidence/provenance; factual authority.
+2. **DERIVED_MEMORY** — current-source Agent Wiki synthesis/navigation aid; model-generated, noncanonical, not independent corroboration, and not Human Knowledge authorship.
 
-The UX should approve **intent/authority**, not every mechanical step. Ordinary Wiki use should be ambient but legible; high-consequence semantic mutations remain human-gated.
+The read tool never authorizes persistence, correction, change, dispute, supersession, or deletion and does not manufacture E013 query/visit telemetry.
 
-## E018 result — mandatory per-turn Luna Steward did not earn promotion
+### Explicit remember — human admission first
 
-Issue #113 tested a high-priority architecture hypothesis from `docs/13-luna-wiki-steward-hypothesis.md`:
+0.1.10 contributes:
 
-> Should LLM Wiki put a product-controlled `gpt-5.6-luna` policy judge in front of every Wiki-relevant turn instead of trusting the user's selected main model to make the same constrained memory decision?
+- `llmWiki_rememberSource` / prompt reference `#rememberWikiSource`
 
-Frozen Phase 1 used the same autonomy contract and eight realistic cases across:
+Invoke only from explicit user intent to remember/save/capture/add a local workspace source.
 
-- `gpt-5.4` main-model discretion;
-- `claude-sonnet-4.6` main-model discretion;
-- exact `gpt-5.6-luna` dedicated Turn Policy Judge.
+Flow:
 
-Final frozen score:
+`explicit remember -> raw immutable admission -> selected topic or deterministic Agent Inbox -> optional derived maintenance`
 
-- GPT-5.4: **7/8**
-- Claude Sonnet 4.6: **7/8**
-- Luna Steward: **6/8**
+If no clean human-selected topic exists, filing uses deterministic **Agent Inbox**. This is reversible organization, not an epistemic commitment.
+
+Raw admission always happens before any model-backed maintenance. Maintenance failure never rolls back or hides the admitted raw source.
+
+### Opt-in Luna derived maintenance
+
+Agent Wiki maintenance is **OFF by default**.
+
+The user can run:
+
+- `LLM Wiki: Configure Agent Wiki Maintenance`
+
+Enabling is a workspace-scoped standing grant with a modal disclosure that, after explicit source admission, admitted source bytes may be sent to exact `gpt-5.6-luna` under a visible per-call AI-credit guard.
+
+When enabled, one source-scoped derived note is created/reused under:
+
+- `.wiki-lab/agent-wiki/source-notes/<source_id>.json`
+- `.wiki-lab/agent-wiki/source-notes/<source_id>.md`
+
+The deterministic wrapper labels it:
+
+> **AGENT WIKI — NONCANONICAL / REBUILDABLE**
+
+The maintenance path:
+
+- requires every load-bearing summary/rule/boundary to cite only admitted evidence;
+- fails closed on malformed or uncited model output;
+- writes outside canonical manifest/history;
+- never re-ingests generated notes as raw evidence;
+- cannot perform correction/change/dispute/supersession/delete;
+- cannot infer/persist Human Knowledge;
+- rejects sources over 40k characters before a model call;
+- reuses the same current source+policy note with **0 new model calls**;
+- runs the external call without holding the canonical writer lock, then revalidates source currentness/SHA under a short writer lock before derived publish;
+- keeps an old derived note inspectable after source supersession but removes it from **current** derived-memory search.
+
+## E018 — per-turn Luna Steward rejected
+
+Issue #113 is complete.
+
+Frozen score:
+
+- GPT-5.4 main-model discretion: **7/8**
+- Claude Sonnet 4.6 main-model discretion: **7/8**
+- GPT-5.6 Luna dedicated Steward: **6/8**
 - relevant-memory false negatives: **0 for all**
 - protected/canonical overreach: **0 for all**
-- baseline cross-model normalized disagreement: **1/8**
+- baseline normalized disagreement: **1/8**
 
-Luna did not meet the preregistered Phase-2 trigger, so the reserved four consequence calls were **not run**.
+The preregistered Phase-2 gate did not pass, so reserved calls were not spent.
 
-Final completed Phase-1 evidence:
+Architecture consequence:
 
-- run `31888981391`
-- artifact `9248043817`
-- artifact digest `sha256:e3363b443f36f080af6d25c0a4b64bff90471591c8a3bd876db71d95f99942af`
-- 22 new generations + 2 preserved completed generations = **24 scored generations**
-- semantic rerolls: **0**
+> **Product-controlled policy and capability boundaries are required; a product-controlled second model on every turn is not.**
 
-Two infrastructure corrections were recorded transparently before the complete result: Copilot CLI's minimum `--max-ai-credits` guard is 30, and current Copilot JSONL terminal-message shape differs across model families. The two already-completed C1 calls were seeded and reused rather than rerolled.
+Do not reopen the mandatory Steward from architectural preference. Reopen only if installed use produces repeated main-model policy drift/failures.
 
-### Architecture consequence
+Important C5 insight: **reading relevant memory and persisting Human Knowledge are separate permissions.** A tentative/inferred thought may allow contextual read while still forbidding durable human-authorship persistence.
 
-Do **not** make a second Luna policy call mandatory on every user turn based on current evidence.
+## E019 — Luna earned the maintenance role
 
-What E018 *did* support is stronger and simpler:
+Issue #121 is complete.
 
-1. **deterministic/local candidate retrieval** happens cheaply and privately;
-2. the **user-selected main model** may select relevant bounded memory and classify ordinary reversible Wiki intent under a shared versioned product contract;
-3. **deterministic capability enforcement** validates the typed action and makes protected operations technically unavailable without human authority;
-4. explicit source admission and explicit human-authorship statements derive authority from the **user**, not from model preference;
-5. canonical correction/change/dispute/supersession and destructive provenance loss remain human-gated;
-6. **Luna remains a viable candidate for actual derived Agent-Wiki maintenance work**, where an extra model call performs useful compilation/linking rather than duplicating policy judgment.
+The frozen one-call E019 source-maintenance run produced a strong provenance-linked noncanonical Agent Wiki artifact. The automatic result was `FAIL` only because one lexical scorer regex missed semantically explicit no-recursive-contamination wording; manual semantic adjudication is **PASS**, with the automatic status preserved and no reroll.
 
-Architectural commitment: **product-controlled policy and capabilities.**  
-Not earned: **product-controlled second model on every turn.**
+Result: `experiments/E019-agent-wiki-maintenance/results-v0.md`.
 
-Do not rerun frozen E018 cases seeking a different result. Reopen a dedicated policy Steward only if natural installed use exposes repeated main-model policy failures/drift.
+This justified the narrow 0.1.10 maintenance slice, not background autonomy or canonical mutation.
 
-## Important new authority distinction from C5
+### Product-path translation smoke
 
-E018 C5 froze a tentative statement — “Redis feels annoying here; maybe avoid it, but I haven't decided” — as `no memory read / no persistence`.
+The actual shipped product CLI was then tested separately with exactly one real Luna generation:
 
-All three models chose to consult the materially relevant existing cache-options memory, but **none** persisted the tentative statement as the user's durable belief.
+- run `31893676510`
+- head `2a70763809d68b1f8085f98ccc42e41fe375f2fa`
+- artifact `9249211551`
+- artifact digest `sha256:26012f388636b0d856124e7b7aabc149ebd5794519b865065131c1d34bc33763`
 
-This reveals that our authority vocabulary must separate:
+All frozen checks passed:
 
-1. **read relevance:** may the agent consult relevant prior memory to help the current conversation?
-2. **human-authorship persistence:** may the system persist the user's current statement as a durable human commitment?
+- first real product build: `CREATED`, exact `gpt-5.6-luna`, model_calls=1;
+- second identical build: `REUSED`, model_calls=0, without model authorization;
+- derived search returned `derived_noncanonical_agent_wiki`;
+- generated note retained source provenance and noncanonical/rebuildable banner;
+- canonical history remained exactly the original raw admission;
+- integrity clean.
 
-A tentative/inferred belief can reasonably allow **read** while still forbidding **persistence**.
+No additional Copilot purchase was required.
 
-Do not retroactively rescore E018. Treat the mismatch as product-design evidence.
+## Current authority contract
 
-## Working UX contract after E018
+1. **Human controls admission.** A source enters memory because the user explicitly admits it, unless a future separately granted source-watch scope is designed and justified.
+2. **Human controls epistemic commitment.** Explicit user-authored decisions/beliefs may be persisted through an authorized Human Knowledge path; inferred beliefs remain proposal-only.
+3. **Main model may use bounded memory.** Ordinary agent conversation may consult relevant raw + clearly labeled derived memory.
+4. **LLM may maintain Agent Wiki inside grant.** Derived maintenance is useful autonomous work, but remains noncanonical/rebuildable.
+5. **Code owns dangerous capability boundaries.** Correction/change/dispute/supersession and destructive provenance operations remain technically unavailable to the autonomous maintenance path.
+6. **Generated answers/derived notes are not evidence.** Query write-back must ground itself in admitted evidence / explicit human statements.
+7. **No surprise exposure/spend.** External maintenance is default-off and requires a standing workspace grant plus bounded credit guard.
 
-- **Ambient read:** ordinary main-agent conversation should consider bounded Wiki memory automatically within granted privacy scope; no `Search -> Ask Wiki` ritual.
-- **Legibility:** when memory affects an answer, surface `Used LLM Wiki` / citations / provenance without approval spam.
-- **Explicit admission:** `Remember this source` is user authority. Mechanical capture, filing, and derived maintenance may follow automatically within the granted model/budget scope.
-- **Human authorship:** explicit `remember that we decided X because Y` can authorize a durable human commitment; inferred or tentative beliefs are never silently persisted as the user's belief.
-- **Derived maintenance:** Agent-Wiki pages may be autonomously created/updated after authorized admission; activity/diff/revert/provenance should make this work inspectable.
-- **Epistemic conflicts:** agent/model may detect and explain conflict, but correction/change/dispute/supersession remains a pending human decision by default.
-- **No recursive contamination:** a generated answer may signal useful synthesis, but Agent-Wiki write-back must ground itself in admitted evidence / explicit human statements rather than treating the answer itself as evidence.
-- **Capability security:** prompts guide behavior; code determines what actions are possible.
-- **No surprise exposure/spend:** model use for maintenance requires a clear standing privacy/budget scope.
+## Immediate next work — installed multi-session P7
 
-## Representative product slice to design next
+**Do not start another architecture program now.** Install and dogfood 0.1.10 across real sessions.
 
-The next representative loop should be:
+Representative natural loop:
 
-### Ordinary use
+1. Ask an ordinary agent question where old project knowledge should matter; observe whether the main model naturally uses `wikiMemory`.
+2. Say `remember this source` on a real workspace file; verify raw admission is low-friction and Agent Inbox/selected-topic filing feels natural.
+3. With maintenance grant enabled for an appropriate workspace, observe Luna source-note creation and whether the derived synthesis is genuinely useful later.
+4. Return in a later session and ask a question that should benefit from the remembered source; inspect raw vs derived memory use and provenance.
+5. Remember the same unchanged source again; expect derived maintenance reuse with **0 new model call**.
+6. Admit an updated source and explicitly mark the appropriate temporal relation when warranted; verify the old derived note no longer surfaces as current memory after supersession.
+7. Watch for actual friction: approval fatigue, tool non-invocation, bad derived snippets, confusing raw/derived distinction, source navigation pain, maintenance latency/cost, or missing activity/diff visibility.
 
-`user asks normal agent question`
-→ local deterministic candidate retrieval
-→ user-selected main model receives bounded candidate memory under the Wiki contract
-→ deterministic code validates any Wiki intent/capability
-→ answer cites inspectable provenance.
-
-### Remember / maintain
-
-`user says remember this source`
-→ immutable raw/provenance admission
-→ constrained **derived Agent-Wiki maintenance** runs within granted model/privacy/budget scope
-→ affected derived pages/links/summaries update
-→ activity shows diff/provenance/revert
-→ any high-consequence semantic conflict becomes a pending human decision.
-
-This is the smallest slice that should be made concrete before representative long-run P7 resumes.
-
-Do **not** prematurely choose MCP, Language Model Tools, hooks, Chat Participant, or direct orchestration merely from elegance. Choose the smallest transport that can preserve the above contract while keeping ordinary main-agent UX natural.
+Let that friction decide the next slice. Likely candidates include activity/health visibility, source-note navigation/diff/rebuild UI, or stronger tool descriptions/routing. Do **not** build Tree View, federation, broad Inbox ontology, X2, vector/graph infrastructure, or background watching merely because they are available ideas.
 
 ## Other active constraints
 
-- **Known retrieval limit:** long non-Markdown objects can require multiple separated regions. Do not build broad parser/index infrastructure until the mechanism recurs naturally.
-- **E013:** let realistic reuse/update/query-mix arise naturally; do not manufacture visits.
-- **E015:** let natural W0/X1 divergences arise; quality-label narrowly.
-- **Paid model calls:** E018 completed without an additional purchase. Do not spend more calls on frozen E018 or E017 cases. New calls are justified only when they can change the next product decision.
-- **#101 review:** accepted P0s are shipped; X2/federation/inbox/Tree View/scale work remain conditional on real recurrence/friction.
-
-## Immediate next work
-
-1. **Keep #110 open as the product-design gate; #113 / E018 is complete and closed.**
-2. Turn the post-E018 authority contract into the **smallest Agent-Wiki product slice**, not another broad architecture program.
-3. Choose transport only against concrete requirements: ambient bounded reads, typed intents, deterministic capability enforcement, explicit admission, derived maintenance, and inspectable activity.
-4. Treat **Luna maintenance-agent** suitability as a separate narrow question from the rejected mandatory per-turn policy judge.
-5. Implement the smallest representative loop and dogfood it over multiple sessions.
-6. Keep E013/E015 natural and do not reopen frozen E018 unless real installed failures contradict its conclusion.
+- **Known retrieval limit:** long non-Markdown objects can require multiple separated relevant regions. Build a narrow X2 only if this recurs naturally.
+- **E013:** keep workload evidence natural; do not manufacture visits/cycles.
+- **E015:** quality-label natural W0/X1 divergences; do not force them.
+- **Paid calls:** do not spend more on frozen E017/E018/E019 cases. New paid calls are justified only when they can change a product decision or validate a materially new production path.
+- **#101 review:** accepted security/reliability P0s are shipped; remaining feature proposals stay subordinate to installed-use evidence.
 
 ## Fast pointers
 
-- **Autonomy / agent-first UX gate:** Issue #110
-- **Autonomy philosophy:** `docs/12-autonomy-ux-philosophy.md`
-- **Steward hypothesis after test:** `docs/13-luna-wiki-steward-hypothesis.md`
-- **E018 Phase-1 result:** `experiments/E018-steward-policy/results-phase1-v0.md`
-- E018 experiment: Issue #113 (completed)
-- Python 3.9 installed-user hotfix: Issue #108 / PR #109
+- Autonomy / agent-first UX umbrella: Issue #110
+- Agent Wiki transport slice: Issue #119 / PR #120
+- E019 maintenance experiment: Issue #121 / `experiments/E019-agent-wiki-maintenance/results-v0.md`
+- Agent Wiki 0.1.10 implementation: Issue #124 / PR #125
+- Production-path one-call smoke: PR #126 / run `31893676510`
+- Autonomy philosophy: `docs/12-autonomy-ux-philosophy.md`
+- E018 result: `experiments/E018-steward-policy/results-phase1-v0.md`
 - External product review: Issue #101
-- Human Knowledge Note v0: Issue #105 / PR #106
-- P0 prompt transport: PR #102
-- P0 single writer: Issue #103 / PR #104
-- External real-user result: `experiments/E017-external-real-user-corpora/results-v0.md`
-- CPython X1 partial repair: `experiments/E017-external-real-user-corpora/cpython-d2-x1-result-v0.md`
 - E015 realistic shadow: Issue #38
 - E013 realistic workload gate: Issue #21
 - Backup/restore Alpha procedure: `docs/11-local-backup-restore.md`
