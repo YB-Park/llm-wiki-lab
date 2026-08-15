@@ -61,6 +61,7 @@ jobs:
       - name: Run E016 S1 exactly once
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          PYTHONPATH: .
         run: python experiments/E016-semantic-constraint-gate/run_structured_gate.py
       - name: Upload full evidence
         if: always()
