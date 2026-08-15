@@ -58,7 +58,7 @@ This is an Alpha operating procedure, not live transactional backup, cloud sync,
 
 Canonical evidence deliberately stores an immutable content object and opaque evidence revision identity; it does **not** use a workspace path as evidence identity or corroboration.
 
-Version 0.1.5 retains the separate VS Code-local navigation hint introduced in 0.1.4:
+Version 0.1.6 retains the separate VS Code-local navigation hint introduced in 0.1.4:
 
 - only a workspace-relative path plus evidence SHA is kept in extension workspace state;
 - search display can use that relative path to disambiguate repeated basenames such as `README.md`;
@@ -66,6 +66,24 @@ Version 0.1.5 retains the separate VS Code-local navigation hint introduced in 0
 - if the file moved, disappeared, or changed, it opens the immutable raw provenance document instead.
 
 This makes navigation convenient without letting a mutable local path rewrite what the evidence actually was.
+
+## Global forgotten-topic discovery boundary
+
+Version 0.1.6 includes the E017 real-dogfood correctness fix for `Global Search Current Evidence Across Topics`.
+
+Before 0.1.6, each topic was BM25-scored independently and the resulting raw scores were compared across topics. Those scores are not comparable when topic corpora differ greatly in size. External dogfood reproduced a concrete failure: an Artemis II question over 1,515 Kubernetes docs, 557 CPython docs, and 10 NASA articles selected the CPython topic even though the NASA topic contained the answer.
+
+The current `discover` path therefore:
+
+- gathers only each topic's **current** evidence;
+- deduplicates immutable content objects;
+- scores the union once in a shared BM25 space;
+- attaches topic membership after scoring;
+- still excludes superseded history;
+- still does not manufacture an E013 query visit;
+- does **not** change topic-scoped W0 `search`, `context`, or `ask` behavior.
+
+This is a correctness repair for forgotten-topic routing, not a new global unscoped model-Ask path.
 
 ## Explicit correction / change / disagreement
 
@@ -75,7 +93,7 @@ The Alpha core distinguishes three meanings that should not be inferred automati
 - **Change Source Over Time** — both states may have been correct at different times; the user supplies a timezone-aware effective instant.
 - **Unresolved Dispute** — two current evidence revisions disagree and neither is silently chosen as the winner.
 
-Version 0.1.5 retains the accepted ADR-0005 commands introduced in 0.1.4. The user explicitly chooses the participating current evidence revisions. Raw evidence and history remain preserved.
+Version 0.1.6 retains the accepted ADR-0005 commands introduced in 0.1.4. The user explicitly chooses the participating current evidence revisions. Raw evidence and history remain preserved.
 
 `Ingest Active File as Authoritative Update` is a separate E013 workload boundary; it is not automatically a correction/change/supersession relation.
 
@@ -114,7 +132,7 @@ Doctor does not print local paths, usernames, hostnames, environment variables, 
 
 The model is pinned to `gpt-5.6-luna`. The answer is displayed in the Output channel and is never written to canonical wiki state. Programmatic command arguments used by local-only runtime tests do **not** provide a model-consent bypass.
 
-Version 0.1.5 hardens the answer/provenance transport from real-user dogfood findings. The model no longer has to emit canonical `src-...` identifiers directly. The transient model context exposes short per-call citation handles such as `C1`/`C2`; the core validates those handles and deterministically maps them back to canonical source IDs before the answer is returned. Unknown handles, raw source IDs emitted by the model, or missing citations fail closed instead of masquerading as provenance. These handles are never stored as evidence identity or trust signals.
+Version 0.1.6 retains the answer/provenance hardening introduced in 0.1.5. The model no longer has to emit canonical `src-...` identifiers directly. The transient model context exposes short per-call citation handles such as `C1`/`C2`; the core validates those handles and deterministically maps them back to canonical source IDs before the answer is returned. Unknown handles, raw source IDs emitted by the model, or missing citations fail closed instead of masquerading as provenance. These handles are never stored as evidence identity or trust signals.
 
 The validated production-dogfood Ask adapter remains the Copilot CLI path until the VS Code-native Language Model API spike proves that the exact Luna model can be selected without silent substitution.
 
@@ -145,7 +163,7 @@ CI builds `llm-wiki-dogfood.vsix`. The VSIX bundles the shared Python core **at 
 
 The installed extension therefore does not require a checkout of this repository for normal raw/retrieval/provenance use. It still requires Python to be available on the machine.
 
-CI runs the Extension Host interaction suite against both the repository development extension and the unpacked packaged VSIX. Separate deterministic tests cover the product helpers, typed temporal CLI operations, current-only cross-topic discovery, Git safety, and exact-Luna metadata gate. Authenticated generation is evaluated separately in the guarded remote-lab/dogfood workflows so packaging CI does not consume Copilot quota.
+CI runs the Extension Host interaction suite against both the repository development extension and the unpacked packaged VSIX. Separate deterministic tests cover the product helpers, typed temporal CLI operations, current-only cross-topic discovery, global uneven-topic discovery scoring, Git safety, and exact-Luna metadata gate. Authenticated generation is evaluated separately in the guarded remote-lab/dogfood workflows so packaging CI does not consume Copilot quota.
 
 To install a downloaded VSIX in VS Code, use the Extensions view's `Install from VSIX...` action.
 
@@ -169,13 +187,14 @@ For realistic dogfood, use the extension in a workspace that contains only evide
 
 This is an **Alpha/dogfood** product, not a polished Marketplace/customer-ready release.
 
-Real assistant-as-user dogfood has now exercised the full repository with exact Luna, cross-topic recovery, model answers, provenance follow-through, correction, dispute, and fail-closed answer handling. That testing found and fixed the citation transport issue shipped in 0.1.5. It also found one realistic default-W0 case where the correct E015 document was retrieved but the decisive neighboring paragraphs were omitted from the answer context; the existing X1 candidate repaired that frozen case in one bounded real-Luna retest. One case is not sufficient to promote X1 globally.
+Real assistant-as-user dogfood has now covered both the project repository and three unfamiliar external corpora. External E017 testing found and fixed the uneven-topic forgotten-topic discovery bug included in 0.1.6. It also added a second independent real-user case where X1 materially improved W0 context: a CPython reStructuredText question recovered the current POSIX `forkserver` default and 3.14 rationale under X1. That repair remained partial because the exact multithreaded-fork warning lived in another region of the same long `.rst` document and was still omitted.
 
 Customer readiness therefore still requires:
 
 1. repeated natural multi-session use in the user's own VS Code workflow, so E013/E015 evidence arises without manufactured activity;
-2. additional natural W0/X1 divergent cases, if they occur, to determine whether the first real X1 repair is representative before any default/routing change;
-3. the separate VS Code-native LM API exact-Luna question only if replacing the validated CLI adapter is still valuable.
+2. additional natural W0/X1 divergent cases, if they occur, before any default/routing change;
+3. recurrence before adding non-Markdown parser/multiple-unit retrieval complexity for the single CPython multi-aspect case;
+4. the separate VS Code-native LM API exact-Luna question only if replacing the validated CLI adapter is still valuable.
 
 The UI remains intentionally command-driven for Alpha. Additional visual UX should follow repeated real-use friction rather than speculative polish.
 
