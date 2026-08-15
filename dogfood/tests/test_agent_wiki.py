@@ -94,7 +94,7 @@ class AgentWikiTests(unittest.TestCase):
         hits = agent_wiki.search_agent_notes(root, "rebuildable provenance", top_k=3)
         self.assertEqual(len(hits), 1)
         self.assertEqual(hits[0].source_id, source.source_id)
-        self.assertIn("noncanonical", hits[0].snippet.casefold())
+        self.assertIn("provenance-linked", hits[0].snippet.casefold())
 
     def test_superseded_source_note_is_not_returned_as_current_derived_memory(self):
         temp, root, topic, source = self._wiki_with_source("Old cobalt timeout was 15 seconds.")
@@ -111,14 +111,14 @@ class AgentWikiTests(unittest.TestCase):
             topic_id=topic["topic_id"],
             allow_model_call=True,
         )
-        self.assertEqual(len(agent_wiki.search_agent_notes(root, "cobalt timeout", top_k=3)), 1)
+        self.assertEqual(len(agent_wiki.search_agent_notes(root, "provenance linked", top_k=3)), 1)
 
         successor_path = Path(temp.name) / "successor.md"
         successor_path.write_text("Current cobalt timeout is 20 seconds.", encoding="utf-8")
         successor, _ = ingest_file(root, successor_path, topic_id=topic["topic_id"])
         supersede_source(root, source.source_id, successor.source_id, topic_id=topic["topic_id"])
 
-        hits = agent_wiki.search_agent_notes(root, "cobalt timeout", top_k=3)
+        hits = agent_wiki.search_agent_notes(root, "provenance linked", top_k=3)
         self.assertEqual(hits, [], "a derived note for a superseded source must not surface as current Agent Wiki memory")
         self.assertIsNotNone(agent_wiki.read_agent_source_note(root, source.source_id), "derived history may remain inspectable even when no longer current")
 
