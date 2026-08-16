@@ -1,11 +1,11 @@
 'use strict';
 
-const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const vscode = require('vscode');
+const humanKnowledge = require('./human-knowledge');
 const { parseIngestReceipt, workspaceRelativePath } = require('./product-helpers');
 
 const execFileAsync = promisify(execFile);
@@ -224,95 +224,6 @@ function normalizeReadMaxChars(value) {
   return Math.max(500, Math.min(12000, Math.trunc(parsed)));
 }
 
-function humanKnowledgeRoot(folder) {
-  return path.join(wikiRoot(folder), 'human-knowledge');
-}
-
-function privateMkdir(dir) {
-  fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
-  try { fs.chmodSync(dir, 0o700); } catch (_) {}
-}
-
-function privateAtomicWrite(target, text) {
-  privateMkdir(path.dirname(target));
-  const temp = `${target}.tmp-${process.pid}-${crypto.randomBytes(6).toString('hex')}`;
-  fs.writeFileSync(temp, text, { encoding: 'utf8', mode: 0o600 });
-  fs.renameSync(temp, target);
-  try { fs.chmodSync(target, 0o600); } catch (_) {}
-}
-
-function memoryTokens(text) {
-  return (String(text || '').toLocaleLowerCase().match(/[\p{L}\p{N}_-]+/gu) || []).filter(Boolean);
-}
-
-function humanKnowledgeRows(folder) {
-  const root = humanKnowledgeRoot(folder);
-  if (!fs.existsSync(root)) return [];
-  const rows = [];
-  for (const name of fs.readdirSync(root).filter((value) => value.endsWith('.json')).sort()) {
-    try {
-      const row = JSON.parse(fs.readFileSync(path.join(root, name), 'utf8'));
-      if (!row || row.format !== 'llm-wiki-human-knowledge-v0' || typeof row.id !== 'string') continue;
-      rows.push(row);
-    } catch (_) {}
-  }
-  return rows;
-}
-
-function searchHumanKnowledge(folder, query, topK = 3) {
-  const qtokens = [...new Set(memoryTokens(query))];
-  if (!qtokens.length) return [];
-  return humanKnowledgeRows(folder)
-    .map((row) => {
-      const text = `${row.title || ''}\n${row.statement || ''}\n${row.reasoning || ''}`;
-      const tokens = memoryTokens(text);
-      const counts = new Map();
-      for (const token of tokens) counts.set(token, (counts.get(token) || 0) + 1);
-      const score = qtokens.reduce((sum, token) => sum + Math.min(3, counts.get(token) || 0), 0);
-      return { ...row, score };
-    })
-    .filter((row) => row.score > 0)
-    .sort((a, b) => b.score - a.score || String(b.createdAt).localeCompare(String(a.createdAt)))
-    .slice(0, topK);
-}
-
-async function saveHumanKnowledge(folder, input) {
-  const id = `hk-${Date.now()}-${crypto.randomBytes(5).toString('hex')}`;
-  const record = {
-    format: 'llm-wiki-human-knowledge-v0',
-    id,
-    title: input.title,
-    statement: input.statement,
-    reasoning: input.reasoning,
-    sourceIds: input.sourceIds,
-    authorship: 'user_confirmed',
-    createdAt: new Date().toISOString(),
-  };
-  const root = humanKnowledgeRoot(folder);
-  privateAtomicWrite(path.join(root, `${id}.json`), `${JSON.stringify(record, null, 2)}\n`);
-  const lines = [
-    `# ${record.title}`,
-    '',
-    '> **HUMAN KNOWLEDGE — USER CONFIRMED**',
-    '> This record represents wording the user explicitly confirmed for durable personal knowledge. It is not raw external evidence.',
-    '',
-    '## Current statement',
-    '',
-    record.statement,
-    '',
-    '## Why / reasoning',
-    '',
-    record.reasoning || 'No separate reasoning was recorded.',
-    '',
-    '## Supporting LLM Wiki sources',
-    '',
-    ...(record.sourceIds.length ? record.sourceIds.map((sourceId) => `- \`${sourceId}\``) : ['- None recorded.']),
-    '',
-  ];
-  privateAtomicWrite(path.join(root, `${id}.md`), lines.join('\n'));
-  return record;
-}
-
 function formatMemoryResult(rawRows, derivedRows = [], humanRows = [], pendingRows = []) {
   const lines = [
     'LLM_WIKI_MEMORY_RESULT v3',
@@ -363,6 +274,7 @@ function formatMemoryResult(rawRows, derivedRows = [], humanRows = [], pendingRo
     lines.push(`knowledge_id=${row.id}`);
     lines.push(`title=${row.title}`);
     lines.push(`supporting_source_ids=${(row.sourceIds || []).join(',')}`);
+    lines.push(`supersedes_knowledge_id=${row.supersedesKnowledgeId || ''}`);
     lines.push('--- BEGIN USER-CONFIRMED HUMAN KNOWLEDGE ---');
     lines.push(String(row.statement || '').trim());
     if (row.reasoning) lines.push(`Reasoning: ${String(row.reasoning).trim()}`);
@@ -515,7 +427,7 @@ class WikiMemorySearchTool {
     ]);
     const rawRows = parseJsonLines(rawStdout).slice(0, maxResults);
     const derivedRows = parseJsonLines(derivedStdout);
-    const humanRows = searchHumanKnowledge(folder, query, 3);
+    const humanRows = humanKnowledge.search(wikiRoot(folder), query, 3);
     return new vscode.LanguageModelToolResult([
       new vscode.LanguageModelTextPart(formatMemoryResult(rawRows, derivedRows, humanRows, pendingRows)),
     ]);
@@ -623,8 +535,6 @@ class WikiRememberSourceTool {
     const receipt = parseIngestReceipt(stdout);
     if (!receipt) throw new Error('LLM Wiki ingest completed without a parseable source receipt.');
 
-    // Detect predecessor identity from the exact bytes that the core actually
-    // admitted, not from a pre-ingest digest that could race an external edit.
     const predecessors = await currentSameFileCandidates(this.context, folder, topic, target, receipt.sha256);
     await rememberLocator(this.context, folder, receipt.sourceId, target.relativePath, receipt.sha256);
 
@@ -797,20 +707,28 @@ class WikiRememberHumanKnowledgeTool {
     const statement = String(input.statement || '').trim();
     const reasoning = String(input.reasoning || '').trim();
     const suppliedTitle = String(input.title || '').trim();
+    const supersedesKnowledgeId = String(input.supersedesKnowledgeId || '').trim();
     const sourceIds = Array.isArray(input.sourceIds) ? [...new Set(input.sourceIds.map((value) => String(value).trim()).filter(Boolean))] : [];
     if (!statement) throw new Error('rememberHumanKnowledge.statement is required and must come from explicit user intent.');
     if (statement.length > 1800 || reasoning.length > 1600 || statement.length + reasoning.length > 3400) {
       throw new Error('Human Knowledge v0 requires statement <=1800 chars, reasoning <=1600 chars, combined <=3400 so the user can inspect the full text before confirmation.');
     }
     if (sourceIds.length > 12 || sourceIds.some((sourceId) => !SOURCE_ID_RE.test(sourceId))) throw new Error('Human Knowledge sourceIds must contain at most 12 canonical source IDs.');
+    if (supersedesKnowledgeId && !/^hk-[0-9]+-[0-9a-f]+$/.test(supersedesKnowledgeId)) throw new Error('supersedesKnowledgeId must be a current Human Knowledge ID returned by wikiMemory.');
 
     await runCli(this.context, folder, ['init']);
     for (const sourceId of sourceIds) {
       await runAgentMemoryCli(this.context, folder, ['read', sourceId, '--max-chars', '1']);
     }
+    const prior = supersedesKnowledgeId ? humanKnowledge.currentById(wikiRoot(folder), supersedesKnowledgeId) : undefined;
+    if (supersedesKnowledgeId && !prior) {
+      throw new Error(`Human Knowledge supersedes target is missing or not current: ${supersedesKnowledgeId}`);
+    }
+
     const title = (suppliedTitle || statement.split(/\r?\n/)[0].slice(0, 100) || 'Human Knowledge').slice(0, 160);
     const preview = [
       `Title: ${title}`,
+      supersedesKnowledgeId ? `Replaces prior Human Knowledge: ${supersedesKnowledgeId} — ${prior.title}` : '',
       '',
       'Statement:',
       statement,
@@ -827,7 +745,13 @@ class WikiRememberHumanKnowledgeTool {
       return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart('LLM_WIKI_HUMAN_KNOWLEDGE_RESULT v1\nstatus=CANCELLED_BY_USER\nwrite=none')]);
     }
 
-    const record = await saveHumanKnowledge(folder, { title, statement, reasoning, sourceIds });
+    const record = humanKnowledge.save(wikiRoot(folder), {
+      title,
+      statement,
+      reasoning,
+      sourceIds,
+      supersedesKnowledgeId,
+    });
     const text = [
       'LLM_WIKI_HUMAN_KNOWLEDGE_RESULT v1',
       'status=CREATED',
@@ -835,11 +759,13 @@ class WikiRememberHumanKnowledgeTool {
       `knowledge_id=${record.id}`,
       `title=${record.title}`,
       `supporting_source_ids=${record.sourceIds.join(',')}`,
+      `supersedes_knowledge_id=${record.supersedesKnowledgeId}`,
+      `integrity_sha256=${record.integritySha256}`,
       'raw_evidence_mutation=none',
       'canonical_temporal_mutation=none',
       'model_calls=0',
       '',
-      'This record is authoritative as a memory of what the user explicitly confirmed. It is not independent external factual evidence and must not be silently generalized into other user beliefs.',
+      'This record is authoritative as a memory of what the user explicitly confirmed. It is not independent external factual evidence and must not be silently generalized into other user beliefs. If the user later changes this decision/belief, create a new confirmed Human Knowledge record with supersedesKnowledgeId pointing to this current record.',
     ].join('\n');
     return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(text)]);
   }
@@ -870,5 +796,5 @@ module.exports = {
   maintenanceEnabled,
   normalizeMaxResults,
   registerAgentTools,
-  searchHumanKnowledge,
+  searchHumanKnowledge: (folder, query, topK = 3) => humanKnowledge.search(wikiRoot(folder), query, topK),
 };
