@@ -131,6 +131,12 @@ suite('LLM Wiki Agent Tools', () => {
       assert.match(text, /model_calls=0/);
       assert.match(text, /maintenance_daily_limit=0/);
       assert.equal(fs.existsSync(path.join(wikiRoot, 'agent-wiki', 'source-notes')), false, 'daily limit zero must block derived model maintenance');
+
+      const agentState = JSON.parse(fs.readFileSync(path.join(wikiRoot, 'agent-state.json'), 'utf8'));
+      const sourceId = field(text, 'source_id');
+      assert.equal(agentState.format, 'llm-wiki-agent-state-v0');
+      assert.equal(agentState.source_locators[sourceId].relative_path, 'runtime-dirty-remember.md');
+      assert.equal(agentState.maintenance_usage.reserved_calls, 0, 'blocked maintenance must not consume a call reservation');
     } finally {
       await config.update('agentWikiMaintenanceEnabled', false, vscode.ConfigurationTarget.Workspace);
       await config.update('agentWikiMaintenanceDailyCallLimit', 10, vscode.ConfigurationTarget.Workspace);
@@ -138,7 +144,7 @@ suite('LLM Wiki Agent Tools', () => {
     }
   });
 
-  test('changed remembered file becomes pending lineage and only human-gated resolution records semantics', async () => {
+  test('changed remembered file becomes durable pending lineage and only human-gated resolution records semantics', async () => {
     const extension = vscode.extensions.getExtension('llm-wiki-lab.llm-wiki-dogfood');
     assert.ok(extension);
     await extension.activate();
@@ -171,6 +177,12 @@ suite('LLM Wiki Agent Tools', () => {
       assert.match(second, /derived_agent_wiki_maintenance=SKIPPED_PENDING_LINEAGE_DECISION/);
       assert.match(second, new RegExp(`predecessor_source_ids=${oldSource}`));
 
+      const stateBeforeResolve = JSON.parse(fs.readFileSync(path.join(wikiRoot, 'agent-state.json'), 'utf8'));
+      const pending = stateBeforeResolve.pending_lineage.find((row) => row.id === decisionId);
+      assert.ok(pending, 'pending decision must be durable inside .wiki-lab');
+      assert.equal(pending.status, 'open');
+      assert.equal(pending.workspace_file, 'runtime-lineage-source.md');
+
       const beforeResolve = fs.readFileSync(path.join(wikiRoot, 'manifest.jsonl'), 'utf8');
       assert.doesNotMatch(beforeResolve, /"event":"supersede"/);
 
@@ -184,7 +196,9 @@ suite('LLM Wiki Agent Tools', () => {
       assert.match(resolved, /model_calls=0/);
 
       const afterResolve = fs.readFileSync(path.join(wikiRoot, 'manifest.jsonl'), 'utf8');
-      assert.match(afterResolve, /"kind":"change"/);
+      assert.match(afterResolve, /"relation_kind": "change"/);
+      const stateAfterResolve = JSON.parse(fs.readFileSync(path.join(wikiRoot, 'agent-state.json'), 'utf8'));
+      assert.equal(stateAfterResolve.pending_lineage.find((row) => row.id === decisionId).status, 'resolved');
 
       const search = toolText(await vscode.lm.invokeTool('llmWiki_searchMemory', {
         input: { query: 'cobalt timeout', maxResults: 5 }, toolInvocationToken: undefined,
@@ -197,7 +211,7 @@ suite('LLM Wiki Agent Tools', () => {
     }
   });
 
-  test('explicit Human Knowledge is confirmed, locally persisted, and searchable as a separate class', async () => {
+  test('explicit Human Knowledge initializes safely, is fully bounded, persisted, and searchable as a separate class', async () => {
     const extension = vscode.extensions.getExtension('llm-wiki-lab.llm-wiki-dogfood');
     assert.ok(extension);
     await extension.activate();
@@ -205,7 +219,15 @@ suite('LLM Wiki Agent Tools', () => {
     assert.ok(folder);
     const wikiRoot = path.join(folder.uri.fsPath, '.wiki-lab');
     fs.rmSync(wikiRoot, { recursive: true, force: true });
-    await vscode.commands.executeCommand('llmWiki.init');
+
+    await assert.rejects(
+      vscode.lm.invokeTool('llmWiki_rememberHumanKnowledge', {
+        input: { statement: 'x'.repeat(1801) },
+        toolInvocationToken: undefined,
+      }),
+      /statement <=1800 chars/
+    );
+    assert.equal(fs.existsSync(wikiRoot), false, 'oversized Human Knowledge must fail before Wiki initialization/write');
 
     const result = toolText(await vscode.lm.invokeTool('llmWiki_rememberHumanKnowledge', {
       input: {
@@ -221,6 +243,8 @@ suite('LLM Wiki Agent Tools', () => {
     assert.match(result, /model_calls=0/);
     const knowledgeId = field(result, 'knowledge_id');
     assert.ok(knowledgeId);
+    assert.ok(fs.existsSync(path.join(wikiRoot, 'config.json')), 'Human Knowledge path must initialize the Wiki through the core boundary');
+    assert.ok(fs.existsSync(path.join(wikiRoot, 'manifest.jsonl')), 'Human Knowledge path must not create a partial Wiki root');
     assert.ok(fs.existsSync(path.join(wikiRoot, 'human-knowledge', `${knowledgeId}.json`)));
     assert.ok(fs.existsSync(path.join(wikiRoot, 'human-knowledge', `${knowledgeId}.md`)));
 
