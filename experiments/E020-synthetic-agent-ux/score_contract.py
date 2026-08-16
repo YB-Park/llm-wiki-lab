@@ -7,6 +7,8 @@ ROOT = Path(__file__).resolve().parents[2]
 AGENT = (ROOT / "dogfood/vscode/agent-tools.js").read_text(encoding="utf-8")
 MANIFEST = json.loads((ROOT / "dogfood/vscode/package.json").read_text(encoding="utf-8"))
 AGENT_MEMORY = (ROOT / "dogfood/llm_wiki/agent_memory_cli.py").read_text(encoding="utf-8")
+AGENT_STATE = (ROOT / "dogfood/llm_wiki/agent_state.py").read_text(encoding="utf-8")
+AGENT_STATE_CLI = (ROOT / "dogfood/llm_wiki/agent_state_cli.py").read_text(encoding="utf-8")
 
 FEATURE_MARKERS = {
     "ambient_search": [(AGENT, "LLM_WIKI_MEMORY_RESULT v3"), (AGENT, "['discover', query, '--top-k-per-topic', '3', '--json']")],
@@ -25,16 +27,22 @@ FEATURE_MARKERS = {
     "change_effective_time": [(AGENT, "timezone-aware effectiveAt"), (AGENT, "'--effective-at'")],
     "human_knowledge": [(AGENT, "llm-wiki-human-knowledge-v0"), (AGENT, "HUMAN KNOWLEDGE — USER CONFIRMED")],
     "human_knowledge_search": [(AGENT, "HUMAN_KNOWLEDGE H"), (AGENT, "searchHumanKnowledge")],
+    "human_knowledge_init": [(AGENT, "await runCli(this.context, folder, ['init'])"), (AGENT, "full text below becomes user-confirmed memory")],
     "derived_separate": [(AGENT, "DERIVED_MEMORY D"), (AGENT, "derived_noncanonical_agent_wiki")],
     "pending_surface": [(AGENT, "PENDING_LINEAGE_DECISIONS"), (AGENT, "pending_lineage_count=")],
     "source_currentness": [(AGENT_MEMORY, "temporal_source_status"), (AGENT, "status=${row.status}")],
     "no_auto_human_inference": [(AGENT, "human_authorship_persisted=no"), (AGENT, "must not be silently generalized")],
     "local_file_only": [(AGENT, "only admits files inside the current workspace"), (AGENT, "only admits regular files")],
+    "durable_authority_state": [(AGENT_STATE, 'STATE_FILE = "agent-state.json"'), (AGENT, "runAgentStateCli")],
+    "durable_budget": [(AGENT_STATE, "reserve_maintenance_call"), (AGENT_STATE, "store_writer_lock")],
+    "durable_locator": [(AGENT_STATE, "source_locators"), (AGENT, "durableSourceLocators")],
+    "no_pending_eviction": [(AGENT_STATE, "Never evict unresolved decisions"), (AGENT_STATE, 'state["pending_lineage"].append(row)')],
+    "state_cli": [(AGENT_STATE_CLI, 'pending-add'), (AGENT_STATE_CLI, 'usage-reserve'), (AGENT_STATE_CLI, 'locator-set')],
 }
 
-# These cases are synthetic product-contract checks, not empirical user metrics.
-# status=supported means 0.1.11 must contain a deterministic/product mechanism.
-# partial/deferred are intentionally left for installed evidence or a later authority/parser decision.
+# Synthetic product-contract checks, not empirical user metrics.
+# supported = a concrete deterministic/product mechanism must exist now.
+# partial/deferred = intentionally left for installed evidence or a later authority/parser decision.
 CASES = [
     ("S01", "ordinary recall may consult prior memory", "supported", ["ambient_search"]),
     ("S02", "precise fact follows search hit into immutable evidence", "supported", ["verified_read"]),
@@ -92,6 +100,12 @@ CASES = [
     ("S54", "full activity/diff/revert UI remains deferred until installed friction", "deferred", ["verified_read"]),
     ("S55", "cross-workspace personal/project federation remains deferred", "deferred", []),
     ("S56", "X2 multi-region retrieval remains evidence-gated", "deferred", ["ambient_search"]),
+    ("S57", "pending epistemic decisions survive VS Code workspace-state loss because they live inside .wiki-lab", "supported", ["durable_authority_state", "state_cli"]),
+    ("S58", "daily maintenance reservations survive extension storage reset and backup/restore", "supported", ["durable_authority_state", "durable_budget", "state_cli"]),
+    ("S59", "same-file source locators used for lineage detection survive backup/restore", "supported", ["durable_authority_state", "durable_locator", "state_cli"]),
+    ("S60", "old unresolved decisions are never silently evicted by a fixed-size queue", "supported", ["durable_authority_state", "no_pending_eviction"]),
+    ("S61", "Human Knowledge cannot create a partial uninitialized .wiki-lab root", "supported", ["human_knowledge", "human_knowledge_init"]),
+    ("S62", "Human Knowledge confirmation shows the entire bounded durable statement/reasoning", "supported", ["human_knowledge", "human_knowledge_init"]),
 ]
 
 
