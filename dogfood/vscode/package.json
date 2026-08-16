@@ -114,7 +114,7 @@
       {
         "name": "llmWiki_rememberHumanKnowledge",
         "displayName": "Remember Human Knowledge",
-        "modelDescription": "Use only when the user explicitly asks to durably remember their own decision, belief, rationale, or user-approved synthesis. Do not infer or silently paraphrase a tentative belief. The product shows the exact proposed durable text for human confirmation. This creates HUMAN_KNOWLEDGE only: no raw-evidence or canonical temporal mutation and zero model calls.",
+        "modelDescription": "Use only when the user explicitly asks to durably remember their own decision, belief, rationale, or user-approved synthesis. Do not infer or silently paraphrase a tentative belief. The product shows the full proposed durable text for human confirmation. This creates HUMAN_KNOWLEDGE only: no raw-evidence or canonical temporal mutation and zero model calls.",
         "canBeReferencedInPrompt": true,
         "toolReferenceName": "rememberHumanKnowledge",
         "icon": "$(person)",
@@ -122,10 +122,10 @@
         "inputSchema": {
           "type": "object",
           "properties": {
-            "title": { "type": "string", "description": "Short organizational title; may be generated because it is not an epistemic claim." },
-            "statement": { "type": "string", "description": "The durable statement the user explicitly asked to remember. Preserve the user's meaning; do not invent a commitment." },
-            "reasoning": { "type": "string", "description": "Optional reasoning the user explicitly provided or explicitly approved." },
-            "sourceIds": { "type": "array", "items": { "type": "string" }, "description": "Optional canonical LLM Wiki source IDs the user or current grounded conversation wants linked as supporting evidence." }
+            "title": { "type": "string", "maxLength": 160, "description": "Short organizational title; may be generated because it is not an epistemic claim." },
+            "statement": { "type": "string", "maxLength": 1800, "description": "The durable statement the user explicitly asked to remember. Preserve the user's meaning; do not invent a commitment." },
+            "reasoning": { "type": "string", "maxLength": 1600, "description": "Optional reasoning the user explicitly provided or explicitly approved." },
+            "sourceIds": { "type": "array", "maxItems": 12, "items": { "type": "string" }, "description": "Optional canonical LLM Wiki source IDs the user or current grounded conversation wants linked as supporting evidence." }
           },
           "required": ["statement"]
         }
@@ -159,7 +159,7 @@
         "llmWiki.maxAiCredits": { "type": "number", "default": 30, "minimum": 30, "maximum": 100, "description": "Per-call Copilot AI-credit guard for explicit Ask Luna commands. Current Copilot CLI requires a minimum guard of 30." },
         "llmWiki.agentWikiMaintenanceEnabled": { "type": "boolean", "default": false, "scope": "resource", "description": "Standing workspace grant. When enabled, after explicit source admission its admitted bytes may be sent to exact gpt-5.6-luna to create/reuse a provenance-linked noncanonical Agent Wiki note. Off by default." },
         "llmWiki.agentWikiMaintenanceMaxAiCredits": { "type": "number", "default": 30, "minimum": 30, "maximum": 100, "scope": "resource", "description": "Per-source Agent Wiki maintenance AI-credit guard. This is a ceiling, not expected spend; current Copilot CLI requires a minimum guard of 30." },
-        "llmWiki.agentWikiMaintenanceDailyCallLimit": { "type": "number", "default": 10, "minimum": 0, "maximum": 100, "scope": "resource", "description": "Maximum model-backed Agent Wiki maintenance call reservations per local day for this workspace. 0 disables model-backed maintenance even when the grant is on. A reservation is consumed before a call and is not refunded when transport outcome is uncertain." }
+        "llmWiki.agentWikiMaintenanceDailyCallLimit": { "type": "number", "default": 10, "minimum": 0, "maximum": 100, "scope": "resource", "description": "Maximum model-backed Agent Wiki maintenance call reservations per local day for this workspace. 0 disables model-backed maintenance even when the grant is on. Reservations are durably stored inside .wiki-lab before a call and are not refunded when transport outcome is uncertain." }
       }
     }
   },
