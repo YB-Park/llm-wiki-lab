@@ -129,7 +129,8 @@ must('hk-integrity-fail-closed', humanKnowledge.includes('Human Knowledge integr
 must('hk-supersedes', humanKnowledge.includes('supersedesKnowledgeId'));
 must('hk-current-filter', humanKnowledge.includes('currentRows'));
 must('hk-superseded-filter', humanKnowledge.includes('superseded.has(row.id)'));
-mustNot('hk-no-silent-corruption-skip', humanKnowledge.includes('catch (_) {}'));
+must('hk-json-parse-fails-closed', humanKnowledge.includes('throw new Error(`Human Knowledge corruption detected (${name}): unreadable JSON.`)'));
+mustNot('hk-no-empty-json-catch', humanKnowledge.includes('JSON.parse(fs.readFileSync(filePath, \'utf8\'));\n    } catch (_) {}'));
 must('hk-modal', agentTools.includes('Save Human Knowledge?'));
 must('hk-full-confirmation-text', agentTools.includes('full text below becomes user-confirmed memory'));
 must('hk-supersedes-tool', agentTools.includes('supersedesKnowledgeId'));
