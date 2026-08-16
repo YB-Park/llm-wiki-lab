@@ -15,6 +15,13 @@ const gitSafety = fs.readFileSync(path.join(root, 'git-safety.js'), 'utf8');
 const lmDiscovery = fs.readFileSync(path.join(root, 'lm-discovery.js'), 'utf8');
 const bundler = fs.readFileSync(path.join(root, 'scripts', 'bundle-core.js'), 'utf8');
 
+function must(label, condition) {
+  assert.ok(condition, `STATIC-BOUNDARY ${label}`);
+}
+function mustNot(label, condition) {
+  assert.ok(!condition, `STATIC-BOUNDARY ${label}`);
+}
+
 const commands = new Set((manifest.contributes.commands || []).map((row) => row.command));
 for (const command of [
   'llmWiki.init', 'llmWiki.createTopic', 'llmWiki.selectTopic', 'llmWiki.newKnowledgeNote',
@@ -22,141 +29,139 @@ for (const command of [
   'llmWiki.search', 'llmWiki.discoverAcrossTopics', 'llmWiki.markCorrection', 'llmWiki.markChange',
   'llmWiki.markDispute', 'llmWiki.feedback', 'llmWiki.ask', 'llmWiki.calibration', 'llmWiki.doctor',
   'llmWiki.experimentalDiscoverCopilotModels',
-]) assert(commands.has(command), `missing command: ${command}`);
-assert.equal(commands.size, 17);
+]) must(`command:${command}`, commands.has(command));
+assert.equal(commands.size, 17, 'STATIC-BOUNDARY command-count');
 
-assert(entry.includes("registerCommand('llmWiki.newKnowledgeNote'"));
-assert(entry.includes('Human-owned draft. Saving this file does not ingest, promote, or mutate LLM Wiki state.'));
-assert(!entry.includes("executeCommand('llmWiki.ingestActiveFile')"));
-assert(!entry.includes("executeCommand('llmWiki.ask')"));
-assert(entry.includes("registerCommand('llmWiki.configureAgentWikiMaintenance'"));
-assert(entry.includes("config.update('agentWikiMaintenanceEnabled', action.value, vscode.ConfigurationTarget.Workspace)"));
-assert(entry.includes("{ modal: true }"));
-assert(entry.includes("doctorOutput.appendLine('Model calls: 0')"));
-assert(!entry.includes('--allow-model-call'));
+must('human-note-command', entry.includes("registerCommand('llmWiki.newKnowledgeNote'"));
+must('human-note-boundary-text', entry.includes('Human-owned draft. Saving this file does not ingest, promote, or mutate LLM Wiki state.'));
+mustNot('human-note-no-auto-ingest', entry.includes("executeCommand('llmWiki.ingestActiveFile')"));
+mustNot('human-note-no-auto-model', entry.includes("executeCommand('llmWiki.ask')"));
+must('maintenance-config-command', entry.includes("registerCommand('llmWiki.configureAgentWikiMaintenance'"));
+must('maintenance-workspace-setting', entry.includes("config.update('agentWikiMaintenanceEnabled', action.value, vscode.ConfigurationTarget.Workspace)"));
+must('maintenance-modal', entry.includes("{ modal: true }"));
+must('doctor-zero-model', entry.includes("doctorOutput.appendLine('Model calls: 0')"));
+mustNot('entry-never-authorizes-model', entry.includes('--allow-model-call'));
 
 const tools = manifest.contributes.languageModelTools || [];
-assert.equal(tools.length, 5);
+assert.equal(tools.length, 5, 'STATIC-BOUNDARY tool-count');
 const toolNames = new Set(tools.map((row) => row.name));
 for (const name of [
   'llmWiki_searchMemory', 'llmWiki_readSource', 'llmWiki_rememberSource',
   'llmWiki_rememberHumanKnowledge', 'llmWiki_resolveLineage',
-]) assert(toolNames.has(name), `missing Agent Wiki tool: ${name}`);
-for (const name of toolNames) assert(manifest.activationEvents.includes(`onLanguageModelTool:${name}`));
-assert.equal(tools.find((row) => row.name === 'llmWiki_searchMemory').toolReferenceName, 'wikiMemory');
-assert.equal(tools.find((row) => row.name === 'llmWiki_readSource').toolReferenceName, 'wikiRead');
-assert.equal(tools.find((row) => row.name === 'llmWiki_rememberSource').toolReferenceName, 'rememberWikiSource');
-assert.equal(tools.find((row) => row.name === 'llmWiki_rememberHumanKnowledge').toolReferenceName, 'rememberHumanKnowledge');
-assert.equal(tools.find((row) => row.name === 'llmWiki_resolveLineage').toolReferenceName, 'resolveWikiLineage');
+]) must(`tool:${name}`, toolNames.has(name));
+for (const name of toolNames) must(`activation:${name}`, manifest.activationEvents.includes(`onLanguageModelTool:${name}`));
+assert.equal(tools.find((row) => row.name === 'llmWiki_searchMemory').toolReferenceName, 'wikiMemory', 'STATIC-BOUNDARY ref:wikiMemory');
+assert.equal(tools.find((row) => row.name === 'llmWiki_readSource').toolReferenceName, 'wikiRead', 'STATIC-BOUNDARY ref:wikiRead');
+assert.equal(tools.find((row) => row.name === 'llmWiki_rememberSource').toolReferenceName, 'rememberWikiSource', 'STATIC-BOUNDARY ref:rememberWikiSource');
+assert.equal(tools.find((row) => row.name === 'llmWiki_rememberHumanKnowledge').toolReferenceName, 'rememberHumanKnowledge', 'STATIC-BOUNDARY ref:rememberHumanKnowledge');
+assert.equal(tools.find((row) => row.name === 'llmWiki_resolveLineage').toolReferenceName, 'resolveWikiLineage', 'STATIC-BOUNDARY ref:resolveWikiLineage');
 const hkSchema = tools.find((row) => row.name === 'llmWiki_rememberHumanKnowledge').inputSchema.properties;
-assert.equal(hkSchema.statement.maxLength, 1800);
-assert.equal(hkSchema.reasoning.maxLength, 1600);
-assert.equal(hkSchema.sourceIds.maxItems, 12);
-assert.ok(hkSchema.supersedesKnowledgeId);
+assert.equal(hkSchema.statement.maxLength, 1800, 'STATIC-BOUNDARY hk-statement-bound');
+assert.equal(hkSchema.reasoning.maxLength, 1600, 'STATIC-BOUNDARY hk-reasoning-bound');
+assert.equal(hkSchema.sourceIds.maxItems, 12, 'STATIC-BOUNDARY hk-source-bound');
+must('hk-supersedes-schema', Boolean(hkSchema.supersedesKnowledgeId));
 
-assert.equal(manifest.version, '0.1.11');
-assert.equal(manifest.engines.vscode, '^1.95.0');
-assert.equal(manifest.main, './entry.js');
-assert.equal(manifest.private, true);
-assert.equal(manifest.capabilities.untrustedWorkspaces.supported, false);
+assert.equal(manifest.version, '0.1.11', 'STATIC-BOUNDARY version');
+assert.equal(manifest.engines.vscode, '^1.95.0', 'STATIC-BOUNDARY vscode-engine');
+assert.equal(manifest.main, './entry.js', 'STATIC-BOUNDARY main-entry');
+assert.equal(manifest.private, true, 'STATIC-BOUNDARY private-package');
+assert.equal(manifest.capabilities.untrustedWorkspaces.supported, false, 'STATIC-BOUNDARY untrusted-workspace');
 const configProps = manifest.contributes.configuration.properties;
-assert.equal(configProps['llmWiki.agentWikiMaintenanceEnabled'].default, false);
-assert.equal(configProps['llmWiki.agentWikiMaintenanceMaxAiCredits'].minimum, 30);
-assert.equal(configProps['llmWiki.agentWikiMaintenanceDailyCallLimit'].default, 10);
-assert.equal(configProps['llmWiki.agentWikiMaintenanceDailyCallLimit'].minimum, 0);
-assert.equal(configProps['llmWiki.agentWikiMaintenanceDailyCallLimit'].maximum, 100);
-assert(manifest.scripts.check.includes('human-knowledge.js'));
-assert.equal(manifest.devDependencies['@vscode/vsce'], '3.9.2');
+assert.equal(configProps['llmWiki.agentWikiMaintenanceEnabled'].default, false, 'STATIC-BOUNDARY maintenance-default-off');
+assert.equal(configProps['llmWiki.agentWikiMaintenanceMaxAiCredits'].minimum, 30, 'STATIC-BOUNDARY maintenance-credit-min');
+assert.equal(configProps['llmWiki.agentWikiMaintenanceDailyCallLimit'].default, 10, 'STATIC-BOUNDARY daily-limit-default');
+assert.equal(configProps['llmWiki.agentWikiMaintenanceDailyCallLimit'].minimum, 0, 'STATIC-BOUNDARY daily-limit-min');
+assert.equal(configProps['llmWiki.agentWikiMaintenanceDailyCallLimit'].maximum, 100, 'STATIC-BOUNDARY daily-limit-max');
+must('check-includes-human-knowledge', manifest.scripts.check.includes('human-knowledge.js'));
+assert.equal(manifest.devDependencies['@vscode/vsce'], '3.9.2', 'STATIC-BOUNDARY vsce-pin');
 
-assert(entry.includes("require('./agent-tools')"));
-assert(entry.includes('registerAgentTools(context);'));
-assert(agentTools.includes("require('./human-knowledge')"));
-assert(agentTools.includes("vscode.lm.registerTool(SEARCH_TOOL"));
-assert(agentTools.includes("vscode.lm.registerTool(READ_TOOL"));
-assert(agentTools.includes("vscode.lm.registerTool(REMEMBER_TOOL"));
-assert(agentTools.includes("vscode.lm.registerTool(HUMAN_KNOWLEDGE_TOOL"));
-assert(agentTools.includes("vscode.lm.registerTool(RESOLVE_LINEAGE_TOOL"));
+must('entry-load-agent-tools', entry.includes("require('./agent-tools')"));
+must('entry-register-agent-tools', entry.includes('registerAgentTools(context);'));
+must('agent-load-human-knowledge', agentTools.includes("require('./human-knowledge')"));
+must('register-search-tool', agentTools.includes('vscode.lm.registerTool(SEARCH_TOOL'));
+must('register-read-tool', agentTools.includes('vscode.lm.registerTool(READ_TOOL'));
+must('register-remember-tool', agentTools.includes('vscode.lm.registerTool(REMEMBER_TOOL'));
+must('register-hk-tool', agentTools.includes('vscode.lm.registerTool(HUMAN_KNOWLEDGE_TOOL'));
+must('register-lineage-tool', agentTools.includes('vscode.lm.registerTool(RESOLVE_LINEAGE_TOOL'));
 
-// Read-depth and injection boundaries.
-assert(agentTools.includes("['discover', query, '--top-k-per-topic', '3', '--json']"));
-assert(agentTools.includes("runAgentMemoryCli(this.context, folder, args)"));
-assert(agentTools.includes('RAW_MEMORY R'));
-assert(agentTools.includes('DERIVED_MEMORY D'));
-assert(agentTools.includes('HUMAN_KNOWLEDGE H'));
-assert(agentTools.includes('UNTRUSTED_QUOTED_DATA_NOT_INSTRUCTIONS'));
-assert(agentTools.includes('BEGIN VERIFIED IMMUTABLE RAW EVIDENCE'));
-assert(agentTools.includes('If has_more=yes'));
-assert(agentTools.includes('For load-bearing factual claims surfaced by DERIVED_MEMORY, follow source_ids with wikiRead'));
+must('ambient-discover-current', agentTools.includes("['discover', query, '--top-k-per-topic', '3', '--json']"));
+must('verified-read-cli', agentTools.includes('runAgentMemoryCli(this.context, folder, args)'));
+must('raw-memory-class', agentTools.includes('RAW_MEMORY R'));
+must('derived-memory-class', agentTools.includes('DERIVED_MEMORY D'));
+must('human-knowledge-class', agentTools.includes('HUMAN_KNOWLEDGE H'));
+must('untrusted-raw-framing', agentTools.includes('UNTRUSTED_QUOTED_DATA_NOT_INSTRUCTIONS'));
+must('verified-raw-boundary', agentTools.includes('BEGIN VERIFIED IMMUTABLE RAW EVIDENCE'));
+must('read-pagination-policy', agentTools.includes('If has_more=yes'));
+must('derived-follow-to-raw', agentTools.includes('For load-bearing factual claims surfaced by DERIVED_MEMORY, follow source_ids with wikiRead'));
 
-// Admission authority and dirty-state preservation.
-assert(agentTools.includes('explicitHumanConfirm('));
-assert(agentTools.includes('context.extensionMode === vscode.ExtensionMode.Test'));
-assert(agentTools.includes('dirtyOpenDocumentFor'));
-assert(agentTools.includes('vscode.workspace.textDocuments.find'));
-assert(agentTools.includes('LLM Wiki will not auto-save a dirty editor'));
-assert(!agentTools.includes('.save()'), 'remember must never auto-save user working state');
-assert(agentTools.includes("['ingest', target.filePath, '--topic', topic.id]"));
-assert(agentTools.includes('authority=human_confirmed_source_admission'));
-assert(agentTools.includes('human_authorship_persisted=no'));
+must('product-owned-confirmation', agentTools.includes('explicitHumanConfirm('));
+must('confirmation-test-only-bypass', agentTools.includes('context.extensionMode === vscode.ExtensionMode.Test'));
+must('any-open-doc-dirty-check', agentTools.includes('dirtyOpenDocumentFor'));
+must('dirty-check-text-documents', agentTools.includes('vscode.workspace.textDocuments.find'));
+must('dirty-fail-message', agentTools.includes('LLM Wiki will not auto-save a dirty editor'));
+mustNot('no-document-save-call', agentTools.includes('document.save()'));
+mustNot('no-active-document-save-call', agentTools.includes('active.document.save()'));
+must('remember-raw-ingest', agentTools.includes("['ingest', target.filePath, '--topic', topic.id]"));
+must('remember-human-confirmed-authority', agentTools.includes('authority=human_confirmed_source_admission'));
+must('remember-does-not-persist-hk', agentTools.includes('human_authorship_persisted=no'));
 
-// Durable workflow authority state must live under the Wiki boundary.
-assert(agentTools.includes("runPythonModule(context, folder, 'dogfood.llm_wiki.agent_state_cli'"));
-assert(agentTools.includes('durableSourceLocators'));
-assert(agentTools.includes('openPendingLineageRows'));
-assert(agentTools.includes('reserveMaintenanceCall'));
-assert(agentTools.includes('SKIPPED_DAILY_CALL_LIMIT'));
-assert(agentTools.includes('SKIPPED_PENDING_LINEAGE_DECISION'));
-assert(agentTools.includes('continuation_decision_id='));
-assert(agentTools.includes('remaining_predecessor_source_ids='));
+must('durable-agent-state-cli', agentTools.includes("runPythonModule(context, folder, 'dogfood.llm_wiki.agent_state_cli'"));
+must('durable-source-locators', agentTools.includes('durableSourceLocators'));
+must('durable-pending-list', agentTools.includes('openPendingLineageRows'));
+must('durable-budget-reserve', agentTools.includes('reserveMaintenanceCall'));
+must('daily-limit-skip', agentTools.includes('SKIPPED_DAILY_CALL_LIMIT'));
+must('pending-lineage-skip', agentTools.includes('SKIPPED_PENDING_LINEAGE_DECISION'));
+must('continuation-decision-output', agentTools.includes('continuation_decision_id='));
+must('remaining-predecessors-output', agentTools.includes('remaining_predecessor_source_ids='));
 
-// High-consequence lineage remains explicitly human-gated.
-assert(agentTools.includes("LINEAGE_RELATIONS = new Set(['correction', 'change', 'dispute', 'supersede', 'independent'])"));
-assert(agentTools.includes('Confirm LLM Wiki lineage decision'));
-assert(agentTools.includes("['source', 'correct'"));
-assert(agentTools.includes("['source', 'change'"));
-assert(agentTools.includes("['source', 'dispute'"));
-assert(agentTools.includes("['source', 'supersede'"));
-assert(agentTools.includes("relation === 'change' && !effectiveAt"));
-assert(agentTools.includes('authority=human_confirmed_epistemic_relation'));
+must('lineage-enum', agentTools.includes("LINEAGE_RELATIONS = new Set(['correction', 'change', 'dispute', 'supersede', 'independent'])"));
+must('lineage-modal', agentTools.includes('Confirm LLM Wiki lineage decision'));
+must('lineage-correction', agentTools.includes("['source', 'correct'"));
+must('lineage-change', agentTools.includes("['source', 'change'"));
+must('lineage-dispute', agentTools.includes("['source', 'dispute'"));
+must('lineage-supersede', agentTools.includes("['source', 'supersede'"));
+must('change-effective-time-required', agentTools.includes("relation === 'change' && !effectiveAt"));
+must('lineage-human-authority', agentTools.includes('authority=human_confirmed_epistemic_relation'));
 
-// Human Knowledge v1 is explicitly confirmed, integrity-checked, and versionable.
-assert(humanKnowledge.includes("const FORMAT = 'llm-wiki-human-knowledge-v1'"));
-assert(humanKnowledge.includes('integritySha256'));
-assert(humanKnowledge.includes('Human Knowledge integrity failure'));
-assert(humanKnowledge.includes('supersedesKnowledgeId'));
-assert(humanKnowledge.includes('currentRows'));
-assert(humanKnowledge.includes('superseded.has(row.id)'));
-assert(!humanKnowledge.includes('catch (_) {}'), 'corrupt Human Knowledge must not be silently skipped');
-assert(agentTools.includes('Save Human Knowledge?'));
-assert(agentTools.includes('full text below becomes user-confirmed memory'));
-assert(agentTools.includes('supersedesKnowledgeId'));
-assert(agentTools.includes('authority=explicit_user_confirmation'));
-assert(agentTools.includes('integrity_sha256='));
-assert(agentTools.includes('raw_evidence_mutation=none'));
-assert(agentTools.includes('canonical_temporal_mutation=none'));
+must('hk-v1-format', humanKnowledge.includes("const FORMAT = 'llm-wiki-human-knowledge-v1'"));
+must('hk-integrity-field', humanKnowledge.includes('integritySha256'));
+must('hk-integrity-fail-closed', humanKnowledge.includes('Human Knowledge integrity failure'));
+must('hk-supersedes', humanKnowledge.includes('supersedesKnowledgeId'));
+must('hk-current-filter', humanKnowledge.includes('currentRows'));
+must('hk-superseded-filter', humanKnowledge.includes('superseded.has(row.id)'));
+mustNot('hk-no-silent-corruption-skip', humanKnowledge.includes('catch (_) {}'));
+must('hk-modal', agentTools.includes('Save Human Knowledge?'));
+must('hk-full-confirmation-text', agentTools.includes('full text below becomes user-confirmed memory'));
+must('hk-supersedes-tool', agentTools.includes('supersedesKnowledgeId'));
+must('hk-human-authority', agentTools.includes('authority=explicit_user_confirmation'));
+must('hk-integrity-output', agentTools.includes('integrity_sha256='));
+must('hk-no-raw-mutation', agentTools.includes('raw_evidence_mutation=none'));
+must('hk-no-canonical-temporal-mutation', agentTools.includes('canonical_temporal_mutation=none'));
 
-// Model-backed maintenance stays bounded and raw-first.
-assert(agentTools.includes("const AGENT_WIKI_MODEL = 'gpt-5.6-luna'"));
-assert(agentTools.includes("configuration().get('agentWikiMaintenanceEnabled', false) === true"));
-assert(agentTools.includes('agentWikiMaintenanceDailyCallLimit'));
-assert(agentTools.includes("'--allow-model-call'"));
-assert(agentTools.indexOf("['ingest', target.filePath, '--topic', topic.id]") < agentTools.indexOf('maintainSource(this.context, folder, receipt.sourceId'));
-assert(agentTools.includes('FAILED_AFTER_RAW_ADMISSION'));
+must('luna-exact-model', agentTools.includes("const AGENT_WIKI_MODEL = 'gpt-5.6-luna'"));
+must('maintenance-default-config-read', agentTools.includes("configuration().get('agentWikiMaintenanceEnabled', false) === true"));
+must('daily-call-setting', agentTools.includes('agentWikiMaintenanceDailyCallLimit'));
+must('model-authorization-only-maintenance', agentTools.includes("'--allow-model-call'"));
+const ingestIndex = agentTools.indexOf("['ingest', target.filePath, '--topic', topic.id]");
+const maintenanceIndex = agentTools.indexOf('maintainSource(this.context, folder, receipt.sourceId');
+must('raw-first-ordering-markers-exist', ingestIndex >= 0 && maintenanceIndex >= 0);
+must('raw-first-ordering', ingestIndex < maintenanceIndex);
+must('maintenance-failure-preserves-raw', agentTools.includes('FAILED_AFTER_RAW_ADMISSION'));
 
-assert(extension.includes("'gpt-5.6-luna'"));
-assert(extension.includes("'--allow-model-call'"));
-assert(extension.includes('Canonical mutation: none'));
-assert(extension.includes("const SOURCE_SCHEME = 'llm-wiki-source'"));
-assert(!extension.includes('shell: true'));
-assert(!extension.includes('compiled_provider ='));
-assert(productHelpers.includes('workspaceRelativePath'));
-assert(!productHelpers.includes('manifest.jsonl'));
-assert(lmDiscovery.includes("const REQUIRED_LUNA_ID = 'gpt-5.6-luna'"));
-assert(lmDiscovery.includes('generationCalls: 0'));
-assert(!lmDiscovery.includes('sendRequest'));
-assert(gitSafety.includes("['check-ignore', '-q', '--'"));
-assert(!gitSafety.includes('writeFile'));
-assert(bundler.includes("path.join(dogfoodRoot, 'llm_wiki')"));
-assert(bundler.includes("path.join(bundleRoot, 'dogfood')"));
+must('legacy-extension-luna-model', extension.includes("'gpt-5.6-luna'"));
+must('legacy-extension-explicit-model-auth', extension.includes("'--allow-model-call'"));
+must('legacy-extension-readonly-ask', extension.includes('Canonical mutation: none'));
+must('source-navigation-scheme', extension.includes("const SOURCE_SCHEME = 'llm-wiki-source'"));
+mustNot('no-shell-true', extension.includes('shell: true'));
+mustNot('no-compiled-provider-mutation', extension.includes('compiled_provider ='));
+must('workspace-relative-helper', productHelpers.includes('workspaceRelativePath'));
+mustNot('helpers-dont-touch-manifest', productHelpers.includes('manifest.jsonl'));
+must('experimental-exact-luna-discovery', lmDiscovery.includes("const REQUIRED_LUNA_ID = 'gpt-5.6-luna'"));
+must('experimental-discovery-zero-generation', lmDiscovery.includes('generationCalls: 0'));
+mustNot('experimental-discovery-no-generation', lmDiscovery.includes('sendRequest'));
+must('git-safety-ignore-check', gitSafety.includes("['check-ignore', '-q', '--'"));
+mustNot('git-safety-no-write', gitSafety.includes('writeFile'));
+must('bundle-core-source', bundler.includes("path.join(dogfoodRoot, 'llm_wiki')"));
+must('bundle-core-destination', bundler.includes("path.join(bundleRoot, 'dogfood')"));
 
 console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.11 agentTools=5 verifiedRead=yes durableAuthorityState=yes dirtyAnyOpenDocBlocked=yes humanKnowledgeV1=integrity+supersede dailyMaintenanceCap=yes python39Compat=required');
