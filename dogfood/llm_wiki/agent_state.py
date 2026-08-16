@@ -137,8 +137,10 @@ def add_pending_lineage(
             "relation": "",
             "predecessor_source_id": "",
         }
+        # Never evict unresolved decisions to cap file size. A safety-relevant
+        # decision may be old and still matter. Future compaction may remove
+        # resolved rows only, under an explicit migration/maintenance contract.
         state["pending_lineage"].append(row)
-        state["pending_lineage"] = state["pending_lineage"][-100:]
         _write(root, state)
         return dict(row)
 
