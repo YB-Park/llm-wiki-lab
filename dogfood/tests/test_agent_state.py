@@ -47,7 +47,34 @@ class AgentStateTests(unittest.TestCase):
         )
         self.assertEqual(resolved["status"], "resolved")
         self.assertEqual(resolved["relation"], "change")
+        self.assertEqual(resolved["remaining_predecessor_source_ids"], [])
+        self.assertEqual(resolved["continuation_decision_id"], "")
         self.assertEqual(open_pending_lineage(self.root), [])
+
+    def test_multi_predecessor_resolution_keeps_remaining_ambiguity_open(self):
+        first = add_pending_lineage(
+            self.root,
+            created_at="2026-08-16T12:00:00+09:00",
+            topic_id="topic-abc",
+            topic_label="runtime",
+            workspace_file="docs/state.md",
+            predecessor_source_ids=["src-old-a", "src-old-b"],
+            successor_source_id="src-new",
+        )
+        resolved = resolve_pending_lineage(
+            self.root,
+            first["id"],
+            relation="correction",
+            predecessor_source_id="src-old-a",
+            resolved_at="2026-08-16T12:05:00+09:00",
+        )
+        self.assertEqual(resolved["remaining_predecessor_source_ids"], ["src-old-b"])
+        self.assertTrue(resolved["continuation_decision_id"].startswith("pd-"))
+        open_rows = open_pending_lineage(self.root)
+        self.assertEqual(len(open_rows), 1)
+        self.assertEqual(open_rows[0]["id"], resolved["continuation_decision_id"])
+        self.assertEqual(open_rows[0]["predecessor_source_ids"], ["src-old-b"])
+        self.assertEqual(open_rows[0]["successor_source_id"], "src-new")
 
     def test_daily_reservation_is_durable_and_resets_only_when_day_changes(self):
         day = "2026-08-16"
