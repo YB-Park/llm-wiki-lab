@@ -1,0 +1,103 @@
+name: E021 Concept Compounding
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E021-concept-compounding/**'
+      - '.github/workflows/e021-concept-compounding.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E021-concept-compounding/**'
+      - '.github/workflows/e021-concept-compounding.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    name: zero-model preregistration preflight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Compile runner
+        run: python3 -m py_compile experiments/E021-concept-compounding/runner.py
+      - name: Freeze exact source bytes with zero model calls
+        run: |
+          rm -rf /tmp/e021-preflight
+          python3 experiments/E021-concept-compounding/runner.py --mode freeze --out /tmp/e021-preflight
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path('/tmp/e021-preflight')
+          row = json.loads((root / 'freeze.json').read_text())
+          assert row['format'] == 'e021-concept-compounding-freeze-v0'
+          assert row['planned_model_calls'] == 3
+          assert row['semantic_rerolls'] == 0
+          assert len(row['sources']) == 3
+          assert all((root / 'frozen' / item['frozen_file']).exists() for item in row['sources'])
+          print('E021-ZERO-MODEL-PREFLIGHT PASS modelCalls=0 plannedModelCalls=3 semanticRerolls=0')
+          PY
+      - uses: actions/upload-artifact@v7
+        with:
+          name: e021-preflight-${{ github.run_id }}
+          path: /tmp/e021-preflight
+          if-no-files-found: error
+          retention-days: 14
+
+  execute:
+    name: three-call exact-Luna concept compounding
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: preflight
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      copilot-requests: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Install GitHub Copilot CLI
+        run: npm install -g @github/copilot
+      - name: Freeze this exact main-run source set before generation
+        run: |
+          rm -rf /tmp/e021-run
+          python3 experiments/E021-concept-compounding/runner.py --mode freeze --out /tmp/e021-run
+      - name: Execute exactly three frozen Luna updates with no rerolls
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
+        run: python3 experiments/E021-concept-compounding/runner.py --mode execute --out /tmp/e021-run
+      - name: Validate final result receipt
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path('/tmp/e021-run')
+          result = root / 'result' / 'result.json'
+          if result.exists():
+              row = json.loads(result.read_text())
+              assert row['model'] == 'gpt-5.6-luna'
+              assert row['model_calls'] == 3
+              assert row['semantic_rerolls'] == 0
+              print('E021-FINAL-RECEIPT PASS')
+          else:
+              failure = root / 'result-failure.json'
+              print(failure.read_text() if failure.exists() else 'E021 result receipt missing')
+          PY
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: e021-result-${{ github.run_id }}
+          path: /tmp/e021-run
+          if-no-files-found: error
+          retention-days: 30
