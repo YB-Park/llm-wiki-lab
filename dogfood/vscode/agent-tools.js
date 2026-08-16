@@ -11,8 +11,6 @@ const { parseIngestReceipt, sha256, workspaceRelativePath } = require('./product
 const execFileAsync = promisify(execFile);
 const SELECTED_TOPIC_KEY = 'llmWiki.selectedTopic';
 const SOURCE_LOCATORS_KEY = 'llmWiki.sourceLocators.v1';
-const PENDING_LINEAGE_KEY = 'llmWiki.pendingLineage.v1';
-const MAINTENANCE_USAGE_KEY = 'llmWiki.agentWikiMaintenanceUsage.v1';
 const AGENT_INBOX_LABEL = 'Agent Inbox';
 const AGENT_WIKI_MODEL = 'gpt-5.6-luna';
 const MAX_BUFFER = 16 * 1024 * 1024;
@@ -56,28 +54,6 @@ function localDayKey() {
   const mm = String(now.getMonth() + 1).padStart(2, '0');
   const dd = String(now.getDate()).padStart(2, '0');
   return `${yyyy}-${mm}-${dd}`;
-}
-
-function maintenanceUsageKey(folder) {
-  return `${MAINTENANCE_USAGE_KEY}:${folder.uri.toString()}`;
-}
-
-function maintenanceUsage(context, folder) {
-  const day = localDayKey();
-  const current = context.workspaceState.get(maintenanceUsageKey(folder), {});
-  if (!current || current.day !== day) return { day, reservedCalls: 0 };
-  return { day, reservedCalls: Math.max(0, Number(current.reservedCalls || 0)) };
-}
-
-async function reserveMaintenanceCall(context, folder) {
-  const limit = maintenanceDailyCallLimit();
-  const usage = maintenanceUsage(context, folder);
-  if (limit <= 0 || usage.reservedCalls >= limit) {
-    return { allowed: false, day: usage.day, limit, reservedCalls: usage.reservedCalls, remaining: 0 };
-  }
-  const reservedCalls = usage.reservedCalls + 1;
-  await context.workspaceState.update(maintenanceUsageKey(folder), { day: usage.day, reservedCalls });
-  return { allowed: true, day: usage.day, limit, reservedCalls, remaining: Math.max(0, limit - reservedCalls) };
 }
 
 function wikiRoot(folder) {
@@ -126,6 +102,10 @@ function runAgentMemoryCli(context, folder, args) {
   return runPythonModule(context, folder, 'dogfood.llm_wiki.agent_memory_cli', args);
 }
 
+function runAgentStateCli(context, folder, args) {
+  return runPythonModule(context, folder, 'dogfood.llm_wiki.agent_state_cli', args);
+}
+
 function parseJsonLines(stdout) {
   return String(stdout || '')
     .split(/\r?\n/)
@@ -152,64 +132,64 @@ function sourceLocatorKey(folder) {
   return `${SOURCE_LOCATORS_KEY}:${folder.uri.toString()}`;
 }
 
-function pendingLineageKey(folder) {
-  return `${PENDING_LINEAGE_KEY}:${folder.uri.toString()}`;
+async function durableSourceLocators(context, folder) {
+  if (!isWikiInitialized(folder)) return {};
+  return JSON.parse((await runAgentStateCli(context, folder, ['locator-list'])).trim() || '{}');
 }
 
-function sourceLocators(context, folder) {
-  return context.workspaceState.get(sourceLocatorKey(folder), {});
-}
-
-function pendingLineageRows(context, folder) {
-  const rows = context.workspaceState.get(pendingLineageKey(folder), []);
-  return Array.isArray(rows) ? rows : [];
-}
-
-function openPendingLineageRows(context, folder) {
-  return pendingLineageRows(context, folder).filter((row) => row && row.status === 'open');
-}
-
-async function savePendingLineageRows(context, folder, rows) {
-  await context.workspaceState.update(pendingLineageKey(folder), rows.slice(-50));
+async function openPendingLineageRows(context, folder) {
+  if (!isWikiInitialized(folder)) return [];
+  return parseJsonLines(await runAgentStateCli(context, folder, ['pending-list']));
 }
 
 async function createPendingLineage(context, folder, topic, target, predecessors, successorSourceId) {
-  const row = {
-    id: `pd-${crypto.randomBytes(8).toString('hex')}`,
-    status: 'open',
-    createdAt: new Date().toISOString(),
-    topicId: topic.id,
-    topicLabel: topic.label,
-    workspaceFile: target.relativePath,
-    predecessorSourceIds: predecessors.map((item) => item.source_id),
-    successorSourceId,
-  };
-  const rows = pendingLineageRows(context, folder);
-  rows.push(row);
-  await savePendingLineageRows(context, folder, rows);
-  return row;
+  const args = [
+    'pending-add',
+    '--created-at', new Date().toISOString(),
+    '--topic-id', topic.id,
+    '--topic-label', topic.label,
+    '--workspace-file', target.relativePath,
+  ];
+  for (const predecessor of predecessors) args.push('--predecessor', predecessor.source_id);
+  args.push('--successor', successorSourceId);
+  return JSON.parse((await runAgentStateCli(context, folder, args)).trim());
 }
 
 async function resolvePendingLineageRecord(context, folder, decisionId, relation, predecessorSourceId) {
-  const rows = pendingLineageRows(context, folder);
-  const index = rows.findIndex((row) => row && row.id === decisionId && row.status === 'open');
-  if (index < 0) throw new Error(`Unknown or already-resolved pending lineage decision: ${decisionId}`);
-  rows[index] = {
-    ...rows[index],
-    status: 'resolved',
-    resolvedAt: new Date().toISOString(),
-    relation,
-    predecessorSourceId,
+  return JSON.parse((await runAgentStateCli(context, folder, [
+    'pending-resolve', decisionId,
+    '--relation', relation,
+    '--predecessor', predecessorSourceId,
+    '--resolved-at', new Date().toISOString(),
+  ])).trim());
+}
+
+async function maintenanceUsage(context, folder) {
+  if (!isWikiInitialized(folder)) return { day: localDayKey(), reservedCalls: 0 };
+  const row = JSON.parse((await runAgentStateCli(context, folder, ['usage-status', '--day', localDayKey()])).trim());
+  return { day: row.day, reservedCalls: Number(row.reserved_calls || 0) };
+}
+
+async function reserveMaintenanceCall(context, folder) {
+  const limit = maintenanceDailyCallLimit();
+  const row = JSON.parse((await runAgentStateCli(context, folder, [
+    'usage-reserve', '--day', localDayKey(), '--limit', String(limit),
+  ])).trim());
+  return {
+    allowed: row.allowed === true,
+    day: row.day,
+    limit: Number(row.limit || limit),
+    reservedCalls: Number(row.reserved_calls || 0),
+    remaining: Number(row.remaining || 0),
   };
-  await savePendingLineageRows(context, folder, rows);
-  return rows[index];
 }
 
 async function resolveAdmissionTopic(context, folder) {
   let all = parseTopics(await runCli(context, folder, ['topic', 'list']));
   const saved = context.workspaceState.get(selectedTopicKey(folder));
   if (saved && all.some((row) => row.id === saved.id)) {
-    return { ...all.find((row) => row.id === saved.id), filingMode: saved.label === AGENT_INBOX_LABEL ? 'agent_inbox' : 'selected_topic' };
+    const chosen = all.find((row) => row.id === saved.id);
+    return { ...chosen, filingMode: chosen.label === AGENT_INBOX_LABEL ? 'agent_inbox' : 'selected_topic' };
   }
   if (all.length === 1) {
     await context.workspaceState.update(selectedTopicKey(folder), all[0]);
@@ -392,7 +372,7 @@ function formatMemoryResult(rawRows, derivedRows = [], humanRows = [], pendingRo
   if (pendingRows.length) {
     lines.push('PENDING_LINEAGE_DECISIONS');
     for (const row of pendingRows.slice(0, 5)) {
-      lines.push(`decision_id=${row.id} file=${row.workspaceFile} predecessors=${row.predecessorSourceIds.join(',')} successor=${row.successorSourceId} topic_id=${row.topicId}`);
+      lines.push(`decision_id=${row.id} file=${row.workspace_file} predecessors=${row.predecessor_source_ids.join(',')} successor=${row.successor_source_id} topic_id=${row.topic_id}`);
     }
     lines.push('');
   }
@@ -430,25 +410,35 @@ function resolveWorkspaceFile(folder, requestedPath) {
 
 async function rememberLocator(context, folder, sourceId, relativePath, digest) {
   if (!sourceId || !relativePath || !digest) return;
+  // Preserve the existing VS Code-local navigation hint, but also write the
+  // private durable locator used by authority/lineage logic so backup/restore
+  // does not silently erase same-file revision detection.
   const key = sourceLocatorKey(folder);
-  const current = sourceLocators(context, folder);
+  const current = context.workspaceState.get(key, {});
   await context.workspaceState.update(key, {
     ...current,
     [sourceId]: { relativePath, sha256: digest },
   });
+  await runAgentStateCli(context, folder, [
+    'locator-set', sourceId,
+    '--relative-path', relativePath,
+    '--sha256', digest,
+  ]);
 }
 
 async function currentSameFileCandidates(context, folder, topic, target, currentDigest) {
-  const stdout = await runCli(context, folder, ['source', 'list', '--topic', topic.id, '--json']);
+  const [stdout, locators] = await Promise.all([
+    runCli(context, folder, ['source', 'list', '--topic', topic.id, '--json']),
+    durableSourceLocators(context, folder),
+  ]);
   const rows = parseJsonLines(stdout);
-  const locators = sourceLocators(context, folder);
   return rows.filter((row) => {
     const locator = locators[row.source_id];
-    return locator && locator.relativePath === target.relativePath && row.sha256 !== currentDigest;
+    return locator && locator.relative_path === target.relativePath && row.sha256 !== currentDigest;
   });
 }
 
-async function explicitHumanConfirm(context, title, message, button) {
+async function explicitHumanConfirm(context, _title, message, button) {
   if (context.extensionMode === vscode.ExtensionMode.Test) return true;
   const choice = await vscode.window.showWarningMessage(message, { modal: true }, button);
   return choice === button;
@@ -456,14 +446,20 @@ async function explicitHumanConfirm(context, title, message, button) {
 
 async function maintainSource(context, folder, sourceId, topicId) {
   if (!maintenanceEnabled()) {
-    return { status: 'SKIPPED_NO_WORKSPACE_GRANT', modelCalls: 0, model: '', policy: '', budget: maintenanceUsage(context, folder) };
+    return { status: 'SKIPPED_NO_WORKSPACE_GRANT', modelCalls: 0, model: '', policy: '', budget: await maintenanceUsage(context, folder) };
   }
 
   const baseArgs = ['build', sourceId, '--topic', topicId, '--model', AGENT_WIKI_MODEL, '--max-ai-credits', String(maintenanceCreditGuard())];
   try {
     const preflightStdout = await runAgentWikiCli(context, folder, baseArgs);
     const row = JSON.parse(preflightStdout.trim());
-    return { status: String(row.status || 'REUSED'), modelCalls: Number(row.model_calls || 0), model: String(row.model || AGENT_WIKI_MODEL), policy: String(row.policy || ''), budget: maintenanceUsage(context, folder) };
+    return {
+      status: String(row.status || 'REUSED'),
+      modelCalls: Number(row.model_calls || 0),
+      model: String(row.model || AGENT_WIKI_MODEL),
+      policy: String(row.policy || ''),
+      budget: await maintenanceUsage(context, folder),
+    };
   } catch (error) {
     const detail = error && error.message ? error.message : String(error);
     if (!detail.includes('agent_wiki_model_call_not_authorized')) throw error;
@@ -476,7 +472,13 @@ async function maintainSource(context, folder, sourceId, topicId) {
 
   const stdout = await runAgentWikiCli(context, folder, [...baseArgs, '--allow-model-call']);
   const row = JSON.parse(stdout.trim());
-  return { status: String(row.status || 'UNKNOWN'), modelCalls: Number(row.model_calls || 0), model: String(row.model || AGENT_WIKI_MODEL), policy: String(row.policy || ''), budget };
+  return {
+    status: String(row.status || 'UNKNOWN'),
+    modelCalls: Number(row.model_calls || 0),
+    model: String(row.model || AGENT_WIKI_MODEL),
+    policy: String(row.policy || ''),
+    budget,
+  };
 }
 
 class WikiMemorySearchTool {
@@ -497,14 +499,14 @@ class WikiMemorySearchTool {
       ]);
     }
     const maxResults = normalizeMaxResults(options.input && options.input.maxResults);
-    const [rawStdout, derivedStdout] = await Promise.all([
+    const [rawStdout, derivedStdout, pendingRows] = await Promise.all([
       runCli(this.context, folder, ['discover', query, '--top-k-per-topic', '3', '--json']),
       runAgentWikiCli(this.context, folder, ['search', query, '--top-k', String(Math.min(3, maxResults)), '--json']),
+      openPendingLineageRows(this.context, folder),
     ]);
     const rawRows = parseJsonLines(rawStdout).slice(0, maxResults);
     const derivedRows = parseJsonLines(derivedStdout);
     const humanRows = searchHumanKnowledge(folder, query, 3);
-    const pendingRows = openPendingLineageRows(this.context, folder);
     return new vscode.LanguageModelToolResult([
       new vscode.LanguageModelTextPart(formatMemoryResult(rawRows, derivedRows, humanRows, pendingRows)),
     ]);
@@ -621,15 +623,28 @@ class WikiRememberSourceTool {
       pending = await createPendingLineage(this.context, folder, topic, target, predecessors, receipt.sourceId);
     }
 
-    let maintenance = { status: pending ? 'SKIPPED_PENDING_LINEAGE_DECISION' : 'SKIPPED_NO_WORKSPACE_GRANT', modelCalls: 0, model: '', policy: '', budget: maintenanceUsage(this.context, folder) };
+    let maintenance = {
+      status: pending ? 'SKIPPED_PENDING_LINEAGE_DECISION' : 'SKIPPED_NO_WORKSPACE_GRANT',
+      modelCalls: 0,
+      model: '',
+      policy: '',
+      budget: await maintenanceUsage(this.context, folder),
+    };
     if (!pending) {
       try {
         maintenance = await maintainSource(this.context, folder, receipt.sourceId, topic.id);
       } catch (error) {
-        maintenance = { status: 'FAILED_AFTER_RAW_ADMISSION', modelCalls: 'unknown', model: AGENT_WIKI_MODEL, policy: '', budget: maintenanceUsage(this.context, folder) };
+        maintenance = {
+          status: 'FAILED_AFTER_RAW_ADMISSION',
+          modelCalls: 'unknown',
+          model: AGENT_WIKI_MODEL,
+          policy: '',
+          budget: await maintenanceUsage(this.context, folder),
+        };
         vscode.window.showWarningMessage(`LLM Wiki remembered the raw source, but Agent Wiki maintenance failed. Raw admission was preserved. ${error && error.message ? error.message : error}`);
       }
     }
+    const usage = await maintenanceUsage(this.context, folder);
 
     const text = [
       'LLM_WIKI_REMEMBER_RESULT v3',
@@ -645,10 +660,10 @@ class WikiRememberSourceTool {
       `maintenance_model=${maintenance.model}`,
       `maintenance_policy=${maintenance.policy}`,
       `maintenance_daily_limit=${maintenanceDailyCallLimit()}`,
-      `maintenance_reserved_today=${maintenanceUsage(this.context, folder).reservedCalls}`,
+      `maintenance_reserved_today=${usage.reservedCalls}`,
       `pending_lineage_decision=${pending ? 'yes' : 'no'}`,
       pending ? `pending_decision_id=${pending.id}` : 'pending_decision_id=',
-      pending ? `predecessor_source_ids=${pending.predecessorSourceIds.join(',')}` : 'predecessor_source_ids=',
+      pending ? `predecessor_source_ids=${pending.predecessor_source_ids.join(',')}` : 'predecessor_source_ids=',
       'human_authorship_persisted=no',
       'canonical_semantic_mutation=none',
       '',
@@ -678,12 +693,12 @@ class WikiResolveLineageTool {
     if (!decisionId) throw new Error('resolveWikiLineage.decisionId is required.');
     if (!LINEAGE_RELATIONS.has(relation)) throw new Error(`Unsupported lineage relation: ${relation}`);
 
-    const pending = openPendingLineageRows(this.context, folder).find((row) => row.id === decisionId);
+    const pending = (await openPendingLineageRows(this.context, folder)).find((row) => row.id === decisionId);
     if (!pending) throw new Error(`Unknown or already-resolved pending lineage decision: ${decisionId}`);
     let predecessor = requestedPredecessor;
-    if (!predecessor && pending.predecessorSourceIds.length === 1) predecessor = pending.predecessorSourceIds[0];
-    if (!pending.predecessorSourceIds.includes(predecessor)) {
-      throw new Error(`Choose one predecessorSourceId from: ${pending.predecessorSourceIds.join(', ')}`);
+    if (!predecessor && pending.predecessor_source_ids.length === 1) predecessor = pending.predecessor_source_ids[0];
+    if (!pending.predecessor_source_ids.includes(predecessor)) {
+      throw new Error(`Choose one predecessorSourceId from: ${pending.predecessor_source_ids.join(', ')}`);
     }
     if (relation === 'change' && !effectiveAt) throw new Error('A timezone-aware effectiveAt is required for change-over-time.');
 
@@ -697,7 +712,7 @@ class WikiResolveLineageTool {
     const confirmed = await explicitHumanConfirm(
       this.context,
       'Confirm LLM Wiki lineage decision',
-      `Record “${relation}” for ${pending.workspaceFile}? Meaning: ${meanings[relation]}. predecessor=${predecessor} newer=${pending.successorSourceId}${effectiveAt ? ` effectiveAt=${effectiveAt}` : ''}.`,
+      `Record “${relation}” for ${pending.workspace_file}? Meaning: ${meanings[relation]}. predecessor=${predecessor} newer=${pending.successor_source_id}${effectiveAt ? ` effectiveAt=${effectiveAt}` : ''}.`,
       'Confirm Lineage'
     );
     if (!confirmed) {
@@ -705,21 +720,33 @@ class WikiResolveLineageTool {
     }
 
     if (relation === 'correction') {
-      await runCli(this.context, folder, ['source', 'correct', predecessor, pending.successorSourceId, '--topic', pending.topicId]);
+      await runCli(this.context, folder, ['source', 'correct', predecessor, pending.successor_source_id, '--topic', pending.topic_id]);
     } else if (relation === 'change') {
-      await runCli(this.context, folder, ['source', 'change', predecessor, pending.successorSourceId, '--topic', pending.topicId, '--effective-at', effectiveAt]);
+      await runCli(this.context, folder, ['source', 'change', predecessor, pending.successor_source_id, '--topic', pending.topic_id, '--effective-at', effectiveAt]);
     } else if (relation === 'dispute') {
-      await runCli(this.context, folder, ['source', 'dispute', predecessor, pending.successorSourceId, '--topic', pending.topicId]);
+      await runCli(this.context, folder, ['source', 'dispute', predecessor, pending.successor_source_id, '--topic', pending.topic_id]);
     } else if (relation === 'supersede') {
-      await runCli(this.context, folder, ['source', 'supersede', predecessor, pending.successorSourceId, '--topic', pending.topicId]);
+      await runCli(this.context, folder, ['source', 'supersede', predecessor, pending.successor_source_id, '--topic', pending.topic_id]);
     }
 
     await resolvePendingLineageRecord(this.context, folder, decisionId, relation, predecessor);
-    let maintenance = { status: 'SKIPPED_NO_WORKSPACE_GRANT', modelCalls: 0, model: '', policy: '', budget: maintenanceUsage(this.context, folder) };
+    let maintenance = {
+      status: 'SKIPPED_NO_WORKSPACE_GRANT',
+      modelCalls: 0,
+      model: '',
+      policy: '',
+      budget: await maintenanceUsage(this.context, folder),
+    };
     try {
-      maintenance = await maintainSource(this.context, folder, pending.successorSourceId, pending.topicId);
+      maintenance = await maintainSource(this.context, folder, pending.successor_source_id, pending.topic_id);
     } catch (error) {
-      maintenance = { status: 'FAILED_AFTER_LINEAGE_RESOLUTION', modelCalls: 'unknown', model: AGENT_WIKI_MODEL, policy: '', budget: maintenanceUsage(this.context, folder) };
+      maintenance = {
+        status: 'FAILED_AFTER_LINEAGE_RESOLUTION',
+        modelCalls: 'unknown',
+        model: AGENT_WIKI_MODEL,
+        policy: '',
+        budget: await maintenanceUsage(this.context, folder),
+      };
       vscode.window.showWarningMessage(`LLM Wiki recorded the human-confirmed lineage decision, but derived maintenance failed. Canonical relation was preserved. ${error && error.message ? error.message : error}`);
     }
 
@@ -729,8 +756,8 @@ class WikiResolveLineageTool {
       `decision_id=${decisionId}`,
       `relation=${relation}`,
       `predecessor_source_id=${predecessor}`,
-      `successor_source_id=${pending.successorSourceId}`,
-      `topic_id=${pending.topicId}`,
+      `successor_source_id=${pending.successor_source_id}`,
+      `topic_id=${pending.topic_id}`,
       `canonical_mutation=${relation === 'independent' ? 'none' : relation}`,
       `derived_agent_wiki_maintenance=${maintenance.status}`,
       `model_calls=${maintenance.modelCalls}`,
@@ -754,8 +781,15 @@ class WikiRememberHumanKnowledgeTool {
     const suppliedTitle = String(input.title || '').trim();
     const sourceIds = Array.isArray(input.sourceIds) ? [...new Set(input.sourceIds.map((value) => String(value).trim()).filter(Boolean))] : [];
     if (!statement) throw new Error('rememberHumanKnowledge.statement is required and must come from explicit user intent.');
-    if (statement.length > 8000 || reasoning.length > 8000) throw new Error('Human Knowledge statement/reasoning is too long for the v0 explicit-confirmation path.');
+    if (statement.length > 1800 || reasoning.length > 1600 || statement.length + reasoning.length > 3400) {
+      throw new Error('Human Knowledge v0 requires statement <=1800 chars, reasoning <=1600 chars, combined <=3400 so the user can inspect the full text before confirmation.');
+    }
     if (sourceIds.length > 12 || sourceIds.some((sourceId) => !SOURCE_ID_RE.test(sourceId))) throw new Error('Human Knowledge sourceIds must contain at most 12 canonical source IDs.');
+
+    // Initialize the Wiki through the same fail-closed core boundary before any
+    // Human Knowledge file is created. Do not let this path create a partial
+    // .wiki-lab directory that lacks canonical initialization markers.
+    await runCli(this.context, folder, ['init']);
     for (const sourceId of sourceIds) {
       await runAgentMemoryCli(this.context, folder, ['read', sourceId, '--max-chars', '1']);
     }
@@ -771,7 +805,7 @@ class WikiRememberHumanKnowledgeTool {
     const confirmed = await explicitHumanConfirm(
       this.context,
       'Save Human Knowledge?',
-      `Save this as your durable Human Knowledge? The text below becomes user-confirmed memory, not raw external evidence.\n\n${preview.slice(0, 4000)}`,
+      `Save this as your durable Human Knowledge? The full text below becomes user-confirmed memory, not raw external evidence.\n\n${preview}`,
       'Save Human Knowledge'
     );
     if (!confirmed) {
