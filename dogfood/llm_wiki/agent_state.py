@@ -98,6 +98,30 @@ def source_locators(root: Path) -> dict[str, dict[str, str]]:
     return dict(read_agent_state(root)["source_locators"])
 
 
+def _pending_row(
+    *,
+    created_at: str,
+    topic_id: str,
+    topic_label: str,
+    workspace_file: str,
+    predecessor_source_ids: list[str],
+    successor_source_id: str,
+) -> dict[str, Any]:
+    return {
+        "id": f"pd-{secrets.token_hex(8)}",
+        "status": "open",
+        "created_at": created_at,
+        "resolved_at": "",
+        "topic_id": topic_id,
+        "topic_label": topic_label,
+        "workspace_file": workspace_file,
+        "predecessor_source_ids": predecessor_source_ids,
+        "successor_source_id": successor_source_id,
+        "relation": "",
+        "predecessor_source_id": "",
+    }
+
+
 def add_pending_lineage(
     root: Path,
     *,
@@ -114,8 +138,6 @@ def add_pending_lineage(
     ensure_workspace(root)
     with store_writer_lock(root):
         state = read_agent_state(root)
-        # Exact retry of an already-open decision reuses it instead of creating
-        # approval spam for the same admitted revision relationship.
         for row in state["pending_lineage"]:
             if (
                 row["status"] == "open"
@@ -124,22 +146,17 @@ def add_pending_lineage(
                 and sorted(row["predecessor_source_ids"]) == predecessors
             ):
                 return dict(row)
-        row = {
-            "id": f"pd-{secrets.token_hex(8)}",
-            "status": "open",
-            "created_at": created_at,
-            "resolved_at": "",
-            "topic_id": topic_id,
-            "topic_label": topic_label,
-            "workspace_file": workspace_file,
-            "predecessor_source_ids": predecessors,
-            "successor_source_id": successor_source_id,
-            "relation": "",
-            "predecessor_source_id": "",
-        }
+        row = _pending_row(
+            created_at=created_at,
+            topic_id=topic_id,
+            topic_label=topic_label,
+            workspace_file=workspace_file,
+            predecessor_source_ids=predecessors,
+            successor_source_id=successor_source_id,
+        )
         # Never evict unresolved decisions to cap file size. A safety-relevant
         # decision may be old and still matter. Future compaction may remove
-        # resolved rows only, under an explicit migration/maintenance contract.
+        # resolved rows only under an explicit migration/maintenance contract.
         state["pending_lineage"].append(row)
         _write(root, state)
         return dict(row)
@@ -179,8 +196,27 @@ def resolve_pending_lineage(
                 }
             )
             state["pending_lineage"][index] = updated
+
+            remaining = [sid for sid in row["predecessor_source_ids"] if sid != predecessor_source_id]
+            continuation = None
+            if remaining:
+                # One human decision cannot silently resolve the meaning of
+                # other current predecessors. Keep the remaining ambiguity open
+                # and continue blocking derived maintenance for this successor.
+                continuation = _pending_row(
+                    created_at=resolved_at,
+                    topic_id=row["topic_id"],
+                    topic_label=row["topic_label"],
+                    workspace_file=row["workspace_file"],
+                    predecessor_source_ids=remaining,
+                    successor_source_id=row["successor_source_id"],
+                )
+                state["pending_lineage"].append(continuation)
             _write(root, state)
-            return dict(updated)
+            result = dict(updated)
+            result["remaining_predecessor_source_ids"] = remaining
+            result["continuation_decision_id"] = continuation["id"] if continuation else ""
+            return result
     raise RuntimeError("agent_state_pending_not_found")
 
 
