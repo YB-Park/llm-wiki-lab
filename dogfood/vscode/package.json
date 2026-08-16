@@ -114,7 +114,7 @@
       {
         "name": "llmWiki_rememberHumanKnowledge",
         "displayName": "Remember Human Knowledge",
-        "modelDescription": "Use only when the user explicitly asks to durably remember their own decision, belief, rationale, or user-approved synthesis. Do not infer or silently paraphrase a tentative belief. The product shows the full proposed durable text for human confirmation. This creates HUMAN_KNOWLEDGE only: no raw-evidence or canonical temporal mutation and zero model calls.",
+        "modelDescription": "Use only when the user explicitly asks to durably remember their own decision, belief, rationale, or user-approved synthesis. Do not infer or silently paraphrase a tentative belief. The product shows the full proposed durable text for human confirmation. When the user explicitly changes a prior Human Knowledge item, pass that current knowledge ID as supersedesKnowledgeId; never infer supersession without the user's meaning. This creates HUMAN_KNOWLEDGE only: no raw-evidence or canonical temporal mutation and zero model calls.",
         "canBeReferencedInPrompt": true,
         "toolReferenceName": "rememberHumanKnowledge",
         "icon": "$(person)",
@@ -125,7 +125,8 @@
             "title": { "type": "string", "maxLength": 160, "description": "Short organizational title; may be generated because it is not an epistemic claim." },
             "statement": { "type": "string", "maxLength": 1800, "description": "The durable statement the user explicitly asked to remember. Preserve the user's meaning; do not invent a commitment." },
             "reasoning": { "type": "string", "maxLength": 1600, "description": "Optional reasoning the user explicitly provided or explicitly approved." },
-            "sourceIds": { "type": "array", "maxItems": 12, "items": { "type": "string" }, "description": "Optional canonical LLM Wiki source IDs the user or current grounded conversation wants linked as supporting evidence." }
+            "sourceIds": { "type": "array", "maxItems": 12, "items": { "type": "string" }, "description": "Optional canonical LLM Wiki source IDs the user or current grounded conversation wants linked as supporting evidence." },
+            "supersedesKnowledgeId": { "type": "string", "description": "Optional current HUMAN_KNOWLEDGE ID returned by wikiMemory. Set only when the user explicitly says this new confirmed belief/decision replaces that prior one." }
           },
           "required": ["statement"]
         }
@@ -164,7 +165,7 @@
     }
   },
   "scripts": {
-    "check": "node --check entry.js && node --check extension.js && node --check agent-tools.js && node --check product-helpers.js && node test/product-helpers.js && node test/static.js",
+    "check": "node --check entry.js && node --check extension.js && node --check agent-tools.js && node --check human-knowledge.js && node --check product-helpers.js && node test/product-helpers.js && node test/static.js",
     "test:integration": "vscode-test --label runtime",
     "test:packaged": "cd test/packaged-runner && ../../node_modules/.bin/vscode-test",
     "bundle:core": "node scripts/bundle-core.js",
