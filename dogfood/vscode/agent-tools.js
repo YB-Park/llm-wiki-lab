@@ -6,7 +6,7 @@ const path = require('node:path');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const vscode = require('vscode');
-const { parseIngestReceipt, sha256, workspaceRelativePath } = require('./product-helpers');
+const { parseIngestReceipt, workspaceRelativePath } = require('./product-helpers');
 
 const execFileAsync = promisify(execFile);
 const SELECTED_TOPIC_KEY = 'llmWiki.selectedTopic';
@@ -408,11 +408,17 @@ function resolveWorkspaceFile(folder, requestedPath) {
   return { filePath: fileReal, relativePath: relative };
 }
 
+function dirtyOpenDocumentFor(filePath) {
+  const target = path.resolve(filePath);
+  return vscode.workspace.textDocuments.find((document) => (
+    document.uri.scheme === 'file'
+    && path.resolve(document.uri.fsPath) === target
+    && document.isDirty
+  ));
+}
+
 async function rememberLocator(context, folder, sourceId, relativePath, digest) {
   if (!sourceId || !relativePath || !digest) return;
-  // Preserve the existing VS Code-local navigation hint, but also write the
-  // private durable locator used by authority/lineage logic so backup/restore
-  // does not silently erase same-file revision detection.
   const key = sourceLocatorKey(folder);
   const current = context.workspaceState.get(key, {});
   await context.workspaceState.update(key, {
@@ -427,14 +433,17 @@ async function rememberLocator(context, folder, sourceId, relativePath, digest) 
 }
 
 async function currentSameFileCandidates(context, folder, topic, target, currentDigest) {
-  const [stdout, locators] = await Promise.all([
+  const [stdout, durable] = await Promise.all([
     runCli(context, folder, ['source', 'list', '--topic', topic.id, '--json']),
     durableSourceLocators(context, folder),
   ]);
+  const legacy = context.workspaceState.get(sourceLocatorKey(folder), {});
   const rows = parseJsonLines(stdout);
   return rows.filter((row) => {
-    const locator = locators[row.source_id];
-    return locator && locator.relative_path === target.relativePath && row.sha256 !== currentDigest;
+    const durableLocator = durable[row.source_id];
+    const legacyLocator = legacy[row.source_id];
+    const relativePath = durableLocator ? durableLocator.relative_path : (legacyLocator && legacyLocator.relativePath);
+    return relativePath === target.relativePath && row.sha256 !== currentDigest;
   });
 }
 
@@ -591,8 +600,7 @@ class WikiRememberSourceTool {
     const folder = firstWorkspaceFolder();
     const requestedPath = String((options.input && options.input.filePath) || '').trim();
     const target = resolveWorkspaceFile(folder, requestedPath || undefined);
-    const active = vscode.window.activeTextEditor;
-    if (active && active.document.uri.scheme === 'file' && path.resolve(active.document.uri.fsPath) === path.resolve(target.filePath) && active.document.isDirty) {
+    if (dirtyOpenDocumentFor(target.filePath)) {
       throw new Error('LLM Wiki will not auto-save a dirty editor. Save the file explicitly, then ask to remember it again. No Wiki mutation occurred.');
     }
 
@@ -611,11 +619,13 @@ class WikiRememberSourceTool {
 
     await runCli(this.context, folder, ['init']);
     const topic = await resolveAdmissionTopic(this.context, folder);
-    const diskDigest = sha256(fs.readFileSync(target.filePath));
-    const predecessors = await currentSameFileCandidates(this.context, folder, topic, target, diskDigest);
     const stdout = await runCli(this.context, folder, ['ingest', target.filePath, '--topic', topic.id]);
     const receipt = parseIngestReceipt(stdout);
     if (!receipt) throw new Error('LLM Wiki ingest completed without a parseable source receipt.');
+
+    // Detect predecessor identity from the exact bytes that the core actually
+    // admitted, not from a pre-ingest digest that could race an external edit.
+    const predecessors = await currentSameFileCandidates(this.context, folder, topic, target, receipt.sha256);
     await rememberLocator(this.context, folder, receipt.sourceId, target.relativePath, receipt.sha256);
 
     let pending;
@@ -729,25 +739,30 @@ class WikiResolveLineageTool {
       await runCli(this.context, folder, ['source', 'supersede', predecessor, pending.successor_source_id, '--topic', pending.topic_id]);
     }
 
-    await resolvePendingLineageRecord(this.context, folder, decisionId, relation, predecessor);
+    const stateResolution = await resolvePendingLineageRecord(this.context, folder, decisionId, relation, predecessor);
+    const remainingPending = (await openPendingLineageRows(this.context, folder))
+      .filter((row) => row.successor_source_id === pending.successor_source_id);
+
     let maintenance = {
-      status: 'SKIPPED_NO_WORKSPACE_GRANT',
+      status: remainingPending.length ? 'SKIPPED_PENDING_LINEAGE_DECISION' : 'SKIPPED_NO_WORKSPACE_GRANT',
       modelCalls: 0,
       model: '',
       policy: '',
       budget: await maintenanceUsage(this.context, folder),
     };
-    try {
-      maintenance = await maintainSource(this.context, folder, pending.successor_source_id, pending.topic_id);
-    } catch (error) {
-      maintenance = {
-        status: 'FAILED_AFTER_LINEAGE_RESOLUTION',
-        modelCalls: 'unknown',
-        model: AGENT_WIKI_MODEL,
-        policy: '',
-        budget: await maintenanceUsage(this.context, folder),
-      };
-      vscode.window.showWarningMessage(`LLM Wiki recorded the human-confirmed lineage decision, but derived maintenance failed. Canonical relation was preserved. ${error && error.message ? error.message : error}`);
+    if (!remainingPending.length) {
+      try {
+        maintenance = await maintainSource(this.context, folder, pending.successor_source_id, pending.topic_id);
+      } catch (error) {
+        maintenance = {
+          status: 'FAILED_AFTER_LINEAGE_RESOLUTION',
+          modelCalls: 'unknown',
+          model: AGENT_WIKI_MODEL,
+          policy: '',
+          budget: await maintenanceUsage(this.context, folder),
+        };
+        vscode.window.showWarningMessage(`LLM Wiki recorded the human-confirmed lineage decision, but derived maintenance failed. Canonical relation was preserved. ${error && error.message ? error.message : error}`);
+      }
     }
 
     const text = [
@@ -759,6 +774,9 @@ class WikiResolveLineageTool {
       `successor_source_id=${pending.successor_source_id}`,
       `topic_id=${pending.topic_id}`,
       `canonical_mutation=${relation === 'independent' ? 'none' : relation}`,
+      `pending_lineage_remaining=${remainingPending.length ? 'yes' : 'no'}`,
+      `continuation_decision_id=${stateResolution.continuation_decision_id || ''}`,
+      `remaining_predecessor_source_ids=${(stateResolution.remaining_predecessor_source_ids || []).join(',')}`,
       `derived_agent_wiki_maintenance=${maintenance.status}`,
       `model_calls=${maintenance.modelCalls}`,
     ];
@@ -786,9 +804,6 @@ class WikiRememberHumanKnowledgeTool {
     }
     if (sourceIds.length > 12 || sourceIds.some((sourceId) => !SOURCE_ID_RE.test(sourceId))) throw new Error('Human Knowledge sourceIds must contain at most 12 canonical source IDs.');
 
-    // Initialize the Wiki through the same fail-closed core boundary before any
-    // Human Knowledge file is created. Do not let this path create a partial
-    // .wiki-lab directory that lacks canonical initialization markers.
     await runCli(this.context, folder, ['init']);
     for (const sourceId of sourceIds) {
       await runAgentMemoryCli(this.context, folder, ['read', sourceId, '--max-chars', '1']);
