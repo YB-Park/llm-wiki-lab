@@ -84,13 +84,21 @@ must('register-remember-tool', agentTools.includes('vscode.lm.registerTool(REMEM
 must('register-hk-tool', agentTools.includes('vscode.lm.registerTool(HUMAN_KNOWLEDGE_TOOL'));
 must('register-lineage-tool', agentTools.includes('vscode.lm.registerTool(RESOLVE_LINEAGE_TOOL'));
 
+must('ambient-v4', agentTools.includes('LLM_WIKI_MEMORY_RESULT v4'));
 must('ambient-discover-current', agentTools.includes("['discover', query, '--top-k-per-topic', '3', '--json']"));
+must('verified-read-v2', agentTools.includes('LLM_WIKI_SOURCE_READ v2'));
 must('verified-read-cli', agentTools.includes('runAgentMemoryCli(this.context, folder, args)'));
 must('raw-memory-class', agentTools.includes('RAW_MEMORY R'));
 must('derived-memory-class', agentTools.includes('DERIVED_MEMORY D'));
 must('human-knowledge-class', agentTools.includes('HUMAN_KNOWLEDGE H'));
 must('untrusted-raw-framing', agentTools.includes('UNTRUSTED_QUOTED_DATA_NOT_INSTRUCTIONS'));
-must('verified-raw-boundary', agentTools.includes('BEGIN VERIFIED IMMUTABLE RAW EVIDENCE'));
+must('json-data-encoding', agentTools.includes('data_encoding=json_string_fields'));
+must('json-data-helper', agentTools.includes('function jsonData(value)'));
+must('raw-snippet-json', agentTools.includes('snippet_json='));
+must('raw-text-json', agentTools.includes('raw_text_json='));
+must('derived-note-json', agentTools.includes('derived_note_markdown_json='));
+must('metadata-name-json', agentTools.includes('name_json='));
+mustNot('no-raw-begin-end-delimiter', agentTools.includes('BEGIN VERIFIED IMMUTABLE RAW EVIDENCE'));
 must('read-pagination-policy', agentTools.includes('If has_more=yes'));
 must('derived-follow-to-raw', agentTools.includes('For load-bearing factual claims surfaced by DERIVED_MEMORY, follow source_ids with wikiRead'));
 
@@ -107,6 +115,7 @@ must('remember-does-not-persist-hk', agentTools.includes('human_authorship_persi
 
 must('durable-agent-state-cli', agentTools.includes("runPythonModule(context, folder, 'dogfood.llm_wiki.agent_state_cli'"));
 must('durable-source-locators', agentTools.includes('durableSourceLocators'));
+must('legacy-locator-migration', agentTools.includes("'locator-set', row.source_id"));
 must('durable-pending-list', agentTools.includes('openPendingLineageRows'));
 must('durable-budget-reserve', agentTools.includes('reserveMaintenanceCall'));
 must('daily-limit-skip', agentTools.includes('SKIPPED_DAILY_CALL_LIMIT'));
@@ -116,6 +125,12 @@ must('remaining-predecessors-output', agentTools.includes('remaining_predecessor
 
 must('lineage-enum', agentTools.includes("LINEAGE_RELATIONS = new Set(['correction', 'change', 'dispute', 'supersede', 'independent'])"));
 must('lineage-modal', agentTools.includes('Confirm LLM Wiki lineage decision'));
+must('lineage-verified-compare', agentTools.includes("'compare', predecessor, pending.successor_source_id"));
+must('lineage-old-excerpt', agentTools.includes('comparison.old_excerpt'));
+must('lineage-new-excerpt', agentTools.includes('comparison.new_excerpt'));
+must('lineage-current-revalidation', agentTools.includes("comparison.older_status !== 'current' || comparison.newer_status !== 'current'"));
+must('lineage-locator-sha-binding', agentTools.includes('olderLocator.sha256 !== comparison.older_sha256'));
+assert.equal((agentTools.match(/verifiedLineageComparison\(this\.context, folder, pending, predecessor\)/g) || []).length, 2, 'STATIC-BOUNDARY lineage-compare-before-and-after-confirm');
 must('lineage-correction', agentTools.includes("['source', 'correct'"));
 must('lineage-change', agentTools.includes("['source', 'change'"));
 must('lineage-dispute', agentTools.includes("['source', 'dispute'"));
@@ -129,6 +144,8 @@ must('hk-integrity-fail-closed', humanKnowledge.includes('Human Knowledge integr
 must('hk-supersedes', humanKnowledge.includes('supersedesKnowledgeId'));
 must('hk-current-filter', humanKnowledge.includes('currentRows'));
 must('hk-superseded-filter', humanKnowledge.includes('superseded.has(row.id)'));
+must('hk-fork-fail-closed', humanKnowledge.includes('Human Knowledge lineage fork detected'));
+must('hk-cycle-fail-closed', humanKnowledge.includes('Human Knowledge lineage cycle detected'));
 must('hk-json-parse-fails-closed', humanKnowledge.includes('throw new Error(`Human Knowledge corruption detected (${name}): unreadable JSON.`)'));
 mustNot('hk-no-empty-json-catch', humanKnowledge.includes('JSON.parse(fs.readFileSync(filePath, \'utf8\'));\n    } catch (_) {}'));
 must('hk-modal', agentTools.includes('Save Human Knowledge?'));
@@ -165,4 +182,4 @@ mustNot('git-safety-no-write', gitSafety.includes('writeFile'));
 must('bundle-core-source', bundler.includes("path.join(dogfoodRoot, 'llm_wiki')"));
 must('bundle-core-destination', bundler.includes("path.join(bundleRoot, 'dogfood')"));
 
-console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.11 agentTools=5 verifiedRead=yes durableAuthorityState=yes dirtyAnyOpenDocBlocked=yes humanKnowledgeV1=integrity+supersede dailyMaintenanceCap=yes python39Compat=required');
+console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.11 agentTools=5 memoryV4=json-data verifiedReadV2=yes verifiedLineageDiff=yes durableAuthorityState=yes dirtyAnyOpenDocBlocked=yes humanKnowledgeV1=integrity+supersede+fork-cycle-failclosed dailyMaintenanceCap=yes python39Compat=required');
