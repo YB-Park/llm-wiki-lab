@@ -248,8 +248,9 @@ suite('LLM Wiki Agent Tools', () => {
       input: { query: 'Redis decision queue operating complexity', maxResults: 3 }, toolInvocationToken: undefined,
     }));
     assert.match(search, /human_knowledge_candidate_count=1/);
-    assert.match(search, new RegExp(`knowledge_id=${secondId}`));
-    assert.doesNotMatch(search, new RegExp(`knowledge_id=${firstId}(?:\\n|$)`));
+    assert.match(search, new RegExp(`^knowledge_id=${secondId}$`, 'm'));
+    assert.doesNotMatch(search, new RegExp(`^knowledge_id=${firstId}$`, 'm'));
+    assert.match(search, new RegExp(`^supersedes_knowledge_id=${firstId}$`, 'm'));
     assert.match(search, /use Redis only for the queue subsystem/);
 
     const secondPath = path.join(wikiRoot, 'human-knowledge', `${secondId}.json`);
