@@ -10,11 +10,13 @@ on:
       - spike/vscode-lm-api-luna
     paths:
       - 'dogfood/**'
+      - 'experiments/E020-synthetic-agent-ux/**'
       - '.vscode/**'
       - '.github/workflows/dogfood-v0.yml'
   pull_request:
     paths:
       - 'dogfood/**'
+      - 'experiments/E020-synthetic-agent-ux/**'
       - '.vscode/**'
       - '.github/workflows/dogfood-v0.yml'
 
@@ -48,8 +50,11 @@ jobs:
           node scripts/bundle-core.js
           tmp="$(mktemp -d)"
           PYTHONPATH="$PWD/python" python3 -m dogfood.llm_wiki.cli --root "$tmp/wiki" init
-          PYTHONPATH="$PWD/python" python3 -c 'from dogfood.llm_wiki.writer_lock import store_writer_lock, serialized_writer; print("PY39-BUNDLED-CORE PASS")'
+          PYTHONPATH="$PWD/python" python3 -c 'from dogfood.llm_wiki.writer_lock import store_writer_lock, serialized_writer; from dogfood.llm_wiki.agent_memory_cli import main as agent_memory_main; from dogfood.llm_wiki.agent_state import read_agent_state; from dogfood.llm_wiki.agent_state_cli import main as agent_state_main; print("PY39-BUNDLED-CORE PASS")'
           test -f python/dogfood/llm_wiki/writer_lock.py
+          test -f python/dogfood/llm_wiki/agent_memory_cli.py
+          test -f python/dogfood/llm_wiki/agent_state.py
+          test -f python/dogfood/llm_wiki/agent_state_cli.py
 
   test:
     runs-on: ubuntu-latest
@@ -73,11 +78,15 @@ jobs:
           python3 -m dogfood.llm_wiki.cli --root "$tmp/wiki" context 'cedar quota'
           test "$(find "$tmp/wiki/raw" -type f | wc -l)" -eq 1
           grep -q 'compiled_provider.*disabled' "$tmp/wiki/config.json"
+      - name: E020 synthetic Agent Wiki UX contract (zero model calls)
+        run: python3 experiments/E020-synthetic-agent-ux/score_contract.py
       - name: VS Code extension syntax and static boundary checks
         run: |
           node --version
           node --check dogfood/vscode/entry.js
           node --check dogfood/vscode/extension.js
+          node --check dogfood/vscode/agent-tools.js
+          node --check dogfood/vscode/human-knowledge.js
           node --check dogfood/vscode/git-safety.js
           node --check dogfood/vscode/lm-discovery.js
           node dogfood/vscode/test/static.js
@@ -97,13 +106,20 @@ jobs:
           PYTHONPATH="$PWD/python" python3 -m dogfood.llm_wiki.cli --root "$tmp/wiki" init
           grep -q 'compiled_provider.*disabled' "$tmp/wiki/config.json"
           test -f python/dogfood/llm_wiki/cli.py
+          test -f python/dogfood/llm_wiki/agent_memory_cli.py
+          test -f python/dogfood/llm_wiki/agent_state.py
+          test -f python/dogfood/llm_wiki/agent_state_cli.py
       - name: Package installable VSIX
         working-directory: dogfood/vscode
         run: |
           npm run package:vsix
           test -s dist/llm-wiki-dogfood.vsix
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/cli.py'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/agent_memory_cli.py'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/agent_state.py'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/agent_state_cli.py'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/writer_lock.py'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/human-knowledge.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/git-safety.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/lm-discovery.js'
       - name: Unpack and execute packaged VSIX in Extension Host
@@ -113,7 +129,11 @@ jobs:
           mkdir -p dist/unpacked
           unzip -q dist/llm-wiki-dogfood.vsix -d dist/unpacked
           test -f dist/unpacked/extension/python/dogfood/llm_wiki/cli.py
+          test -f dist/unpacked/extension/python/dogfood/llm_wiki/agent_memory_cli.py
+          test -f dist/unpacked/extension/python/dogfood/llm_wiki/agent_state.py
+          test -f dist/unpacked/extension/python/dogfood/llm_wiki/agent_state_cli.py
           test -f dist/unpacked/extension/python/dogfood/llm_wiki/writer_lock.py
+          test -f dist/unpacked/extension/human-knowledge.js
           test -f dist/unpacked/extension/git-safety.js
           test -f dist/unpacked/extension/lm-discovery.js
           xvfb-run -a npm run test:packaged
