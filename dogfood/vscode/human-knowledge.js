@@ -73,6 +73,48 @@ function validateRecord(record, filename) {
   return record;
 }
 
+function validateLineage(rows) {
+  const byId = new Map();
+  for (const row of rows) {
+    if (byId.has(row.id)) throw new Error(`Human Knowledge corruption detected: duplicate id ${row.id}.`);
+    byId.set(row.id, row);
+  }
+
+  const successorsByPredecessor = new Map();
+  for (const row of rows) {
+    if (!row.supersedesKnowledgeId) continue;
+    if (!byId.has(row.supersedesKnowledgeId)) {
+      throw new Error(`Human Knowledge lineage failure: ${row.id} supersedes missing ${row.supersedesKnowledgeId}.`);
+    }
+    if (row.supersedesKnowledgeId === row.id) {
+      throw new Error(`Human Knowledge lineage failure: ${row.id} cannot supersede itself.`);
+    }
+    const successors = successorsByPredecessor.get(row.supersedesKnowledgeId) || [];
+    successors.push(row.id);
+    successorsByPredecessor.set(row.supersedesKnowledgeId, successors);
+  }
+  for (const [predecessor, successors] of successorsByPredecessor) {
+    if (successors.length > 1) {
+      throw new Error(`Human Knowledge lineage fork detected at ${predecessor}. Resolve explicitly before using current Human Knowledge.`);
+    }
+  }
+
+  // A valid user-confirmed lifecycle is a set of non-branching chains. Detect
+  // cycles even if a corrupted/tampered set has internally consistent hashes.
+  for (const row of rows) {
+    const seen = new Set();
+    let current = row;
+    while (current && current.supersedesKnowledgeId) {
+      if (seen.has(current.id)) {
+        throw new Error(`Human Knowledge lineage cycle detected at ${current.id}.`);
+      }
+      seen.add(current.id);
+      current = byId.get(current.supersedesKnowledgeId);
+    }
+  }
+  return { byId, successorsByPredecessor };
+}
+
 function allRows(wikiRoot) {
   const root = rootFor(wikiRoot);
   if (!fs.existsSync(root)) return [];
@@ -87,19 +129,7 @@ function allRows(wikiRoot) {
     }
     rows.push(validateRecord(parsed, name));
   }
-  const byId = new Map();
-  for (const row of rows) {
-    if (byId.has(row.id)) throw new Error(`Human Knowledge corruption detected: duplicate id ${row.id}.`);
-    byId.set(row.id, row);
-  }
-  for (const row of rows) {
-    if (row.supersedesKnowledgeId && !byId.has(row.supersedesKnowledgeId)) {
-      throw new Error(`Human Knowledge lineage failure: ${row.id} supersedes missing ${row.supersedesKnowledgeId}.`);
-    }
-    if (row.supersedesKnowledgeId === row.id) {
-      throw new Error(`Human Knowledge lineage failure: ${row.id} cannot supersede itself.`);
-    }
-  }
+  validateLineage(rows);
   return rows;
 }
 
@@ -192,4 +222,5 @@ module.exports = {
   integrityFor,
   save,
   search,
+  validateLineage,
 };
