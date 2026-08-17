@@ -64,6 +64,8 @@ This result does **not** earn automatic concept discovery/routing/dedup/update t
 
 **Start here if a session dies. Do not design another subsystem first.**
 
+Observation log: **Issue #141**. Put natural P7 findings there; keep this handoff short.
+
 Use 0.1.11 naturally in VS Code across real sessions:
 
 1. Ask ordinary questions where prior project knowledge should matter; observe whether the main agent invokes `wikiMemory` without ceremony.
@@ -97,6 +99,7 @@ Likely candidates if repeatedly observed: tool-routing descriptions, pending/act
 
 ## Fast pointers
 
+- Installed P7 observation log: Issue #141
 - 0.1.11 implementation: Issue #129 / PR #130
 - First synthetic P7 sweep: Issue #128
 - E020 contract: `experiments/E020-synthetic-agent-ux/README.md`
