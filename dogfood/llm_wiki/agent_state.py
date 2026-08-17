@@ -27,6 +27,72 @@ def _empty() -> dict[str, Any]:
     }
 
 
+def _safe_source_id(value: object) -> bool:
+    return isinstance(value, str) and value.startswith("src-") and len(value) > 4 and all(
+        ch.isalnum() or ch == "-" for ch in value
+    )
+
+
+def _safe_relative_path(value: object) -> bool:
+    if not isinstance(value, str) or not value or value.startswith(("/", "\\")):
+        return False
+    path = Path(value)
+    return not path.is_absolute() and ".." not in path.parts
+
+
+def _safe_sha256(value: object) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 64
+        and all(ch in "0123456789abcdef" for ch in value)
+    )
+
+
+def _validate_pending_row(row: object) -> None:
+    if not isinstance(row, dict):
+        raise RuntimeError("agent_state_pending_invalid")
+    required = {
+        "id", "status", "created_at", "resolved_at", "topic_id", "topic_label",
+        "workspace_file", "predecessor_source_ids", "successor_source_id", "relation",
+        "predecessor_source_id",
+    }
+    if set(row) != required:
+        raise RuntimeError("agent_state_pending_invalid")
+    if not isinstance(row["id"], str) or not row["id"].startswith("pd-"):
+        raise RuntimeError("agent_state_pending_invalid")
+    if row["status"] not in {"open", "resolved"}:
+        raise RuntimeError("agent_state_pending_invalid")
+    if not isinstance(row["created_at"], str) or not row["created_at"]:
+        raise RuntimeError("agent_state_pending_invalid")
+    if not isinstance(row["topic_id"], str) or not row["topic_id"]:
+        raise RuntimeError("agent_state_pending_invalid")
+    if not isinstance(row["topic_label"], str):
+        raise RuntimeError("agent_state_pending_invalid")
+    if not _safe_relative_path(row["workspace_file"]):
+        raise RuntimeError("agent_state_pending_invalid")
+    predecessors = row["predecessor_source_ids"]
+    if (
+        not isinstance(predecessors, list)
+        or not predecessors
+        or any(not _safe_source_id(value) for value in predecessors)
+        or len(predecessors) != len(set(predecessors))
+        or not _safe_source_id(row["successor_source_id"])
+        or row["successor_source_id"] in predecessors
+    ):
+        raise RuntimeError("agent_state_pending_invalid")
+
+    if row["status"] == "open":
+        if row["resolved_at"] or row["relation"] or row["predecessor_source_id"]:
+            raise RuntimeError("agent_state_pending_invalid")
+    else:
+        if (
+            not isinstance(row["resolved_at"], str) or not row["resolved_at"]
+            or row["relation"] not in ALLOWED_RELATIONS
+            or row["predecessor_source_id"] not in predecessors
+        ):
+            raise RuntimeError("agent_state_pending_invalid")
+
+
 def _validate(state: object) -> dict[str, Any]:
     if not isinstance(state, dict) or state.get("format") != STATE_FORMAT:
         raise RuntimeError("agent_state_format_invalid")
@@ -42,25 +108,13 @@ def _validate(state: object) -> dict[str, Any]:
     if not isinstance(usage["day"], str) or not isinstance(usage["reserved_calls"], int) or usage["reserved_calls"] < 0:
         raise RuntimeError("agent_state_usage_invalid")
     for row in pending:
-        if not isinstance(row, dict):
-            raise RuntimeError("agent_state_pending_invalid")
-        required = {
-            "id", "status", "created_at", "resolved_at", "topic_id", "topic_label",
-            "workspace_file", "predecessor_source_ids", "successor_source_id", "relation",
-            "predecessor_source_id",
-        }
-        if set(row) != required:
-            raise RuntimeError("agent_state_pending_invalid")
-        if row["status"] not in {"open", "resolved"}:
-            raise RuntimeError("agent_state_pending_invalid")
-        if not isinstance(row["predecessor_source_ids"], list) or not row["predecessor_source_ids"]:
-            raise RuntimeError("agent_state_pending_invalid")
+        _validate_pending_row(row)
     for source_id, locator in locators.items():
-        if not isinstance(source_id, str) or not isinstance(locator, dict):
+        if not _safe_source_id(source_id) or not isinstance(locator, dict):
             raise RuntimeError("agent_state_locator_invalid")
         if set(locator) != {"relative_path", "sha256"}:
             raise RuntimeError("agent_state_locator_invalid")
-        if not isinstance(locator["relative_path"], str) or not isinstance(locator["sha256"], str):
+        if not _safe_relative_path(locator["relative_path"]) or not _safe_sha256(locator["sha256"]):
             raise RuntimeError("agent_state_locator_invalid")
     return state
 
@@ -83,9 +137,7 @@ def _write(root: Path, state: dict[str, Any]) -> None:
 
 
 def set_source_locator(root: Path, source_id: str, *, relative_path: str, sha256: str) -> None:
-    if not source_id.startswith("src-") or not relative_path or relative_path.startswith("/") or ".." in Path(relative_path).parts:
-        raise ValueError("agent_state_locator_invalid")
-    if len(sha256) != 64 or any(ch not in "0123456789abcdef" for ch in sha256):
+    if not _safe_source_id(source_id) or not _safe_relative_path(relative_path) or not _safe_sha256(sha256):
         raise ValueError("agent_state_locator_invalid")
     ensure_workspace(root)
     with store_writer_lock(root):
@@ -133,7 +185,15 @@ def add_pending_lineage(
     successor_source_id: str,
 ) -> dict[str, Any]:
     predecessors = sorted(set(predecessor_source_ids))
-    if not predecessors or successor_source_id in predecessors:
+    if (
+        not created_at
+        or not topic_id
+        or not _safe_relative_path(workspace_file)
+        or not predecessors
+        or any(not _safe_source_id(value) for value in predecessors)
+        or not _safe_source_id(successor_source_id)
+        or successor_source_id in predecessors
+    ):
         raise ValueError("agent_state_pending_invalid")
     ensure_workspace(root)
     with store_writer_lock(root):
@@ -174,7 +234,7 @@ def resolve_pending_lineage(
     predecessor_source_id: str,
     resolved_at: str,
 ) -> dict[str, Any]:
-    if relation not in ALLOWED_RELATIONS:
+    if relation not in ALLOWED_RELATIONS or not resolved_at:
         raise ValueError("agent_state_relation_invalid")
     ensure_workspace(root)
     with store_writer_lock(root):
