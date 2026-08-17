@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import tempfile
 import unittest
@@ -9,6 +10,7 @@ from dogfood.llm_wiki.agent_state import (
     add_pending_lineage,
     maintenance_usage,
     open_pending_lineage,
+    read_agent_state,
     reserve_maintenance_call,
     resolve_pending_lineage,
     set_source_locator,
@@ -103,6 +105,55 @@ class AgentStateTests(unittest.TestCase):
         manifest = (self.root / "manifest.jsonl").read_text(encoding="utf-8")
         self.assertNotIn("docs/example.md", manifest)
         self.assertNotIn(source_id, manifest)
+
+    def test_locator_rejects_traversal_and_invalid_digest(self):
+        with self.assertRaisesRegex(ValueError, "agent_state_locator_invalid"):
+            set_source_locator(self.root, "src-abc", relative_path="../outside.md", sha256="a" * 64)
+        with self.assertRaisesRegex(ValueError, "agent_state_locator_invalid"):
+            set_source_locator(self.root, "src-abc", relative_path="docs/a.md", sha256="not-a-digest")
+
+    def test_corrupt_open_pending_resolution_fields_fail_closed_on_read(self):
+        row = add_pending_lineage(
+            self.root,
+            created_at="2026-08-16T12:00:00+09:00",
+            topic_id="topic-abc",
+            topic_label="runtime",
+            workspace_file="docs/state.md",
+            predecessor_source_ids=["src-old"],
+            successor_source_id="src-new",
+        )
+        state_path = self.root / "agent-state.json"
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        state["pending_lineage"][0]["relation"] = "correction"
+        state["pending_lineage"][0]["predecessor_source_id"] = "src-old"
+        self.assertEqual(state["pending_lineage"][0]["id"], row["id"])
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        with self.assertRaisesRegex(RuntimeError, "agent_state_pending_invalid"):
+            read_agent_state(self.root)
+
+    def test_corrupt_resolved_pending_semantics_fail_closed_on_read(self):
+        row = add_pending_lineage(
+            self.root,
+            created_at="2026-08-16T12:00:00+09:00",
+            topic_id="topic-abc",
+            topic_label="runtime",
+            workspace_file="docs/state.md",
+            predecessor_source_ids=["src-old"],
+            successor_source_id="src-new",
+        )
+        resolve_pending_lineage(
+            self.root,
+            row["id"],
+            relation="change",
+            predecessor_source_id="src-old",
+            resolved_at="2026-08-16T12:05:00+09:00",
+        )
+        state_path = self.root / "agent-state.json"
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        state["pending_lineage"][0]["predecessor_source_id"] = "src-not-a-predecessor"
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        with self.assertRaisesRegex(RuntimeError, "agent_state_pending_invalid"):
+            read_agent_state(self.root)
 
 
 if __name__ == "__main__":
