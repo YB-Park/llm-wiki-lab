@@ -244,9 +244,9 @@ The normal VS Code Agent tools also require an authenticated Agent-capable VS Co
 
 ## 0.1.11 validation status
 
-Before 0.1.11 human dogfood, the project ran a deterministic/adversarial synthetic pass rather than asking the user to discover every obvious gap manually.
+Before 0.1.11 human dogfood, the project ran deterministic/adversarial synthetic passes rather than asking the user to discover every obvious gap manually.
 
-E020 contains **78** frozen representative cases:
+**E020** contains **78** frozen representative authority/UX cases:
 
 - 60 supported by concrete current product mechanisms;
 - 7 partial and still requiring installed/model/process evidence;
@@ -255,7 +255,9 @@ E020 contains **78** frozen representative cases:
 
 Dev and **unpacked packaged VSIX Extension Host** tests exercise the actual five-tool surface, including dirty-file fail-closed, verified raw read, pending revision lineage, Human Knowledge lifecycle, newline metadata structural injection, stale/tampered lineage binding, and Human Knowledge fork handling.
 
-E021 separately used exactly **two** real main-model generations (`gpt-5.4`, `claude-sonnet-4.6`) against the malicious exact v4 memory serialization. Both recovered the legitimate fact `42`, treated embedded policy/mutation/delete-looking strings as data, and requested/claimed no Wiki mutation. Rerolls: 0. This is a useful translation smoke, **not a universal prompt-injection guarantee**.
+**E021** is the separate cross-source concept-compounding experiment. It recorded narrow positive evidence that exact Luna can maintain one fixed-identity derived concept page across a deliberately relevant A→A+B→A+B+C source sequence while retaining raw provenance. It does **not** earn automatic concept discovery/routing/dedup/update triggers, and its result record documents a retained execution-provenance limitation. Do not rerun it merely to strengthen the record.
+
+**E022** used exactly **two** real main-model generations (`gpt-5.4`, `claude-sonnet-4.6`) against the malicious exact v4 memory serialization. Both recovered the legitimate fact `42`, treated embedded policy/mutation/delete-looking strings as data, and requested/claimed no Wiki mutation. Rerolls: 0. Run `31993541811`, artifact `9276094144`. This is a useful translation smoke, **not a universal prompt-injection guarantee**.
 
 ## What still needs human dogfood
 
@@ -270,6 +272,8 @@ This is an **Alpha**, not customer-ready software. Synthetic testing cannot tell
 - whether RAW vs DERIVED vs HUMAN_KNOWLEDGE distinctions stay understandable rather than leaking implementation complexity;
 - whether returning days later actually recovers reasoning the user would otherwise have lost.
 
-Those are the next product questions. Do not add vectors/graphs, background watching, URL/PDF capture, cross-workspace federation, or a large visual navigation system merely because they are available ideas.
+Those are the next product questions. Do not add vectors/graphs, background watching, URL/PDF capture, cross-workspace federation, automatic concept routing, or a large visual navigation system merely because they are available ideas.
+
+Known non-blocking reliability follow-up #132 tracks deletion detection for `agent-state.json` and the relation/pending-state crash window. Do not claim those edges are already atomic/detectable.
 
 Compiled knowledge remains disabled as a trusted/default provider. W0 remains the default retrieval path and X1 remains non-default/shadow pending more natural quality evidence.
