@@ -30,13 +30,25 @@ Authority classes remain separate:
 
 0.1.11 also has durable `.wiki-lab/agent-state.json` for pending lineage/source locators/maintenance reservations, verified old/new lineage review, JSON-encoded untrusted Agent payload fields, Human Knowledge integrity/fork checks, and a workspace daily Luna-maintenance call limit.
 
-E020 freezes **78 zero-model synthetic authority/UX cases**. This is a deterministic product contract, not a product-quality score. Real routing, approval fatigue, latency, and recovery still require installed use.
+E020 freezes **78 zero-model synthetic authority/UX cases**: 60 supported / 7 partial / 11 deferred. This is a deterministic product contract, not a product-quality score. Real routing, approval fatigue, latency, and recovery still require installed use.
 
 Retrieval remains **W0 default / X1 shadow**. Agent Wiki Luna maintenance remains **OFF by default**.
 
 Customer readiness: **NOT READY YET** — installed multi-session evidence is now the blocker, not another architecture program.
 
-## E021 closeout
+## v4 memory serialization smoke — PASS
+
+Issue #135 / PR #136 validated the exact new `*_json` Agent-memory serialization boundary:
+
+- main run `31993541811`;
+- exact `gpt-5.4` + `claude-sonnet-4.6`;
+- **2/2 PASS**, 2 generations total, 0 semantic rerolls, tools disabled;
+- both recovered the legitimate fact `42`, treated embedded policy/mutation/delete-looking strings as data, and requested/claimed no Wiki mutation;
+- artifact `9276094144`, digest `sha256:f24ceb7ca77db4c0a01c4df82460610b063949f398694a4d6a6478fcf74a7481`.
+
+This validates the exact serialization translation boundary only. It is **not** a universal prompt-injection guarantee. Do not rerun the frozen smoke.
+
+## Concept compounding record — historical E021 label
 
 Recorded result: `experiments/E021-concept-compounding/results-v0.md`.
 
@@ -44,9 +56,9 @@ Narrow result: fixed-identity A -> A+B -> A+B+C concept compounding was recorded
 
 **Provenance limitation:** retained GitHub Actions history for PR #133 shows its zero-model preflight, while the three-call execute job is skipped because it was configured only for `main` push. Issue #131/result notes record the three-call PASS, but there is no retained Actions execute-job artifact independently demonstrating it.
 
-**Do not rerun E021.** PR #133 is the historical preregistration/runner record and must not be merged in its original form because its `main` push workflow would authorize another three Luna calls.
+**Do not rerun or merge PR #133 in its original form.** Its `main` push workflow would authorize another three Luna calls.
 
-E021 does **not** earn automatic concept discovery/routing/dedup/update triggers. Concept routing is a future narrow question only if installed use makes it valuable.
+This result does **not** earn automatic concept discovery/routing/dedup/update triggers. Concept routing is a future narrow question only if installed use makes it valuable.
 
 ## NEXT — installed multi-session P7
 
@@ -73,8 +85,8 @@ Likely candidates if repeatedly observed: tool-routing descriptions, pending/act
 - broad automatic contradiction resolution;
 - full Tree View/activity system without observed need;
 - federation or X2 without recurring natural evidence;
-- automatic concept routing from E021 alone;
-- paid reruns of frozen E017/E018/E019/E021 cases.
+- automatic concept routing from the concept-compounding record alone;
+- paid reruns of frozen E017/E018/E019 or either E021-labeled run.
 
 ## Known non-blocking edges
 
@@ -88,8 +100,10 @@ Likely candidates if repeatedly observed: tool-routing descriptions, pending/act
 - 0.1.11 implementation: Issue #129 / PR #130
 - First synthetic P7 sweep: Issue #128
 - E020 contract: `experiments/E020-synthetic-agent-ux/README.md`
-- E021: Issue #131 / historical PR #133 / `experiments/E021-concept-compounding/results-v0.md`
+- v4 serialization smoke: Issue #135 / PR #136 / run `31993541811`
+- Concept compounding: Issue #131 / historical PR #133 / `experiments/E021-concept-compounding/results-v0.md`
 - Reliability follow-up: Issue #132
+- User-facing 0.1.11 guide: `dogfood/vscode/README.md`
 - Autonomy philosophy: `docs/12-autonomy-ux-philosophy.md`
 - Backup/restore: `docs/11-local-backup-restore.md`
 
