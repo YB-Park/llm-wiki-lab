@@ -47,6 +47,50 @@ class AgentMemoryCliTests(unittest.TestCase):
         self.assertTrue(row["has_more"])
         self.assertEqual(row["total_chars"], len("alpha beta gamma delta"))
 
+    def test_compare_returns_verified_change_window_for_human_lineage_review(self):
+        temp, base, root, topic, old_source = self._wiki(
+            "# Timeout policy\n\nThe cobalt timeout is 15 seconds.\nKeep retries bounded.\n"
+        )
+        self.addCleanup(temp.cleanup)
+        newer_path = base / "newer.md"
+        newer_path.write_text(
+            "# Timeout policy\n\nThe cobalt timeout is now 20 seconds.\nKeep retries bounded.\n",
+            encoding="utf-8",
+        )
+        new_source, _ = ingest_file(root, newer_path, topic_id=topic["topic_id"])
+
+        row = self._run_json([
+            "--root", str(root), "compare", old_source.source_id, new_source.source_id,
+            "--topic", topic["topic_id"], "--context-chars", "24", "--max-change-chars", "80",
+        ])
+        self.assertEqual(row["format"], "llm-wiki-agent-raw-compare-v0")
+        self.assertEqual(row["older_source_id"], old_source.source_id)
+        self.assertEqual(row["newer_source_id"], new_source.source_id)
+        self.assertEqual(row["older_status"], "current")
+        self.assertEqual(row["newer_status"], "current")
+        self.assertFalse(row["identical"])
+        self.assertIn("15 seconds", row["old_excerpt"])
+        self.assertIn("20 seconds", row["new_excerpt"])
+        self.assertGreater(row["old_changed_chars"], 0)
+        self.assertGreater(row["new_changed_chars"], 0)
+
+    def test_compare_bounds_large_changed_region_without_hiding_that_it_was_truncated(self):
+        temp, base, root, topic, old_source = self._wiki("prefix\n" + ("A" * 3000) + "\nsuffix\n")
+        self.addCleanup(temp.cleanup)
+        newer_path = base / "newer-large.md"
+        newer_path.write_text("prefix\n" + ("B" * 3000) + "\nsuffix\n", encoding="utf-8")
+        new_source, _ = ingest_file(root, newer_path, topic_id=topic["topic_id"])
+
+        row = self._run_json([
+            "--root", str(root), "compare", old_source.source_id, new_source.source_id,
+            "--topic", topic["topic_id"], "--context-chars", "10", "--max-change-chars", "100",
+        ])
+        self.assertTrue(row["excerpt_truncated"])
+        self.assertIn("CHANGED REGION TRUNCATED", row["old_excerpt"])
+        self.assertIn("CHANGED REGION TRUNCATED", row["new_excerpt"])
+        self.assertLess(len(row["old_excerpt"]), 300)
+        self.assertLess(len(row["new_excerpt"]), 300)
+
     def test_read_surfaces_superseded_status_without_hiding_immutable_raw(self):
         temp, base, root, topic, source = self._wiki("old value")
         self.addCleanup(temp.cleanup)
@@ -69,6 +113,11 @@ class AgentMemoryCliTests(unittest.TestCase):
             main(["--root", str(root), "read", source.source_id, "--topic", topic["topic_id"], "--start-char", "-1"])
         with self.assertRaisesRegex(SystemExit, "max_chars_must_be_1_to"):
             main(["--root", str(root), "read", source.source_id, "--topic", topic["topic_id"], "--max-chars", str(HARD_MAX_CHARS + 1)])
+        with self.assertRaisesRegex(SystemExit, "context_chars_must_be_0_to"):
+            main([
+                "--root", str(root), "compare", source.source_id, source.source_id,
+                "--topic", topic["topic_id"], "--context-chars", "999999",
+            ])
 
 
 if __name__ == "__main__":
