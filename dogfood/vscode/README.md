@@ -1,49 +1,208 @@
-# LLM Wiki Dogfood — VS Code-first shell
+# LLM Wiki Dogfood 0.1.11 — VS Code-first Alpha
 
-This extension is the first-class dogfood interaction surface for the project. It is intentionally a thin VS Code adapter over the architecture-neutral Python core under `dogfood/llm_wiki`.
+LLM Wiki is a local, user-owned knowledge system that lets a VS Code Agent search, read, and maintain persistent project memory without giving the model silent authority over raw evidence or the user's own beliefs/decisions.
 
-The core remains authoritative for storage, retrieval, provenance, E013 calibration semantics, and the explicit model-call boundary. The extension does not implement a second knowledge model and does not enable persistent compiled state.
+The simplest mental model is:
 
-## First run
+- **RAW_MEMORY** — immutable admitted source evidence; factual/provenance authority.
+- **DERIVED_MEMORY** — LLM-maintained Agent Wiki synthesis; useful, noncanonical, rebuildable.
+- **HUMAN_KNOWLEDGE** — a decision/belief/rationale the user explicitly confirmed for durable memory; not independent external evidence.
 
-After installing the VSIX, open a **trusted local workspace** in VS Code and use the Command Palette (`Cmd/Ctrl+Shift+P`):
+## Install / first run
 
-1. `LLM Wiki: Doctor (Zero Model Calls)` — checks Python, the bundled/local core, `compiled_provider=disabled`, Git raw-store safety, and whether Copilot CLI is available. This makes zero model calls and ingests no evidence.
-2. If Doctor reports `Git raw-store safety: UNPROTECTED` or `Realistic evidence dogfood: BLOCKED`, **do not ingest sensitive/realistic evidence yet**. Protect the local wiki directory from that Git repository first.
-3. `LLM Wiki: New Human Knowledge Note` — optionally open a human-owned Markdown draft for what you learned, believe, or decided. Creating the draft does not initialize, ingest, or mutate Wiki state.
-4. `LLM Wiki: Create Topic` — create the first local topic.
-5. Open a file you want to preserve as evidence and run `LLM Wiki: Ingest Active File`.
-6. Run `LLM Wiki: Search Topic`. When that file still exists with exactly the ingested bytes, the result can navigate to the original workspace-relative file; if it moved or changed, LLM Wiki falls back to the immutable read-only evidence snapshot.
-7. If you forgot which topic contains something, use `LLM Wiki: Global Search Current Evidence Across Topics` to discover it without treating superseded history as current or manufacturing an E013 visit.
-8. Only when desired, run `LLM Wiki: Ask Luna (Read-only)` and explicitly approve the modal evidence-send warning.
+1. Install the `.vsix` from VS Code Extensions → `...` → **Install from VSIX...**.
+2. Open a **trusted local workspace**.
+3. Run `LLM Wiki: Doctor (Zero Model Calls)`.
+4. If Doctor reports `Git raw-store safety: UNPROTECTED` or realistic dogfood `BLOCKED`, do not ingest sensitive evidence until `.wiki-lab/` is protected from that Git repository.
+5. Use your normal VS Code Agent conversation. The extension contributes the Agent tools described below.
 
-The selected topic appears in the VS Code status bar. Click it to switch topics.
+Python defaults to `python3`. Dogfood 0.1.11 retains explicit Python 3.9 compatibility testing for the bundled core.
 
-Alpha integrity checks detect many failures but **detection is not backup**. Before entrusting valuable knowledge to the local store, use the backup/restore procedure below. The source repository also keeps the longer operating note in `docs/11-local-backup-restore.md`.
+## The five Agent tools
 
-## Minimal backup / restore procedure
+You normally do not need to operate the Wiki through Command Palette commands. The selected VS Code Agent model can call these tools when appropriate, and you can also reference them explicitly by `#` name while dogfooding.
 
-The local Wiki directory (`.wiki-lab/` by default) contains private raw evidence, canonical history, provenance, topics, and telemetry. Treat any backup as equally sensitive and use only a destination permitted for that data.
+### `#wikiMemory` — search persistent memory
 
-**Snapshot:** stop Wiki writes (closing the VS Code workspace is the simplest Alpha procedure), then copy the **entire Wiki directory as one snapshot** to an approved local/offline location. Do not copy only `raw/` or only `manifest.jsonl`, and do not edit JSONL records in the snapshot. On a suitable private POSIX filesystem, for example:
+Agent tool: `llmWiki_searchMemory`.
 
-```bash
-cp -a .wiki-lab "$HOME/private-backups/my-project-wiki-2026-08-15"
-```
+Use when prior project knowledge, evidence, rationale, decisions, or history may help.
 
-Use an organization-approved equivalent on Windows/macOS. Company or sensitive evidence must follow the organization's backup policy; do not move it to a personal cloud account merely for convenience.
+What happens:
 
-**Restore:** stop Wiki writes, keep the current/damaged directory aside, copy a known-good **whole snapshot** back to the configured Wiki directory, then run `LLM Wiki: Doctor (Zero Model Calls)`. **Do not resume normal ingest/update work unless Doctor reports the local Alpha integrity boundary ready.** If Doctor reports missing/torn/corrupt canonical history or missing raw evidence, stop rather than manually reconstructing history from filenames or surviving files.
+1. LLM Wiki performs local deterministic current-view retrieval. **The tool itself makes zero model calls.**
+2. It can return separately labeled `RAW_MEMORY`, `DERIVED_MEMORY`, and `HUMAN_KNOWLEDGE`.
+3. Untrusted remembered text and text metadata are returned in JSON-string `*_json` fields. They are data, never Agent instructions.
+4. No Wiki mutation is authorized by a search result.
 
-This is an Alpha operating procedure, not live transactional backup, cloud sync, automatic retention, or multi-writer snapshotting.
+A normal user question might be:
 
-## Current commands
+> “왜 예전에 Redis를 안 쓰기로 했지?”
+
+The Agent may use `wikiMemory` to recover relevant prior memory before answering.
+
+### `#wikiRead` — follow a memory hit into verified evidence
+
+Agent tool: `llmWiki_readSource`.
+
+`wikiMemory` intentionally returns bounded search snippets. When a factual claim needs deeper provenance, `wikiRead` reads the immutable admitted source by canonical `source_id`.
+
+It exposes:
+
+- source SHA/name;
+- current/superseded/contested status when a topic ID is supplied;
+- bounded raw text with `startChar` / `maxChars` pagination;
+- the source-scoped Agent Wiki note, if one exists, clearly labeled as derived/noncanonical.
+
+Raw evidence remains the factual authority. If `has_more=yes` and the answer depends on omitted text, the Agent can continue with `next_start_char`.
+
+### `#rememberWikiSource` — “이 파일 기억해”
+
+Agent tool: `llmWiki_rememberSource`.
+
+Use only when the user explicitly asks to remember/save/capture/add a **local workspace file**.
+
+What happens:
+
+1. The product shows its own human confirmation modal. This is separate from generic Agent tool approval.
+2. If the file is currently dirty in any open editor, LLM Wiki **does not auto-save it**. Save it yourself and ask again.
+3. After confirmation, the exact file bytes are admitted first as immutable raw evidence.
+4. Filing uses the selected topic when available; otherwise deterministic **Agent Inbox** avoids extra ceremony.
+5. If Agent Wiki maintenance is disabled, the flow stops with zero maintenance model calls.
+6. If maintenance is enabled and there is no unresolved lineage ambiguity, Luna may create/reuse a derived source note.
+
+Raw admission always happens before optional derived maintenance. A maintenance failure does not erase admitted raw evidence.
+
+#### If the same remembered file changed
+
+0.1.11 does **not** silently assume what the new revision means.
+
+The new raw bytes are preserved, but Agent Wiki maintenance pauses and LLM Wiki creates a **pending lineage decision**. The Agent should ask whether the newer revision is:
+
+- a **correction** — the older revision was wrong;
+- a **change** — the older revision may have been valid then and the newer state became valid later;
+- an unresolved **dispute**;
+- a generic **supersede**;
+- intentionally **independent**.
+
+Then `#resolveWikiLineage` handles the human-confirmed answer.
+
+### `#resolveWikiLineage` — decide what changed revisions mean
+
+Agent tool: `llmWiki_resolveLineage`.
+
+Use only after `rememberWikiSource` returns a `pending_decision_id` and the user explicitly chooses the semantic relationship.
+
+Before recording anything, LLM Wiki:
+
+1. verifies the older/newer immutable raw revisions;
+2. verifies both are still current for the pending decision;
+3. checks their durable workspace-file locator/SHA binding;
+4. shows a bounded **OLDER / NEWER changed-region preview** in the confirmation modal;
+5. after confirmation, rechecks the source state immediately before any canonical relation is recorded.
+
+`change` requires a timezone-aware effective instant. If multiple old current revisions are involved, deciding one does not silently resolve the others; remaining ambiguity stays pending.
+
+This is where the human is intentionally in the loop because the difference between “wrong,” “changed later,” and “still disputed” is an epistemic commitment, not filing work.
+
+### `#rememberHumanKnowledge` — “우리는 이렇게 결정했어. 기억해”
+
+Agent tool: `llmWiki_rememberHumanKnowledge`.
+
+Use only when the user explicitly asks to durably remember their **own** decision, belief, rationale, or user-approved synthesis.
+
+Example:
+
+> “우리는 운영 복잡성 때문에 Redis를 아직 쓰지 않기로 결정했어. 기억해.”
+
+What happens:
+
+1. The Agent proposes a bounded statement/reasoning record.
+2. LLM Wiki shows the **full durable text** to the user for confirmation.
+3. On confirmation it is stored as `HUMAN_KNOWLEDGE` with **zero model calls** by the Wiki write path.
+4. It is never promoted to raw external evidence or a canonical temporal source relation.
+5. A later explicit change can create a new Human Knowledge record that supersedes the old current one.
+
+Tentative/inferred beliefs must not be silently persisted. “Redis 좀 귀찮은 것 같아. 아직 결정은 안 했어.” may justify reading relevant memory, but not durable Human Knowledge.
+
+Malformed/tampered Human Knowledge and fork/cycle ambiguity fail closed. The local integrity hash is a corruption check, **not** cryptographic tamper resistance.
+
+## Agent Wiki maintenance with Luna
+
+`LLM Wiki: Configure Agent Wiki Maintenance` controls a workspace-scoped standing grant. It is **OFF by default**.
+
+When enabled, after explicit source admission and only when no pending lineage decision blocks the source, admitted source bytes may be sent to exact `gpt-5.6-luna` to create/reuse a source-scoped derived note under:
+
+- `.wiki-lab/agent-wiki/source-notes/<source_id>.json`
+- `.wiki-lab/agent-wiki/source-notes/<source_id>.md`
+
+The artifact is labeled:
+
+> **AGENT WIKI — NONCANONICAL / REBUILDABLE**
+
+The maintenance path cannot perform correction/change/dispute/supersession/delete and cannot infer Human Knowledge. Generated notes are never re-ingested as raw evidence.
+
+The same current source + policy reuses the existing note with **zero new model calls**.
+
+Two separate spend guards exist:
+
+- `llmWiki.agentWikiMaintenanceMaxAiCredits` — Copilot CLI per-call ceiling, default/minimum `30` because of the current CLI contract;
+- `llmWiki.agentWikiMaintenanceDailyCallLimit` — durable per-workspace local-day call reservation cap, default `10`, range `0–100`; `0` disables new maintenance generations even if the grant is enabled.
+
+The daily count is stored inside `.wiki-lab/agent-state.json` before a generation. An uncertain transport outcome is not automatically refunded.
+
+## What `.wiki-lab/` contains
+
+The whole configured Wiki directory is one private backup boundary. It may contain:
+
+- immutable raw evidence;
+- canonical manifest/provenance/temporal history;
+- topics and local calibration state;
+- noncanonical Agent Wiki source notes;
+- user-confirmed Human Knowledge;
+- `agent-state.json` with pending lineage decisions, source locators, and maintenance call reservations.
+
+Do not commit the Wiki directory. Treat backups as equally sensitive as the source material.
+
+### Minimal Alpha backup / restore
+
+Stop Wiki writes (closing the workspace is the simplest Alpha procedure) and copy the **entire Wiki directory as one snapshot** to an approved private location. Do not copy only `raw/` or only `manifest.jsonl`.
+
+After restore, run `LLM Wiki: Doctor (Zero Model Calls)` before resuming work. If Doctor reports missing/torn/corrupt canonical history or missing raw evidence, stop rather than manually reconstructing history.
+
+This is not live transactional backup or cloud sync. The longer operating note is `docs/11-local-backup-restore.md`.
+
+## Doctor
+
+`LLM Wiki: Doctor (Zero Model Calls)`:
+
+- checks the configured Python executable;
+- invokes the real initialization boundary;
+- confirms `compiled_provider=disabled`;
+- audits raw/canonical integrity without repairing it;
+- classifies Git raw-store safety as `NOT_GIT`, `PROTECTED`, or `UNPROTECTED`;
+- reports Copilot CLI availability;
+- reports whether Agent Wiki maintenance is enabled;
+- makes **zero model calls**.
+
+Doctor does not print evidence, prompts, answers, usernames, hostnames, or environment variables.
+
+## Ask Luna (legacy explicit read-only path)
+
+`LLM Wiki: Ask Luna (Read-only)` remains available as an explicit topic-scoped diagnostic/dogfood path. It is not the primary 0.1.11 agent-first UX.
+
+It requires a modal evidence-send confirmation, uses exact `gpt-5.6-luna`, sends the transformed prompt over stdin rather than process argv, validates transient citation handles, and never writes the answer into canonical Wiki state.
+
+## Command Palette surface
+
+The 17 commands remain available as manual/diagnostic/fallback controls:
 
 - `LLM Wiki: Doctor (Zero Model Calls)`
 - `LLM Wiki: Initialize Workspace`
 - `LLM Wiki: Create Topic`
 - `LLM Wiki: Select Topic`
 - `LLM Wiki: New Human Knowledge Note`
+- `LLM Wiki: Configure Agent Wiki Maintenance`
 - `LLM Wiki: Ingest Active File`
 - `LLM Wiki: Ingest Active File as Authoritative Update`
 - `LLM Wiki: Search Topic`
@@ -56,174 +215,65 @@ This is an Alpha operating procedure, not live transactional backup, cloud sync,
 - `LLM Wiki: Show Calibration Summary`
 - `LLM Wiki: Experimental — Discover Copilot Models (Zero Generation)`
 
-## Human-owned Knowledge Note boundary
-
-Version 0.1.7 adds the smallest product step from evidence management toward human knowledge compounding: `LLM Wiki: New Human Knowledge Note`.
-
-The command opens an **untitled Markdown document owned by the user** with only four lightweight prompts:
-
-- Current statement
-- Why / reasoning
-- Supporting evidence
-- Open questions
-
-Creating this draft makes **zero model calls**, requires no topic, writes no E013 telemetry, and does not ingest or mutate canonical Wiki state. There is deliberately no `Type`, `Status`, ontology, graph, automatic promotion, or LLM-authored durable truth in v0.
-
-Saving the Markdown file is ordinary user file ownership. If the user later wants that note preserved as Wiki evidence, `LLM Wiki: Ingest Active File` remains a separate explicit action with the normal topic/trust semantics. This separation is intentional: the product can help a human preserve reasoning without quietly granting the LLM mutation authority.
-
-Whether Knowledge Notes deserve a richer first-class schema is a **dogfood question**, not an assumption. The v0 feature succeeds only if users repeatedly create and later recover useful human reasoning.
-
-## Source navigation boundary
-
-Canonical evidence deliberately stores an immutable content object and opaque evidence revision identity; it does **not** use a workspace path as evidence identity or corroboration.
-
-Version 0.1.6 retains the separate VS Code-local navigation hint introduced in 0.1.4:
-
-- only a workspace-relative path plus evidence SHA is kept in extension workspace state;
-- search display can use that relative path to disambiguate repeated basenames such as `README.md`;
-- LLM Wiki opens the original workspace file only when its current bytes still hash to the immutable evidence SHA;
-- if the file moved, disappeared, or changed, it opens the immutable raw provenance document instead.
-
-This makes navigation convenient without letting a mutable local path rewrite what the evidence actually was.
-
-## Global forgotten-topic discovery boundary
-
-Version 0.1.6 includes the E017 real-dogfood correctness fix for `Global Search Current Evidence Across Topics`.
-
-Before 0.1.6, each topic was BM25-scored independently and the resulting raw scores were compared across topics. Those scores are not comparable when topic corpora differ greatly in size. External dogfood reproduced a concrete failure: an Artemis II question over 1,515 Kubernetes docs, 557 CPython docs, and 10 NASA articles selected the CPython topic even though the NASA topic contained the answer.
-
-The current `discover` path therefore:
-
-- gathers only each topic's **current** evidence;
-- deduplicates immutable content objects;
-- scores the union once in a shared BM25 space;
-- attaches topic membership after scoring;
-- still excludes superseded history;
-- still does not manufacture an E013 query visit;
-- does **not** change topic-scoped W0 `search`, `context`, or `ask` behavior.
-
-This is a correctness repair for forgotten-topic routing, not a new global unscoped model-Ask path.
-
-## Explicit correction / change / disagreement
-
-The Alpha core distinguishes three meanings that should not be inferred automatically:
-
-- **Correction** — the predecessor was wrong and the successor corrects it.
-- **Change Source Over Time** — both states may have been correct at different times; the user supplies a timezone-aware effective instant.
-- **Unresolved Dispute** — two current evidence revisions disagree and neither is silently chosen as the winner.
-
-Version 0.1.6 retains the accepted ADR-0005 commands introduced in 0.1.4. The user explicitly chooses the participating current evidence revisions. Raw evidence and history remain preserved.
-
-`Ingest Active File as Authoritative Update` is a separate E013 workload boundary; it is not automatically a correction/change/supersession relation.
-
-## Customer feedback
-
-`LLM Wiki: Record Feedback` writes only the existing local fixed-code E013 outcome/reason values. Ask Luna also offers `Helpful` / `Not helpful` after displaying an answer. No free-text feedback is stored by this path.
-
-This is product evidence, not permission for the LLM to mutate canonical state.
-
-## Doctor boundary
-
-Doctor is deliberately local and cheap. It:
-
-- checks whether the configured Python executable can start;
-- invokes the real `LLM Wiki: Initialize Workspace` editor-to-core boundary;
-- confirms the local config format and `compiled_provider=disabled`;
-- classifies the local raw store as `NOT_GIT`, `PROTECTED`, or `UNPROTECTED` using local Git inspection only;
-- audits existing Alpha raw/canonical integrity without repair/reconstruction;
-- reports whether Copilot CLI is present;
-- reports local readiness and realistic evidence dogfood readiness separately;
-- makes **zero model calls**.
-
-`PROTECTED` means the configured local wiki directory is outside the workspace Git tree or ignored by that Git repository. `UNPROTECTED` means it is inside a Git work tree and not ignored. The extension warns but does **not** silently edit `.gitignore`, `.git/info/exclude`, or other Git metadata.
-
-Doctor does not print local paths, usernames, hostnames, environment variables, evidence, prompts, or answers.
-
-## 0.1.7 product hardening
-
-Version 0.1.7 also packages two concrete product-security/correctness fixes accepted from external review #101:
-
-- **Copilot prompt transport:** the complete question + retrieved evidence prompt is no longer placed in process argv. The Copilot CLI receives the transformed model prompt through stdin; argv contains only non-evidence control flags/model configuration. Existing citation-handle validation and explicit consent remain unchanged.
-- **Single-writer semantic mutations:** ingest, supersession, correction/change, dispute, and exact-provenance bind operations use one private store-level OS advisory writer lock across their read/validate/write boundary. A competing writer waits briefly or fails with `wiki_writer_busy`, then replays current state rather than committing against a stale pre-state. OS lock ownership dies with the process; the lock file is only a private rendezvous point, not canonical state.
-
-The writer lock does **not** claim cross-file transactional atomicity, multi-host locking, live snapshotting, or a database/WAL. Existing append/fsync/torn-tail/fail-closed contracts remain the durability boundary.
-
-## Ask Luna boundary
-
-`Ask Luna` is deliberately explicit:
-
-1. choose/retain a topic;
-2. enter a question;
-3. optionally tag the E013 query class;
-4. approve a modal warning that retrieved evidence will be sent to GitHub Copilot;
-5. only then does the extension invoke the core `ask` path with `--allow-model-call`.
-
-The model is pinned to `gpt-5.6-luna`. The answer is displayed in the Output channel and is never written to canonical wiki state. Programmatic command arguments used by local-only runtime tests do **not** provide a model-consent bypass.
-
-Version 0.1.7 retains the answer/provenance hardening introduced in 0.1.5 and sends the transformed prompt to Copilot over stdin rather than process argv. The model no longer has to emit canonical `src-...` identifiers directly. The transient model context exposes short per-call citation handles such as `C1`/`C2`; the core validates those handles and deterministically maps them back to canonical source IDs before the answer is returned. Unknown handles, raw source IDs emitted by the model, or missing citations fail closed instead of masquerading as provenance. These handles are never stored as evidence identity or trust signals.
-
-The validated production-dogfood Ask adapter remains the Copilot CLI path until the VS Code-native Language Model API spike proves that the exact Luna model can be selected without silent substitution.
-
-## Experimental VS Code-native model discovery
-
-`LLM Wiki: Experimental — Discover Copilot Models (Zero Generation)` is a product-adapter probe for issue [#24](https://github.com/YB-Park/llm-wiki-lab/issues/24). It is safe to run before using real evidence because it does not send a prompt or evidence and does not call model generation.
-
-It asks the VS Code Language Model API only for Copilot model metadata and opens a JSON report containing:
-
-- `generationCalls: 0`;
-- API/selection status;
-- model id, family, version, name, vendor, and max-input-token metadata;
-- exact match counts for `gpt-5.6-luna`.
-
-The gate is intentionally strict. Only an exact `id === "gpt-5.6-luna"` or `family === "gpt-5.6-luna"` is treated as an exact metadata signal. A name that merely contains “Luna”, a preview label, or another GPT model does not pass. Selection failure does not trigger another model or fallback.
-
-Even if an exact metadata signal appears, this discovery command does **not** switch Ask Luna to the VS Code-native adapter. A separate bounded synthetic generation smoke is required first.
-
-## Run in Extension Development Host
-
-Open the repository root in VS Code, then press `F5` and choose `Run LLM Wiki Dogfood Extension`.
-
-A second Extension Development Host window opens with the extension loaded. Development mode uses the shared repository Python core rather than a generated bundled copy.
-
-## Installable VSIX dogfood
-
-CI builds `llm-wiki-dogfood.vsix`. The VSIX bundles the shared Python core **at package time** under the extension's `python/` directory. That generated copy is build output, not a second source-of-truth implementation.
-
-The installed extension therefore does not require a checkout of this repository for normal raw/retrieval/provenance use. It still requires Python to be available on the machine.
-
-CI runs the Extension Host interaction suite against both the repository development extension and the unpacked packaged VSIX. Separate deterministic tests cover the product helpers, typed temporal CLI operations, current-only cross-topic discovery, global uneven-topic discovery scoring, Git safety, and exact-Luna metadata gate. Authenticated generation is evaluated separately in the guarded remote-lab/dogfood workflows so packaging CI does not consume Copilot quota.
-
-To install a downloaded VSIX in VS Code, use the Extensions view's `Install from VSIX...` action.
+The Command Palette is no longer the intended primary product loop; ordinary Agent conversation is.
 
 ## Runtime prerequisites
 
-- a trusted VS Code workspace;
-- Python available as `python3` by default, configurable via `llmWiki.pythonExecutable`;
-- GitHub Copilot CLI installed and authenticated only if you choose the current `LLM Wiki: Ask Luna (Read-only)` path;
-- an authenticated Copilot-capable VS Code session only if you choose the experimental model-discovery command.
+For local raw/search/provenance and zero-model Agent tools:
 
-For realistic dogfood, use the extension in a workspace that contains only evidence you are permitted to process and run Doctor first. Treat `UNPROTECTED` as a stop condition for realistic evidence ingestion.
+- trusted VS Code workspace;
+- VS Code `1.95+`;
+- Python, default `python3` (`llmWiki.pythonExecutable` can override it).
+
+For model-backed Luna maintenance / explicit Ask Luna:
+
+- GitHub Copilot CLI installed and authenticated;
+- permitted evidence for the configured workspace grant.
+
+The normal VS Code Agent tools also require an authenticated Agent-capable VS Code session for the user's selected main model.
 
 ## Settings
 
 - `llmWiki.pythonExecutable`: default `python3`.
-- `llmWiki.corePath`: optional override. Empty uses the bundled core in an installed VSIX and the repository core during extension development.
-- `llmWiki.workspaceDirectory`: default `.wiki-lab` inside the active workspace.
-- `llmWiki.maxAiCredits`: default `30` per explicit Ask Luna call.
+- `llmWiki.corePath`: empty means bundled core in an installed VSIX / repository core during extension development.
+- `llmWiki.workspaceDirectory`: default `.wiki-lab`.
+- `llmWiki.maxAiCredits`: default `30`, explicit Ask Luna per-call guard.
+- `llmWiki.agentWikiMaintenanceEnabled`: default `false`, workspace-scoped standing grant.
+- `llmWiki.agentWikiMaintenanceMaxAiCredits`: default `30`, maintenance per-call CLI guard.
+- `llmWiki.agentWikiMaintenanceDailyCallLimit`: default `10`; `0` disables new maintenance generations.
 
-## Current limitations
+## 0.1.11 validation status
 
-This is an **Alpha/dogfood** product, not a polished Marketplace/customer-ready release.
+Before 0.1.11 human dogfood, the project ran deterministic/adversarial synthetic passes rather than asking the user to discover every obvious gap manually.
 
-Real assistant-as-user dogfood has now covered both the project repository and three unfamiliar external corpora. External E017 testing found and fixed the uneven-topic forgotten-topic discovery bug included in 0.1.6. Version 0.1.7 additionally begins dogfooding human-owned durable reasoning with a deliberately schema-light Knowledge Note draft while packaging the argv→stdin and single-writer hardening from review #101. It also added a second independent real-user case where X1 materially improved W0 context: a CPython reStructuredText question recovered the current POSIX `forkserver` default and 3.14 rationale under X1. That repair remained partial because the exact multithreaded-fork warning lived in another region of the same long `.rst` document and was still omitted.
+**E020** contains **78** frozen representative authority/UX cases:
 
-Customer readiness therefore still requires:
+- 60 supported by concrete current product mechanisms;
+- 7 partial and still requiring installed/model/process evidence;
+- 11 deliberately deferred because they require new authority/parser/product decisions;
+- model calls: 0.
 
-1. repeated natural multi-session use in the user's own VS Code workflow, so E013/E015 evidence arises without manufactured activity;
-2. additional natural W0/X1 divergent cases, if they occur, before any default/routing change;
-3. recurrence before adding non-Markdown parser/multiple-unit retrieval complexity for the single CPython multi-aspect case;
-4. the separate VS Code-native LM API exact-Luna question only if replacing the validated CLI adapter is still valuable.
+Dev and **unpacked packaged VSIX Extension Host** tests exercise the actual five-tool surface, including dirty-file fail-closed, verified raw read, pending revision lineage, Human Knowledge lifecycle, newline metadata structural injection, stale/tampered lineage binding, and Human Knowledge fork handling.
 
-The UI remains intentionally command-driven for Alpha. Additional visual UX should follow repeated real-use friction rather than speculative polish.
+**E021** separately found positive but bounded evidence that exact Luna can maintain one fixed-identity cross-source derived concept page across a deliberately relevant A→A+B→A+B+C source sequence while retaining raw provenance. That experiment does **not** earn automatic concept discovery/routing/dedup/update triggers, and its result record documents a retained execution-provenance limitation. Do not rerun it merely to strengthen the record.
 
-Compiled knowledge remains disabled. E013 realistic workload evidence decides whether a compiled provider is ever allowed to advance to shadow/opt-in testing.
+**E022** used exactly **two** real main-model generations (`gpt-5.4`, `claude-sonnet-4.6`) against the malicious exact v4 memory serialization. Both recovered the legitimate fact `42`, treated embedded policy/mutation/delete-looking strings as data, and requested/claimed no Wiki mutation. Rerolls: 0. Run `31993541811`, artifact `9276094144`. This is a useful translation smoke, **not a universal prompt-injection guarantee**.
+
+## What still needs human dogfood
+
+This is an **Alpha**, not customer-ready software. Synthetic testing cannot tell us:
+
+- whether the main Agent invokes `wikiMemory` often enough or too often;
+- whether it naturally follows important hits with `wikiRead`;
+- whether admission/lineage confirmations cause approval fatigue;
+- whether “remember my decision” feels natural in conversation;
+- whether the old/new lineage preview is understandable to a normal user;
+- whether Luna maintenance latency/spend feels worth it;
+- whether RAW vs DERIVED vs HUMAN_KNOWLEDGE distinctions stay understandable rather than leaking implementation complexity;
+- whether returning days later actually recovers reasoning the user would otherwise have lost.
+
+Those are the next product questions. Do not add vectors/graphs, background watching, URL/PDF capture, cross-workspace federation, automatic concept routing, or a large visual navigation system merely because they are available ideas.
+
+Known non-blocking reliability follow-up #132 tracks deletion detection for `agent-state.json` and the relation/pending-state crash window. Do not claim those edges are already atomic/detectable.
+
+Compiled knowledge remains disabled as a trusted/default provider. W0 remains the default retrieval path and X1 remains non-default/shadow pending more natural quality evidence.
