@@ -14,6 +14,7 @@ const { discoverCopilotModels } = require('./lm-discovery');
 const execFileAsync = promisify(execFile);
 const WORKSPACE_ENABLED_CONTEXT = 'llmWiki.workspaceEnabled';
 const AGENT_TOOL_COUNT = 5;
+const MULTI_ROOT_MESSAGE = 'LLM Wiki currently supports one workspace folder at a time. Open the project as a single-folder workspace before using project memory.';
 let doctorOutput;
 let baseSurfaceRegistered = false;
 let agentToolDisposables = [];
@@ -22,6 +23,7 @@ let agentToolsRegistered = false;
 function firstWorkspaceFolder() {
   const folders = vscode.workspace.workspaceFolders || [];
   if (!folders.length) throw new Error('Open a trusted VS Code workspace/folder before using LLM Wiki.');
+  if (folders.length !== 1) throw new Error(MULTI_ROOT_MESSAGE);
   return folders[0];
 }
 
@@ -37,7 +39,7 @@ function wikiRoot(folder) {
 function requireWorkspaceEnabled() {
   const folder = firstWorkspaceFolder();
   if (!workspaceActivation.isWorkspaceEnabled(wikiRoot(folder))) {
-    throw new Error('LLM Wiki is not enabled for this workspace. Run LLM Wiki: Initialize Workspace first.');
+    throw new Error('LLM Wiki is not enabled for this workspace. Run LLM Wiki: Set Up Project Memory first.');
   }
   return folder;
 }
@@ -145,12 +147,15 @@ async function applyWorkspaceRuntimeAvailability(context, enabled) {
   } else {
     unregisterAgentTools();
   }
+  if (baseSurfaceRegistered && typeof base.setStatusVisible === 'function') {
+    base.setStatusVisible(enabled);
+  }
   await setWorkspaceToolContext(enabled);
 }
 
 async function refreshWorkspaceRuntimeAvailability(context) {
   const folders = vscode.workspace.workspaceFolders || [];
-  const enabled = folders.length > 0 && workspaceActivation.isWorkspaceEnabled(wikiRoot(folders[0]));
+  const enabled = folders.length === 1 && workspaceActivation.isWorkspaceEnabled(wikiRoot(folders[0]));
   await applyWorkspaceRuntimeAvailability(context, enabled);
   return enabled;
 }
@@ -456,7 +461,12 @@ async function configureAgentWikiMaintenance() {
 async function commandBoundary(label, fn) {
   try {
     return await fn();
-  } catch (_) {
+  } catch (error) {
+    const detail = error && error.message ? error.message : String(error);
+    if (detail === MULTI_ROOT_MESSAGE) {
+      vscode.window.showErrorMessage(MULTI_ROOT_MESSAGE);
+      return undefined;
+    }
     const choice = await vscode.window.showErrorMessage(
       `LLM Wiki could not complete “${label}”.`,
       'Check Setup'
