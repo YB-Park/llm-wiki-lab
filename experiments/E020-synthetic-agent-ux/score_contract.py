@@ -22,7 +22,7 @@ FEATURE_MARKERS = {
     "raw_first": [(AGENT, "['ingest', target.filePath, '--topic', topic.id]"), (AGENT, "FAILED_AFTER_RAW_ADMISSION")],
     "inbox_fallback": [(AGENT, "AGENT_INBOX_LABEL"), (AGENT, "filing_mode=")],
     "maintenance_grant": [(AGENT, "agentWikiMaintenanceEnabled"), (AGENT, "SKIPPED_NO_WORKSPACE_GRANT")],
-    "daily_budget": [(AGENT, "agentWikiMaintenanceDailyCallLimit"), (AGENT, "SKIPPED_DAILY_CALL_LIMIT")],
+    "daily_budget": [(AGENT, "agentWikiMaintenanceDailyCallLimit"), (AGENT, "confirmMaintenanceSoftGuard"), (AGENT_STATE, "reserve_maintenance_call")],
     "maintenance_reuse": [(AGENT, "agent_wiki_model_call_not_authorized"), (AGENT, "preflightStdout")],
     "pending_lineage": [(AGENT, "createPendingLineage"), (AGENT, "SKIPPED_PENDING_LINEAGE_DECISION")],
     "human_lineage_gate": [(AGENT, "Confirm LLM Wiki lineage decision"), (AGENT, "authority=human_confirmed_epistemic_relation")],
@@ -87,9 +87,9 @@ CASES = [
     ("S32", "Human Knowledge is searchable separately from raw evidence", "supported", ["human_knowledge_search"]),
     ("S33", "Human Knowledge does not mutate canonical raw history", "supported", ["human_knowledge"]),
     ("S34", "Human Knowledge can link verified source IDs", "supported", ["human_knowledge", "verified_read"]),
-    ("S35", "maintenance daily limit zero prevents generation", "supported", ["daily_budget"]),
-    ("S36", "maintenance daily cap is distinct from per-call guard", "supported", ["daily_budget", "maintenance_grant"]),
-    ("S37", "uncertain transport failure does not refund reserved call", "supported", ["daily_budget"]),
+    ("S35", "maintenance daily threshold zero prevents new generation", "supported", ["daily_budget"]),
+    ("S36", "positive daily maintenance threshold is a soft guard, not a hard cap", "supported", ["daily_budget", "maintenance_grant"]),
+    ("S37", "uncertain transport failure does not refund a reserved call", "supported", ["daily_budget"]),
     ("S38", "maintenance failure cannot roll back raw admission", "supported", ["raw_first"]),
     ("S39", "maintenance does not run while lineage is unresolved", "supported", ["pending_lineage"]),
     ("S40", "resolved lineage may resume derived maintenance only when no predecessor ambiguity remains", "supported", ["human_lineage_gate", "multi_predecessor", "maintenance_grant"]),
@@ -105,7 +105,7 @@ CASES = [
     ("S50", "main-model choice to invoke ambient search remains model discretion per E018", "partial", ["ambient_search"]),
     ("S51", "approval fatigue cannot be measured synthetically", "partial", ["explicit_admission"]),
     ("S52", "maintenance latency cannot be judged without real installed use", "partial", ["maintenance_grant"]),
-    ("S53", "daily call cap is not an exact dollar budget because transport cost telemetry is incomplete", "partial", ["daily_budget"]),
+    ("S53", "maintenance soft guard is not an exact dollar or AI-credit budget because transport cost telemetry is incomplete", "partial", ["daily_budget"]),
     ("S54", "full activity/diff/revert UI remains deferred until installed friction", "deferred", ["verified_read"]),
     ("S55", "cross-workspace personal/project federation remains deferred", "deferred", []),
     ("S56", "X2 multi-region retrieval remains evidence-gated", "deferred", ["ambient_search"]),
@@ -164,7 +164,7 @@ def main() -> int:
     }
     hk_schema = next(row for row in MANIFEST["contributes"]["languageModelTools"] if row["name"] == "llmWiki_rememberHumanKnowledge")["inputSchema"]["properties"]
     assert "supersedesKnowledgeId" in hk_schema
-    assert MANIFEST["version"] == "0.1.13"
+    assert MANIFEST["version"] == "0.1.14"
 
     print(
         "E020-SYNTHETIC-CONTRACT PASS "
