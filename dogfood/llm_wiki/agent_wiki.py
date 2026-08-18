@@ -283,42 +283,70 @@ def search_agent_notes(root: Path, query: str, *, top_k: int = 3) -> list[AgentN
 
     Derived notes are explicitly noncanonical; their failure must not block raw
     evidence retrieval. Doctor/rebuild work can inspect the derived directory
-    separately if needed.
+    separately if this layer becomes operationally important.
     """
-    ensure_workspace(root)
-    query_tokens = set(tokenize(query))
-    rows = []
-    root_dir = _agent_root(root)
-    if not root_dir.exists():
-        return rows
-    for path in sorted(root_dir.glob("*.json")):
+    if top_k <= 0:
+        return []
+    qtokens = tokenize(query)
+    if not qtokens:
+        return []
+    note_root = _agent_root(root)
+    if not note_root.exists():
+        return []
+
+    records: list[dict] = []
+    current_cache: dict[str, frozenset[str]] = {}
+    for path in sorted(note_root.glob("src-*.json")):
         try:
             record = _load_record(path)
+            topic_id = str(record["topic_id"])
+            if topic_id not in current_cache:
+                current_cache[topic_id] = temporal_projection(root, topic_id=topic_id).current_source_ids
+            if record["source_id"] not in current_cache[topic_id]:
+                continue
+            records.append(record)
         except Exception:
             continue
-        if not _is_current(root, topic_id=record["topic_id"], source_id=record["source_id"]):
-            continue
+    if not records:
+        return []
+
+    tokenized: list[list[str]] = []
+    for record in records:
         payload = record["payload"]
-        text = " ".join(
+        text = "\n".join(
             [payload["title"], payload["summary"], *payload["operational_rules"], *payload["boundaries"], *payload["open_questions"]]
         )
-        tokens = tokenize(text)
-        if not tokens:
+        tokenized.append(tokenize(text))
+    avgdl = sum(len(tokens) for tokens in tokenized) / len(tokenized)
+    dfs = Counter()
+    for tokens in tokenized:
+        for term in set(tokens):
+            dfs[term] += 1
+
+    hits: list[AgentNoteHit] = []
+    qset = set(qtokens)
+    for record, tokens in zip(records, tokenized):
+        tf = Counter(tokens)
+        dl = len(tokens)
+        score = 0.0
+        for term in qtokens:
+            if tf[term] == 0:
+                continue
+            df = dfs[term]
+            idf = math.log(1 + (len(records) - df + 0.5) / (df + 0.5))
+            denom = tf[term] + 1.5 * (1 - 0.75 + 0.75 * dl / avgdl)
+            score += idf * (tf[term] * 2.5) / denom
+        if score <= 0:
             continue
-        counts = Counter(tokens)
-        overlap = sum(counts[token] for token in query_tokens)
-        if overlap <= 0:
-            continue
-        score = overlap / math.sqrt(len(tokens))
-        rows.append(
+        hits.append(
             AgentNoteHit(
-                source_id=record["source_id"],
-                topic_id=record["topic_id"],
-                title=payload["title"],
+                source_id=str(record["source_id"]),
+                topic_id=str(record["topic_id"]),
+                title=_clean_title(str(record["payload"]["title"]), str(record["source_id"])),
                 score=score,
-                snippet=_best_note_snippet(record, query_tokens),
-                markdown_path=_markdown_path(root, record["source_id"]),
+                snippet=_best_note_snippet(record, qset),
+                markdown_path=_markdown_path(root, str(record["source_id"])),
             )
         )
-    rows.sort(key=lambda hit: (-hit.score, hit.source_id))
-    return rows[: max(0, top_k)]
+    hits.sort(key=lambda hit: (-hit.score, hit.source_id))
+    return hits[:top_k]
