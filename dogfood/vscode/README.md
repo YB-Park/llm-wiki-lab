@@ -1,4 +1,4 @@
-# LLM Wiki Dogfood 0.1.13 — VS Code-first Alpha
+# LLM Wiki Dogfood 0.1.14 — VS Code-first Alpha
 
 LLM Wiki is a local, user-owned knowledge system that lets a VS Code Agent search, read, and maintain persistent project memory without giving the model silent authority over raw evidence or the user's own beliefs/decisions.
 
@@ -19,7 +19,7 @@ The simplest mental model is:
 
 Initialization refuses to enable Agent integration while the Wiki directory is Git-`UNPROTECTED`, when the configured Python executable is unavailable, or when post-init integrity does not pass.
 
-Python defaults to `python3`. Dogfood 0.1.13 retains explicit Python 3.9 compatibility testing for the bundled core.
+Python defaults to `python3`. Dogfood 0.1.14 retains explicit Python 3.9 compatibility testing for the bundled core.
 
 ## Workspace activation boundary
 
@@ -86,11 +86,11 @@ What happens:
 5. If Agent Wiki maintenance is disabled, the flow stops with zero maintenance model calls.
 6. If maintenance is enabled and there is no unresolved lineage ambiguity, Luna may create/reuse a derived source note.
 
-Raw admission always happens before optional derived maintenance. A maintenance failure does not erase admitted raw evidence.
+Raw admission always happens before optional derived maintenance. A maintenance failure or a declined maintenance soft guard does not erase admitted raw evidence.
 
 #### If the same remembered file changed
 
-0.1.13 does **not** silently assume what the new revision means.
+0.1.14 does **not** silently assume what the new revision means.
 
 The new raw bytes are preserved, but Agent Wiki maintenance pauses and LLM Wiki creates a **pending lineage decision**. The Agent should ask whether the newer revision is:
 
@@ -162,9 +162,11 @@ The same current source + policy reuses the existing note with **zero new model 
 Two spend controls are exposed, but current Copilot CLI builds do not all advertise the same flags:
 
 - `llmWiki.agentWikiMaintenanceMaxAiCredits` — preferred Copilot CLI per-call ceiling, default `30`; LLM Wiki applies `--max-ai-credits` only when the installed `copilot --help` advertises that flag;
-- `llmWiki.agentWikiMaintenanceDailyCallLimit` — durable per-workspace local-day call reservation cap, default `10`, range `0–100`; `0` disables new maintenance generations even if the grant is enabled. This limit is enforced independently of Copilot CLI flag availability.
+- `llmWiki.agentWikiMaintenanceDailyCallLimit` — retained setting name for compatibility, now a **daily soft-guard threshold**, default `10`, range `0–100`. A positive value does not hard-cap maintenance. Once that many model-backed calls have already been reserved for the local day, LLM Wiki asks once whether to **Continue Today**. If approved, maintenance can continue for the rest of that day. `0` disables new model-backed maintenance generations even when the grant is enabled.
 
-Before a model call, 0.1.13 probes the installed CLI help with **zero model calls**. `--no-remote` remains required by the maintenance adapter; optional hardening such as `--no-remote-export` is passed only when that installed binary advertises it. The daily count is stored inside `.wiki-lab/agent-state.json` before a generation. An uncertain transport outcome is not automatically refunded.
+Before a model call, 0.1.14 probes the installed CLI help with **zero model calls**. `--no-remote` remains required by the maintenance adapter; optional hardening such as `--no-remote-export` is passed only when that installed binary advertises it. Model-backed maintenance calls are durably counted inside `.wiki-lab/agent-state.json` immediately before the external call. The soft-guard acknowledgement is only VS Code workspace UI state; losing it may cause another prompt but does not change Wiki knowledge. An uncertain transport outcome is not automatically refunded.
+
+This threshold is intentionally advisory. It is a visibility/control checkpoint, not a statement that ten calls are inherently safe or sufficient. Usage/token/AI-credit observability is a separate follow-up; do not interpret the local reserved-call count as exact token or billing consumption.
 
 ## What `.wiki-lab/` contains
 
@@ -210,7 +212,7 @@ Doctor does not print evidence, prompts, answers, usernames, hostnames, or envir
 
 ## Ask Luna (legacy explicit read-only path)
 
-`LLM Wiki: Ask Luna (Read-only)` remains available as an explicit topic-scoped diagnostic/dogfood path. It is not the primary 0.1.13 agent-first UX.
+`LLM Wiki: Ask Luna (Read-only)` remains available as an explicit topic-scoped diagnostic/dogfood path. It is not the primary 0.1.14 agent-first UX.
 
 It requires a modal evidence-send confirmation, uses exact `gpt-5.6-luna`, sends the transformed prompt over stdin rather than process argv, validates transient citation handles, and never writes the answer into canonical Wiki state.
 
@@ -264,11 +266,11 @@ The normal VS Code Agent tools also require an authenticated Agent-capable VS Co
 - `llmWiki.maxAiCredits`: default `30`, preferred explicit Ask Luna per-call guard; applied only when the installed Copilot CLI advertises `--max-ai-credits`.
 - `llmWiki.agentWikiMaintenanceEnabled`: default `false`, workspace-scoped standing grant.
 - `llmWiki.agentWikiMaintenanceMaxAiCredits`: default `30`, preferred maintenance per-call guard; applied only when the installed Copilot CLI advertises `--max-ai-credits`.
-- `llmWiki.agentWikiMaintenanceDailyCallLimit`: default `10`; `0` disables new maintenance generations. This durable workspace limit is enforced independently of CLI flag availability.
+- `llmWiki.agentWikiMaintenanceDailyCallLimit`: default `10`, now a daily **soft-guard threshold**. A positive value prompts once at the threshold and does not hard-cap further maintenance after `Continue Today`; `0` disables new model-backed maintenance generations.
 
-## 0.1.13 validation status
+## 0.1.14 validation status
 
-0.1.13 keeps the explicit workspace activation and deterministic/adversarial authority contract, and adds capability-aware Copilot CLI invocation for Agent Wiki maintenance.
+0.1.14 keeps the explicit workspace activation and deterministic/adversarial authority contract, retains 0.1.13's capability-aware Copilot CLI invocation, and changes the positive daily maintenance threshold from a hard cap into a user-visible soft guard.
 
 **E020** contains **78** frozen representative authority/UX cases:
 
@@ -277,7 +279,7 @@ The normal VS Code Agent tools also require an authenticated Agent-capable VS Co
 - 11 deliberately deferred because they require new authority/parser/product decisions;
 - model calls: 0.
 
-Dev and **unpacked packaged VSIX Extension Host** tests exercise the actual five-tool surface, including dirty-file fail-closed, verified raw read, pending revision lineage, Human Knowledge lifecycle, newline metadata structural injection, stale/tampered lineage binding, and Human Knowledge fork handling. 0.1.13 also tests capability-aware Copilot CLI command construction so optional flags removed by an installed CLI do not turn successful RAW admission into an opaque maintenance failure.
+Dev and **unpacked packaged VSIX Extension Host** tests exercise the actual five-tool surface, including dirty-file fail-closed, verified raw read, pending revision lineage, Human Knowledge lifecycle, newline metadata structural injection, stale/tampered lineage binding, and Human Knowledge fork handling. 0.1.14 also locks durable non-blocking maintenance call accounting, the zero-threshold disable behavior, and the user-facing positive soft-guard contract.
 
 **E021** is the separate cross-source concept-compounding experiment. It recorded narrow positive evidence that exact Luna can maintain one fixed-identity derived concept page across a deliberately relevant A→A+B→A+B+C source sequence while retaining raw provenance. It does **not** earn automatic concept discovery/routing/dedup/update triggers, and its result record documents a retained execution-provenance limitation. Do not rerun it merely to strengthen the record.
 
@@ -293,6 +295,8 @@ This is an **Alpha**, not customer-ready software. Synthetic testing cannot tell
 - whether “remember my decision” feels natural in conversation;
 - whether the old/new lineage preview is understandable to a normal user;
 - whether Luna maintenance latency/spend feels worth it;
+- whether the maintenance soft guard appears at a useful threshold or should eventually disappear;
+- whether internal maintenance token/AI-credit usage is sufficiently visible to the user;
 - whether RAW vs DERIVED vs HUMAN_KNOWLEDGE distinctions stay understandable rather than leaking implementation complexity;
 - whether returning days later actually recovers reasoning the user would otherwise have lost.
 
