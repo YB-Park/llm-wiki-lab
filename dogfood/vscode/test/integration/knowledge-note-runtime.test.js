@@ -19,21 +19,26 @@ async function stage(label, promise, timeoutMs = 10000) {
   }
 }
 
-suite('LLM Wiki 0.1.7 Human Knowledge Note', () => {
-  test('opens an untitled human-owned Markdown draft without canonical mutation', async () => {
+suite('LLM Wiki 0.1.12 Human Knowledge Note', () => {
+  test('opens an untitled human-owned Markdown draft without canonical mutation after explicit opt-in', async () => {
     const folder = (vscode.workspace.workspaceFolders || [])[0];
     assert.ok(folder, 'integration test workspace is not open');
     const wikiRoot = path.join(folder.uri.fsPath, '.wiki-lab');
-    fs.rmSync(wikiRoot, { recursive: true, force: true });
 
     const extension = vscode.extensions.getExtension('llm-wiki-lab.llm-wiki-dogfood');
     assert.ok(extension, 'LLM Wiki extension was not discovered');
     await extension.activate();
 
+    try {
+      await vscode.commands.executeCommand('llmWiki.disableWorkspace');
+    } catch (_) {}
+    fs.rmSync(wikiRoot, { recursive: true, force: true });
+    const enabled = await stage('enable-workspace', vscode.commands.executeCommand('llmWiki.enableWorkspace'));
+    assert.equal(enabled, true, 'explicit workspace opt-in failed');
+
     const commands = new Set(await vscode.commands.getCommands(true));
     assert.ok(commands.has('llmWiki.newKnowledgeNote'), 'human Knowledge Note command is not registered');
 
-    await stage('init', vscode.commands.executeCommand('llmWiki.init'));
     const manifestPath = path.join(wikiRoot, 'manifest.jsonl');
     const manifestBefore = fs.readFileSync(manifestPath);
     const eventsPath = path.join(wikiRoot, 'workload-events.jsonl');
