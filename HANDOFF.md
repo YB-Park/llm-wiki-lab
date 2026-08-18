@@ -10,9 +10,9 @@ Build a VS Code-first **LLM Wiki** where the user owns a verifiable knowledge sy
 
 > **Human controls admission and epistemic commitment. LLM controls routine compilation/maintenance inside granted authority.**
 
-## Current baseline — Dogfood 0.1.13
+## Current baseline — Dogfood 0.1.14
 
-0.1.13 is on `main` via PR #152. The existing lifecycle boundary remains:
+0.1.14 is on `main` via PR #154. The lifecycle boundary remains:
 
 > **Installed capability != workspace permission.**
 
@@ -36,41 +36,77 @@ E020 remains **78 zero-model cases: 60 supported / 7 partial / 11 deferred**. Re
 
 Customer readiness: **NOT READY YET** — installed multi-session P7 evidence is still the blocker.
 
-## 0.1.13 Copilot CLI compatibility boundary
+## 0.1.13 Copilot CLI compatibility boundary retained
 
-P7 installed dogfood exposed a real external-runtime compatibility failure after updating Copilot CLI to `1.0.80`:
+P7 installed dogfood exposed a real external-runtime compatibility failure after updating Copilot CLI to `1.0.80`: the installed CLI no longer advertised `--max-ai-credits` or `--no-remote-export`, while 0.1.12 hardcoded both. A simple Luna call worked, but maintenance exited `1` after RAW admission.
 
-- a simple `copilot -p ... --model gpt-5.6-luna` call succeeded;
-- the installed `copilot --help` no longer advertised `--max-ai-credits` or `--no-remote-export`;
-- 0.1.12 hardcoded both flags, so Agent Wiki maintenance exited `1` after RAW admission;
-- the opaque `FAILED_AFTER_RAW_ADMISSION` result caused the main Agent to incorrectly guess that `compiled_provider=disabled` was the cause.
+The fix retained in 0.1.14 is:
 
-0.1.13 fixes that boundary:
-
-- before a maintenance model call, LLM Wiki probes the **installed** `copilot --help` with zero model calls;
-- `--no-remote` remains required;
-- optional flags such as `--no-remote-export` and `--max-ai-credits` are passed only when that installed binary advertises them;
-- the durable per-workspace daily maintenance-call reservation remains enforced independently of optional CLI credit-flag support;
-- recognized Copilot failures are translated into bounded maintenance statuses such as CLI argument/auth/model/output-contract failures instead of reflecting arbitrary stderr or collapsing everything into one opaque failure.
+- probe the **installed** `copilot --help` with zero model calls before model-backed maintenance;
+- keep `--no-remote` required;
+- pass optional flags such as `--no-remote-export` and `--max-ai-credits` only when that binary advertises them;
+- translate recognized Copilot failures into bounded maintenance statuses instead of reflecting arbitrary stderr.
 
 `compiled_provider=disabled` remains **EXPECTED / healthy** for the current Core and is unrelated to Agent Wiki Luna maintenance.
 
-## 0.1.13 validation / artifact
+## 0.1.14 maintenance soft guard
 
-PR #152 final branch validation passed Python 3.9 compatibility, **150 Python tests**, E020, static checks, dev Extension Host, VSIX packaging, and unpacked packaged Extension Host validation. A first packaged test run exposed CI workspace-state leakage from the preceding dev Extension Host; the workflow now removes the previous `.wiki-lab` before the packaged fresh-workspace test.
+Natural P7 use showed the previous default daily hard cap of `10` model-backed Agent Wiki maintenance calls was too blunt for ordinary batch maintenance.
+
+0.1.14 changes the positive daily threshold into a **soft guard**:
+
+- `llmWiki.agentWikiMaintenanceDailyCallLimit` keeps its setting name for compatibility and defaults to `10`;
+- positive values are advisory thresholds, **not hard caps**;
+- before the first new model-backed call after the threshold has already been reached, VS Code asks whether to `Continue Today`;
+- after approval, maintenance can continue for the rest of that local day without the durable counter hard-blocking further calls;
+- declining skips only optional derived Agent Wiki maintenance; RAW evidence was already admitted and remains preserved;
+- `0` intentionally retains its prior meaning: disable new model-backed maintenance generations;
+- same-source note `REUSED` remains zero-model and is resolved before the soft guard;
+- `.wiki-lab/agent-state.json` durably records model-call reservations before external calls but no longer enforces a positive product cap;
+- the soft-guard acknowledgement is VS Code workspace UI state, not epistemic/canonical Wiki state.
+
+The guard is provisional dogfood UX. Installed evidence should determine whether the threshold should move, become less prominent, or disappear.
+
+## Hidden maintenance usage is the next UX question
+
+The user can now let maintenance continue, but internal Luna consumption is still not sufficiently visible.
+
+Keep these quantities distinct:
+
+- **maintenance model calls** — locally countable now;
+- **tokens** — input/output/cache usage only when the Copilot transport exposes reliable machine-readable usage;
+- **AI credits / premium requests** — never infer from token or call count; report only when GitHub exposes the actual value.
+
+Do not rely only on the conversational Agent to volunteer usage. A likely next P7 slice is product-owned maintenance usage visibility: short per-tool operation + cumulative counters, plus a lightweight VS Code surface such as status bar/hover. Exact token metering should be investigated against current Copilot CLI/ACP usage output before changing transport. Unknown values must stay explicitly unknown.
+
+## 0.1.14 validation / artifact
+
+PR #154 validation passed after one infrastructure-only retry: the first dev Extension Host attempt failed while `@vscode/test` was resolving/downloading VS Code with `ETIMEDOUT`; no extension test had begun. The rerun passed.
+
+Validated main run `32118652040` passed:
+
+- Python 3.9 bundled-core compatibility;
+- **150 Python tests**;
+- CLI smoke;
+- E020 frozen zero-model contract;
+- VS Code syntax/static boundary checks;
+- dev Extension Host integration;
+- shared-core bundle verification;
+- VSIX packaging;
+- unpacked packaged VSIX Extension Host validation.
 
 Validated main artifact:
 
-- source run: `32112387118`
-- source head: `683633bc2771550f0093cccc9f82bb63dfedd503`
-- publisher commit: `f95a9163a341c48dba7381de2fb5d8d71569b0ac`
-- Actions artifact: `llm-wiki-dogfood-vsix` / id `9315393587`
-- artifact ZIP digest: `sha256:59e75d74f4b428c595ea66b3b76aaef1822b18c28f3e10270310bc3e92c2dc15`
-- `dogfood/releases/llm-wiki-dogfood-0.1.13.vsix`
+- source run: `32118652040`
+- source head: `5ce0b49bb009b8a13632ced2352ef767c26db68f`
+- publisher commit: `16bf631c734b6680b5befa24202aac9e4d6b8f44`
+- Actions artifact: `llm-wiki-dogfood-vsix` / id `9317704330`
+- artifact ZIP digest: `sha256:bf38434792905cf2f6dfc8b03d70abf9bf3b33223c6bd77ba548b3a87901273e`
+- `dogfood/releases/llm-wiki-dogfood-0.1.14.vsix`
 - `dogfood/releases/llm-wiki-dogfood-latest.vsix`
-- VSIX bytes: `96012`
-- VSIX SHA-256: `ee085db51ad84e2b927008aff50c572b73fad5b24b27cf0594c749a3e3967c20`
-- Git blob for both repo VSIX paths: `0de0371ef746b26135f44fe8104e5ea41cf47786`
+- VSIX bytes: `97090`
+- VSIX SHA-256: `7ddce126b8877957928acd901ab1b762d2a9a5673201b6bce32a7426a419216c`
+- Git blob for both repo VSIX paths: `d8314da1cd4e3a2d3e2befdb21166e2ada557fe2`
 
 The Actions artifact was independently downloaded and extracted. Its VSIX size, SHA-256, and `git hash-object` exactly match both in-repo release paths.
 
@@ -82,16 +118,16 @@ Observation log: **Issue #141**. Put natural P7 findings there; keep this handof
 
 Immediate next run:
 
-1. Install `dogfood/releases/llm-wiki-dogfood-latest.vsix` (0.1.13) over the prior dogfood build.
-2. Open the trusted target workspace. Existing local Wiki data / opt-in may remain; do not recreate or delete it merely for this retry.
-3. Optionally run Doctor. `Compiled provider: disabled` is expected. Confirm local Wiki readiness and Copilot CLI presence.
-4. Ensure `LLM Wiki: Configure Agent Wiki Maintenance` is **ENABLED** for this workspace.
-5. Retry one small, non-sensitive current source that was already admitted (remember the file again if needed) so Agent Wiki source-note maintenance runs.
-6. Expect derived maintenance to return `CREATED` or `REUSED`. If it fails, the 0.1.13 status should identify the failure class rather than inviting a `compiled_provider` guess.
-7. Once a derived note exists, start a fresh normal Agent chat/session and ask an ordinary historical project question **without naming `#wikiMemory`**. Observe ambient routing and whether important derived claims are followed with `wikiRead`.
-8. Continue across later sessions and record only natural friction/failures in Issue #141.
+1. Install `dogfood/releases/llm-wiki-dogfood-latest.vsix` (0.1.14) over the prior dogfood build.
+2. Reopen the same trusted workspace and preserve the existing local Wiki/opt-in.
+3. Keep `LLM Wiki: Configure Agent Wiki Maintenance` enabled if testing maintenance.
+4. Continue a natural multi-file remember/maintenance task past the configured default threshold of `10` new model-backed calls.
+5. Confirm the threshold no longer becomes a hard stop. At the boundary, the product should explain that RAW is already saved and offer `Continue Today`; after approval, later maintenance calls that day should continue.
+6. Observe whether this checkpoint is actually useful or merely annoying. Record that natural reaction in Issue #141.
+7. Separately observe whether the lack of visible internal maintenance token/AI-credit usage creates uncertainty. This is the leading next UX slice; do not guess usage values.
+8. Continue normal cross-session recall without naming `#wikiMemory` and watch ambient routing / `wikiRead` follow-through.
 
-The next product slice must come from repeated installed evidence, not another speculative subsystem.
+The next product slice must remain grounded in installed evidence. Current leading candidate: **maintenance usage visibility**, not another memory subsystem.
 
 ## Experiment closeouts
 
@@ -113,12 +149,14 @@ The next product slice must come from repeated installed evidence, not another s
 - Issue #132: deletion detection for `agent-state.json` and relation/pending crash window.
 - Human Knowledge file deletion is not independently detectable without an index.
 - Relation append and pending-state resolution are not one cross-process transaction.
-- Copilot CLI optional flags can change independently of public docs; runtime capability probing is now the compatibility boundary for the two observed optional flags.
+- Copilot CLI optional flags can change independently of public docs; runtime capability probing is the compatibility boundary for the observed optional flags.
+- Positive maintenance soft-guard acknowledgement lives in VS Code workspace state; loss of that UI state may cause another prompt but does not affect Wiki knowledge.
 - E013/E015 evidence must remain natural; do not manufacture workload/divergence.
 
 ## Fast pointers
 
 - Installed P7 observation log: Issue #141
+- 0.1.14 maintenance soft guard: PR #154
 - 0.1.13 Copilot CLI compatibility: PR #152
 - 0.1.12 lifecycle/opt-in: PR #148
 - VSIX publisher guidance: PR #149
