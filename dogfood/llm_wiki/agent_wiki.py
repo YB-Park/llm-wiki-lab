@@ -18,7 +18,8 @@ from .writer_lock import store_writer_lock
 AGENT_WIKI_FORMAT = "llm-wiki-agent-source-note-v0"
 AGENT_WIKI_POLICY = "agent-wiki-maintenance-v0"
 DEFAULT_MODEL = "gpt-5.6-luna"
-MAX_SOURCE_CHARS = 40_000
+PREFERRED_SOURCE_CHARS = 40_000
+MAX_SOURCE_CHARS = 80_000
 SOURCE_ID_RE = re.compile(r"^src-[0-9a-f]+$")
 CITATION_RE = re.compile(r"\bsrc-[0-9A-Za-z-]+\b")
 ALLOWED_PAYLOAD_FIELDS = {"title", "summary", "operational_rules", "boundaries", "open_questions"}
@@ -217,8 +218,10 @@ def build_agent_source_note(
         return {"status": "REUSED", "model_calls": 0, "record": existing, "markdown_path": str(_markdown_path(root, source_id))}
 
     text = read_text(source)
-    if len(text) > MAX_SOURCE_CHARS:
-        raise RuntimeError(f"agent_wiki_source_too_large:{len(text)}>{MAX_SOURCE_CHARS}")
+    source_chars = len(text)
+    if source_chars > MAX_SOURCE_CHARS:
+        raise RuntimeError(f"agent_wiki_source_too_large:{source_chars}>{MAX_SOURCE_CHARS}")
+    source_size_mode = "preferred" if source_chars <= PREFERRED_SOURCE_CHARS else "oversize_single_pass"
     if max_ai_credits < 30 or max_ai_credits > 100:
         raise ValueError("agent_wiki_max_ai_credits_out_of_range")
     if not allow_model_call:
@@ -255,13 +258,13 @@ def build_agent_source_note(
             raise RuntimeError("agent_wiki_source_changed_during_generation")
         already = read_agent_source_note(root, source_id)
         if already is not None and already["source_sha256"] == source.sha256 and already["policy"] == AGENT_WIKI_POLICY:
-            return {"status": "REUSED_AFTER_RACE", "model_calls": 1, "record": already, "markdown_path": str(_markdown_path(root, source_id))}
+            return {"status": "REUSED_AFTER_RACE", "model_calls": 1, "record": already, "markdown_path": str(_markdown_path(root, source_id)), "source_chars": source_chars, "source_preferred_chars": PREFERRED_SOURCE_CHARS, "source_hard_ceiling_chars": MAX_SOURCE_CHARS, "source_size_mode": source_size_mode}
         note_root = _agent_root(root)
         ensure_private_directory(note_root)
         write_private_text(_json_path(root, source_id), json.dumps(record, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
         write_private_text(_markdown_path(root, source_id), _render_markdown(record))
 
-    return {"status": "CREATED", "model_calls": 1, "record": record, "markdown_path": str(_markdown_path(root, source_id))}
+    return {"status": "CREATED", "model_calls": 1, "record": record, "markdown_path": str(_markdown_path(root, source_id)), "source_chars": source_chars, "source_preferred_chars": PREFERRED_SOURCE_CHARS, "source_hard_ceiling_chars": MAX_SOURCE_CHARS, "source_size_mode": source_size_mode}
 
 
 def _best_note_snippet(record: dict, query_tokens: set[str], max_chars: int = 700) -> str:
@@ -280,70 +283,42 @@ def search_agent_notes(root: Path, query: str, *, top_k: int = 3) -> list[AgentN
 
     Derived notes are explicitly noncanonical; their failure must not block raw
     evidence retrieval. Doctor/rebuild work can inspect the derived directory
-    separately if this layer becomes operationally important.
+    separately if needed.
     """
-    if top_k <= 0:
-        return []
-    qtokens = tokenize(query)
-    if not qtokens:
-        return []
-    note_root = _agent_root(root)
-    if not note_root.exists():
-        return []
-
-    records: list[dict] = []
-    current_cache: dict[str, frozenset[str]] = {}
-    for path in sorted(note_root.glob("src-*.json")):
+    ensure_workspace(root)
+    query_tokens = set(tokenize(query))
+    rows = []
+    root_dir = _agent_root(root)
+    if not root_dir.exists():
+        return rows
+    for path in sorted(root_dir.glob("*.json")):
         try:
             record = _load_record(path)
-            topic_id = str(record["topic_id"])
-            if topic_id not in current_cache:
-                current_cache[topic_id] = temporal_projection(root, topic_id=topic_id).current_source_ids
-            if record["source_id"] not in current_cache[topic_id]:
-                continue
-            records.append(record)
         except Exception:
             continue
-    if not records:
-        return []
-
-    tokenized: list[list[str]] = []
-    for record in records:
+        if not _is_current(root, topic_id=record["topic_id"], source_id=record["source_id"]):
+            continue
         payload = record["payload"]
-        text = "\n".join(
+        text = " ".join(
             [payload["title"], payload["summary"], *payload["operational_rules"], *payload["boundaries"], *payload["open_questions"]]
         )
-        tokenized.append(tokenize(text))
-    avgdl = sum(len(tokens) for tokens in tokenized) / len(tokenized)
-    dfs = Counter()
-    for tokens in tokenized:
-        for term in set(tokens):
-            dfs[term] += 1
-
-    hits: list[AgentNoteHit] = []
-    qset = set(qtokens)
-    for record, tokens in zip(records, tokenized):
-        tf = Counter(tokens)
-        dl = len(tokens)
-        score = 0.0
-        for term in qtokens:
-            if tf[term] == 0:
-                continue
-            df = dfs[term]
-            idf = math.log(1 + (len(records) - df + 0.5) / (df + 0.5))
-            denom = tf[term] + 1.5 * (1 - 0.75 + 0.75 * dl / avgdl)
-            score += idf * (tf[term] * 2.5) / denom
-        if score <= 0:
+        tokens = tokenize(text)
+        if not tokens:
             continue
-        hits.append(
+        counts = Counter(tokens)
+        overlap = sum(counts[token] for token in query_tokens)
+        if overlap <= 0:
+            continue
+        score = overlap / math.sqrt(len(tokens))
+        rows.append(
             AgentNoteHit(
-                source_id=str(record["source_id"]),
-                topic_id=str(record["topic_id"]),
-                title=_clean_title(str(record["payload"]["title"]), str(record["source_id"])),
+                source_id=record["source_id"],
+                topic_id=record["topic_id"],
+                title=payload["title"],
                 score=score,
-                snippet=_best_note_snippet(record, qset),
-                markdown_path=_markdown_path(root, str(record["source_id"])),
+                snippet=_best_note_snippet(record, query_tokens),
+                markdown_path=_markdown_path(root, record["source_id"]),
             )
         )
-    hits.sort(key=lambda hit: (-hit.score, hit.source_id))
-    return hits[:top_k]
+    rows.sort(key=lambda hit: (-hit.score, hit.source_id))
+    return rows[: max(0, top_k)]
