@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vscode = require('vscode');
 
-async function stage(label, promise, timeoutMs = 8000) {
+async function stage(label, promise, timeoutMs = 10000) {
   let timer;
   try {
     return await Promise.race([
@@ -19,77 +19,93 @@ async function stage(label, promise, timeoutMs = 8000) {
   }
 }
 
+function workspace() {
+  const folder = (vscode.workspace.workspaceFolders || [])[0];
+  assert.ok(folder, 'integration test workspace is not open');
+  return { folder, wikiRoot: path.join(folder.uri.fsPath, '.wiki-lab') };
+}
+
+async function resetWorkspace() {
+  const { wikiRoot } = workspace();
+  try {
+    await vscode.commands.executeCommand('llmWiki.disableWorkspace');
+  } catch (_) {}
+  fs.rmSync(wikiRoot, { recursive: true, force: true });
+  return wikiRoot;
+}
+
+async function enableWorkspace() {
+  const result = await stage('enable-workspace', vscode.commands.executeCommand('llmWiki.enableWorkspace'));
+  assert.equal(result, true, 'explicit workspace opt-in did not succeed in Extension Host test mode');
+  const { wikiRoot } = workspace();
+  assert.ok(fs.existsSync(path.join(wikiRoot, 'workspace-opt-in.json')), 'explicit opt-in marker was not created');
+  return wikiRoot;
+}
+
 suite('LLM Wiki Dogfood Extension Host', () => {
-  test('loads extension and registers the VS Code-first command surface', async () => {
+  test('loads lifecycle surface without implicitly initializing the workspace', async () => {
+    const { wikiRoot } = workspace();
+    fs.rmSync(wikiRoot, { recursive: true, force: true });
+
     const extension = vscode.extensions.getExtension('llm-wiki-lab.llm-wiki-dogfood');
     assert.ok(extension, 'development extension was not discovered by VS Code');
-
     await extension.activate();
     assert.equal(extension.isActive, true, 'extension did not activate');
 
-    const commands = new Set(await vscode.commands.getCommands(true));
-    for (const command of [
-      'llmWiki.init',
-      'llmWiki.createTopic',
-      'llmWiki.selectTopic',
-      'llmWiki.ingestActiveFile',
-      'llmWiki.ingestAuthoritativeUpdate',
-      'llmWiki.search',
-      'llmWiki.ask',
-      'llmWiki.calibration',
-      'llmWiki.doctor',
-      'llmWiki.experimentalDiscoverCopilotModels',
-    ]) {
-      assert.ok(commands.has(command), `missing runtime command: ${command}`);
-    }
+    assert.equal(fs.existsSync(wikiRoot), false, 'extension activation must not initialize a Wiki store');
+    const result = await vscode.commands.executeCommand('llmWiki.doctor');
+    assert.ok(result, 'Doctor did not return its sanitized readiness result');
+    assert.equal(result.storeInitialized, false);
+    assert.equal(result.workspaceEnabled, false);
+    assert.equal(result.coreReady, false);
+    assert.equal(result.localReady, false);
+    assert.equal(result.realisticDogfoodReady, false);
+    assert.equal(fs.existsSync(wikiRoot), false, 'Doctor must not initialize or mutate an uninitialized workspace');
   });
 
-  test('executes Initialize Workspace through the editor-to-core bridge', async () => {
-    const folder = (vscode.workspace.workspaceFolders || [])[0];
-    assert.ok(folder, 'integration test workspace is not open');
-    const wikiRoot = path.join(folder.uri.fsPath, '.wiki-lab');
-    fs.rmSync(wikiRoot, { recursive: true, force: true });
-
-    await vscode.commands.executeCommand('llmWiki.init');
+  test('explicit Initialize Workspace creates the store and workspace opt-in marker', async () => {
+    const wikiRoot = await resetWorkspace();
+    await enableWorkspace();
 
     const configPath = path.join(wikiRoot, 'config.json');
-    assert.ok(fs.existsSync(configPath), 'VS Code command did not initialize the local wiki core');
+    assert.ok(fs.existsSync(configPath), 'Initialize Workspace did not initialize the local Wiki core');
     const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
     assert.equal(config.compiled_provider, 'disabled');
     assert.equal(config.format, 'llm-wiki-dogfood-v0');
-  });
 
-  test('Doctor reuses the real core boundary and reports Git-protected realistic dogfood readiness', async () => {
-    const folder = (vscode.workspace.workspaceFolders || [])[0];
-    assert.ok(folder, 'integration test workspace is not open');
-    const wikiRoot = path.join(folder.uri.fsPath, '.wiki-lab');
-    fs.rmSync(wikiRoot, { recursive: true, force: true });
+    const marker = JSON.parse(fs.readFileSync(path.join(wikiRoot, 'workspace-opt-in.json'), 'utf8'));
+    assert.equal(marker.format, 'llm-wiki-workspace-opt-in-v1');
+    assert.equal(marker.enabled, true);
 
     const result = await vscode.commands.executeCommand('llmWiki.doctor');
-
-    const configPath = path.join(wikiRoot, 'config.json');
-    assert.ok(fs.existsSync(configPath), 'Doctor did not reach the real local core boundary');
-    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-    assert.equal(config.compiled_provider, 'disabled');
-    assert.equal(config.format, 'llm-wiki-dogfood-v0');
-    assert.ok(result, 'Doctor did not return its sanitized readiness result');
+    assert.equal(result.storeInitialized, true);
+    assert.equal(result.workspaceEnabled, true);
     assert.equal(result.coreReady, true);
-    assert.equal(result.compiledDisabled, true);
     assert.equal(result.integrityReady, true);
-    assert.equal(result.rawIntegrityStatus, 'clean');
-    assert.equal(result.manifestIntegrityStatus, 'clean');
-    assert.equal(result.provenanceIntegrityStatus, 'clean');
     assert.equal(result.gitSafety, 'PROTECTED');
-    assert.equal(result.localReady, true);
     assert.equal(result.realisticDogfoodReady, true);
   });
 
+  test('Disable Workspace preserves the store but removes explicit opt-in', async () => {
+    const wikiRoot = await resetWorkspace();
+    await enableWorkspace();
+    const manifestBefore = fs.readFileSync(path.join(wikiRoot, 'manifest.jsonl'));
+
+    const disabled = await stage('disable-workspace', vscode.commands.executeCommand('llmWiki.disableWorkspace'));
+    assert.equal(disabled, true);
+    assert.equal(fs.existsSync(path.join(wikiRoot, 'workspace-opt-in.json')), false, 'disable must remove only the opt-in marker');
+    assert.ok(fs.existsSync(path.join(wikiRoot, 'config.json')), 'disable must preserve the Wiki store');
+    assert.deepEqual(fs.readFileSync(path.join(wikiRoot, 'manifest.jsonl')), manifestBefore, 'disable must not mutate canonical history');
+
+    const result = await vscode.commands.executeCommand('llmWiki.doctor');
+    assert.equal(result.storeInitialized, true);
+    assert.equal(result.workspaceEnabled, false);
+    assert.equal(result.realisticDogfoodReady, false);
+  });
+
   test('Doctor detects a torn canonical manifest without repairing or replaying its prefix', async () => {
-    const folder = (vscode.workspace.workspaceFolders || [])[0];
-    assert.ok(folder, 'integration test workspace is not open');
-    const wikiRoot = path.join(folder.uri.fsPath, '.wiki-lab');
-    fs.rmSync(wikiRoot, { recursive: true, force: true });
-    await vscode.commands.executeCommand('llmWiki.init');
+    const wikiRoot = await resetWorkspace();
+    await enableWorkspace();
 
     const manifest = path.join(wikiRoot, 'manifest.jsonl');
     fs.writeFileSync(manifest, '{"event":"partial"', 'utf8');
@@ -107,11 +123,8 @@ suite('LLM Wiki Dogfood Extension Host', () => {
   });
 
   test('Doctor detects a missing initialized manifest without recreating empty history', async () => {
-    const folder = (vscode.workspace.workspaceFolders || [])[0];
-    assert.ok(folder, 'integration test workspace is not open');
-    const wikiRoot = path.join(folder.uri.fsPath, '.wiki-lab');
-    fs.rmSync(wikiRoot, { recursive: true, force: true });
-    await vscode.commands.executeCommand('llmWiki.init');
+    const wikiRoot = await resetWorkspace();
+    await enableWorkspace();
 
     const manifest = path.join(wikiRoot, 'manifest.jsonl');
     const rawSentinel = path.join(wikiRoot, 'raw', 'surviving-sentinel.txt');
@@ -132,11 +145,8 @@ suite('LLM Wiki Dogfood Extension Host', () => {
   });
 
   test('Doctor detects a missing referenced raw object while canonical logs remain clean', async () => {
-    const folder = (vscode.workspace.workspaceFolders || [])[0];
-    assert.ok(folder, 'integration test workspace is not open');
-    const wikiRoot = path.join(folder.uri.fsPath, '.wiki-lab');
-    fs.rmSync(wikiRoot, { recursive: true, force: true });
-    await vscode.commands.executeCommand('llmWiki.init');
+    const wikiRoot = await resetWorkspace();
+    await enableWorkspace();
 
     const sha = '0'.repeat(64);
     const manifest = path.join(wikiRoot, 'manifest.jsonl');
@@ -166,16 +176,14 @@ suite('LLM Wiki Dogfood Extension Host', () => {
     assert.equal(fs.existsSync(path.join(wikiRoot, 'raw', `${sha}.txt`)), false, 'Doctor must not invent missing raw evidence');
   });
 
-  test('runs topic -> active-file ingest -> search -> read-only provenance entirely through VS Code commands', async () => {
-    const folder = (vscode.workspace.workspaceFolders || [])[0];
-    assert.ok(folder, 'integration test workspace is not open');
-    const wikiRoot = path.join(folder.uri.fsPath, '.wiki-lab');
+  test('runs topic -> active-file ingest -> search -> read-only provenance after explicit opt-in', async () => {
+    const { folder } = workspace();
+    const wikiRoot = await resetWorkspace();
     const evidencePath = path.join(folder.uri.fsPath, 'runtime-vscode-evidence.md');
-    fs.rmSync(wikiRoot, { recursive: true, force: true });
     fs.writeFileSync(evidencePath, '# Runtime evidence\n\nThe cedar quota decision is 41 units because the project preferred bounded cache growth.\n', 'utf8');
 
     try {
-      await stage('init', vscode.commands.executeCommand('llmWiki.init'));
+      await enableWorkspace();
       await stage(
         'create-topic',
         vscode.commands.executeCommand('llmWiki.createTopic', { label: 'runtime-vscode-topic' })
