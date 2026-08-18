@@ -102,10 +102,15 @@ async function setWorkspaceToolContext(enabled) {
   await vscode.commands.executeCommand('setContext', WORKSPACE_ENABLED_CONTEXT, enabled === true);
 }
 
-async function lifecycleConfirm(context, message, button) {
+async function lifecycleConfirm(context, message, detail, button) {
   if (context.extensionMode === vscode.ExtensionMode.Test) return true;
-  const choice = await vscode.window.showWarningMessage(message, { modal: true }, button);
+  const choice = await vscode.window.showWarningMessage(message, { modal: true, detail }, button);
   return choice === button;
+}
+
+async function showSetupAction(message, action) {
+  const choice = await vscode.window.showWarningMessage(message, action);
+  return choice === action;
 }
 
 function ensureBaseSurfaceRegistered(context) {
@@ -155,7 +160,6 @@ async function initializeWorkspace(context) {
   const root = wikiRoot(folder);
   if (workspaceActivation.isWorkspaceEnabled(root)) {
     await applyWorkspaceRuntimeAvailability(context, true);
-    vscode.window.showInformationMessage('LLM Wiki is already initialized and enabled for this workspace.');
     return true;
   }
 
@@ -163,16 +167,18 @@ async function initializeWorkspace(context) {
   const existingStore = workspaceActivation.isCoreInitialized(root);
   if (storePresent && !existingStore) {
     await applyWorkspaceRuntimeAvailability(context, false);
-    vscode.window.showWarningMessage(
-      'LLM Wiki initialization was not performed because an incomplete or damaged Wiki store already exists. Run Doctor and restore/repair the store boundary explicitly; Initialize Workspace will not recreate missing canonical state.'
+    const inspect = await showSetupAction(
+      'Project memory cannot be enabled because the existing local memory store is incomplete or damaged. LLM Wiki will not overwrite it.',
+      'Check Setup'
     );
+    if (inspect) await doctor(context);
     return false;
   }
 
   const gitSafety = await classifyGitSafety(folder.uri.fsPath, root);
   if (gitSafety === 'UNPROTECTED') {
     vscode.window.showWarningMessage(
-      'LLM Wiki initialization was not performed because the Wiki directory is not protected from this Git repository. Add .wiki-lab/ to .git/info/exclude (local only) or .gitignore, then run Initialize Workspace again.'
+      'Project memory is not enabled because its local .wiki-lab/ directory could be committed to Git. Add .wiki-lab/ to .git/info/exclude (this machine) or .gitignore (the project), then run setup again.'
     );
     await applyWorkspaceRuntimeAvailability(context, false);
     return false;
@@ -181,17 +187,22 @@ async function initializeWorkspace(context) {
   const python = pythonExecutable(folder);
   const pythonReady = await executableAvailable(python, ['--version'], folder.uri.fsPath);
   if (!pythonReady) {
-    vscode.window.showWarningMessage(`LLM Wiki initialization was not performed because the configured Python executable is unavailable: ${python}`);
+    const openSettings = await showSetupAction(
+      `Project memory needs Python, but “${python}” could not be started. Install Python or choose a different executable in LLM Wiki settings.`,
+      'Open Settings'
+    );
+    if (openSettings) await vscode.commands.executeCommand('workbench.action.openSettings', 'llmWiki.pythonExecutable');
     await applyWorkspaceRuntimeAvailability(context, false);
     return false;
   }
 
   const confirmed = await lifecycleConfirm(
     context,
+    'Enable project memory for this workspace?',
     existingStore
-      ? 'Enable LLM Wiki for this workspace? An existing local Wiki store was found. This explicit opt-in makes the LLM Wiki runtime and five Agent tools available in this workspace. Doctor remains diagnostic only and no model call is made by initialization.'
-      : 'Initialize and enable LLM Wiki for this workspace? This creates a private local Wiki store and makes the LLM Wiki runtime and five Agent tools available in this workspace. Doctor remains diagnostic only and no model call is made by initialization.',
-    'Initialize LLM Wiki'
+      ? 'An existing local LLM Wiki store was found. Enabling it lets your Agent use that project memory in this workspace. AI summaries remain a separate optional setting. This setup makes no model call.'
+      : 'LLM Wiki will create a private local project-memory store and let your Agent use it in this workspace. Only information you explicitly save can become durable memory. AI summaries remain off unless you enable them separately. This setup makes no model call.',
+    'Enable Project Memory'
   );
   if (!confirmed) return false;
 
@@ -204,7 +215,6 @@ async function initializeWorkspace(context) {
 
   workspaceActivation.enableWorkspace(root);
   await applyWorkspaceRuntimeAvailability(context, true);
-  vscode.window.showInformationMessage('LLM Wiki initialized and enabled for this workspace. Agent memory tools are now available.');
   return true;
 }
 
@@ -213,20 +223,20 @@ async function disableWorkspace(context) {
   const root = wikiRoot(folder);
   if (!workspaceActivation.readWorkspaceOptIn(root)) {
     await applyWorkspaceRuntimeAvailability(context, false);
-    vscode.window.showInformationMessage('LLM Wiki integration is already disabled for this workspace. Stored Wiki data was not changed.');
     return false;
   }
 
   const confirmed = await lifecycleConfirm(
     context,
-    'Disable LLM Wiki for this workspace? Agent tools will become unavailable and operational commands will be hidden, but the local Wiki data will be preserved.',
-    'Disable LLM Wiki'
+    'Disable project memory for this workspace?',
+    'Saved LLM Wiki data stays on disk. LLM Wiki stops participating in Agent conversations here until you enable the workspace again.',
+    'Disable Project Memory'
   );
   if (!confirmed) return false;
 
+  // Stored Wiki data was preserved. Only the workspace opt-in marker is removed.
   workspaceActivation.disableWorkspace(root);
   await applyWorkspaceRuntimeAvailability(context, false);
-  vscode.window.showInformationMessage('LLM Wiki disabled for this workspace. Stored Wiki data was preserved.');
   return true;
 }
 
@@ -286,49 +296,46 @@ async function doctor(context) {
   const storeLabel = storeInitialized ? 'INITIALIZED' : (storePresent ? 'INCOMPLETE' : 'NOT_INITIALIZED');
 
   doctorOutput.clear();
-  doctorOutput.appendLine('LLM Wiki Doctor');
+  doctorOutput.appendLine('LLM Wiki — Setup & Health');
+  doctorOutput.appendLine('Checks only: 0 model calls / 0 state changes');
   doctorOutput.appendLine('Model calls: 0');
   doctorOutput.appendLine('State changes: 0');
-  doctorOutput.appendLine(`Workspace store: ${storeLabel}`);
+  doctorOutput.appendLine('');
+  doctorOutput.appendLine(`Project memory: ${workspaceEnabled ? 'ON' : (storeInitialized ? 'OFF' : 'NOT SET UP')}`);
   doctorOutput.appendLine(`Workspace opt-in: ${workspaceEnabled ? 'ENABLED' : 'NOT_ENABLED'}`);
   doctorOutput.appendLine(`Agent tools: ${workspaceEnabled ? 'AVAILABLE' : 'HIDDEN'}`);
-  doctorOutput.appendLine(`Operational commands: ${workspaceEnabled ? 'AVAILABLE' : 'DISABLED'}`);
-  doctorOutput.appendLine(`Python: ${pythonReady ? 'PASS' : 'FAIL'}`);
+  doctorOutput.appendLine(`Local memory store: ${storeLabel}`);
+  doctorOutput.appendLine(`Python runtime: ${pythonReady ? 'FOUND' : 'MISSING'}${pythonReady ? '' : ` — configured as ${python}`}`);
+  doctorOutput.appendLine(`Local data integrity: ${!storePresent ? 'NOT CHECKED' : (integrityReady ? 'PASS' : 'NEEDS ATTENTION')}`);
+  doctorOutput.appendLine(`Git privacy: ${gitSafety === 'UNPROTECTED' ? 'NEEDS ATTENTION — local memory directory is not ignored by Git' : 'PASS'} (${gitSafety})`);
+  doctorOutput.appendLine(`AI summaries: ${maintenanceOn ? 'ON' : 'OFF'}`);
+  doctorOutput.appendLine(`Copilot CLI executable: ${copilotReady ? 'FOUND' : 'NOT FOUND'}`);
+  doctorOutput.appendLine('AI-summary model-call readiness: NOT VERIFIED (this check intentionally makes no model calls)');
+  doctorOutput.appendLine('');
+  if (!storePresent) {
+    doctorOutput.appendLine('Next action: run “LLM Wiki: Set Up Project Memory”.');
+  } else if (!storeInitialized || !integrityReady) {
+    doctorOutput.appendLine('Next action: inspect or restore the local LLM Wiki store before writing more memory. Setup will not overwrite damaged history.');
+  } else if (!gitSafeForEvidence) {
+    doctorOutput.appendLine('Next action: add .wiki-lab/ (or your configured memory directory) to .git/info/exclude for a local-only choice, or .gitignore for the project; then run setup again.');
+  } else if (!workspaceEnabled) {
+    doctorOutput.appendLine('Next action: run “LLM Wiki: Set Up Project Memory” to explicitly enable this workspace.');
+  } else if (maintenanceOn && !copilotReady) {
+    doctorOutput.appendLine('Next action: local project memory is ready. AI summaries are enabled but need GitHub Copilot CLI installed and authenticated.');
+  } else {
+    doctorOutput.appendLine('Local project memory is ready. Continue in normal Agent chat.');
+  }
+  doctorOutput.appendLine('');
+  doctorOutput.appendLine('Technical details');
   doctorOutput.appendLine(`Core: ${coreReady ? 'PASS' : (storePresent ? 'FAIL' : 'NOT_INITIALIZED')} mode=${coreMode(context)}`);
-  doctorOutput.appendLine(`Compiled provider: ${compiledDisabled ? 'disabled' : (storePresent ? 'CHECK_FAILED' : 'NOT_CHECKED')}`);
+  doctorOutput.appendLine(`Core compiled provider: ${compiledDisabled ? 'disabled (expected; not used by AI summaries)' : (storePresent ? 'CHECK_FAILED' : 'NOT_CHECKED')}`);
   doctorOutput.appendLine(`Raw integrity: ${!storePresent ? 'NOT_CHECKED' : (rawIntegrityStatus === 'clean' ? 'PASS' : 'FAIL')} status=${rawIntegrityStatus}`);
   doctorOutput.appendLine(
     `Canonical logs: ${!storePresent ? 'NOT_CHECKED' : (manifestIntegrityStatus === 'clean' && provenanceIntegrityStatus === 'clean' ? 'PASS' : 'FAIL')} ` +
     `manifest=${manifestIntegrityStatus} provenance=${provenanceIntegrityStatus}`
   );
-  doctorOutput.appendLine(`Git raw-store safety: ${gitSafety}`);
-  doctorOutput.appendLine(`Copilot CLI: ${copilotReady ? 'PASS' : 'NOT_FOUND'}`);
-  doctorOutput.appendLine(`Local raw/search/provenance: ${localReady ? 'READY' : 'UNAVAILABLE'}`);
-  doctorOutput.appendLine(`Realistic evidence dogfood: ${realisticDogfoodReady ? 'READY' : 'BLOCKED'}`);
-  doctorOutput.appendLine(`Ask Luna: ${askReady ? 'READY' : 'UNAVAILABLE'}`);
-  doctorOutput.appendLine(`Agent Wiki maintenance: ${maintenanceOn ? 'ENABLED' : 'DISABLED'} model=gpt-5.6-luna guard=${maintenanceGuard}`);
+  doctorOutput.appendLine(`AI-summary per-call guard setting: ${maintenanceGuard}`);
   doctorOutput.show(true);
-
-  if (!storePresent) {
-    vscode.window.showInformationMessage('LLM Wiki Doctor: this workspace is not initialized. Doctor made no changes. Run LLM Wiki: Initialize Workspace to opt in.');
-  } else if (!storeInitialized) {
-    vscode.window.showWarningMessage('LLM Wiki Doctor: an incomplete or damaged local Wiki store exists. Doctor made no changes. Do not reinitialize over it; inspect integrity/backup state.');
-  } else if (!workspaceEnabled) {
-    vscode.window.showInformationMessage('LLM Wiki Doctor: a local Wiki store exists, but workspace integration is not explicitly enabled. Doctor made no changes. Run Initialize Workspace to opt in.');
-  } else if (coreReady && !integrityReady) {
-    vscode.window.showWarningMessage(
-      'LLM Wiki Doctor: local integrity check failed. No repair was attempted; inspect the Doctor output before using this Wiki.'
-    );
-  } else if (localReady && !gitSafeForEvidence) {
-    vscode.window.showWarningMessage(
-      'LLM Wiki Doctor: local core is ready, but the local wiki store is not protected from this Git workspace. Do not ingest sensitive evidence until Git protection is configured.'
-    );
-  } else if (localReady) {
-    const suffix = copilotReady ? 'Ask Luna is also ready.' : 'Local Wiki is ready; install/authenticate Copilot CLI only when you want Ask Luna.';
-    vscode.window.showInformationMessage(`LLM Wiki Doctor: local core ready. ${suffix}`);
-  } else {
-    vscode.window.showWarningMessage('LLM Wiki Doctor: local core is not ready. Open the LLM Wiki Doctor output for the failing boundary.');
-  }
 
   return {
     storePresent,
@@ -414,9 +421,6 @@ async function newHumanKnowledgeNote(options = {}) {
     language: 'markdown',
   });
   await vscode.window.showTextDocument(doc, { preview: false });
-  vscode.window.showInformationMessage(
-    'LLM Wiki opened a human-owned draft. Save it where you want; ingest remains a separate explicit action.'
-  );
   return doc;
 }
 
@@ -424,44 +428,42 @@ async function configureAgentWikiMaintenance() {
   requireWorkspaceEnabled();
   const config = configuration();
   const enabled = config.get('agentWikiMaintenanceEnabled', false) === true;
-  const action = await vscode.window.showQuickPick(
-    [
-      { label: 'Enable Agent Wiki maintenance for this workspace', value: true },
-      { label: 'Disable Agent Wiki maintenance for this workspace', value: false },
-    ],
-    {
-      title: 'LLM Wiki: Configure Agent Wiki Maintenance',
-      placeHolder: enabled ? 'Currently enabled' : 'Currently disabled',
-      ignoreFocusOut: true,
-    }
-  );
-  if (!action) return undefined;
 
-  if (action.value) {
+  if (!enabled) {
     const guard = Number(config.get('agentWikiMaintenanceMaxAiCredits', 30));
     const choice = await vscode.window.showWarningMessage(
-      `Enable Agent Wiki maintenance for this workspace? After you explicitly remember a source, its admitted bytes may be sent to exact gpt-5.6-luna to create/reuse a noncanonical, rebuildable derived note. Per-call AI-credit guard: ${guard}. Raw evidence/Human Knowledge/canonical correction-change-dispute semantics remain outside this grant.`,
-      { modal: true },
-      'Enable Maintenance'
+      'Turn on AI summaries for this workspace?',
+      {
+        modal: true,
+        detail: `After you explicitly save a source, LLM Wiki may send that saved content to GitHub Copilot (gpt-5.6-luna) to build a rebuildable summary. Local source evidence and your confirmed decisions remain separate. Preferred per-call guard: ${guard}.`,
+      },
+      'Turn On AI Summaries'
     );
-    if (choice !== 'Enable Maintenance') return undefined;
+    if (choice !== 'Turn On AI Summaries') return undefined;
+    await config.update('agentWikiMaintenanceEnabled', true, vscode.ConfigurationTarget.Workspace);
+    return true;
   }
 
-  await config.update('agentWikiMaintenanceEnabled', action.value, vscode.ConfigurationTarget.Workspace);
-  vscode.window.showInformationMessage(
-    action.value
-      ? 'LLM Wiki Agent Wiki maintenance enabled for this workspace. It runs only after explicit source admission.'
-      : 'LLM Wiki Agent Wiki maintenance disabled for this workspace. Remember still captures raw evidence without model maintenance.'
+  const choice = await vscode.window.showInformationMessage(
+    'AI summaries are on for this workspace. Local project memory continues to work if you turn them off.',
+    'Turn Off AI Summaries'
   );
-  return action.value;
+  if (choice !== 'Turn Off AI Summaries') return undefined;
+  await config.update('agentWikiMaintenanceEnabled', false, vscode.ConfigurationTarget.Workspace);
+  return false;
 }
 
 async function commandBoundary(label, fn) {
   try {
     return await fn();
-  } catch (error) {
-    const detail = error && error.message ? error.message : String(error);
-    vscode.window.showErrorMessage(`LLM Wiki ${label} failed: ${detail}`);
+  } catch (_) {
+    const choice = await vscode.window.showErrorMessage(
+      `LLM Wiki could not complete “${label}”.`,
+      'Check Setup'
+    );
+    if (choice === 'Check Setup' && label !== 'Check Setup and Health') {
+      await vscode.commands.executeCommand('llmWiki.doctor');
+    }
     return undefined;
   }
 }
@@ -478,11 +480,11 @@ async function activate(context) {
     if (event.affectsConfiguration('llmWiki.workspaceDirectory')) void refreshWorkspaceRuntimeAvailability(context);
   }));
 
-  context.subscriptions.push(vscode.commands.registerCommand('llmWiki.enableWorkspace', () => commandBoundary('Initialize Workspace', () => initializeWorkspace(context))));
-  context.subscriptions.push(vscode.commands.registerCommand('llmWiki.disableWorkspace', () => commandBoundary('Disable Workspace', () => disableWorkspace(context))));
+  context.subscriptions.push(vscode.commands.registerCommand('llmWiki.enableWorkspace', () => commandBoundary('Set Up Project Memory', () => initializeWorkspace(context))));
+  context.subscriptions.push(vscode.commands.registerCommand('llmWiki.disableWorkspace', () => commandBoundary('Disable for This Workspace', () => disableWorkspace(context))));
   context.subscriptions.push(vscode.commands.registerCommand('llmWiki.newKnowledgeNote', (options) => commandBoundary('New Human Knowledge Note', () => newHumanKnowledgeNote(options || {}))));
-  context.subscriptions.push(vscode.commands.registerCommand('llmWiki.configureAgentWikiMaintenance', () => commandBoundary('Configure Agent Wiki Maintenance', () => configureAgentWikiMaintenance())));
-  context.subscriptions.push(vscode.commands.registerCommand('llmWiki.doctor', () => commandBoundary('Doctor', () => doctor(context))));
+  context.subscriptions.push(vscode.commands.registerCommand('llmWiki.configureAgentWikiMaintenance', () => commandBoundary('Configure AI Summaries', () => configureAgentWikiMaintenance())));
+  context.subscriptions.push(vscode.commands.registerCommand('llmWiki.doctor', () => commandBoundary('Check Setup and Health', () => doctor(context))));
   context.subscriptions.push(vscode.commands.registerCommand('llmWiki.experimentalDiscoverCopilotModels', () => commandBoundary('Discover Copilot Models', () => discoverModels())));
 }
 
