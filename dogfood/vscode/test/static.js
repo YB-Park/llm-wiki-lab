@@ -70,7 +70,7 @@ assert.equal(hkSchema.reasoning.maxLength, 1600, 'STATIC-BOUNDARY hk-reasoning-b
 assert.equal(hkSchema.sourceIds.maxItems, 12, 'STATIC-BOUNDARY hk-source-bound');
 must('hk-supersedes-schema', Boolean(hkSchema.supersedesKnowledgeId));
 
-assert.equal(manifest.version, '0.1.12', 'STATIC-BOUNDARY version');
+assert.equal(manifest.version, '0.1.13', 'STATIC-BOUNDARY version');
 assert.equal(manifest.engines.vscode, '^1.95.0', 'STATIC-BOUNDARY vscode-engine');
 assert.equal(manifest.main, './entry.js', 'STATIC-BOUNDARY main-entry');
 assert.equal(manifest.private, true, 'STATIC-BOUNDARY private-package');
@@ -211,4 +211,4 @@ mustNot('git-safety-no-write', gitSafety.includes('writeFile'));
 must('bundle-core-source', bundler.includes("path.join(dogfoodRoot, 'llm_wiki')"));
 must('bundle-core-destination', bundler.includes("path.join(bundleRoot, 'dogfood')"));
 
-console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.12 agentTools=5 explicitWorkspaceOptIn=yes doctorPureDiagnostic=yes toolWhenGated=yes memoryV4=json-data verifiedReadV2=yes verifiedLineageDiff=yes durableAuthorityState=yes dirtyAnyOpenDocBlocked=yes humanKnowledgeV1=integrity+supersede+fork-cycle-failclosed dailyMaintenanceCap=yes python39Compat=required');
+console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.13 agentTools=5 explicitWorkspaceOptIn=yes doctorPureDiagnostic=yes toolWhenGated=yes memoryV4=json-data verifiedReadV2=yes verifiedLineageDiff=yes durableAuthorityState=yes dirtyAnyOpenDocBlocked=yes humanKnowledgeV1=integrity+supersede+fork-cycle-failclosed dailyMaintenanceCap=yes python39Compat=required');
