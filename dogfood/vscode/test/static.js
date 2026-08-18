@@ -9,6 +9,7 @@ const manifest = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'ut
 const entry = fs.readFileSync(path.join(root, 'entry.js'), 'utf8');
 const extension = fs.readFileSync(path.join(root, 'extension.js'), 'utf8');
 const agentTools = fs.readFileSync(path.join(root, 'agent-tools.js'), 'utf8');
+const workspaceActivation = fs.readFileSync(path.join(root, 'workspace-activation.js'), 'utf8');
 const humanKnowledge = fs.readFileSync(path.join(root, 'human-knowledge.js'), 'utf8');
 const productHelpers = fs.readFileSync(path.join(root, 'product-helpers.js'), 'utf8');
 const gitSafety = fs.readFileSync(path.join(root, 'git-safety.js'), 'utf8');
@@ -24,13 +25,17 @@ function mustNot(label, condition) {
 
 const commands = new Set((manifest.contributes.commands || []).map((row) => row.command));
 for (const command of [
-  'llmWiki.init', 'llmWiki.createTopic', 'llmWiki.selectTopic', 'llmWiki.newKnowledgeNote',
+  'llmWiki.enableWorkspace', 'llmWiki.disableWorkspace', 'llmWiki.createTopic', 'llmWiki.selectTopic', 'llmWiki.newKnowledgeNote',
   'llmWiki.configureAgentWikiMaintenance', 'llmWiki.ingestActiveFile', 'llmWiki.ingestAuthoritativeUpdate',
   'llmWiki.search', 'llmWiki.discoverAcrossTopics', 'llmWiki.markCorrection', 'llmWiki.markChange',
   'llmWiki.markDispute', 'llmWiki.feedback', 'llmWiki.ask', 'llmWiki.calibration', 'llmWiki.doctor',
   'llmWiki.experimentalDiscoverCopilotModels',
 ]) must(`command:${command}`, commands.has(command));
-assert.equal(commands.size, 17, 'STATIC-BOUNDARY command-count');
+assert.equal(commands.size, 18, 'STATIC-BOUNDARY command-count');
+mustNot('internal-core-init-not-user-contributed', commands.has('llmWiki.init'));
+must('startup-activation', manifest.activationEvents.includes('onStartupFinished'));
+must('enable-activation', manifest.activationEvents.includes('onCommand:llmWiki.enableWorkspace'));
+must('disable-activation', manifest.activationEvents.includes('onCommand:llmWiki.disableWorkspace'));
 
 must('human-note-command', entry.includes("registerCommand('llmWiki.newKnowledgeNote'"));
 must('human-note-boundary-text', entry.includes('Human-owned draft. Saving this file does not ingest, promote, or mutate LLM Wiki state.'));
@@ -40,6 +45,9 @@ must('maintenance-config-command', entry.includes("registerCommand('llmWiki.conf
 must('maintenance-workspace-setting', entry.includes("config.update('agentWikiMaintenanceEnabled', action.value, vscode.ConfigurationTarget.Workspace)"));
 must('maintenance-modal', entry.includes("{ modal: true }"));
 must('doctor-zero-model', entry.includes("doctorOutput.appendLine('Model calls: 0')"));
+must('doctor-zero-state-change', entry.includes("doctorOutput.appendLine('State changes: 0')"));
+mustNot('doctor-does-not-init-command', entry.includes("executeCommand('llmWiki.init')"));
+mustNot('doctor-does-not-run-init-core', /async function doctor[\s\S]*?runCoreCommand\(context, folder, \['init'\]\)/.test(entry));
 mustNot('entry-never-authorizes-model', entry.includes('--allow-model-call'));
 
 const tools = manifest.contributes.languageModelTools || [];
@@ -50,6 +58,7 @@ for (const name of [
   'llmWiki_rememberHumanKnowledge', 'llmWiki_resolveLineage',
 ]) must(`tool:${name}`, toolNames.has(name));
 for (const name of toolNames) must(`activation:${name}`, manifest.activationEvents.includes(`onLanguageModelTool:${name}`));
+for (const tool of tools) assert.equal(tool.when, 'llmWiki.workspaceEnabled && isWorkspaceTrusted', `STATIC-BOUNDARY tool-when:${tool.name}`);
 assert.equal(tools.find((row) => row.name === 'llmWiki_searchMemory').toolReferenceName, 'wikiMemory', 'STATIC-BOUNDARY ref:wikiMemory');
 assert.equal(tools.find((row) => row.name === 'llmWiki_readSource').toolReferenceName, 'wikiRead', 'STATIC-BOUNDARY ref:wikiRead');
 assert.equal(tools.find((row) => row.name === 'llmWiki_rememberSource').toolReferenceName, 'rememberWikiSource', 'STATIC-BOUNDARY ref:rememberWikiSource');
@@ -61,7 +70,7 @@ assert.equal(hkSchema.reasoning.maxLength, 1600, 'STATIC-BOUNDARY hk-reasoning-b
 assert.equal(hkSchema.sourceIds.maxItems, 12, 'STATIC-BOUNDARY hk-source-bound');
 must('hk-supersedes-schema', Boolean(hkSchema.supersedesKnowledgeId));
 
-assert.equal(manifest.version, '0.1.11', 'STATIC-BOUNDARY version');
+assert.equal(manifest.version, '0.1.12', 'STATIC-BOUNDARY version');
 assert.equal(manifest.engines.vscode, '^1.95.0', 'STATIC-BOUNDARY vscode-engine');
 assert.equal(manifest.main, './entry.js', 'STATIC-BOUNDARY main-entry');
 assert.equal(manifest.private, true, 'STATIC-BOUNDARY private-package');
@@ -72,17 +81,37 @@ assert.equal(configProps['llmWiki.agentWikiMaintenanceMaxAiCredits'].minimum, 30
 assert.equal(configProps['llmWiki.agentWikiMaintenanceDailyCallLimit'].default, 10, 'STATIC-BOUNDARY daily-limit-default');
 assert.equal(configProps['llmWiki.agentWikiMaintenanceDailyCallLimit'].minimum, 0, 'STATIC-BOUNDARY daily-limit-min');
 assert.equal(configProps['llmWiki.agentWikiMaintenanceDailyCallLimit'].maximum, 100, 'STATIC-BOUNDARY daily-limit-max');
+must('check-includes-workspace-activation', manifest.scripts.check.includes('workspace-activation.js'));
+must('check-runs-workspace-activation-test', manifest.scripts.check.includes('test/workspace-activation.js'));
 must('check-includes-human-knowledge', manifest.scripts.check.includes('human-knowledge.js'));
 assert.equal(manifest.devDependencies['@vscode/vsce'], '3.9.2', 'STATIC-BOUNDARY vsce-pin');
 
 must('entry-load-agent-tools', entry.includes("require('./agent-tools')"));
+must('entry-load-workspace-activation', entry.includes("require('./workspace-activation')"));
 must('entry-register-agent-tools', entry.includes('registerAgentTools(context);'));
+must('workspace-context-key', entry.includes("const WORKSPACE_ENABLED_CONTEXT = 'llmWiki.workspaceEnabled'"));
+must('workspace-context-set', entry.includes("executeCommand('setContext', WORKSPACE_ENABLED_CONTEXT"));
+must('explicit-enable-command', entry.includes("registerCommand('llmWiki.enableWorkspace'"));
+must('explicit-disable-command', entry.includes("registerCommand('llmWiki.disableWorkspace'"));
+must('initialize-git-gate', entry.includes("gitSafety === 'UNPROTECTED'"));
+must('initialize-core-explicit-path', entry.includes("runCoreCommand(context, folder, ['init'])"));
+must('initialize-integrity-before-opt-in', entry.indexOf("runCoreCommand(context, folder, ['init'])") < entry.indexOf('workspaceActivation.enableWorkspace(root)'));
+must('disable-preserves-data-message', entry.includes('Stored Wiki data was preserved.'));
+must('doctor-reports-opt-in', entry.includes('Workspace opt-in:'));
+must('doctor-reports-tools', entry.includes('Agent tools:'));
 must('agent-load-human-knowledge', agentTools.includes("require('./human-knowledge')"));
 must('register-search-tool', agentTools.includes('vscode.lm.registerTool(SEARCH_TOOL'));
 must('register-read-tool', agentTools.includes('vscode.lm.registerTool(READ_TOOL'));
 must('register-remember-tool', agentTools.includes('vscode.lm.registerTool(REMEMBER_TOOL'));
 must('register-hk-tool', agentTools.includes('vscode.lm.registerTool(HUMAN_KNOWLEDGE_TOOL'));
 must('register-lineage-tool', agentTools.includes('vscode.lm.registerTool(RESOLVE_LINEAGE_TOOL'));
+
+must('workspace-marker-format', workspaceActivation.includes("llm-wiki-workspace-opt-in-v1"));
+must('workspace-marker-separate-from-core', workspaceActivation.includes("WORKSPACE_OPT_IN_FILE = 'workspace-opt-in.json'"));
+must('workspace-enable-requires-core', workspaceActivation.includes('Cannot enable LLM Wiki Agent integration before the local Wiki store is initialized.'));
+must('workspace-enabled-requires-marker-and-core', workspaceActivation.includes('return isCoreInitialized(root) && Boolean(readWorkspaceOptIn(root));'));
+must('workspace-disable-only-unlinks-marker', workspaceActivation.includes('fs.unlinkSync(target)'));
+mustNot('workspace-disable-does-not-remove-root', workspaceActivation.includes('rmSync(root'));
 
 must('ambient-v4', agentTools.includes('LLM_WIKI_MEMORY_RESULT v4'));
 must('ambient-discover-current', agentTools.includes("['discover', query, '--top-k-per-topic', '3', '--json']"));
@@ -182,4 +211,4 @@ mustNot('git-safety-no-write', gitSafety.includes('writeFile'));
 must('bundle-core-source', bundler.includes("path.join(dogfoodRoot, 'llm_wiki')"));
 must('bundle-core-destination', bundler.includes("path.join(bundleRoot, 'dogfood')"));
 
-console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.11 agentTools=5 memoryV4=json-data verifiedReadV2=yes verifiedLineageDiff=yes durableAuthorityState=yes dirtyAnyOpenDocBlocked=yes humanKnowledgeV1=integrity+supersede+fork-cycle-failclosed dailyMaintenanceCap=yes python39Compat=required');
+console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.12 agentTools=5 explicitWorkspaceOptIn=yes doctorPureDiagnostic=yes toolWhenGated=yes memoryV4=json-data verifiedReadV2=yes verifiedLineageDiff=yes durableAuthorityState=yes dirtyAnyOpenDocBlocked=yes humanKnowledgeV1=integrity+supersede+fork-cycle-failclosed dailyMaintenanceCap=yes python39Compat=required');
