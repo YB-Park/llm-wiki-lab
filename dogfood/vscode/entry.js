@@ -15,7 +15,6 @@ const execFileAsync = promisify(execFile);
 const WORKSPACE_ENABLED_CONTEXT = 'llmWiki.workspaceEnabled';
 const AGENT_TOOL_COUNT = 5;
 let doctorOutput;
-let baseSurfaceDisposables = [];
 let baseSurfaceRegistered = false;
 let agentToolDisposables = [];
 let agentToolsRegistered = false;
@@ -111,17 +110,8 @@ async function lifecycleConfirm(context, message, button) {
 
 function ensureBaseSurfaceRegistered(context) {
   if (baseSurfaceRegistered) return;
-  const before = context.subscriptions.length;
   base.activate(context);
-  baseSurfaceDisposables = context.subscriptions.slice(before);
   baseSurfaceRegistered = true;
-}
-
-function unregisterBaseSurface() {
-  for (const disposable of baseSurfaceDisposables) disposable.dispose();
-  baseSurfaceDisposables = [];
-  baseSurfaceRegistered = false;
-  base.deactivate();
 }
 
 function ensureAgentToolsRegistered(context) {
@@ -149,7 +139,6 @@ async function applyWorkspaceRuntimeAvailability(context, enabled) {
     ensureAgentToolsRegistered(context);
   } else {
     unregisterAgentTools();
-    unregisterBaseSurface();
   }
   await setWorkspaceToolContext(enabled);
 }
@@ -230,7 +219,7 @@ async function disableWorkspace(context) {
 
   const confirmed = await lifecycleConfirm(
     context,
-    'Disable LLM Wiki for this workspace? Agent tools and operational Wiki commands will become unavailable, but the local Wiki data will be preserved.',
+    'Disable LLM Wiki for this workspace? Agent tools will become unavailable and operational commands will be hidden, but the local Wiki data will be preserved.',
     'Disable LLM Wiki'
   );
   if (!confirmed) return false;
@@ -499,7 +488,7 @@ async function activate(context) {
 
 function deactivate() {
   unregisterAgentTools();
-  unregisterBaseSurface();
+  base.deactivate();
 }
 
 module.exports = { activate, deactivate };
