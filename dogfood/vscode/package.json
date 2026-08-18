@@ -2,7 +2,7 @@
   "name": "llm-wiki-dogfood",
   "displayName": "LLM Wiki Dogfood",
   "description": "VS Code-first dogfood shell over the architecture-neutral LLM Wiki core.",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "private": true,
   "publisher": "llm-wiki-lab",
   "repository": { "type": "git", "url": "https://github.com/YB-Park/llm-wiki-lab.git", "directory": "dogfood/vscode" },
@@ -16,7 +16,9 @@
     }
   },
   "activationEvents": [
-    "onCommand:llmWiki.init",
+    "onStartupFinished",
+    "onCommand:llmWiki.enableWorkspace",
+    "onCommand:llmWiki.disableWorkspace",
     "onCommand:llmWiki.createTopic",
     "onCommand:llmWiki.selectTopic",
     "onCommand:llmWiki.newKnowledgeNote",
@@ -41,7 +43,8 @@
   ],
   "contributes": {
     "commands": [
-      { "command": "llmWiki.init", "title": "LLM Wiki: Initialize Workspace" },
+      { "command": "llmWiki.enableWorkspace", "title": "LLM Wiki: Initialize Workspace", "enablement": "isWorkspaceTrusted" },
+      { "command": "llmWiki.disableWorkspace", "title": "LLM Wiki: Disable Workspace (Keep Data)", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
       { "command": "llmWiki.createTopic", "title": "LLM Wiki: Create Topic" },
       { "command": "llmWiki.selectTopic", "title": "LLM Wiki: Select Topic" },
       { "command": "llmWiki.newKnowledgeNote", "title": "LLM Wiki: New Human Knowledge Note" },
@@ -68,6 +71,7 @@
         "toolReferenceName": "wikiMemory",
         "icon": "$(book)",
         "tags": ["llm-wiki", "search", "memory"],
+        "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted",
         "inputSchema": {
           "type": "object",
           "properties": {
@@ -85,6 +89,7 @@
         "toolReferenceName": "wikiRead",
         "icon": "$(file-text)",
         "tags": ["llm-wiki", "read", "provenance"],
+        "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted",
         "inputSchema": {
           "type": "object",
           "properties": {
@@ -104,6 +109,7 @@
         "toolReferenceName": "rememberWikiSource",
         "icon": "$(save)",
         "tags": ["llm-wiki", "memory", "write"],
+        "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted",
         "inputSchema": {
           "type": "object",
           "properties": {
@@ -119,6 +125,7 @@
         "toolReferenceName": "rememberHumanKnowledge",
         "icon": "$(person)",
         "tags": ["llm-wiki", "human-knowledge", "write"],
+        "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted",
         "inputSchema": {
           "type": "object",
           "properties": {
@@ -139,6 +146,7 @@
         "toolReferenceName": "resolveWikiLineage",
         "icon": "$(git-compare)",
         "tags": ["llm-wiki", "lineage", "human-gated"],
+        "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted",
         "inputSchema": {
           "type": "object",
           "properties": {
@@ -165,7 +173,7 @@
     }
   },
   "scripts": {
-    "check": "node --check entry.js && node --check extension.js && node --check agent-tools.js && node --check human-knowledge.js && node --check product-helpers.js && node test/product-helpers.js && node test/static.js",
+    "check": "node --check entry.js && node --check extension.js && node --check agent-tools.js && node --check workspace-activation.js && node --check human-knowledge.js && node --check product-helpers.js && node test/product-helpers.js && node test/workspace-activation.js && node test/static.js",
     "test:integration": "vscode-test --label runtime",
     "test:packaged": "cd test/packaged-runner && ../../node_modules/.bin/vscode-test",
     "bundle:core": "node scripts/bundle-core.js",
