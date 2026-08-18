@@ -224,7 +224,7 @@
     "configuration": {
       "title": "LLM Wiki",
       "properties": {
-        "llmWiki.pythonExecutable": { "type": "string", "default": "python3", "description": "Python executable used by LLM Wiki local storage and search. Default: python3." },
+        "llmWiki.pythonExecutable": { "type": "string", "default": "", "description": "Optional Python executable override. Leave empty to auto-detect a local Python runtime (Windows: python/py/python3; macOS/Linux: python3/python)." },
         "llmWiki.corePath": { "type": "string", "default": "", "description": "Advanced: optional local LLM Wiki core path. Leave empty to use the core bundled with the extension." },
         "llmWiki.workspaceDirectory": { "type": "string", "default": ".wiki-lab", "description": "Private local project-memory directory. Keep it out of Git. Default: .wiki-lab." },
         "llmWiki.maxAiCredits": { "type": "number", "default": 30, "minimum": 30, "maximum": 100, "description": "Advanced: preferred per-call Copilot AI-credit guard for the legacy Ask Luna command, when supported by the installed Copilot CLI." },
@@ -235,7 +235,7 @@
     }
   },
   "scripts": {
-    "check": "node --check entry.js && node --check extension.js && node --check agent-tools.js && node --check workspace-activation.js && node --check human-knowledge.js && node --check product-helpers.js && node test/product-helpers.js && node test/workspace-activation.js && node test/static.js",
+    "check": "node --check entry.js && node --check extension.js && node --check agent-tools.js && node --check workspace-activation.js && node --check human-knowledge.js && node --check product-helpers.js && node --check process-errors.js && node --check python-runtime.js && node --check python-runtime-policy.js && node test/product-helpers.js && node test/workspace-activation.js && node test/process-errors.js && node test/python-runtime-policy.js && node test/static.js",
     "test:integration": "vscode-test --label runtime",
     "test:packaged": "cd test/packaged-runner && ../../node_modules/.bin/vscode-test",
     "bundle:core": "node scripts/bundle-core.js",
