@@ -6,6 +6,7 @@ const { promisify } = require('node:util');
 const vscode = require('vscode');
 
 const execFileAsync = promisify(execFile);
+const runtimeCache = new Map();
 
 function configuration() {
   return vscode.workspace.getConfiguration('llmWiki');
@@ -54,13 +55,25 @@ async function executableAvailable(executable, cwd) {
 }
 
 async function resolvePythonRuntime(folder) {
+  const explicit = explicitSettingValue();
+  const key = `${folder.uri.toString()}|${process.platform}|${explicit}`;
+  if (runtimeCache.has(key)) return runtimeCache.get(key);
   for (const candidate of pythonCandidates(folder)) {
-    if (await executableAvailable(candidate.executable, folder.uri.fsPath)) return candidate;
+    if (await executableAvailable(candidate.executable, folder.uri.fsPath)) {
+      runtimeCache.set(key, candidate);
+      return candidate;
+    }
   }
+  runtimeCache.set(key, undefined);
   return undefined;
 }
 
+function clearPythonRuntimeCache() {
+  runtimeCache.clear();
+}
+
 module.exports = {
+  clearPythonRuntimeCache,
   explicitSettingValue,
   pythonCandidates,
   resolvePythonRuntime,
