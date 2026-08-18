@@ -5,6 +5,7 @@ const path = require('node:path');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const vscode = require('vscode');
+const { resolvePythonRuntime } = require('./python-runtime');
 const { locatorForRow, parseIngestReceipt, resolveWorkspaceRelative, sha256, workspaceRelativePath } = require('./product-helpers');
 
 const execFileAsync = promisify(execFile);
@@ -52,7 +53,8 @@ function wikiRoot(folder) {
 }
 
 async function runCli(context, folder, args) {
-  const python = String(configuration().get('pythonExecutable', 'python3') || 'python3');
+  const runtime = await resolvePythonRuntime(folder);
+  if (!runtime) throw new Error('python_runtime_not_found');
   const root = coreRoot(context, folder);
   const pythonPath = process.env.PYTHONPATH
     ? `${root}${path.delimiter}${process.env.PYTHONPATH}`
@@ -60,7 +62,7 @@ async function runCli(context, folder, args) {
   const fullArgs = ['-m', 'dogfood.llm_wiki.cli', '--root', wikiRoot(folder), ...args];
 
   try {
-    const result = await execFileAsync(python, fullArgs, {
+    const result = await execFileAsync(runtime.executable, fullArgs, {
       cwd: folder.uri.fsPath,
       env: { ...process.env, PYTHONPATH: pythonPath },
       maxBuffer: MAX_BUFFER,
