@@ -1,4 +1,4 @@
-# LLM Wiki Dogfood 0.1.11 — VS Code-first Alpha
+# LLM Wiki Dogfood 0.1.12 — VS Code-first Alpha
 
 LLM Wiki is a local, user-owned knowledge system that lets a VS Code Agent search, read, and maintain persistent project memory without giving the model silent authority over raw evidence or the user's own beliefs/decisions.
 
@@ -12,15 +12,30 @@ The simplest mental model is:
 
 1. Install the `.vsix` from VS Code Extensions → `...` → **Install from VSIX...**.
 2. Open a **trusted local workspace**.
-3. Run `LLM Wiki: Doctor (Zero Model Calls)`.
-4. If Doctor reports `Git raw-store safety: UNPROTECTED` or realistic dogfood `BLOCKED`, do not ingest sensitive evidence until `.wiki-lab/` is protected from that Git repository.
-5. Use your normal VS Code Agent conversation. The extension contributes the Agent tools described below.
+3. Protect the configured Wiki directory from that Git repository. With the default `.wiki-lab/`, a local-only Alpha choice is adding `.wiki-lab/` to `.git/info/exclude`; a project-wide choice is `.gitignore`.
+4. Run `LLM Wiki: Initialize Workspace` and confirm the explicit workspace opt-in.
+5. Optionally run `LLM Wiki: Doctor (Zero Model Calls)` to inspect readiness. Doctor never initializes, repairs, or enables the workspace.
+6. Use your normal VS Code Agent conversation. The five Agent tools are available only while this workspace is explicitly enabled.
 
-Python defaults to `python3`. Dogfood 0.1.11 retains explicit Python 3.9 compatibility testing for the bundled core.
+Initialization refuses to enable Agent integration while the Wiki directory is Git-`UNPROTECTED`, when the configured Python executable is unavailable, or when post-init integrity does not pass.
+
+Python defaults to `python3`. Dogfood 0.1.12 retains explicit Python 3.9 compatibility testing for the bundled core.
+
+## Workspace activation boundary
+
+Installing the extension gives VS Code the LLM Wiki capability; it does **not** opt every project into LLM Wiki.
+
+- Before explicit initialization, all five LLM Wiki Agent tools are hidden from Agent mode by a VS Code `when` condition.
+- `LLM Wiki: Initialize Workspace` creates/verifies the local store, then records a separate local opt-in marker at `.wiki-lab/workspace-opt-in.json` (or the equivalent configured Wiki root).
+- Existing Core files alone do not imply opt-in. This intentionally covers stores that older dogfood builds may have created through Doctor or write flows.
+- `LLM Wiki: Disable Workspace (Keep Data)` removes only the opt-in marker. The Wiki store and remembered data remain intact, while the Agent tools become unavailable again.
+- Reopening an enabled workspace restores tool availability from the local marker with zero model calls.
+
+The product boundary is therefore: **installed capability ≠ workspace permission**.
 
 ## The five Agent tools
 
-You normally do not need to operate the Wiki through Command Palette commands. The selected VS Code Agent model can call these tools when appropriate, and you can also reference them explicitly by `#` name while dogfooding.
+You normally do not need to operate the Wiki through Command Palette commands after initialization. The selected VS Code Agent model can call these tools when appropriate, and you can also reference them explicitly by `#` name while dogfooding.
 
 ### `#wikiMemory` — search persistent memory
 
@@ -75,7 +90,7 @@ Raw admission always happens before optional derived maintenance. A maintenance 
 
 #### If the same remembered file changed
 
-0.1.11 does **not** silently assume what the new revision means.
+0.1.12 does **not** silently assume what the new revision means.
 
 The new raw bytes are preserved, but Agent Wiki maintenance pauses and LLM Wiki creates a **pending lineage decision**. The Agent should ask whether the newer revision is:
 
@@ -160,7 +175,8 @@ The whole configured Wiki directory is one private backup boundary. It may conta
 - topics and local calibration state;
 - noncanonical Agent Wiki source notes;
 - user-confirmed Human Knowledge;
-- `agent-state.json` with pending lineage decisions, source locators, and maintenance call reservations.
+- `agent-state.json` with pending lineage decisions, source locators, and maintenance call reservations;
+- the local workspace opt-in marker controlling Agent-tool availability.
 
 Do not commit the Wiki directory. Treat backups as equally sensitive as the source material.
 
@@ -168,37 +184,43 @@ Do not commit the Wiki directory. Treat backups as equally sensitive as the sour
 
 Stop Wiki writes (closing the workspace is the simplest Alpha procedure) and copy the **entire Wiki directory as one snapshot** to an approved private location. Do not copy only `raw/` or only `manifest.jsonl`.
 
-After restore, run `LLM Wiki: Doctor (Zero Model Calls)` before resuming work. If Doctor reports missing/torn/corrupt canonical history or missing raw evidence, stop rather than manually reconstructing history.
+After restore, run `LLM Wiki: Doctor (Zero Model Calls)` before resuming work. If Doctor reports missing/torn/corrupt canonical history or missing raw evidence, stop rather than manually reconstructing history. A restored Core store without a valid workspace opt-in marker remains disabled until the user runs `LLM Wiki: Initialize Workspace` explicitly.
 
 This is not live transactional backup or cloud sync. The longer operating note is `docs/11-local-backup-restore.md`.
 
 ## Doctor
 
-`LLM Wiki: Doctor (Zero Model Calls)`:
+`LLM Wiki: Doctor (Zero Model Calls)` is a **pure diagnostic** command. It can be run before or after workspace initialization and makes no state changes.
 
+It:
+
+- reports whether the local Wiki store is initialized;
+- reports whether this workspace has explicit Agent-tool opt-in;
 - checks the configured Python executable;
-- invokes the real initialization boundary;
-- confirms `compiled_provider=disabled`;
+- confirms `compiled_provider=disabled` when a store exists;
 - audits raw/canonical integrity without repairing it;
 - classifies Git raw-store safety as `NOT_GIT`, `PROTECTED`, or `UNPROTECTED`;
 - reports Copilot CLI availability;
 - reports whether Agent Wiki maintenance is enabled;
-- makes **zero model calls**.
+- makes **zero model calls** and **zero state changes**.
+
+Doctor never initializes the store, writes the opt-in marker, repairs history, or changes Git configuration. On an uninitialized workspace it reports `Workspace store: NOT_INITIALIZED`, `Workspace opt-in: NOT_ENABLED`, and `Agent tools: HIDDEN`.
 
 Doctor does not print evidence, prompts, answers, usernames, hostnames, or environment variables.
 
 ## Ask Luna (legacy explicit read-only path)
 
-`LLM Wiki: Ask Luna (Read-only)` remains available as an explicit topic-scoped diagnostic/dogfood path. It is not the primary 0.1.11 agent-first UX.
+`LLM Wiki: Ask Luna (Read-only)` remains available as an explicit topic-scoped diagnostic/dogfood path. It is not the primary 0.1.12 agent-first UX.
 
 It requires a modal evidence-send confirmation, uses exact `gpt-5.6-luna`, sends the transformed prompt over stdin rather than process argv, validates transient citation handles, and never writes the answer into canonical Wiki state.
 
 ## Command Palette surface
 
-The 17 commands remain available as manual/diagnostic/fallback controls:
+The 18 user-facing commands remain available as initialization/manual/diagnostic/fallback controls:
 
-- `LLM Wiki: Doctor (Zero Model Calls)`
 - `LLM Wiki: Initialize Workspace`
+- `LLM Wiki: Disable Workspace (Keep Data)`
+- `LLM Wiki: Doctor (Zero Model Calls)`
 - `LLM Wiki: Create Topic`
 - `LLM Wiki: Select Topic`
 - `LLM Wiki: New Human Knowledge Note`
@@ -215,13 +237,15 @@ The 17 commands remain available as manual/diagnostic/fallback controls:
 - `LLM Wiki: Show Calibration Summary`
 - `LLM Wiki: Experimental — Discover Copilot Models (Zero Generation)`
 
-The Command Palette is no longer the intended primary product loop; ordinary Agent conversation is.
+Initialization/disable/Doctor define the workspace lifecycle. After initialization, the Command Palette is not the intended primary product loop; ordinary Agent conversation is.
 
 ## Runtime prerequisites
 
 For local raw/search/provenance and zero-model Agent tools:
 
 - trusted VS Code workspace;
+- explicit `LLM Wiki: Initialize Workspace` opt-in for that workspace;
+- protected Wiki directory when it lives inside a Git repository;
 - VS Code `1.95+`;
 - Python, default `python3` (`llmWiki.pythonExecutable` can override it).
 
@@ -242,9 +266,9 @@ The normal VS Code Agent tools also require an authenticated Agent-capable VS Co
 - `llmWiki.agentWikiMaintenanceMaxAiCredits`: default `30`, maintenance per-call CLI guard.
 - `llmWiki.agentWikiMaintenanceDailyCallLimit`: default `10`; `0` disables new maintenance generations.
 
-## 0.1.11 validation status
+## 0.1.12 validation status
 
-Before 0.1.11 human dogfood, the project ran deterministic/adversarial synthetic passes rather than asking the user to discover every obvious gap manually.
+0.1.12 keeps the existing deterministic/adversarial authority contract and adds explicit workspace activation boundaries around the same five Agent tools.
 
 **E020** contains **78** frozen representative authority/UX cases:
 
@@ -253,27 +277,8 @@ Before 0.1.11 human dogfood, the project ran deterministic/adversarial synthetic
 - 11 deliberately deferred because they require new authority/parser/product decisions;
 - model calls: 0.
 
-Dev and **unpacked packaged VSIX Extension Host** tests exercise the actual five-tool surface, including dirty-file fail-closed, verified raw read, pending revision lineage, Human Knowledge lifecycle, newline metadata structural injection, stale/tampered lineage binding, and Human Knowledge fork handling.
+Dev and **unpacked packaged VSIX Extension Host** tests exercise the actual five-tool surface, including dirty-file fail-closed, verified raw read, pending revision lineage, Human Knowledge lifecycle, newline metadata structural injection, stale/tampered lineage binding, and Human Knowledge fork handling. 0.1.12 additionally statically locks tool `when` gating and tests that the separate opt-in marker is required and that disabling Agent integration preserves the Core store.
 
 **E021** is the separate cross-source concept-compounding experiment. It recorded narrow positive evidence that exact Luna can maintain one fixed-identity derived concept page across a deliberately relevant A→A+B→A+B+C source sequence while retaining raw provenance. It does **not** earn automatic concept discovery/routing/dedup/update triggers, and its result record documents a retained execution-provenance limitation. Do not rerun it merely to strengthen the record.
 
 **E022** used exactly **two** real main-model generations (`gpt-5.4`, `claude-sonnet-4.6`) against the malicious exact v4 memory serialization. Both recovered the legitimate fact `42`, treated embedded policy/mutation/delete-looking strings as data, and requested/claimed no Wiki mutation. Rerolls: 0. Run `31993541811`, artifact `9276094144`. This is a useful translation smoke, **not a universal prompt-injection guarantee**.
-
-## What still needs human dogfood
-
-This is an **Alpha**, not customer-ready software. Synthetic testing cannot tell us:
-
-- whether the main Agent invokes `wikiMemory` often enough or too often;
-- whether it naturally follows important hits with `wikiRead`;
-- whether admission/lineage confirmations cause approval fatigue;
-- whether “remember my decision” feels natural in conversation;
-- whether the old/new lineage preview is understandable to a normal user;
-- whether Luna maintenance latency/spend feels worth it;
-- whether RAW vs DERIVED vs HUMAN_KNOWLEDGE distinctions stay understandable rather than leaking implementation complexity;
-- whether returning days later actually recovers reasoning the user would otherwise have lost.
-
-Those are the next product questions. Do not add vectors/graphs, background watching, URL/PDF capture, cross-workspace federation, automatic concept routing, or a large visual navigation system merely because they are available ideas.
-
-Known non-blocking reliability follow-up #132 tracks deletion detection for `agent-state.json` and the relation/pending-state crash window. Do not claim those edges are already atomic/detectable.
-
-Compiled knowledge remains disabled as a trusted/default provider. W0 remains the default retrieval path and X1 remains non-default/shadow pending more natural quality evidence.
