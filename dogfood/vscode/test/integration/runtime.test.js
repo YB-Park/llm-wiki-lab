@@ -5,14 +5,6 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vscode = require('vscode');
 
-const WIKI_TOOLS = [
-  'llmWiki_searchMemory',
-  'llmWiki_readSource',
-  'llmWiki_rememberSource',
-  'llmWiki_rememberHumanKnowledge',
-  'llmWiki_resolveLineage',
-];
-
 async function stage(label, promise, timeoutMs = 10000) {
   let timer;
   try {
@@ -33,9 +25,15 @@ function workspace() {
   return { folder, wikiRoot: path.join(folder.uri.fsPath, '.wiki-lab') };
 }
 
-function visibleWikiTools() {
-  const all = new Set(vscode.lm.tools.map((tool) => tool.name));
-  return WIKI_TOOLS.filter((name) => all.has(name));
+async function assertMemoryToolNotInvokable(label) {
+  await assert.rejects(
+    stage(label, vscode.lm.invokeTool('llmWiki_searchMemory', {
+      input: { query: 'workspace activation sentinel', maxResults: 1 },
+      toolInvocationToken: undefined,
+    })),
+    undefined,
+    'wikiMemory implementation must not be invokable while the workspace is not opted in'
+  );
 }
 
 async function resetWorkspace() {
@@ -52,12 +50,20 @@ async function enableWorkspace() {
   assert.equal(result, true, 'explicit workspace opt-in did not succeed in Extension Host test mode');
   const { wikiRoot } = workspace();
   assert.ok(fs.existsSync(path.join(wikiRoot, 'workspace-opt-in.json')), 'explicit opt-in marker was not created');
-  assert.deepEqual(visibleWikiTools().sort(), [...WIKI_TOOLS].sort(), 'all five Agent tools must become visible only after explicit opt-in');
+  const memoryResult = await stage('enabled-wiki-memory', vscode.lm.invokeTool('llmWiki_searchMemory', {
+    input: { query: 'workspace activation sentinel', maxResults: 1 },
+    toolInvocationToken: undefined,
+  }));
+  const memoryText = memoryResult.content
+    .filter((part) => part instanceof vscode.LanguageModelTextPart)
+    .map((part) => part.value)
+    .join('\n');
+  assert.match(memoryText, /LLM_WIKI_MEMORY_RESULT v4/, 'wikiMemory implementation must become invokable after explicit opt-in');
   return wikiRoot;
 }
 
 suite('LLM Wiki Dogfood Extension Host', () => {
-  test('loads lifecycle surface without implicitly initializing or exposing Agent tools', async () => {
+  test('loads lifecycle surface without implicitly initializing or registering Agent tool implementations', async () => {
     const { wikiRoot } = workspace();
     fs.rmSync(wikiRoot, { recursive: true, force: true });
 
@@ -67,7 +73,7 @@ suite('LLM Wiki Dogfood Extension Host', () => {
     assert.equal(extension.isActive, true, 'extension did not activate');
 
     assert.equal(fs.existsSync(wikiRoot), false, 'extension activation must not initialize a Wiki store');
-    assert.deepEqual(visibleWikiTools(), [], 'uninitialized workspace must expose zero LLM Wiki Agent tools');
+    await assertMemoryToolNotInvokable('uninitialized-wiki-memory');
     const result = await vscode.commands.executeCommand('llmWiki.doctor');
     assert.ok(result, 'Doctor did not return its sanitized readiness result');
     assert.equal(result.storeInitialized, false);
@@ -75,11 +81,11 @@ suite('LLM Wiki Dogfood Extension Host', () => {
     assert.equal(result.coreReady, false);
     assert.equal(result.localReady, false);
     assert.equal(result.realisticDogfoodReady, false);
-    assert.deepEqual(visibleWikiTools(), [], 'Doctor must not make Agent tools visible');
+    await assertMemoryToolNotInvokable('post-doctor-wiki-memory');
     assert.equal(fs.existsSync(wikiRoot), false, 'Doctor must not initialize or mutate an uninitialized workspace');
   });
 
-  test('explicit Initialize Workspace creates the store, opt-in marker, and Agent tool visibility', async () => {
+  test('explicit Initialize Workspace creates the store, opt-in marker, and Agent tool implementation', async () => {
     const wikiRoot = await resetWorkspace();
     await enableWorkspace();
 
@@ -102,7 +108,7 @@ suite('LLM Wiki Dogfood Extension Host', () => {
     assert.equal(result.realisticDogfoodReady, true);
   });
 
-  test('Disable Workspace preserves the store and removes Agent tool visibility', async () => {
+  test('Disable Workspace preserves the store and unregisters the Agent tool implementation', async () => {
     const wikiRoot = await resetWorkspace();
     await enableWorkspace();
     const manifestBefore = fs.readFileSync(path.join(wikiRoot, 'manifest.jsonl'));
@@ -112,7 +118,7 @@ suite('LLM Wiki Dogfood Extension Host', () => {
     assert.equal(fs.existsSync(path.join(wikiRoot, 'workspace-opt-in.json')), false, 'disable must remove only the opt-in marker');
     assert.ok(fs.existsSync(path.join(wikiRoot, 'config.json')), 'disable must preserve the Wiki store');
     assert.deepEqual(fs.readFileSync(path.join(wikiRoot, 'manifest.jsonl')), manifestBefore, 'disable must not mutate canonical history');
-    assert.deepEqual(visibleWikiTools(), [], 'Disable Workspace must remove all five tools from Agent-visible availability');
+    await assertMemoryToolNotInvokable('disabled-wiki-memory');
 
     const result = await vscode.commands.executeCommand('llmWiki.doctor');
     assert.equal(result.storeInitialized, true);
