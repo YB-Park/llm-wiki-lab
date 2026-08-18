@@ -103,6 +103,12 @@ async function setWorkspaceToolContext(enabled) {
   await vscode.commands.executeCommand('setContext', WORKSPACE_ENABLED_CONTEXT, enabled === true);
 }
 
+async function lifecycleConfirm(context, message, button) {
+  if (context.extensionMode === vscode.ExtensionMode.Test) return true;
+  const choice = await vscode.window.showWarningMessage(message, { modal: true }, button);
+  return choice === button;
+}
+
 function ensureBaseSurfaceRegistered(context) {
   if (baseSurfaceRegistered) return;
   const before = context.subscriptions.length;
@@ -164,6 +170,16 @@ async function initializeWorkspace(context) {
     return true;
   }
 
+  const storePresent = workspaceActivation.hasWorkspaceState(root);
+  const existingStore = workspaceActivation.isCoreInitialized(root);
+  if (storePresent && !existingStore) {
+    await applyWorkspaceRuntimeAvailability(context, false);
+    vscode.window.showWarningMessage(
+      'LLM Wiki initialization was not performed because an incomplete or damaged Wiki store already exists. Run Doctor and restore/repair the store boundary explicitly; Initialize Workspace will not recreate missing canonical state.'
+    );
+    return false;
+  }
+
   const gitSafety = await classifyGitSafety(folder.uri.fsPath, root);
   if (gitSafety === 'UNPROTECTED') {
     vscode.window.showWarningMessage(
@@ -181,15 +197,14 @@ async function initializeWorkspace(context) {
     return false;
   }
 
-  const existingStore = workspaceActivation.isCoreInitialized(root);
-  const choice = await vscode.window.showWarningMessage(
+  const confirmed = await lifecycleConfirm(
+    context,
     existingStore
       ? 'Enable LLM Wiki for this workspace? An existing local Wiki store was found. This explicit opt-in makes the LLM Wiki runtime and five Agent tools available in this workspace. Doctor remains diagnostic only and no model call is made by initialization.'
       : 'Initialize and enable LLM Wiki for this workspace? This creates a private local Wiki store and makes the LLM Wiki runtime and five Agent tools available in this workspace. Doctor remains diagnostic only and no model call is made by initialization.',
-    { modal: true },
     'Initialize LLM Wiki'
   );
-  if (choice !== 'Initialize LLM Wiki') return false;
+  if (!confirmed) return false;
 
   await runCoreCommand(context, folder, ['init']);
   const report = await alphaIntegrity(context, folder);
@@ -213,12 +228,12 @@ async function disableWorkspace(context) {
     return false;
   }
 
-  const choice = await vscode.window.showWarningMessage(
+  const confirmed = await lifecycleConfirm(
+    context,
     'Disable LLM Wiki for this workspace? Agent tools and operational Wiki commands will become unavailable, but the local Wiki data will be preserved.',
-    { modal: true },
     'Disable LLM Wiki'
   );
-  if (choice !== 'Disable LLM Wiki') return false;
+  if (!confirmed) return false;
 
   workspaceActivation.disableWorkspace(root);
   await applyWorkspaceRuntimeAvailability(context, false);
@@ -230,15 +245,17 @@ async function doctor(context) {
   const folder = firstWorkspaceFolder();
   const python = pythonExecutable(folder);
   const root = wikiRoot(folder);
+  const storePresent = workspaceActivation.hasWorkspaceState(root);
   const storeInitialized = workspaceActivation.isCoreInitialized(root);
   const workspaceEnabled = workspaceActivation.isWorkspaceEnabled(root);
+  const configPath = path.join(root, 'config.json');
   const pythonReady = await executableAvailable(python, ['--version'], folder.uri.fsPath);
 
   let coreReady = false;
   let compiledDisabled = false;
-  if (storeInitialized) {
+  if (fs.existsSync(configPath)) {
     try {
-      const config = JSON.parse(fs.readFileSync(path.join(root, 'config.json'), 'utf8'));
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
       coreReady = pythonReady && config.format === 'llm-wiki-dogfood-v0';
       compiledDisabled = config.compiled_provider === 'disabled';
     } catch (_) {
@@ -247,9 +264,9 @@ async function doctor(context) {
   }
 
   let integrityReady = false;
-  let rawIntegrityStatus = storeInitialized ? 'check_failed' : 'not_initialized';
-  let manifestIntegrityStatus = storeInitialized ? 'check_failed' : 'not_initialized';
-  let provenanceIntegrityStatus = storeInitialized ? 'check_failed' : 'not_initialized';
+  let rawIntegrityStatus = storePresent ? 'check_failed' : 'not_initialized';
+  let manifestIntegrityStatus = storePresent ? 'check_failed' : 'not_initialized';
+  let provenanceIntegrityStatus = storePresent ? 'check_failed' : 'not_initialized';
   if (coreReady) {
     try {
       const report = await alphaIntegrity(context, folder);
@@ -272,26 +289,27 @@ async function doctor(context) {
   const gitSafety = await classifyGitSafety(folder.uri.fsPath, root);
   const gitSafeForEvidence = gitSafety !== 'UNPROTECTED';
   const copilotReady = await executableAvailable('copilot', ['--version'], folder.uri.fsPath);
-  const localReady = coreReady && compiledDisabled && integrityReady;
+  const localReady = storeInitialized && coreReady && compiledDisabled && integrityReady;
   const askReady = localReady && copilotReady;
   const realisticDogfoodReady = localReady && gitSafeForEvidence && workspaceEnabled;
   const maintenanceOn = configuration().get('agentWikiMaintenanceEnabled', false) === true;
   const maintenanceGuard = Number(configuration().get('agentWikiMaintenanceMaxAiCredits', 30));
+  const storeLabel = storeInitialized ? 'INITIALIZED' : (storePresent ? 'INCOMPLETE' : 'NOT_INITIALIZED');
 
   doctorOutput.clear();
   doctorOutput.appendLine('LLM Wiki Doctor');
   doctorOutput.appendLine('Model calls: 0');
   doctorOutput.appendLine('State changes: 0');
-  doctorOutput.appendLine(`Workspace store: ${storeInitialized ? 'INITIALIZED' : 'NOT_INITIALIZED'}`);
+  doctorOutput.appendLine(`Workspace store: ${storeLabel}`);
   doctorOutput.appendLine(`Workspace opt-in: ${workspaceEnabled ? 'ENABLED' : 'NOT_ENABLED'}`);
   doctorOutput.appendLine(`Agent tools: ${workspaceEnabled ? 'AVAILABLE' : 'HIDDEN'}`);
   doctorOutput.appendLine(`Operational commands: ${workspaceEnabled ? 'AVAILABLE' : 'DISABLED'}`);
   doctorOutput.appendLine(`Python: ${pythonReady ? 'PASS' : 'FAIL'}`);
-  doctorOutput.appendLine(`Core: ${coreReady ? 'PASS' : (storeInitialized ? 'FAIL' : 'NOT_INITIALIZED')} mode=${coreMode(context)}`);
-  doctorOutput.appendLine(`Compiled provider: ${compiledDisabled ? 'disabled' : (storeInitialized ? 'CHECK_FAILED' : 'NOT_CHECKED')}`);
-  doctorOutput.appendLine(`Raw integrity: ${!storeInitialized ? 'NOT_CHECKED' : (rawIntegrityStatus === 'clean' ? 'PASS' : 'FAIL')} status=${rawIntegrityStatus}`);
+  doctorOutput.appendLine(`Core: ${coreReady ? 'PASS' : (storePresent ? 'FAIL' : 'NOT_INITIALIZED')} mode=${coreMode(context)}`);
+  doctorOutput.appendLine(`Compiled provider: ${compiledDisabled ? 'disabled' : (storePresent ? 'CHECK_FAILED' : 'NOT_CHECKED')}`);
+  doctorOutput.appendLine(`Raw integrity: ${!storePresent ? 'NOT_CHECKED' : (rawIntegrityStatus === 'clean' ? 'PASS' : 'FAIL')} status=${rawIntegrityStatus}`);
   doctorOutput.appendLine(
-    `Canonical logs: ${!storeInitialized ? 'NOT_CHECKED' : (manifestIntegrityStatus === 'clean' && provenanceIntegrityStatus === 'clean' ? 'PASS' : 'FAIL')} ` +
+    `Canonical logs: ${!storePresent ? 'NOT_CHECKED' : (manifestIntegrityStatus === 'clean' && provenanceIntegrityStatus === 'clean' ? 'PASS' : 'FAIL')} ` +
     `manifest=${manifestIntegrityStatus} provenance=${provenanceIntegrityStatus}`
   );
   doctorOutput.appendLine(`Git raw-store safety: ${gitSafety}`);
@@ -302,8 +320,10 @@ async function doctor(context) {
   doctorOutput.appendLine(`Agent Wiki maintenance: ${maintenanceOn ? 'ENABLED' : 'DISABLED'} model=gpt-5.6-luna guard=${maintenanceGuard}`);
   doctorOutput.show(true);
 
-  if (!storeInitialized) {
+  if (!storePresent) {
     vscode.window.showInformationMessage('LLM Wiki Doctor: this workspace is not initialized. Doctor made no changes. Run LLM Wiki: Initialize Workspace to opt in.');
+  } else if (!storeInitialized) {
+    vscode.window.showWarningMessage('LLM Wiki Doctor: an incomplete or damaged local Wiki store exists. Doctor made no changes. Do not reinitialize over it; inspect integrity/backup state.');
   } else if (!workspaceEnabled) {
     vscode.window.showInformationMessage('LLM Wiki Doctor: a local Wiki store exists, but workspace integration is not explicitly enabled. Doctor made no changes. Run Initialize Workspace to opt in.');
   } else if (coreReady && !integrityReady) {
@@ -322,6 +342,7 @@ async function doctor(context) {
   }
 
   return {
+    storePresent,
     storeInitialized,
     workspaceEnabled,
     pythonReady,
