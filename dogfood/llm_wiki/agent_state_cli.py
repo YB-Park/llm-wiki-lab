@@ -45,7 +45,6 @@ def parser() -> argparse.ArgumentParser:
     usage_status.add_argument("--day", required=True)
     usage_reserve = sub.add_parser("usage-reserve")
     usage_reserve.add_argument("--day", required=True)
-    usage_reserve.add_argument("--limit", type=int, required=True)
     return p
 
 
@@ -90,7 +89,7 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "usage-status":
             _print(maintenance_usage(root, day=args.day))
         elif args.command == "usage-reserve":
-            _print(reserve_maintenance_call(root, day=args.day, limit=args.limit))
+            _print(reserve_maintenance_call(root, day=args.day))
         else:
             raise AssertionError(args.command)
     except (ValueError, RuntimeError) as exc:
