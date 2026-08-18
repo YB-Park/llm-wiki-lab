@@ -1,4 +1,4 @@
-# LLM Wiki Dogfood 0.1.14 — VS Code-first Alpha
+# LLM Wiki Dogfood 0.1.15 — VS Code-first Alpha
 
 LLM Wiki is a local, user-owned knowledge system that lets a VS Code Agent search, read, and maintain persistent project memory without giving the model silent authority over raw evidence or the user's own beliefs/decisions.
 
@@ -19,7 +19,7 @@ The simplest mental model is:
 
 Initialization refuses to enable Agent integration while the Wiki directory is Git-`UNPROTECTED`, when the configured Python executable is unavailable, or when post-init integrity does not pass.
 
-Python defaults to `python3`. Dogfood 0.1.14 retains explicit Python 3.9 compatibility testing for the bundled core.
+Python defaults to `python3`. Dogfood 0.1.15 retains explicit Python 3.9 compatibility testing for the bundled core.
 
 ## Workspace activation boundary
 
@@ -90,7 +90,7 @@ Raw admission always happens before optional derived maintenance. A maintenance 
 
 #### If the same remembered file changed
 
-0.1.14 does **not** silently assume what the new revision means.
+0.1.15 does **not** silently assume what the new revision means.
 
 The new raw bytes are preserved, but Agent Wiki maintenance pauses and LLM Wiki creates a **pending lineage decision**. The Agent should ask whether the newer revision is:
 
@@ -159,12 +159,16 @@ The maintenance path cannot perform correction/change/dispute/supersession/delet
 
 The same current source + policy reuses the existing note with **zero new model calls**.
 
+Source-size handling is intentionally tolerant for dogfood: **40,000 characters is the preferred single-pass target, not a hard failure boundary**. Current sources from 40,001 through 80,000 characters are still sent as one Luna maintenance pass and reported as `oversize_single_pass`. Above 80,000 characters, maintenance stops before any model call with `SKIPPED_SOURCE_TOO_LARGE`; RAW admission remains intact. LLM Wiki never silently truncates a source and does not yet claim chunked compilation.
+
+Source-size outcomes are returned causally in the maintenance status that the main Agent already receives. An over-ceiling preflight reports `SKIPPED_SOURCE_TOO_LARGE` together with `failure_code=SOURCE_TOO_LARGE`, `stage=preflight`, `model_call_attempted=no`, the observed/preferred/ceiling character counts, and `soft_guard_prompted=no`. A successful 40k–80k pass reports `source_size_mode=oversize_single_pass`. This diagnostic metadata never changes epistemic authority.
+
 Two spend controls are exposed, but current Copilot CLI builds do not all advertise the same flags:
 
 - `llmWiki.agentWikiMaintenanceMaxAiCredits` — preferred Copilot CLI per-call ceiling, default `30`; LLM Wiki applies `--max-ai-credits` only when the installed `copilot --help` advertises that flag;
 - `llmWiki.agentWikiMaintenanceDailyCallLimit` — retained setting name for compatibility, now a **daily soft-guard threshold**, default `10`, range `0–100`. A positive value does not hard-cap maintenance. Once that many model-backed calls have already been reserved for the local day, LLM Wiki asks once whether to **Continue Today**. If approved, maintenance can continue for the rest of that day. `0` disables new model-backed maintenance generations even when the grant is enabled.
 
-Before a model call, 0.1.14 probes the installed CLI help with **zero model calls**. `--no-remote` remains required by the maintenance adapter; optional hardening such as `--no-remote-export` is passed only when that installed binary advertises it. Model-backed maintenance calls are durably counted inside `.wiki-lab/agent-state.json` immediately before the external call. The soft-guard acknowledgement is only VS Code workspace UI state; losing it may cause another prompt but does not change Wiki knowledge. An uncertain transport outcome is not automatically refunded.
+Before a model call, 0.1.15 probes the installed CLI help with **zero model calls**. `--no-remote` remains required by the maintenance adapter; optional hardening such as `--no-remote-export` is passed only when that installed binary advertises it. Model-backed maintenance calls are durably counted inside `.wiki-lab/agent-state.json` immediately before the external call. The soft-guard acknowledgement is only VS Code workspace UI state; losing it may cause another prompt but does not change Wiki knowledge. An uncertain transport outcome is not automatically refunded.
 
 This threshold is intentionally advisory. It is a visibility/control checkpoint, not a statement that ten calls are inherently safe or sufficient. Usage/token/AI-credit observability is a separate follow-up; do not interpret the local reserved-call count as exact token or billing consumption.
 
@@ -212,7 +216,7 @@ Doctor does not print evidence, prompts, answers, usernames, hostnames, or envir
 
 ## Ask Luna (legacy explicit read-only path)
 
-`LLM Wiki: Ask Luna (Read-only)` remains available as an explicit topic-scoped diagnostic/dogfood path. It is not the primary 0.1.14 agent-first UX.
+`LLM Wiki: Ask Luna (Read-only)` remains available as an explicit topic-scoped diagnostic/dogfood path. It is not the primary 0.1.15 agent-first UX.
 
 It requires a modal evidence-send confirmation, uses exact `gpt-5.6-luna`, sends the transformed prompt over stdin rather than process argv, validates transient citation handles, and never writes the answer into canonical Wiki state.
 
@@ -268,9 +272,9 @@ The normal VS Code Agent tools also require an authenticated Agent-capable VS Co
 - `llmWiki.agentWikiMaintenanceMaxAiCredits`: default `30`, preferred maintenance per-call guard; applied only when the installed Copilot CLI advertises `--max-ai-credits`.
 - `llmWiki.agentWikiMaintenanceDailyCallLimit`: default `10`, now a daily **soft-guard threshold**. A positive value prompts once at the threshold and does not hard-cap further maintenance after `Continue Today`; `0` disables new model-backed maintenance generations.
 
-## 0.1.14 validation status
+## 0.1.15 validation status
 
-0.1.14 keeps the explicit workspace activation and deterministic/adversarial authority contract, retains 0.1.13's capability-aware Copilot CLI invocation, and changes the positive daily maintenance threshold from a hard cap into a user-visible soft guard.
+0.1.15 keeps the explicit workspace activation and deterministic/adversarial authority contract, retains 0.1.13's capability-aware Copilot CLI invocation and 0.1.14's maintenance soft guard, and replaces the old 40k source-size cliff with a tolerant 40k preferred / 80k temporary ceiling policy plus causal source-size outcomes for the main Agent.
 
 **E020** contains **78** frozen representative authority/UX cases:
 
@@ -279,7 +283,7 @@ The normal VS Code Agent tools also require an authenticated Agent-capable VS Co
 - 11 deliberately deferred because they require new authority/parser/product decisions;
 - model calls: 0.
 
-Dev and **unpacked packaged VSIX Extension Host** tests exercise the actual five-tool surface, including dirty-file fail-closed, verified raw read, pending revision lineage, Human Knowledge lifecycle, newline metadata structural injection, stale/tampered lineage binding, and Human Knowledge fork handling. 0.1.14 also locks durable non-blocking maintenance call accounting, the zero-threshold disable behavior, and the user-facing positive soft-guard contract.
+Dev and **unpacked packaged VSIX Extension Host** tests exercise the actual five-tool surface, including dirty-file fail-closed, verified raw read, pending revision lineage, Human Knowledge lifecycle, newline metadata structural injection, stale/tampered lineage binding, and Human Knowledge fork handling. 0.1.15 also locks durable non-blocking maintenance call accounting, the zero-threshold disable behavior, the user-facing positive soft-guard contract, the 40k–80k oversize single-pass path, and causal over-ceiling preflight reporting with zero model calls.
 
 **E021** is the separate cross-source concept-compounding experiment. It recorded narrow positive evidence that exact Luna can maintain one fixed-identity derived concept page across a deliberately relevant A→A+B→A+B+C source sequence while retaining raw provenance. It does **not** earn automatic concept discovery/routing/dedup/update triggers, and its result record documents a retained execution-provenance limitation. Do not rerun it merely to strengthen the record.
 
