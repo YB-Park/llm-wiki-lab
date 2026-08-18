@@ -19,11 +19,25 @@ async function stage(label, promise, timeoutMs = 10000) {
   }
 }
 
-suite('LLM Wiki 0.1.7 Product Surface', () => {
-  test('registers the current customer command surface', async () => {
+async function resetAndEnable() {
+  const folder = (vscode.workspace.workspaceFolders || [])[0];
+  assert.ok(folder, 'integration test workspace is not open');
+  const wikiRoot = path.join(folder.uri.fsPath, '.wiki-lab');
+  try {
+    await vscode.commands.executeCommand('llmWiki.disableWorkspace');
+  } catch (_) {}
+  fs.rmSync(wikiRoot, { recursive: true, force: true });
+  const enabled = await stage('enable-workspace', vscode.commands.executeCommand('llmWiki.enableWorkspace'));
+  assert.equal(enabled, true, 'explicit workspace opt-in failed');
+  return { folder, wikiRoot };
+}
+
+suite('LLM Wiki 0.1.12 Product Surface', () => {
+  test('registers the operational command surface after explicit workspace opt-in', async () => {
     const extension = vscode.extensions.getExtension('llm-wiki-lab.llm-wiki-dogfood');
     assert.ok(extension, 'LLM Wiki extension was not discovered');
     await extension.activate();
+    await resetAndEnable();
 
     const commands = new Set(await vscode.commands.getCommands(true));
     for (const command of [
@@ -34,22 +48,19 @@ suite('LLM Wiki 0.1.7 Product Surface', () => {
       'llmWiki.markDispute',
       'llmWiki.feedback',
     ]) {
-      assert.ok(commands.has(command), `missing product command: ${command}`);
+      assert.ok(commands.has(command), `missing product command after opt-in: ${command}`);
     }
   });
 
   test('discovers forgotten-topic current evidence through the real VS Code-to-core bridge', async () => {
-    const folder = (vscode.workspace.workspaceFolders || [])[0];
-    assert.ok(folder, 'integration test workspace is not open');
+    const { folder } = await resetAndEnable();
     const wikiRoot = path.join(folder.uri.fsPath, '.wiki-lab');
     const alphaPath = path.join(folder.uri.fsPath, 'runtime-product-alpha.md');
     const betaPath = path.join(folder.uri.fsPath, 'runtime-product-beta.md');
-    fs.rmSync(wikiRoot, { recursive: true, force: true });
     fs.writeFileSync(alphaPath, '# Alpha\n\nunique-amber-orchid product discovery evidence\n', 'utf8');
     fs.writeFileSync(betaPath, '# Beta\n\nseparate cobalt evidence\n', 'utf8');
 
     try {
-      await stage('init', vscode.commands.executeCommand('llmWiki.init'));
       await stage('create-alpha', vscode.commands.executeCommand('llmWiki.createTopic', { label: 'runtime-product-alpha' }));
       const alphaDoc = await stage('open-alpha', vscode.workspace.openTextDocument(vscode.Uri.file(alphaPath)));
       await stage('show-alpha', vscode.window.showTextDocument(alphaDoc, { preview: false }));
