@@ -81,7 +81,7 @@ jobs:
           - Validated GitHub Actions build: run \`${SOURCE_RUN}\`
           - Validated build head: \`${SOURCE_SHA}\`
 
-          Both VSIX paths contain the exact artifact bytes emitted only after the `VS Code Dogfood` workflow has completed successfully on `main`, including the unpacked packaged Extension Host test.
+          Both VSIX paths contain the exact artifact bytes emitted only after the \`VS Code Dogfood\` workflow has completed successfully on \`main\`, including the unpacked packaged Extension Host test.
 
           ## Install
 
