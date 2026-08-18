@@ -10,6 +10,14 @@ function markerPath(root) {
   return path.join(root, WORKSPACE_OPT_IN_FILE);
 }
 
+function hasWorkspaceState(root) {
+  try {
+    return fs.statSync(root).isDirectory() && fs.readdirSync(root).length > 0;
+  } catch (_) {
+    return false;
+  }
+}
+
 function isCoreInitialized(root) {
   return fs.existsSync(path.join(root, 'config.json')) && fs.existsSync(path.join(root, 'manifest.jsonl'));
 }
@@ -40,6 +48,7 @@ function enableWorkspace(root) {
     enabled_at: new Date().toISOString(),
   };
   fs.writeFileSync(temporary, `${JSON.stringify(row, null, 2)}\n`, { encoding: 'utf8', flag: 'wx' });
+  if (fs.existsSync(target)) fs.unlinkSync(target);
   fs.renameSync(temporary, target);
   return row;
 }
@@ -56,6 +65,7 @@ module.exports = {
   WORKSPACE_OPT_IN_FORMAT,
   disableWorkspace,
   enableWorkspace,
+  hasWorkspaceState,
   isCoreInitialized,
   isWorkspaceEnabled,
   markerPath,
