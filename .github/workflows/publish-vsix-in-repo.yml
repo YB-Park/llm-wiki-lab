@@ -85,7 +85,7 @@ jobs:
 
           ## Install
 
-          In VS Code, open Extensions -> \`...\` -> **Install from VSIX...** and choose either file above. Then open a trusted workspace and run \`LLM Wiki: Doctor (Zero Model Calls)\` before realistic dogfood.
+          In VS Code, open Extensions -> \`...\` -> **Install from VSIX...** and choose either file above. Open a trusted workspace, protect the configured Wiki directory from that Git repository, and run \`LLM Wiki: Initialize Workspace\` to explicitly opt that workspace in. \`LLM Wiki: Doctor (Zero Model Calls)\` is optional diagnostics and never initializes or enables the workspace.
 
           ## Publishing rule
 
