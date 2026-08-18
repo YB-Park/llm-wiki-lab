@@ -11,6 +11,7 @@ const { parseIngestReceipt, workspaceRelativePath } = require('./product-helpers
 const execFileAsync = promisify(execFile);
 const SELECTED_TOPIC_KEY = 'llmWiki.selectedTopic';
 const SOURCE_LOCATORS_KEY = 'llmWiki.sourceLocators.v1';
+const MAINTENANCE_SOFT_GUARD_KEY = 'llmWiki.maintenanceSoftGuard.v1';
 const AGENT_INBOX_LABEL = 'Agent Inbox';
 const AGENT_WIKI_MODEL = 'gpt-5.6-luna';
 const MAX_BUFFER = 16 * 1024 * 1024;
@@ -132,6 +133,10 @@ function sourceLocatorKey(folder) {
   return `${SOURCE_LOCATORS_KEY}:${folder.uri.toString()}`;
 }
 
+function maintenanceSoftGuardKey(folder) {
+  return `${MAINTENANCE_SOFT_GUARD_KEY}:${folder.uri.toString()}`;
+}
+
 async function durableSourceLocators(context, folder) {
   if (!isWikiInitialized(folder)) return {};
   return JSON.parse((await runAgentStateCli(context, folder, ['locator-list'])).trim() || '{}');
@@ -171,17 +176,64 @@ async function maintenanceUsage(context, folder) {
 }
 
 async function reserveMaintenanceCall(context, folder) {
-  const limit = maintenanceDailyCallLimit();
   const row = JSON.parse((await runAgentStateCli(context, folder, [
-    'usage-reserve', '--day', localDayKey(), '--limit', String(limit),
+    'usage-reserve', '--day', localDayKey(),
   ])).trim());
   return {
     allowed: row.allowed === true,
     day: row.day,
-    limit: Number(row.limit || limit),
     reservedCalls: Number(row.reserved_calls || 0),
-    remaining: Number(row.remaining || 0),
   };
+}
+
+async function confirmMaintenanceSoftGuard(context, folder) {
+  const threshold = maintenanceDailyCallLimit();
+  const usage = await maintenanceUsage(context, folder);
+  const budget = {
+    day: usage.day,
+    reservedCalls: usage.reservedCalls,
+    softGuardThreshold: threshold,
+    softGuardAcknowledged: false,
+  };
+  if (threshold === 0) {
+    return { allowed: false, status: 'SKIPPED_DAILY_CALL_LIMIT', budget };
+  }
+  if (usage.reservedCalls < threshold) {
+    return { allowed: true, status: 'BELOW_SOFT_GUARD', budget };
+  }
+
+  const key = maintenanceSoftGuardKey(folder);
+  const saved = context.workspaceState.get(key, {});
+  if (
+    saved
+    && saved.continueToday === true
+    && saved.day === usage.day
+    && Number(saved.threshold) === threshold
+  ) {
+    budget.softGuardAcknowledged = true;
+    return { allowed: true, status: 'SOFT_GUARD_ACKNOWLEDGED', budget };
+  }
+
+  let continued = true;
+  if (context.extensionMode !== vscode.ExtensionMode.Test) {
+    const choice = await vscode.window.showWarningMessage(
+      `LLM Wiki Agent Wiki maintenance has already reserved ${usage.reservedCalls} model-backed call${usage.reservedCalls === 1 ? '' : 's'} today. The configured ${threshold}-call daily threshold is a soft guard, not a hard cap. Raw evidence is already saved; this choice controls only optional derived Agent Wiki maintenance. Continue model-backed maintenance for the rest of today?`,
+      { modal: true },
+      'Continue Today'
+    );
+    continued = choice === 'Continue Today';
+  }
+  if (!continued) {
+    return { allowed: false, status: 'SKIPPED_SOFT_GUARD_DECLINED', budget };
+  }
+
+  await context.workspaceState.update(key, {
+    day: usage.day,
+    threshold,
+    continueToday: true,
+  });
+  budget.softGuardAcknowledged = true;
+  return { allowed: true, status: 'SOFT_GUARD_ACKNOWLEDGED', budget };
 }
 
 async function resolveAdmissionTopic(context, folder) {
@@ -401,11 +453,17 @@ async function maintainSource(context, folder, sourceId, topicId) {
     if (!detail.includes('agent_wiki_model_call_not_authorized')) throw error;
   }
 
-  const budget = await reserveMaintenanceCall(context, folder);
-  if (!budget.allowed) {
-    return { status: 'SKIPPED_DAILY_CALL_LIMIT', modelCalls: 0, model: AGENT_WIKI_MODEL, policy: '', budget };
+  const softGuard = await confirmMaintenanceSoftGuard(context, folder);
+  if (!softGuard.allowed) {
+    return { status: softGuard.status, modelCalls: 0, model: AGENT_WIKI_MODEL, policy: '', budget: softGuard.budget };
   }
 
+  const reservation = await reserveMaintenanceCall(context, folder);
+  const budget = {
+    ...reservation,
+    softGuardThreshold: maintenanceDailyCallLimit(),
+    softGuardAcknowledged: softGuard.budget.softGuardAcknowledged === true,
+  };
   const stdout = await runAgentWikiCli(context, folder, [...baseArgs, '--allow-model-call']);
   const row = JSON.parse(stdout.trim());
   return {
@@ -563,8 +621,11 @@ class WikiRememberSourceTool {
       throw new Error('LLM Wiki will not auto-save a dirty editor. Save the file explicitly, then ask to remember it again. No Wiki mutation occurred.');
     }
 
+    const dailySoftGuard = maintenanceDailyCallLimit();
     const maintenanceText = maintenanceEnabled()
-      ? ` Agent Wiki maintenance is enabled: after safe admission, exact ${AGENT_WIKI_MODEL} may receive the admitted bytes, subject to per-call guard ${maintenanceCreditGuard()} and daily call limit ${maintenanceDailyCallLimit()}.`
+      ? dailySoftGuard === 0
+        ? ` Agent Wiki maintenance grant is enabled, but new model-backed generation is disabled because the daily maintenance setting is 0. Existing notes may still be reused with zero model calls.`
+        : ` Agent Wiki maintenance is enabled: after safe admission, exact ${AGENT_WIKI_MODEL} may receive the admitted bytes, subject to per-call guard ${maintenanceCreditGuard()} and a daily soft guard after ${dailySoftGuard} model-backed calls. After that threshold, LLM Wiki asks once before continuing for the day.`
       : ' Agent Wiki maintenance is disabled, so this admission makes no model call.';
     const confirmed = await explicitHumanConfirm(
       this.context,
@@ -628,6 +689,9 @@ class WikiRememberSourceTool {
       `maintenance_model=${maintenance.model}`,
       `maintenance_policy_json=${jsonData(maintenance.policy)}`,
       `maintenance_daily_limit=${maintenanceDailyCallLimit()}`,
+      `maintenance_daily_limit_mode=${maintenanceDailyCallLimit() === 0 ? 'disabled' : 'soft_guard'}`,
+      `maintenance_daily_soft_guard=${maintenanceDailyCallLimit()}`,
+      `maintenance_soft_guard_acknowledged=${maintenance.budget && maintenance.budget.softGuardAcknowledged === true ? 'yes' : 'no'}`,
       `maintenance_reserved_today=${usage.reservedCalls}`,
       `pending_lineage_decision=${pending ? 'yes' : 'no'}`,
       pending ? `pending_decision_id=${pending.id}` : 'pending_decision_id=',
@@ -701,8 +765,6 @@ class WikiResolveLineageTool {
       return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(`LLM_WIKI_LINEAGE_RESULT v2\nstatus=CANCELLED_BY_USER\ndecision_id=${decisionId}\ncanonical_mutation=none`)]);
     }
 
-    // The user may keep the modal open while another writer changes canonical
-    // state. Revalidate immediately before any semantic mutation.
     await verifiedLineageComparison(this.context, folder, pending, predecessor);
 
     if (relation === 'correction') {
@@ -740,6 +802,7 @@ class WikiResolveLineageTool {
         vscode.window.showWarningMessage(`LLM Wiki recorded the human-confirmed lineage decision, but derived maintenance failed. Canonical relation was preserved. ${error && error.message ? error.message : error}`);
       }
     }
+    const usage = await maintenanceUsage(this.context, folder);
 
     const text = [
       'LLM_WIKI_LINEAGE_RESULT v2',
@@ -755,6 +818,10 @@ class WikiResolveLineageTool {
       `remaining_predecessor_source_ids=${(stateResolution.remaining_predecessor_source_ids || []).join(',')}`,
       `derived_agent_wiki_maintenance=${maintenance.status}`,
       `model_calls=${maintenance.modelCalls}`,
+      `maintenance_daily_limit_mode=${maintenanceDailyCallLimit() === 0 ? 'disabled' : 'soft_guard'}`,
+      `maintenance_daily_soft_guard=${maintenanceDailyCallLimit()}`,
+      `maintenance_soft_guard_acknowledged=${maintenance.budget && maintenance.budget.softGuardAcknowledged === true ? 'yes' : 'no'}`,
+      `maintenance_reserved_today=${usage.reservedCalls}`,
     ];
     return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(text.join('\n'))]);
   }

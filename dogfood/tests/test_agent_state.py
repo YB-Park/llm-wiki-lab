@@ -78,18 +78,21 @@ class AgentStateTests(unittest.TestCase):
         self.assertEqual(open_rows[0]["predecessor_source_ids"], ["src-old-b"])
         self.assertEqual(open_rows[0]["successor_source_id"], "src-new")
 
-    def test_daily_reservation_is_durable_and_resets_only_when_day_changes(self):
+    def test_daily_reservation_is_durable_non_blocking_and_resets_only_when_day_changes(self):
         day = "2026-08-16"
         self.assertEqual(maintenance_usage(self.root, day=day)["reserved_calls"], 0)
-        first = reserve_maintenance_call(self.root, day=day, limit=2)
-        second = reserve_maintenance_call(self.root, day=day, limit=2)
-        blocked = reserve_maintenance_call(self.root, day=day, limit=2)
+        first = reserve_maintenance_call(self.root, day=day)
+        second = reserve_maintenance_call(self.root, day=day)
+        third = reserve_maintenance_call(self.root, day=day)
         self.assertTrue(first["allowed"])
         self.assertTrue(second["allowed"])
-        self.assertFalse(blocked["allowed"])
-        self.assertEqual(maintenance_usage(self.root, day=day)["reserved_calls"], 2)
+        self.assertTrue(third["allowed"])
+        self.assertEqual(first["reserved_calls"], 1)
+        self.assertEqual(second["reserved_calls"], 2)
+        self.assertEqual(third["reserved_calls"], 3)
+        self.assertEqual(maintenance_usage(self.root, day=day)["reserved_calls"], 3)
         self.assertEqual(maintenance_usage(self.root, day="2026-08-17")["reserved_calls"], 0)
-        next_day = reserve_maintenance_call(self.root, day="2026-08-17", limit=2)
+        next_day = reserve_maintenance_call(self.root, day="2026-08-17")
         self.assertTrue(next_day["allowed"])
         self.assertEqual(next_day["reserved_calls"], 1)
 

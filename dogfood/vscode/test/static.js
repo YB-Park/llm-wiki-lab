@@ -70,7 +70,7 @@ assert.equal(hkSchema.reasoning.maxLength, 1600, 'STATIC-BOUNDARY hk-reasoning-b
 assert.equal(hkSchema.sourceIds.maxItems, 12, 'STATIC-BOUNDARY hk-source-bound');
 must('hk-supersedes-schema', Boolean(hkSchema.supersedesKnowledgeId));
 
-assert.equal(manifest.version, '0.1.13', 'STATIC-BOUNDARY version');
+assert.equal(manifest.version, '0.1.14', 'STATIC-BOUNDARY version');
 assert.equal(manifest.engines.vscode, '^1.95.0', 'STATIC-BOUNDARY vscode-engine');
 assert.equal(manifest.main, './entry.js', 'STATIC-BOUNDARY main-entry');
 assert.equal(manifest.private, true, 'STATIC-BOUNDARY private-package');
@@ -78,9 +78,10 @@ assert.equal(manifest.capabilities.untrustedWorkspaces.supported, false, 'STATIC
 const configProps = manifest.contributes.configuration.properties;
 assert.equal(configProps['llmWiki.agentWikiMaintenanceEnabled'].default, false, 'STATIC-BOUNDARY maintenance-default-off');
 assert.equal(configProps['llmWiki.agentWikiMaintenanceMaxAiCredits'].minimum, 30, 'STATIC-BOUNDARY maintenance-credit-min');
-assert.equal(configProps['llmWiki.agentWikiMaintenanceDailyCallLimit'].default, 10, 'STATIC-BOUNDARY daily-limit-default');
-assert.equal(configProps['llmWiki.agentWikiMaintenanceDailyCallLimit'].minimum, 0, 'STATIC-BOUNDARY daily-limit-min');
-assert.equal(configProps['llmWiki.agentWikiMaintenanceDailyCallLimit'].maximum, 100, 'STATIC-BOUNDARY daily-limit-max');
+assert.equal(configProps['llmWiki.agentWikiMaintenanceDailyCallLimit'].default, 10, 'STATIC-BOUNDARY daily-soft-guard-default');
+assert.equal(configProps['llmWiki.agentWikiMaintenanceDailyCallLimit'].minimum, 0, 'STATIC-BOUNDARY daily-soft-guard-min');
+assert.equal(configProps['llmWiki.agentWikiMaintenanceDailyCallLimit'].maximum, 100, 'STATIC-BOUNDARY daily-soft-guard-max');
+must('daily-soft-guard-description', configProps['llmWiki.agentWikiMaintenanceDailyCallLimit'].description.includes('soft-guard threshold'));
 must('check-includes-workspace-activation', manifest.scripts.check.includes('workspace-activation.js'));
 must('check-runs-workspace-activation-test', manifest.scripts.check.includes('test/workspace-activation.js'));
 must('check-includes-human-knowledge', manifest.scripts.check.includes('human-knowledge.js'));
@@ -147,7 +148,13 @@ must('durable-source-locators', agentTools.includes('durableSourceLocators'));
 must('legacy-locator-migration', agentTools.includes("'locator-set', row.source_id"));
 must('durable-pending-list', agentTools.includes('openPendingLineageRows'));
 must('durable-budget-reserve', agentTools.includes('reserveMaintenanceCall'));
-must('daily-limit-skip', agentTools.includes('SKIPPED_DAILY_CALL_LIMIT'));
+must('zero-limit-still-disables', agentTools.includes("status: 'SKIPPED_DAILY_CALL_LIMIT'"));
+must('soft-guard-function', agentTools.includes('confirmMaintenanceSoftGuard'));
+must('soft-guard-modal', agentTools.includes('Continue Today'));
+must('soft-guard-explains-not-hard-cap', agentTools.includes('soft guard, not a hard cap'));
+must('soft-guard-decline-status', agentTools.includes('SKIPPED_SOFT_GUARD_DECLINED'));
+must('soft-guard-tool-output', agentTools.includes('maintenance_daily_limit_mode='));
+mustNot('reservation-does-not-pass-hard-limit', agentTools.includes("'usage-reserve', '--day', localDayKey(), '--limit'"));
 must('pending-lineage-skip', agentTools.includes('SKIPPED_PENDING_LINEAGE_DECISION'));
 must('continuation-decision-output', agentTools.includes('continuation_decision_id='));
 must('remaining-predecessors-output', agentTools.includes('remaining_predecessor_source_ids='));
@@ -211,4 +218,4 @@ mustNot('git-safety-no-write', gitSafety.includes('writeFile'));
 must('bundle-core-source', bundler.includes("path.join(dogfoodRoot, 'llm_wiki')"));
 must('bundle-core-destination', bundler.includes("path.join(bundleRoot, 'dogfood')"));
 
-console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.13 agentTools=5 explicitWorkspaceOptIn=yes doctorPureDiagnostic=yes toolWhenGated=yes memoryV4=json-data verifiedReadV2=yes verifiedLineageDiff=yes durableAuthorityState=yes dirtyAnyOpenDocBlocked=yes humanKnowledgeV1=integrity+supersede+fork-cycle-failclosed dailyMaintenanceCap=yes python39Compat=required');
+console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.14 agentTools=5 explicitWorkspaceOptIn=yes doctorPureDiagnostic=yes toolWhenGated=yes memoryV4=json-data verifiedReadV2=yes verifiedLineageDiff=yes durableAuthorityState=yes dirtyAnyOpenDocBlocked=yes humanKnowledgeV1=integrity+supersede+fork-cycle-failclosed maintenanceSoftGuard=yes python39Compat=required');

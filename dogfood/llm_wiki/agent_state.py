@@ -286,23 +286,19 @@ def maintenance_usage(root: Path, *, day: str) -> dict[str, Any]:
     return {"day": day, "reserved_calls": count}
 
 
-def reserve_maintenance_call(root: Path, *, day: str, limit: int) -> dict[str, Any]:
-    if limit < 0 or limit > 100:
-        raise ValueError("agent_state_maintenance_limit_invalid")
+def reserve_maintenance_call(root: Path, *, day: str) -> dict[str, Any]:
+    """Durably reserve one model-backed maintenance call without enforcing a product limit.
+
+    The VS Code layer owns the user-facing soft guard. Keeping reservation here
+    unconditional avoids turning an advisory UX threshold into a hidden hard cap
+    and still preserves crash-safe accounting before the external model call.
+    """
     ensure_workspace(root)
     with store_writer_lock(root):
         state = read_agent_state(root)
         usage = state["maintenance_usage"]
         count = usage["reserved_calls"] if usage["day"] == day else 0
-        if limit == 0 or count >= limit:
-            return {"allowed": False, "day": day, "limit": limit, "reserved_calls": count, "remaining": 0}
         count += 1
         state["maintenance_usage"] = {"day": day, "reserved_calls": count}
         _write(root, state)
-        return {
-            "allowed": True,
-            "day": day,
-            "limit": limit,
-            "reserved_calls": count,
-            "remaining": max(0, limit - count),
-        }
+        return {"allowed": True, "day": day, "reserved_calls": count}
