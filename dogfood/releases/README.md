@@ -1,22 +1,13 @@
 # Dogfood VSIX releases
 
-This directory keeps a small checked-in copy of the installable VS Code dogfood extension so it can be transferred into environments where GitHub Actions artifacts are inconvenient to access.
+This directory is maintained by `.github/workflows/publish-vsix-in-repo.yml` so validated VSIX bytes can be transferred through the Git repository when GitHub Actions artifacts are inconvenient to access.
 
-## Current
+The publisher runs only after the **VS Code Dogfood** workflow succeeds on a `main` push. It downloads that exact validated artifact, then writes:
 
-- Versioned: `llm-wiki-dogfood-0.1.11.vsix`
-- Stable convenience path: `llm-wiki-dogfood-latest.vsix`
-- Extension version: `0.1.11`
-- VSIX SHA-256: `615362c52340f704d839530187ce1b0975ed111b2296d2b91e31b903e9bfcc5a`
-- Validated GitHub Actions build: run `31994083799`, artifact `9276280377`
-- Validated build head: `538c7cd2c641770366fe27350c8debae2a0813bc`
+- `llm-wiki-dogfood-<version>.vsix` — immutable versioned copy;
+- `llm-wiki-dogfood-latest.vsix` — stable convenience path;
+- this README with byte size, SHA-256, source run, and source commit.
 
-The repository changes after that validated build only affected documentation / completed E021-E022 experiment bookkeeping; `compare 538c7cd2...main` contained no shipped extension product-code changes when this copy was published.
+A successful build for an already-published version must have identical bytes; otherwise publishing fails instead of silently replacing the versioned file.
 
-## Install
-
-In VS Code, open Extensions -> `...` -> **Install from VSIX...** and choose either file above. Then open a trusted workspace and run `LLM Wiki: Doctor (Zero Model Calls)` before realistic dogfood.
-
-## Publishing rule
-
-Keep the versioned file immutable. When the dogfood extension version changes, add a new versioned VSIX and repoint `llm-wiki-dogfood-latest.vsix` to the exact same Git blob. Record the validated Actions run and SHA-256 here. Do not use an unvalidated local package as the repo copy.
+The first connector-based binary upload attempt was removed because its request payload was truncated before GitHub stored it. Do not use direct connector blob upload for VSIX binaries; let the validated Actions artifact publish itself.
