@@ -12,6 +12,9 @@ const agentTools = fs.readFileSync(path.join(root, 'agent-tools.js'), 'utf8');
 const workspaceActivation = fs.readFileSync(path.join(root, 'workspace-activation.js'), 'utf8');
 const humanKnowledge = fs.readFileSync(path.join(root, 'human-knowledge.js'), 'utf8');
 const productHelpers = fs.readFileSync(path.join(root, 'product-helpers.js'), 'utf8');
+const processErrors = fs.readFileSync(path.join(root, 'process-errors.js'), 'utf8');
+const pythonRuntime = fs.readFileSync(path.join(root, 'python-runtime.js'), 'utf8');
+const pythonRuntimePolicy = fs.readFileSync(path.join(root, 'python-runtime-policy.js'), 'utf8');
 const gitSafety = fs.readFileSync(path.join(root, 'git-safety.js'), 'utf8');
 const lmDiscovery = fs.readFileSync(path.join(root, 'lm-discovery.js'), 'utf8');
 const bundler = fs.readFileSync(path.join(root, 'scripts', 'bundle-core.js'), 'utf8');
@@ -62,6 +65,7 @@ must('doctor-user-setup-heading', entry.includes('LLM Wiki — Setup & Health'))
 must('doctor-copilot-executable-only', entry.includes('Copilot CLI executable:'));
 must('doctor-model-readiness-unverified', entry.includes('AI-summary model-call readiness: NOT VERIFIED'));
 must('doctor-compiled-provider-explained', entry.includes('disabled (expected; not used by AI summaries)'));
+must('doctor-python-selected-runtime', entry.includes('Python runtime: ${pythonReady ? `FOUND (${runtime.executable}, ${runtime.source})`'));
 mustNot('doctor-does-not-init-command', entry.includes("executeCommand('llmWiki.init')"));
 mustNot('doctor-does-not-run-init-core', /async function doctor[\s\S]*?runCoreCommand\(context, folder, \['init'\]\)/.test(entry));
 mustNot('entry-never-authorizes-model', entry.includes('--allow-model-call'));
@@ -95,6 +99,8 @@ assert.equal(manifest.main, './entry.js', 'STATIC-BOUNDARY main-entry');
 assert.equal(manifest.private, true, 'STATIC-BOUNDARY private-package');
 assert.equal(manifest.capabilities.untrustedWorkspaces.supported, false, 'STATIC-BOUNDARY untrusted-workspace');
 const configProps = manifest.contributes.configuration.properties;
+assert.equal(configProps['llmWiki.pythonExecutable'].default, '', 'STATIC-BOUNDARY python-auto-default');
+must('python-auto-setting-description', configProps['llmWiki.pythonExecutable'].description.includes('auto-detect'));
 assert.equal(configProps['llmWiki.agentWikiMaintenanceEnabled'].default, false, 'STATIC-BOUNDARY maintenance-default-off');
 assert.equal(configProps['llmWiki.agentWikiMaintenanceMaxAiCredits'].minimum, 30, 'STATIC-BOUNDARY maintenance-credit-min');
 assert.equal(configProps['llmWiki.agentWikiMaintenanceDailyCallLimit'].default, 10, 'STATIC-BOUNDARY daily-soft-guard-default');
@@ -104,10 +110,13 @@ must('daily-soft-guard-description', configProps['llmWiki.agentWikiMaintenanceDa
 must('check-includes-workspace-activation', manifest.scripts.check.includes('workspace-activation.js'));
 must('check-runs-workspace-activation-test', manifest.scripts.check.includes('test/workspace-activation.js'));
 must('check-includes-human-knowledge', manifest.scripts.check.includes('human-knowledge.js'));
+must('check-runs-process-errors-test', manifest.scripts.check.includes('test/process-errors.js'));
+must('check-runs-python-policy-test', manifest.scripts.check.includes('test/python-runtime-policy.js'));
 assert.equal(manifest.devDependencies['@vscode/vsce'], '3.9.2', 'STATIC-BOUNDARY vsce-pin');
 
 must('entry-load-agent-tools', entry.includes("require('./agent-tools')"));
 must('entry-load-workspace-activation', entry.includes("require('./workspace-activation')"));
+must('entry-load-python-runtime', entry.includes("require('./python-runtime')"));
 must('entry-register-agent-tools', entry.includes('registerAgentTools(context);'));
 must('workspace-context-key', entry.includes("const WORKSPACE_ENABLED_CONTEXT = 'llmWiki.workspaceEnabled'"));
 must('workspace-context-set', entry.includes("executeCommand('setContext', WORKSPACE_ENABLED_CONTEXT"));
@@ -119,7 +128,12 @@ must('initialize-integrity-before-opt-in', entry.indexOf("runCoreCommand(context
 must('disable-preserves-data-message', entry.includes('Stored Wiki data was preserved.'));
 must('doctor-reports-opt-in', entry.includes('Workspace opt-in:'));
 must('doctor-reports-tools', entry.includes('Agent tools:'));
+must('single-folder-runtime-gate', entry.includes('folders.length === 1 && workspaceActivation.isWorkspaceEnabled'));
+must('status-lifecycle-sync', entry.includes('base.setStatusVisible(enabled)'));
 must('agent-load-human-knowledge', agentTools.includes("require('./human-knowledge')"));
+must('agent-load-process-errors', agentTools.includes("require('./process-errors')"));
+must('agent-load-python-runtime', agentTools.includes("require('./python-runtime')"));
+must('agent-single-folder-failclosed', agentTools.includes('currently supports one workspace folder at a time'));
 must('register-search-tool', agentTools.includes('vscode.lm.registerTool(SEARCH_TOOL'));
 must('register-read-tool', agentTools.includes('vscode.lm.registerTool(READ_TOOL'));
 must('register-remember-tool', agentTools.includes('vscode.lm.registerTool(REMEMBER_TOOL'));
@@ -154,8 +168,10 @@ must('derived-follow-to-raw', agentTools.includes('For load-bearing factual clai
 must('product-owned-confirmation', agentTools.includes('explicitHumanConfirm('));
 must('confirmation-test-only-bypass', agentTools.includes('context.extensionMode === vscode.ExtensionMode.Test'));
 must('confirmation-uses-detail', agentTools.includes('showWarningMessage(title, { modal: true, detail }, button)'));
-must('bounded-process-failure', agentTools.includes('function boundedProcessFailure(detail)'));
-must('bounded-process-unknown', agentTools.includes("return 'llm_wiki_process_failed'"));
+must('strict-bounded-process-failure', processErrors.includes('function boundedProcessFailure(detail)'));
+must('strict-process-last-line-walk', processErrors.includes('for (let index = lines.length - 1; index >= 0; index -= 1)'));
+must('strict-process-anchored-pattern', processErrors.includes('/^copilot_call_failed:\\d+$/'));
+must('bounded-process-unknown', processErrors.includes("return 'llm_wiki_process_failed'"));
 must('maintenance-causal-failure-code', agentTools.includes('maintenance_failure_code='));
 must('maintenance-causal-stage', agentTools.includes('maintenance_stage='));
 must('maintenance-causal-model-attempt', agentTools.includes('maintenance_model_call_attempted='));
@@ -167,6 +183,12 @@ mustNot('no-active-document-save-call', agentTools.includes('active.document.sav
 must('remember-raw-ingest', agentTools.includes("['ingest', target.filePath, '--topic', topic.id]"));
 must('remember-human-confirmed-authority', agentTools.includes('authority=human_confirmed_source_admission'));
 must('remember-does-not-persist-hk', agentTools.includes('human_authorship_persisted=no'));
+
+must('python-policy-win32', pythonRuntimePolicy.includes("['python', 'py', 'python3']"));
+must('python-policy-unix', pythonRuntimePolicy.includes("['python3', 'python']"));
+must('python-explicit-override', pythonRuntime.includes("source: 'configured'"));
+must('python-auto-source', pythonRuntime.includes("source: 'auto'"));
+must('python-no-setting-mutation', !pythonRuntime.includes('.update('));
 
 must('durable-agent-state-cli', agentTools.includes("runPythonModule(context, folder, 'dogfood.llm_wiki.agent_state_cli'"));
 must('durable-source-locators', agentTools.includes('durableSourceLocators'));
@@ -229,6 +251,8 @@ must('maintenance-failure-preserves-raw', agentTools.includes('FAILED_AFTER_RAW_
 
 must('release-status-bar', extension.includes("status.text = '$(book) LLM Wiki'"));
 must('release-status-health-action', extension.includes("status.command = 'llmWiki.doctor'"));
+must('release-status-visibility-hook', extension.includes('function setStatusVisible(enabled)'));
+must('release-status-deactivate-hide', extension.includes('if (status) status.hide()'));
 mustNot('release-status-no-topic', extension.includes('Wiki: no topic'));
 mustNot('routine-topic-success-toast', extension.includes('LLM Wiki topic selected:'));
 mustNot('routine-ingest-success-toast', extension.includes('LLM Wiki ingested ${path.basename'));
@@ -248,4 +272,4 @@ mustNot('git-safety-no-write', gitSafety.includes('writeFile'));
 must('bundle-core-source', bundler.includes("path.join(dogfoodRoot, 'llm_wiki')"));
 must('bundle-core-destination', bundler.includes("path.join(bundleRoot, 'dogfood')"));
 
-console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.15 agentTools=5 explicitWorkspaceOptIn=yes doctorPureDiagnostic=yes toolWhenGated=yes memoryV4=json-data verifiedReadV2=yes verifiedLineageDiff=yes durableAuthorityState=yes dirtyAnyOpenDocBlocked=yes humanKnowledgeV1=integrity+supersede+fork-cycle-failclosed maintenanceSoftGuard=yes releaseUxWalkthrough=yes boundedAgentErrors=yes quietRoutineUi=yes python39Compat=required');
+console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.15 agentTools=5 explicitWorkspaceOptIn=yes doctorPureDiagnostic=yes toolWhenGated=yes memoryV4=json-data verifiedReadV2=yes verifiedLineageDiff=yes durableAuthorityState=yes dirtyAnyOpenDocBlocked=yes humanKnowledgeV1=integrity+supersede+fork-cycle-failclosed maintenanceSoftGuard=yes releaseUxWalkthrough=yes boundedAgentErrors=strict crossPlatformPython=auto quietRoutineUi=yes singleFolderFailClosed=yes python39Compat=required');
