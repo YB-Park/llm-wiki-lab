@@ -4,6 +4,7 @@ const path = require('node:path');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const vscode = require('vscode');
+const { defaultPythonNames } = require('./python-runtime-policy');
 
 const execFileAsync = promisify(execFile);
 const runtimeCache = new Map();
@@ -34,10 +35,7 @@ function resolveCandidate(folder, value) {
 function pythonCandidates(folder, platform = process.platform) {
   const explicit = explicitSettingValue();
   if (explicit) return [{ executable: resolveCandidate(folder, explicit), source: 'configured' }];
-  const names = platform === 'win32'
-    ? ['python', 'py', 'python3']
-    : ['python3', 'python'];
-  return names.map((executable) => ({ executable, source: 'auto' }));
+  return defaultPythonNames(platform).map((executable) => ({ executable, source: 'auto' }));
 }
 
 async function executableAvailable(executable, cwd) {
