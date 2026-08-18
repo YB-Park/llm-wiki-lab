@@ -1,13 +1,23 @@
 # Dogfood VSIX releases
 
-This directory is maintained by `.github/workflows/publish-vsix-in-repo.yml` so validated VSIX bytes can be transferred through the Git repository when GitHub Actions artifacts are inconvenient to access.
+This directory keeps the validated installable VS Code dogfood extension in Git so it can be transferred into environments where GitHub Actions artifacts are inconvenient to access.
 
-The publisher runs only after the **VS Code Dogfood** workflow succeeds on a `main` push. It downloads that exact validated artifact, then writes:
+## Current
 
-- `llm-wiki-dogfood-<version>.vsix` — immutable versioned copy;
-- `llm-wiki-dogfood-latest.vsix` — stable convenience path;
-- this README with byte size, SHA-256, source run, and source commit.
+- Versioned: `llm-wiki-dogfood-0.1.11.vsix`
+- Stable convenience path: `llm-wiki-dogfood-latest.vsix`
+- Extension version: `0.1.11`
+- VSIX bytes: `90561`
+- VSIX SHA-256: `ddd798f5bd5a2ed1587f23a93dd5fdf612408d66cbd3ef4398dc5e6c5f109abf`
+- Validated GitHub Actions build: run `32086377938`
+- Validated build head: `7c8259ee7d1eb785bbea5830b413890ee79dfe5f`
 
-A successful build for an already-published version must have identical bytes; otherwise publishing fails instead of silently replacing the versioned file.
+Both VSIX paths contain the exact artifact bytes emitted only after the  workflow has completed successfully on , including the unpacked packaged Extension Host test.
 
-The first connector-based binary upload attempt was removed because its request payload was truncated before GitHub stored it. Do not use direct connector blob upload for VSIX binaries; let the validated Actions artifact publish itself.
+## Install
+
+In VS Code, open Extensions -> `...` -> **Install from VSIX...** and choose either file above. Then open a trusted workspace and run `LLM Wiki: Doctor (Zero Model Calls)` before realistic dogfood.
+
+## Publishing rule
+
+This directory is maintained by `.github/workflows/publish-vsix-in-repo.yml`. A versioned file is immutable: if a successful build for the same extension version produces different bytes, publishing fails instead of silently replacing it. Bump the extension version for a new product binary.
