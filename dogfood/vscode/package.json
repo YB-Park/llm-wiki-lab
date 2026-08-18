@@ -5,17 +5,9 @@
   "version": "0.1.15",
   "private": true,
   "publisher": "llm-wiki-lab",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/YB-Park/llm-wiki-lab.git",
-    "directory": "dogfood/vscode"
-  },
-  "engines": {
-    "vscode": "^1.95.0"
-  },
-  "categories": [
-    "Other"
-  ],
+  "repository": { "type": "git", "url": "https://github.com/YB-Park/llm-wiki-lab.git", "directory": "dogfood/vscode" },
+  "engines": { "vscode": "^1.95.0" },
+  "categories": ["Other"],
   "main": "./entry.js",
   "capabilities": {
     "untrustedWorkspaces": {
@@ -51,171 +43,45 @@
   ],
   "contributes": {
     "commands": [
-      {
-        "command": "llmWiki.enableWorkspace",
-        "title": "LLM Wiki: Initialize Workspace",
-        "enablement": "isWorkspaceTrusted"
-      },
-      {
-        "command": "llmWiki.disableWorkspace",
-        "title": "LLM Wiki: Disable Workspace (Keep Data)",
-        "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-      },
-      {
-        "command": "llmWiki.createTopic",
-        "title": "LLM Wiki: Create Topic",
-        "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-      },
-      {
-        "command": "llmWiki.selectTopic",
-        "title": "LLM Wiki: Select Topic",
-        "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-      },
-      {
-        "command": "llmWiki.newKnowledgeNote",
-        "title": "LLM Wiki: New Human Knowledge Note",
-        "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-      },
-      {
-        "command": "llmWiki.configureAgentWikiMaintenance",
-        "title": "LLM Wiki: Configure Agent Wiki Maintenance",
-        "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-      },
-      {
-        "command": "llmWiki.ingestActiveFile",
-        "title": "LLM Wiki: Ingest Active File",
-        "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-      },
-      {
-        "command": "llmWiki.ingestAuthoritativeUpdate",
-        "title": "LLM Wiki: Ingest Active File as Authoritative Update",
-        "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-      },
-      {
-        "command": "llmWiki.search",
-        "title": "LLM Wiki: Search Topic",
-        "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-      },
-      {
-        "command": "llmWiki.discoverAcrossTopics",
-        "title": "LLM Wiki: Global Search Current Evidence Across Topics",
-        "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-      },
-      {
-        "command": "llmWiki.markCorrection",
-        "title": "LLM Wiki: Record Correction",
-        "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-      },
-      {
-        "command": "llmWiki.markChange",
-        "title": "LLM Wiki: Change Source Over Time",
-        "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-      },
-      {
-        "command": "llmWiki.markDispute",
-        "title": "LLM Wiki: Record Unresolved Dispute",
-        "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-      },
-      {
-        "command": "llmWiki.feedback",
-        "title": "LLM Wiki: Record Feedback",
-        "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-      },
-      {
-        "command": "llmWiki.ask",
-        "title": "LLM Wiki: Ask Luna (Read-only)",
-        "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-      },
-      {
-        "command": "llmWiki.calibration",
-        "title": "LLM Wiki: Show Calibration Summary",
-        "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-      },
-      {
-        "command": "llmWiki.doctor",
-        "title": "LLM Wiki: Doctor (Zero Model Calls)",
-        "enablement": "isWorkspaceTrusted"
-      },
-      {
-        "command": "llmWiki.experimentalDiscoverCopilotModels",
-        "title": "LLM Wiki: Experimental — Discover Copilot Models (Zero Generation)",
-        "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-      }
+      { "command": "llmWiki.enableWorkspace", "title": "LLM Wiki: Initialize Workspace", "enablement": "isWorkspaceTrusted" },
+      { "command": "llmWiki.disableWorkspace", "title": "LLM Wiki: Disable Workspace (Keep Data)", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+      { "command": "llmWiki.createTopic", "title": "LLM Wiki: Create Topic", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+      { "command": "llmWiki.selectTopic", "title": "LLM Wiki: Select Topic", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+      { "command": "llmWiki.newKnowledgeNote", "title": "LLM Wiki: New Human Knowledge Note", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+      { "command": "llmWiki.configureAgentWikiMaintenance", "title": "LLM Wiki: Configure Agent Wiki Maintenance", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+      { "command": "llmWiki.ingestActiveFile", "title": "LLM Wiki: Ingest Active File", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+      { "command": "llmWiki.ingestAuthoritativeUpdate", "title": "LLM Wiki: Ingest Active File as Authoritative Update", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+      { "command": "llmWiki.search", "title": "LLM Wiki: Search Topic", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+      { "command": "llmWiki.discoverAcrossTopics", "title": "LLM Wiki: Global Search Current Evidence Across Topics", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+      { "command": "llmWiki.markCorrection", "title": "LLM Wiki: Record Correction", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+      { "command": "llmWiki.markChange", "title": "LLM Wiki: Change Source Over Time", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+      { "command": "llmWiki.markDispute", "title": "LLM Wiki: Record Unresolved Dispute", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+      { "command": "llmWiki.feedback", "title": "LLM Wiki: Record Feedback", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+      { "command": "llmWiki.ask", "title": "LLM Wiki: Ask Luna (Read-only)", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+      { "command": "llmWiki.calibration", "title": "LLM Wiki: Show Calibration Summary", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+      { "command": "llmWiki.doctor", "title": "LLM Wiki: Doctor (Zero Model Calls)", "enablement": "isWorkspaceTrusted" },
+      { "command": "llmWiki.experimentalDiscoverCopilotModels", "title": "LLM Wiki: Experimental — Discover Copilot Models (Zero Generation)", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" }
     ],
     "menus": {
       "commandPalette": [
-        {
-          "command": "llmWiki.enableWorkspace",
-          "when": "!llmWiki.workspaceEnabled && isWorkspaceTrusted"
-        },
-        {
-          "command": "llmWiki.disableWorkspace",
-          "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-        },
-        {
-          "command": "llmWiki.doctor",
-          "when": "isWorkspaceTrusted"
-        },
-        {
-          "command": "llmWiki.createTopic",
-          "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-        },
-        {
-          "command": "llmWiki.selectTopic",
-          "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-        },
-        {
-          "command": "llmWiki.newKnowledgeNote",
-          "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-        },
-        {
-          "command": "llmWiki.configureAgentWikiMaintenance",
-          "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-        },
-        {
-          "command": "llmWiki.ingestActiveFile",
-          "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-        },
-        {
-          "command": "llmWiki.ingestAuthoritativeUpdate",
-          "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-        },
-        {
-          "command": "llmWiki.search",
-          "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-        },
-        {
-          "command": "llmWiki.discoverAcrossTopics",
-          "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-        },
-        {
-          "command": "llmWiki.markCorrection",
-          "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-        },
-        {
-          "command": "llmWiki.markChange",
-          "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-        },
-        {
-          "command": "llmWiki.markDispute",
-          "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-        },
-        {
-          "command": "llmWiki.feedback",
-          "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-        },
-        {
-          "command": "llmWiki.ask",
-          "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-        },
-        {
-          "command": "llmWiki.calibration",
-          "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-        },
-        {
-          "command": "llmWiki.experimentalDiscoverCopilotModels",
-          "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted"
-        }
+        { "command": "llmWiki.enableWorkspace", "when": "!llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+        { "command": "llmWiki.disableWorkspace", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+        { "command": "llmWiki.doctor", "when": "isWorkspaceTrusted" },
+        { "command": "llmWiki.createTopic", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+        { "command": "llmWiki.selectTopic", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+        { "command": "llmWiki.newKnowledgeNote", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+        { "command": "llmWiki.configureAgentWikiMaintenance", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+        { "command": "llmWiki.ingestActiveFile", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+        { "command": "llmWiki.ingestAuthoritativeUpdate", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+        { "command": "llmWiki.search", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+        { "command": "llmWiki.discoverAcrossTopics", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+        { "command": "llmWiki.markCorrection", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+        { "command": "llmWiki.markChange", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+        { "command": "llmWiki.markDispute", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+        { "command": "llmWiki.feedback", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+        { "command": "llmWiki.ask", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+        { "command": "llmWiki.calibration", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+        { "command": "llmWiki.experimentalDiscoverCopilotModels", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" }
       ]
     },
     "languageModelTools": [
@@ -226,27 +92,15 @@
         "canBeReferencedInPrompt": true,
         "toolReferenceName": "wikiMemory",
         "icon": "$(book)",
-        "tags": [
-          "llm-wiki",
-          "search",
-          "memory"
-        ],
+        "tags": ["llm-wiki", "search", "memory"],
         "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted",
         "inputSchema": {
           "type": "object",
           "properties": {
-            "query": {
-              "type": "string",
-              "description": "A concise semantic search query for the user's current information need."
-            },
-            "maxResults": {
-              "type": "number",
-              "description": "Maximum raw candidates, 1 to 8. Up to three derived and three Human Knowledge candidates may also be returned."
-            }
+            "query": { "type": "string", "description": "A concise semantic search query for the user's current information need." },
+            "maxResults": { "type": "number", "description": "Maximum raw candidates, 1 to 8. Up to three derived and three Human Knowledge candidates may also be returned." }
           },
-          "required": [
-            "query"
-          ]
+          "required": ["query"]
         }
       },
       {
@@ -256,35 +110,17 @@
         "canBeReferencedInPrompt": true,
         "toolReferenceName": "wikiRead",
         "icon": "$(file-text)",
-        "tags": [
-          "llm-wiki",
-          "read",
-          "provenance"
-        ],
+        "tags": ["llm-wiki", "read", "provenance"],
         "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted",
         "inputSchema": {
           "type": "object",
           "properties": {
-            "sourceId": {
-              "type": "string",
-              "description": "Canonical LLM Wiki source ID returned by wikiMemory, such as src-..."
-            },
-            "topicId": {
-              "type": "string",
-              "description": "Optional topic ID from wikiMemory, used to expose current/superseded/contested status."
-            },
-            "startChar": {
-              "type": "number",
-              "description": "Character offset for bounded pagination; default 0."
-            },
-            "maxChars": {
-              "type": "number",
-              "description": "Maximum verified raw characters to return, 500 to 12000; default 6000."
-            }
+            "sourceId": { "type": "string", "description": "Canonical LLM Wiki source ID returned by wikiMemory, such as src-..." },
+            "topicId": { "type": "string", "description": "Optional topic ID from wikiMemory, used to expose current/superseded/contested status." },
+            "startChar": { "type": "number", "description": "Character offset for bounded pagination; default 0." },
+            "maxChars": { "type": "number", "description": "Maximum verified raw characters to return, 500 to 12000; default 6000." }
           },
-          "required": [
-            "sourceId"
-          ]
+          "required": ["sourceId"]
         }
       },
       {
@@ -294,19 +130,12 @@
         "canBeReferencedInPrompt": true,
         "toolReferenceName": "rememberWikiSource",
         "icon": "$(save)",
-        "tags": [
-          "llm-wiki",
-          "memory",
-          "write"
-        ],
+        "tags": ["llm-wiki", "memory", "write"],
         "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted",
         "inputSchema": {
           "type": "object",
           "properties": {
-            "filePath": {
-              "type": "string",
-              "description": "Absolute path of the local workspace file the user explicitly asked to remember. Omit only when the active editor file is unambiguous."
-            }
+            "filePath": { "type": "string", "description": "Absolute path of the local workspace file the user explicitly asked to remember. Omit only when the active editor file is unambiguous." }
           }
         }
       },
@@ -317,46 +146,18 @@
         "canBeReferencedInPrompt": true,
         "toolReferenceName": "rememberHumanKnowledge",
         "icon": "$(person)",
-        "tags": [
-          "llm-wiki",
-          "human-knowledge",
-          "write"
-        ],
+        "tags": ["llm-wiki", "human-knowledge", "write"],
         "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted",
         "inputSchema": {
           "type": "object",
           "properties": {
-            "title": {
-              "type": "string",
-              "maxLength": 160,
-              "description": "Short organizational title; may be generated because it is not an epistemic claim."
-            },
-            "statement": {
-              "type": "string",
-              "maxLength": 1800,
-              "description": "The durable statement the user explicitly asked to remember. Preserve the user's meaning; do not invent a commitment."
-            },
-            "reasoning": {
-              "type": "string",
-              "maxLength": 1600,
-              "description": "Optional reasoning the user explicitly provided or explicitly approved."
-            },
-            "sourceIds": {
-              "type": "array",
-              "maxItems": 12,
-              "items": {
-                "type": "string"
-              },
-              "description": "Optional canonical LLM Wiki source IDs the user or current grounded conversation wants linked as supporting evidence."
-            },
-            "supersedesKnowledgeId": {
-              "type": "string",
-              "description": "Optional current HUMAN_KNOWLEDGE ID returned by wikiMemory. Set only when the user explicitly says this new confirmed belief/decision replaces that prior one."
-            }
+            "title": { "type": "string", "maxLength": 160, "description": "Short organizational title; may be generated because it is not an epistemic claim." },
+            "statement": { "type": "string", "maxLength": 1800, "description": "The durable statement the user explicitly asked to remember. Preserve the user's meaning; do not invent a commitment." },
+            "reasoning": { "type": "string", "maxLength": 1600, "description": "Optional reasoning the user explicitly provided or explicitly approved." },
+            "sourceIds": { "type": "array", "maxItems": 12, "items": { "type": "string" }, "description": "Optional canonical LLM Wiki source IDs the user or current grounded conversation wants linked as supporting evidence." },
+            "supersedesKnowledgeId": { "type": "string", "description": "Optional current HUMAN_KNOWLEDGE ID returned by wikiMemory. Set only when the user explicitly says this new confirmed belief/decision replaces that prior one." }
           },
-          "required": [
-            "statement"
-          ]
+          "required": ["statement"]
         }
       },
       {
@@ -366,93 +167,30 @@
         "canBeReferencedInPrompt": true,
         "toolReferenceName": "resolveWikiLineage",
         "icon": "$(git-compare)",
-        "tags": [
-          "llm-wiki",
-          "lineage",
-          "human-gated"
-        ],
+        "tags": ["llm-wiki", "lineage", "human-gated"],
         "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted",
         "inputSchema": {
           "type": "object",
           "properties": {
-            "decisionId": {
-              "type": "string",
-              "description": "Pending decision ID returned by rememberWikiSource."
-            },
-            "relation": {
-              "type": "string",
-              "enum": [
-                "correction",
-                "change",
-                "dispute",
-                "supersede",
-                "independent"
-              ],
-              "description": "The relationship the user explicitly chose."
-            },
-            "predecessorSourceId": {
-              "type": "string",
-              "description": "Required when the pending decision lists multiple predecessor candidates; otherwise optional."
-            },
-            "effectiveAt": {
-              "type": "string",
-              "description": "Timezone-aware ISO-8601 effective instant; required only for relation=change."
-            }
+            "decisionId": { "type": "string", "description": "Pending decision ID returned by rememberWikiSource." },
+            "relation": { "type": "string", "enum": ["correction", "change", "dispute", "supersede", "independent"], "description": "The relationship the user explicitly chose." },
+            "predecessorSourceId": { "type": "string", "description": "Required when the pending decision lists multiple predecessor candidates; otherwise optional." },
+            "effectiveAt": { "type": "string", "description": "Timezone-aware ISO-8601 effective instant; required only for relation=change." }
           },
-          "required": [
-            "decisionId",
-            "relation"
-          ]
+          "required": ["decisionId", "relation"]
         }
       }
     ],
     "configuration": {
       "title": "LLM Wiki Dogfood",
       "properties": {
-        "llmWiki.pythonExecutable": {
-          "type": "string",
-          "default": "python3",
-          "description": "Python executable used to invoke the architecture-neutral dogfood core."
-        },
-        "llmWiki.corePath": {
-          "type": "string",
-          "default": "",
-          "description": "Optional repository/core root. Empty uses the bundled core in an installed VSIX and the repository core during extension development."
-        },
-        "llmWiki.workspaceDirectory": {
-          "type": "string",
-          "default": ".wiki-lab",
-          "description": "Per-workspace local wiki directory. Keep this outside Git commits."
-        },
-        "llmWiki.maxAiCredits": {
-          "type": "number",
-          "default": 30,
-          "minimum": 30,
-          "maximum": 100,
-          "description": "Preferred per-call Copilot AI-credit guard for explicit Ask Luna commands. Applied only when the installed Copilot CLI advertises --max-ai-credits; newer builds may omit that flag."
-        },
-        "llmWiki.agentWikiMaintenanceEnabled": {
-          "type": "boolean",
-          "default": false,
-          "scope": "resource",
-          "description": "Standing workspace grant. When enabled, after explicit source admission its admitted bytes may be sent to exact gpt-5.6-luna to create/reuse a provenance-linked noncanonical Agent Wiki note. Off by default."
-        },
-        "llmWiki.agentWikiMaintenanceMaxAiCredits": {
-          "type": "number",
-          "default": 30,
-          "minimum": 30,
-          "maximum": 100,
-          "scope": "resource",
-          "description": "Preferred per-source maintenance AI-credit ceiling. Applied only when the installed Copilot CLI advertises --max-ai-credits; durable daily call accounting is kept independently."
-        },
-        "llmWiki.agentWikiMaintenanceDailyCallLimit": {
-          "type": "number",
-          "default": 10,
-          "minimum": 0,
-          "maximum": 100,
-          "scope": "resource",
-          "description": "Daily model-backed maintenance soft-guard threshold for this workspace. At the threshold LLM Wiki asks once before continuing for the rest of that local day; it is not a hard cap. 0 disables new model-backed maintenance. Call reservations are durably recorded inside .wiki-lab before each external model call and are not refunded when transport outcome is uncertain."
-        }
+        "llmWiki.pythonExecutable": { "type": "string", "default": "python3", "description": "Python executable used to invoke the architecture-neutral dogfood core." },
+        "llmWiki.corePath": { "type": "string", "default": "", "description": "Optional repository/core root. Empty uses the bundled core in an installed VSIX and the repository core during extension development." },
+        "llmWiki.workspaceDirectory": { "type": "string", "default": ".wiki-lab", "description": "Per-workspace local wiki directory. Keep this outside Git commits." },
+        "llmWiki.maxAiCredits": { "type": "number", "default": 30, "minimum": 30, "maximum": 100, "description": "Preferred per-call Copilot AI-credit guard for explicit Ask Luna commands. Applied only when the installed Copilot CLI advertises --max-ai-credits; newer builds may omit that flag." },
+        "llmWiki.agentWikiMaintenanceEnabled": { "type": "boolean", "default": false, "scope": "resource", "description": "Standing workspace grant. When enabled, after explicit source admission its admitted bytes may be sent to exact gpt-5.6-luna to create/reuse a provenance-linked noncanonical Agent Wiki note. Off by default." },
+        "llmWiki.agentWikiMaintenanceMaxAiCredits": { "type": "number", "default": 30, "minimum": 30, "maximum": 100, "scope": "resource", "description": "Preferred per-source maintenance AI-credit ceiling. Applied only when the installed Copilot CLI advertises --max-ai-credits; durable daily call accounting is kept independently." },
+        "llmWiki.agentWikiMaintenanceDailyCallLimit": { "type": "number", "default": 10, "minimum": 0, "maximum": 100, "scope": "resource", "description": "Daily model-backed maintenance soft-guard threshold for this workspace. At the threshold LLM Wiki asks once before continuing for the rest of that local day; it is not a hard cap. 0 disables new model-backed maintenance. Call reservations are durably recorded inside .wiki-lab before each external model call and are not refunded when transport outcome is uncertain." }
       }
     }
   },
