@@ -22,6 +22,9 @@ function firstWorkspaceFolder() {
   if (!folders.length) {
     throw new Error('Open a VS Code workspace/folder before using LLM Wiki.');
   }
+  if (folders.length !== 1) {
+    throw new Error('LLM Wiki currently supports one workspace folder at a time. Open the project as a single-folder workspace before using project memory.');
+  }
   return folders[0];
 }
 
@@ -122,6 +125,12 @@ function displayLocator(context, folder, row) {
 async function setSelectedTopic(context, folder, topic) {
   await context.workspaceState.update(workspaceTopicKey(folder), topic || undefined);
   updateStatus(context, folder, topic);
+}
+
+function setStatusVisible(enabled) {
+  if (!status) return;
+  if (enabled) status.show();
+  else status.hide();
 }
 
 function updateStatus(_context, _folder, _topic) {
@@ -647,6 +656,8 @@ function activate(context) {
   }
 }
 
-function deactivate() {}
+function deactivate() {
+  if (status) status.hide();
+}
 
-module.exports = { activate, deactivate };
+module.exports = { activate, deactivate, setStatusVisible };
