@@ -123,16 +123,31 @@ def materialize_answer_citations(answer_text: str, handle_to_source: dict[str, s
     return CITATION_HANDLE_RE.sub(lambda match: handle_to_source[match.group(0)], answer_text)
 
 
-def ask_copilot(prompt: str, model: str = "gpt-5.6-luna", max_ai_credits: int = 30) -> Answer:
-    if max_ai_credits <= 0 or max_ai_credits > 100:
-        raise ValueError("max_ai_credits_out_of_range")
-    exe = shutil.which("copilot")
-    if not exe:
-        raise RuntimeError("copilot_cli_not_found")
-    model_prompt, handle_to_source = prepare_citation_handle_prompt(prompt)
-    # Keep private/user evidence out of process argv. GitHub Copilot CLI supports
-    # non-interactive piped input; using stdin avoids exposing the prompt through
-    # command-line inspection while preserving the existing programmatic mode.
+def _copilot_help_text(exe: str) -> str:
+    """Return the installed CLI's actual advertised capabilities without model use."""
+    try:
+        proc = subprocess.run(
+            [exe, "--help"],
+            text=True,
+            capture_output=True,
+            timeout=15,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    if proc.returncode != 0:
+        return ""
+    return f"{proc.stdout or ''}\n{proc.stderr or ''}"
+
+
+def _help_supports_flag(help_text: str, flag: str) -> bool:
+    if not help_text:
+        return False
+    return re.search(rf"(?<![0-9A-Za-z_-]){re.escape(flag)}(?:[=\s]|$)", help_text) is not None
+
+
+def _copilot_command(exe: str, model: str, max_ai_credits: int, help_text: str) -> list[str]:
+    """Build a hardened command while tolerating optional flags removed by newer CLI builds."""
     cmd = [
         exe,
         "--model", model,
@@ -144,13 +159,69 @@ def ask_copilot(prompt: str, model: str = "gpt-5.6-luna", max_ai_credits: int = 
         "--no-color",
         "--no-experimental",
         "--no-remote",
-        "--no-remote-export",
-        "--excluded-tools=bash,powershell,list_bash,list_powershell,read_bash,read_powershell,stop_bash,stop_powershell,write_bash,write_powershell,apply_patch,create,edit,view,glob,grep,rg,web_fetch,task,list_agents,read_agent,write_agent,skill,ask_user",
-        f"--max-ai-credits={max_ai_credits}",
     ]
+    # Copilot CLI's distributed binary can move faster than the public docs.
+    # `--no-remote` remains the required session boundary; `--no-remote-export`
+    # is additive hardening only when the installed binary advertises it.
+    if _help_supports_flag(help_text, "--no-remote-export"):
+        cmd.append("--no-remote-export")
+    cmd.append(
+        "--excluded-tools=bash,powershell,list_bash,list_powershell,read_bash,read_powershell,stop_bash,stop_powershell,write_bash,write_powershell,apply_patch,create,edit,view,glob,grep,rg,web_fetch,task,list_agents,read_agent,write_agent,skill,ask_user"
+    )
+    # Some current Copilot CLI builds no longer advertise the legacy per-call
+    # credit flag. Keep the durable workspace daily-call reservation as the
+    # always-enforced maintenance budget and apply this extra ceiling only when
+    # the installed binary explicitly supports it.
+    if _help_supports_flag(help_text, "--max-ai-credits"):
+        cmd.append(f"--max-ai-credits={max_ai_credits}")
+    return cmd
+
+
+def _copilot_failure_code(proc: subprocess.CompletedProcess[str]) -> str:
+    """Classify a failed CLI call without reflecting arbitrary stderr to the Agent."""
+    detail = f"{proc.stderr or ''}\n{proc.stdout or ''}".casefold()
+    if any(token in detail for token in (
+        "unknown option",
+        "unknown argument",
+        "unrecognized option",
+        "unrecognized argument",
+        "invalid option",
+    )):
+        return "copilot_cli_argument_error"
+    if any(token in detail for token in (
+        "not authenticated",
+        "authentication required",
+        "login required",
+        "not logged in",
+        "unauthorized",
+    )):
+        return "copilot_auth_failed"
+    if "model" in detail and any(token in detail for token in (
+        "not available",
+        "unavailable",
+        "unsupported",
+        "not allowed",
+        "not found",
+    )):
+        return "copilot_model_unavailable"
+    return f"copilot_call_failed:{proc.returncode}"
+
+
+def ask_copilot(prompt: str, model: str = "gpt-5.6-luna", max_ai_credits: int = 30) -> Answer:
+    if max_ai_credits <= 0 or max_ai_credits > 100:
+        raise ValueError("max_ai_credits_out_of_range")
+    exe = shutil.which("copilot")
+    if not exe:
+        raise RuntimeError("copilot_cli_not_found")
+    model_prompt, handle_to_source = prepare_citation_handle_prompt(prompt)
+    # Keep private/user evidence out of process argv. GitHub Copilot CLI supports
+    # non-interactive piped input; using stdin avoids exposing the prompt through
+    # command-line inspection while preserving the existing programmatic mode.
+    help_text = _copilot_help_text(exe)
+    cmd = _copilot_command(exe, model, max_ai_credits, help_text)
     proc = subprocess.run(cmd, input=model_prompt, text=True, capture_output=True, timeout=900, check=False)
     if proc.returncode != 0:
-        raise RuntimeError(f"copilot_call_failed:{proc.returncode}")
+        raise RuntimeError(_copilot_failure_code(proc))
     answer = _final_message(proc.stdout)
     if answer.model and answer.model != model:
         raise RuntimeError(f"copilot_model_mismatch:{answer.model}")

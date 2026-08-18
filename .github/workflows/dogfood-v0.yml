@@ -125,6 +125,7 @@ jobs:
       - name: Unpack and execute packaged VSIX in Extension Host
         working-directory: dogfood/vscode
         run: |
+          rm -rf ../../.wiki-lab
           rm -rf dist/unpacked
           mkdir -p dist/unpacked
           unzip -q dist/llm-wiki-dogfood.vsix -d dist/unpacked

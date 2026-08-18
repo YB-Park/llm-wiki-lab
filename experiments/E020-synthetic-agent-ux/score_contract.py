@@ -164,7 +164,7 @@ def main() -> int:
     }
     hk_schema = next(row for row in MANIFEST["contributes"]["languageModelTools"] if row["name"] == "llmWiki_rememberHumanKnowledge")["inputSchema"]["properties"]
     assert "supersedesKnowledgeId" in hk_schema
-    assert MANIFEST["version"] == "0.1.12"
+    assert MANIFEST["version"] == "0.1.13"
 
     print(
         "E020-SYNTHETIC-CONTRACT PASS "
