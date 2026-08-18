@@ -124,16 +124,10 @@ async function setSelectedTopic(context, folder, topic) {
   updateStatus(context, folder, topic);
 }
 
-function updateStatus(context, folder, topic) {
+function updateStatus(_context, _folder, _topic) {
   if (!status) return;
-  const selected = topic || context.workspaceState.get(workspaceTopicKey(folder));
-  if (selected && selected.label) {
-    status.text = `$(book) Wiki: ${selected.label}`;
-    status.tooltip = 'LLM Wiki selected topic — click to change';
-  } else {
-    status.text = '$(book) Wiki: no topic';
-    status.tooltip = 'LLM Wiki — click to select a topic';
-  }
+  status.text = '$(book) LLM Wiki';
+  status.tooltip = 'Project memory is on for this workspace — click to check setup and health';
   status.show();
 }
 
@@ -153,7 +147,6 @@ async function createTopic(context, folder = firstWorkspaceFolder(), options = {
   const topic = [...all].reverse().find((row) => row.label === normalizedLabel);
   if (!topic) throw new Error('Topic was created but could not be resolved from the local registry.');
   await setSelectedTopic(context, folder, topic);
-  vscode.window.showInformationMessage(`LLM Wiki topic selected: ${topic.label}`);
   return topic;
 }
 
@@ -292,8 +285,7 @@ async function ingestActive(context, authoritativeUpdate) {
   if (receipt) {
     await rememberSourceLocator(context, folder, receipt.sourceId, editor.document.uri.fsPath, receipt.sha256);
   }
-  const mode = authoritativeUpdate ? 'authoritative update' : 'evidence';
-  vscode.window.showInformationMessage(`LLM Wiki ingested ${path.basename(editor.document.uri.fsPath)} as ${mode} for ${topic.label}.`);
+  // Routine success stays quiet; the explicit command/Agent flow already provides context.
 }
 
 async function searchTopic(context, options = {}) {
@@ -606,14 +598,18 @@ async function commandGuard(name, fn) {
     const message = error && error.message ? error.message : String(error);
     output.appendLine(`[${name}] ${message}`);
     output.show(true);
-    vscode.window.showErrorMessage(`LLM Wiki: ${message}`);
+    const choice = await vscode.window.showErrorMessage(
+      'LLM Wiki could not complete this advanced command. Details are available in the local LLM Wiki Output channel.',
+      'Check Setup'
+    );
+    if (choice === 'Check Setup') await vscode.commands.executeCommand('llmWiki.doctor');
   }
 }
 
 function activate(context) {
   output = vscode.window.createOutputChannel('LLM Wiki');
   status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-  status.command = 'llmWiki.selectTopic';
+  status.command = 'llmWiki.doctor';
   context.subscriptions.push(output, status);
   context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(SOURCE_SCHEME, new SourceProvider(context)));
 
@@ -625,7 +621,7 @@ function activate(context) {
     const folder = firstWorkspaceFolder();
     await runCli(context, folder, ['init']);
     updateStatus(context, folder);
-    vscode.window.showInformationMessage('LLM Wiki local workspace initialized. Compiled provider remains disabled.');
+    // Internal compatibility command: no routine success notification.
   });
   register('llmWiki.createTopic', (options) => createTopic(context, firstWorkspaceFolder(), options || {}));
   register('llmWiki.selectTopic', async () => {
