@@ -15,6 +15,8 @@ const execFileAsync = promisify(execFile);
 const WORKSPACE_ENABLED_CONTEXT = 'llmWiki.workspaceEnabled';
 const AGENT_TOOL_COUNT = 5;
 let doctorOutput;
+let baseSurfaceDisposables = [];
+let baseSurfaceRegistered = false;
 let agentToolDisposables = [];
 let agentToolsRegistered = false;
 
@@ -31,6 +33,14 @@ function configuration() {
 function wikiRoot(folder) {
   const value = String(configuration().get('workspaceDirectory', '.wiki-lab') || '.wiki-lab');
   return path.isAbsolute(value) ? value : path.resolve(folder.uri.fsPath, value);
+}
+
+function requireWorkspaceEnabled() {
+  const folder = firstWorkspaceFolder();
+  if (!workspaceActivation.isWorkspaceEnabled(wikiRoot(folder))) {
+    throw new Error('LLM Wiki is not enabled for this workspace. Run LLM Wiki: Initialize Workspace first.');
+  }
+  return folder;
 }
 
 function coreRoot(context, folder) {
@@ -93,6 +103,21 @@ async function setWorkspaceToolContext(enabled) {
   await vscode.commands.executeCommand('setContext', WORKSPACE_ENABLED_CONTEXT, enabled === true);
 }
 
+function ensureBaseSurfaceRegistered(context) {
+  if (baseSurfaceRegistered) return;
+  const before = context.subscriptions.length;
+  base.activate(context);
+  baseSurfaceDisposables = context.subscriptions.slice(before);
+  baseSurfaceRegistered = true;
+}
+
+function unregisterBaseSurface() {
+  for (const disposable of baseSurfaceDisposables) disposable.dispose();
+  baseSurfaceDisposables = [];
+  baseSurfaceRegistered = false;
+  base.deactivate();
+}
+
 function ensureAgentToolsRegistered(context) {
   if (agentToolsRegistered) return;
   const before = context.subscriptions.length;
@@ -112,16 +137,21 @@ function unregisterAgentTools() {
   agentToolsRegistered = false;
 }
 
-async function applyWorkspaceToolAvailability(context, enabled) {
-  if (enabled) ensureAgentToolsRegistered(context);
-  else unregisterAgentTools();
+async function applyWorkspaceRuntimeAvailability(context, enabled) {
+  if (enabled) {
+    ensureBaseSurfaceRegistered(context);
+    ensureAgentToolsRegistered(context);
+  } else {
+    unregisterAgentTools();
+    unregisterBaseSurface();
+  }
   await setWorkspaceToolContext(enabled);
 }
 
-async function refreshWorkspaceToolAvailability(context) {
+async function refreshWorkspaceRuntimeAvailability(context) {
   const folders = vscode.workspace.workspaceFolders || [];
   const enabled = folders.length > 0 && workspaceActivation.isWorkspaceEnabled(wikiRoot(folders[0]));
-  await applyWorkspaceToolAvailability(context, enabled);
+  await applyWorkspaceRuntimeAvailability(context, enabled);
   return enabled;
 }
 
@@ -129,7 +159,7 @@ async function initializeWorkspace(context) {
   const folder = firstWorkspaceFolder();
   const root = wikiRoot(folder);
   if (workspaceActivation.isWorkspaceEnabled(root)) {
-    await applyWorkspaceToolAvailability(context, true);
+    await applyWorkspaceRuntimeAvailability(context, true);
     vscode.window.showInformationMessage('LLM Wiki is already initialized and enabled for this workspace.');
     return true;
   }
@@ -139,7 +169,7 @@ async function initializeWorkspace(context) {
     vscode.window.showWarningMessage(
       'LLM Wiki initialization was not performed because the Wiki directory is not protected from this Git repository. Add .wiki-lab/ to .git/info/exclude (local only) or .gitignore, then run Initialize Workspace again.'
     );
-    await applyWorkspaceToolAvailability(context, false);
+    await applyWorkspaceRuntimeAvailability(context, false);
     return false;
   }
 
@@ -147,15 +177,15 @@ async function initializeWorkspace(context) {
   const pythonReady = await executableAvailable(python, ['--version'], folder.uri.fsPath);
   if (!pythonReady) {
     vscode.window.showWarningMessage(`LLM Wiki initialization was not performed because the configured Python executable is unavailable: ${python}`);
-    await applyWorkspaceToolAvailability(context, false);
+    await applyWorkspaceRuntimeAvailability(context, false);
     return false;
   }
 
   const existingStore = workspaceActivation.isCoreInitialized(root);
   const choice = await vscode.window.showWarningMessage(
     existingStore
-      ? 'Enable LLM Wiki for this workspace? An existing local Wiki store was found. This explicit opt-in makes the five LLM Wiki Agent tools available in this workspace. Doctor remains diagnostic only and no model call is made by initialization.'
-      : 'Initialize and enable LLM Wiki for this workspace? This creates a private local Wiki store and makes the five LLM Wiki Agent tools available in this workspace. Doctor remains diagnostic only and no model call is made by initialization.',
+      ? 'Enable LLM Wiki for this workspace? An existing local Wiki store was found. This explicit opt-in makes the LLM Wiki runtime and five Agent tools available in this workspace. Doctor remains diagnostic only and no model call is made by initialization.'
+      : 'Initialize and enable LLM Wiki for this workspace? This creates a private local Wiki store and makes the LLM Wiki runtime and five Agent tools available in this workspace. Doctor remains diagnostic only and no model call is made by initialization.',
     { modal: true },
     'Initialize LLM Wiki'
   );
@@ -164,12 +194,12 @@ async function initializeWorkspace(context) {
   await runCoreCommand(context, folder, ['init']);
   const report = await alphaIntegrity(context, folder);
   if (!report || report.ok !== true) {
-    await applyWorkspaceToolAvailability(context, false);
-    throw new Error('LLM Wiki initialization completed but integrity validation did not pass. Workspace Agent integration was not enabled.');
+    await applyWorkspaceRuntimeAvailability(context, false);
+    throw new Error('LLM Wiki initialization completed but integrity validation did not pass. Workspace integration was not enabled.');
   }
 
   workspaceActivation.enableWorkspace(root);
-  await applyWorkspaceToolAvailability(context, true);
+  await applyWorkspaceRuntimeAvailability(context, true);
   vscode.window.showInformationMessage('LLM Wiki initialized and enabled for this workspace. Agent memory tools are now available.');
   return true;
 }
@@ -178,21 +208,21 @@ async function disableWorkspace(context) {
   const folder = firstWorkspaceFolder();
   const root = wikiRoot(folder);
   if (!workspaceActivation.readWorkspaceOptIn(root)) {
-    await applyWorkspaceToolAvailability(context, false);
-    vscode.window.showInformationMessage('LLM Wiki Agent integration is already disabled for this workspace. Stored Wiki data was not changed.');
+    await applyWorkspaceRuntimeAvailability(context, false);
+    vscode.window.showInformationMessage('LLM Wiki integration is already disabled for this workspace. Stored Wiki data was not changed.');
     return false;
   }
 
   const choice = await vscode.window.showWarningMessage(
-    'Disable LLM Wiki Agent integration for this workspace? The Agent tools will be hidden and unregistered, but the local Wiki data will be preserved.',
+    'Disable LLM Wiki for this workspace? Agent tools and operational Wiki commands will become unavailable, but the local Wiki data will be preserved.',
     { modal: true },
     'Disable LLM Wiki'
   );
   if (choice !== 'Disable LLM Wiki') return false;
 
   workspaceActivation.disableWorkspace(root);
-  await applyWorkspaceToolAvailability(context, false);
-  vscode.window.showInformationMessage('LLM Wiki Agent integration disabled for this workspace. Stored Wiki data was preserved.');
+  await applyWorkspaceRuntimeAvailability(context, false);
+  vscode.window.showInformationMessage('LLM Wiki disabled for this workspace. Stored Wiki data was preserved.');
   return true;
 }
 
@@ -255,6 +285,7 @@ async function doctor(context) {
   doctorOutput.appendLine(`Workspace store: ${storeInitialized ? 'INITIALIZED' : 'NOT_INITIALIZED'}`);
   doctorOutput.appendLine(`Workspace opt-in: ${workspaceEnabled ? 'ENABLED' : 'NOT_ENABLED'}`);
   doctorOutput.appendLine(`Agent tools: ${workspaceEnabled ? 'AVAILABLE' : 'HIDDEN'}`);
+  doctorOutput.appendLine(`Operational commands: ${workspaceEnabled ? 'AVAILABLE' : 'DISABLED'}`);
   doctorOutput.appendLine(`Python: ${pythonReady ? 'PASS' : 'FAIL'}`);
   doctorOutput.appendLine(`Core: ${coreReady ? 'PASS' : (storeInitialized ? 'FAIL' : 'NOT_INITIALIZED')} mode=${coreMode(context)}`);
   doctorOutput.appendLine(`Compiled provider: ${compiledDisabled ? 'disabled' : (storeInitialized ? 'CHECK_FAILED' : 'NOT_CHECKED')}`);
@@ -274,7 +305,7 @@ async function doctor(context) {
   if (!storeInitialized) {
     vscode.window.showInformationMessage('LLM Wiki Doctor: this workspace is not initialized. Doctor made no changes. Run LLM Wiki: Initialize Workspace to opt in.');
   } else if (!workspaceEnabled) {
-    vscode.window.showInformationMessage('LLM Wiki Doctor: a local Wiki store exists, but Agent integration is not explicitly enabled. Doctor made no changes. Run Initialize Workspace to opt in.');
+    vscode.window.showInformationMessage('LLM Wiki Doctor: a local Wiki store exists, but workspace integration is not explicitly enabled. Doctor made no changes. Run Initialize Workspace to opt in.');
   } else if (coreReady && !integrityReady) {
     vscode.window.showWarningMessage(
       'LLM Wiki Doctor: local integrity check failed. No repair was attempted; inspect the Doctor output before using this Wiki.'
@@ -311,6 +342,7 @@ async function doctor(context) {
 }
 
 async function discoverModels() {
+  requireWorkspaceEnabled();
   const report = await discoverCopilotModels();
   const doc = await vscode.workspace.openTextDocument({
     content: `${JSON.stringify(report, null, 2)}\n`,
@@ -357,6 +389,7 @@ function humanKnowledgeNoteTemplate(title) {
 }
 
 async function newHumanKnowledgeNote(options = {}) {
+  requireWorkspaceEnabled();
   const suppliedTitle = options && typeof options.title === 'string' ? options.title.trim() : '';
   const title = suppliedTitle || await vscode.window.showInputBox({
     title: 'LLM Wiki: New Human Knowledge Note',
@@ -378,7 +411,7 @@ async function newHumanKnowledgeNote(options = {}) {
 }
 
 async function configureAgentWikiMaintenance() {
-  firstWorkspaceFolder();
+  requireWorkspaceEnabled();
   const config = configuration();
   const enabled = config.get('agentWikiMaintenanceEnabled', false) === true;
   const action = await vscode.window.showQuickPick(
@@ -424,29 +457,28 @@ async function commandBoundary(label, fn) {
 }
 
 async function activate(context) {
-  await base.activate(context);
   doctorOutput = vscode.window.createOutputChannel('LLM Wiki Doctor');
   context.subscriptions.push(doctorOutput);
 
-  await refreshWorkspaceToolAvailability(context);
+  await refreshWorkspaceRuntimeAvailability(context);
   context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders(() => {
-    void refreshWorkspaceToolAvailability(context);
+    void refreshWorkspaceRuntimeAvailability(context);
   }));
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration((event) => {
-    if (event.affectsConfiguration('llmWiki.workspaceDirectory')) void refreshWorkspaceToolAvailability(context);
+    if (event.affectsConfiguration('llmWiki.workspaceDirectory')) void refreshWorkspaceRuntimeAvailability(context);
   }));
 
   context.subscriptions.push(vscode.commands.registerCommand('llmWiki.enableWorkspace', () => commandBoundary('Initialize Workspace', () => initializeWorkspace(context))));
   context.subscriptions.push(vscode.commands.registerCommand('llmWiki.disableWorkspace', () => commandBoundary('Disable Workspace', () => disableWorkspace(context))));
-  context.subscriptions.push(vscode.commands.registerCommand('llmWiki.newKnowledgeNote', (options) => newHumanKnowledgeNote(options || {})));
-  context.subscriptions.push(vscode.commands.registerCommand('llmWiki.configureAgentWikiMaintenance', () => configureAgentWikiMaintenance()));
+  context.subscriptions.push(vscode.commands.registerCommand('llmWiki.newKnowledgeNote', (options) => commandBoundary('New Human Knowledge Note', () => newHumanKnowledgeNote(options || {}))));
+  context.subscriptions.push(vscode.commands.registerCommand('llmWiki.configureAgentWikiMaintenance', () => commandBoundary('Configure Agent Wiki Maintenance', () => configureAgentWikiMaintenance())));
   context.subscriptions.push(vscode.commands.registerCommand('llmWiki.doctor', () => commandBoundary('Doctor', () => doctor(context))));
-  context.subscriptions.push(vscode.commands.registerCommand('llmWiki.experimentalDiscoverCopilotModels', () => discoverModels()));
+  context.subscriptions.push(vscode.commands.registerCommand('llmWiki.experimentalDiscoverCopilotModels', () => commandBoundary('Discover Copilot Models', () => discoverModels())));
 }
 
 function deactivate() {
   unregisterAgentTools();
-  return base.deactivate();
+  unregisterBaseSurface();
 }
 
 module.exports = { activate, deactivate };
