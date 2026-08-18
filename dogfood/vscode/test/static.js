@@ -153,6 +153,12 @@ must('derived-follow-to-raw', agentTools.includes('For load-bearing factual clai
 
 must('product-owned-confirmation', agentTools.includes('explicitHumanConfirm('));
 must('confirmation-test-only-bypass', agentTools.includes('context.extensionMode === vscode.ExtensionMode.Test'));
+must('confirmation-uses-detail', agentTools.includes('showWarningMessage(title, { modal: true, detail }, button)'));
+must('bounded-process-failure', agentTools.includes('function boundedProcessFailure(detail)'));
+must('bounded-process-unknown', agentTools.includes("return 'llm_wiki_process_failed'"));
+must('maintenance-causal-failure-code', agentTools.includes('maintenance_failure_code='));
+must('maintenance-causal-stage', agentTools.includes('maintenance_stage='));
+must('maintenance-causal-model-attempt', agentTools.includes('maintenance_model_call_attempted='));
 must('any-open-doc-dirty-check', agentTools.includes('dirtyOpenDocumentFor'));
 must('dirty-check-text-documents', agentTools.includes('vscode.workspace.textDocuments.find'));
 must('dirty-fail-message', agentTools.includes('LLM Wiki will not auto-save a dirty editor'));
@@ -179,7 +185,7 @@ must('continuation-decision-output', agentTools.includes('continuation_decision_
 must('remaining-predecessors-output', agentTools.includes('remaining_predecessor_source_ids='));
 
 must('lineage-enum', agentTools.includes("LINEAGE_RELATIONS = new Set(['correction', 'change', 'dispute', 'supersede', 'independent'])"));
-must('lineage-modal', agentTools.includes('Confirm LLM Wiki lineage decision'));
+must('lineage-modal', agentTools.includes('Confirm what this saved file change means?'));
 must('lineage-verified-compare', agentTools.includes("'compare', predecessor, pending.successor_source_id"));
 must('lineage-old-excerpt', agentTools.includes('comparison.old_excerpt'));
 must('lineage-new-excerpt', agentTools.includes('comparison.new_excerpt'));
@@ -203,8 +209,8 @@ must('hk-fork-fail-closed', humanKnowledge.includes('Human Knowledge lineage for
 must('hk-cycle-fail-closed', humanKnowledge.includes('Human Knowledge lineage cycle detected'));
 must('hk-json-parse-fails-closed', humanKnowledge.includes('throw new Error(`Human Knowledge corruption detected (${name}): unreadable JSON.`)'));
 mustNot('hk-no-empty-json-catch', humanKnowledge.includes('JSON.parse(fs.readFileSync(filePath, \'utf8\'));\n    } catch (_) {}'));
-must('hk-modal', agentTools.includes('Save Human Knowledge?'));
-must('hk-full-confirmation-text', agentTools.includes('full text below becomes user-confirmed memory'));
+must('hk-modal', agentTools.includes('Save this as your confirmed project knowledge?'));
+must('hk-full-confirmation-text', agentTools.includes('will be remembered as something you explicitly confirmed'));
 must('hk-supersedes-tool', agentTools.includes('supersedesKnowledgeId'));
 must('hk-human-authority', agentTools.includes('authority=explicit_user_confirmation'));
 must('hk-integrity-output', agentTools.includes('integrity_sha256='));
@@ -221,6 +227,11 @@ must('raw-first-ordering-markers-exist', ingestIndex >= 0 && maintenanceIndex >=
 must('raw-first-ordering', ingestIndex < maintenanceIndex);
 must('maintenance-failure-preserves-raw', agentTools.includes('FAILED_AFTER_RAW_ADMISSION'));
 
+must('release-status-bar', extension.includes("status.text = '$(book) LLM Wiki'"));
+must('release-status-health-action', extension.includes("status.command = 'llmWiki.doctor'"));
+mustNot('release-status-no-topic', extension.includes('Wiki: no topic'));
+mustNot('routine-topic-success-toast', extension.includes('LLM Wiki topic selected:'));
+mustNot('routine-ingest-success-toast', extension.includes('LLM Wiki ingested ${path.basename'));
 must('legacy-extension-luna-model', extension.includes("'gpt-5.6-luna'"));
 must('legacy-extension-explicit-model-auth', extension.includes("'--allow-model-call'"));
 must('legacy-extension-readonly-ask', extension.includes('Canonical mutation: none'));
@@ -237,4 +248,4 @@ mustNot('git-safety-no-write', gitSafety.includes('writeFile'));
 must('bundle-core-source', bundler.includes("path.join(dogfoodRoot, 'llm_wiki')"));
 must('bundle-core-destination', bundler.includes("path.join(bundleRoot, 'dogfood')"));
 
-console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.15 agentTools=5 explicitWorkspaceOptIn=yes doctorPureDiagnostic=yes toolWhenGated=yes memoryV4=json-data verifiedReadV2=yes verifiedLineageDiff=yes durableAuthorityState=yes dirtyAnyOpenDocBlocked=yes humanKnowledgeV1=integrity+supersede+fork-cycle-failclosed maintenanceSoftGuard=yes releaseUxWalkthrough=yes python39Compat=required');
+console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.15 agentTools=5 explicitWorkspaceOptIn=yes doctorPureDiagnostic=yes toolWhenGated=yes memoryV4=json-data verifiedReadV2=yes verifiedLineageDiff=yes durableAuthorityState=yes dirtyAnyOpenDocBlocked=yes humanKnowledgeV1=integrity+supersede+fork-cycle-failclosed maintenanceSoftGuard=yes releaseUxWalkthrough=yes boundedAgentErrors=yes quietRoutineUi=yes python39Compat=required');
