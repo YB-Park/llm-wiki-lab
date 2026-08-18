@@ -25,10 +25,10 @@ Python defaults to `python3`. Dogfood 0.1.12 retains explicit Python 3.9 compati
 
 Installing the extension gives VS Code the LLM Wiki capability; it does **not** opt every project into LLM Wiki.
 
-- Before explicit initialization, all five LLM Wiki Agent tools are hidden from Agent mode by a VS Code `when` condition.
+- Before explicit initialization, all five LLM Wiki Agent tools are hidden from Agent mode by a VS Code `when` condition and their runtime implementations are not registered.
 - `LLM Wiki: Initialize Workspace` creates/verifies the local store, then records a separate local opt-in marker at `.wiki-lab/workspace-opt-in.json` (or the equivalent configured Wiki root).
 - Existing Core files alone do not imply opt-in. This intentionally covers stores that older dogfood builds may have created through Doctor or write flows.
-- `LLM Wiki: Disable Workspace (Keep Data)` removes only the opt-in marker. The Wiki store and remembered data remain intact, while the Agent tools become unavailable again.
+- `LLM Wiki: Disable Workspace (Keep Data)` removes only the opt-in marker. The Wiki store and remembered data remain intact, while the Agent tools become unavailable and their runtime implementations are unregistered again.
 - Reopening an enabled workspace restores tool availability from the local marker with zero model calls.
 
 The product boundary is therefore: **installed capability ≠ workspace permission**.
@@ -282,3 +282,22 @@ Dev and **unpacked packaged VSIX Extension Host** tests exercise the actual five
 **E021** is the separate cross-source concept-compounding experiment. It recorded narrow positive evidence that exact Luna can maintain one fixed-identity derived concept page across a deliberately relevant A→A+B→A+B+C source sequence while retaining raw provenance. It does **not** earn automatic concept discovery/routing/dedup/update triggers, and its result record documents a retained execution-provenance limitation. Do not rerun it merely to strengthen the record.
 
 **E022** used exactly **two** real main-model generations (`gpt-5.4`, `claude-sonnet-4.6`) against the malicious exact v4 memory serialization. Both recovered the legitimate fact `42`, treated embedded policy/mutation/delete-looking strings as data, and requested/claimed no Wiki mutation. Rerolls: 0. Run `31993541811`, artifact `9276094144`. This is a useful translation smoke, **not a universal prompt-injection guarantee**.
+
+## What still needs human dogfood
+
+This is an **Alpha**, not customer-ready software. Synthetic testing cannot tell us:
+
+- whether the main Agent invokes `wikiMemory` often enough or too often;
+- whether it naturally follows important hits with `wikiRead`;
+- whether admission/lineage confirmations cause approval fatigue;
+- whether “remember my decision” feels natural in conversation;
+- whether the old/new lineage preview is understandable to a normal user;
+- whether Luna maintenance latency/spend feels worth it;
+- whether RAW vs DERIVED vs HUMAN_KNOWLEDGE distinctions stay understandable rather than leaking implementation complexity;
+- whether returning days later actually recovers reasoning the user would otherwise have lost.
+
+Those are the next product questions. Do not add vectors/graphs, background watching, URL/PDF capture, cross-workspace federation, automatic concept routing, or a large visual navigation system merely because they are available ideas.
+
+Known non-blocking reliability follow-up #132 tracks deletion detection for `agent-state.json` and the relation/pending-state crash window. Do not claim those edges are already atomic/detectable.
+
+Compiled knowledge remains disabled as a trusted/default provider. W0 remains the default retrieval path and X1 remains non-default/shadow pending more natural quality evidence.
