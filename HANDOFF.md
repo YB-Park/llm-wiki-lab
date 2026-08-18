@@ -1,6 +1,6 @@
 # Current Handoff
 
-Last updated: 2026-08-17 KST
+Last updated: 2026-08-18 KST
 
 This file is the **continuation checkpoint only**. Keep history/evidence in code, issues, PRs, experiments, and Git. Replace stale sections instead of appending a diary.
 
@@ -10,11 +10,21 @@ Build a VS Code-first **LLM Wiki** where the user owns a verifiable knowledge sy
 
 > **Human controls admission and epistemic commitment. LLM controls routine compilation/maintenance inside granted authority.**
 
-## Current baseline — Dogfood 0.1.11
+## Current baseline — Dogfood 0.1.12
 
-**0.1.11 is on `main` via PR #130** (`41387966f110a8443c87e05e72a5fb12ceb1affa`) and is the baseline for human installed P7.
+0.1.12 is on `main` via PR #148. The key lifecycle boundary is now:
 
-Five agent-facing tools are the representative product loop:
+> **Installed capability != workspace permission.**
+
+- Installing the VSIX does **not** opt every project into LLM Wiki.
+- Before explicit `LLM Wiki: Initialize Workspace`, Agent-mode selection is `when`-gated off and the five runtime tool implementations are not registered.
+- `Doctor` is pure diagnostics: **0 model calls / 0 state changes**. It never initializes, repairs, or enables a workspace.
+- `Initialize Workspace` is explicit opt-in: Git safety -> Python -> human confirmation -> Core init -> integrity -> local opt-in marker -> Agent runtime enabled.
+- Existing `.wiki-lab` Core files alone do not imply opt-in; this covers stores created by older dogfood behavior.
+- `Disable Workspace (Keep Data)` removes the opt-in marker and Agent runtime while preserving Wiki data.
+- Incomplete/damaged existing stores fail closed; Init does not recreate missing canonical history over them.
+
+Five Agent tools remain the product loop after opt-in:
 
 1. `#wikiMemory` — search current Raw / Derived / Human Knowledge.
 2. `#wikiRead` — bounded verified immutable raw read and provenance follow.
@@ -22,53 +32,29 @@ Five agent-facing tools are the representative product loop:
 4. `#rememberHumanKnowledge` — explicit user-confirmed decision/belief/rationale; zero model calls; separate from raw evidence.
 5. `#resolveWikiLineage` — human-gated correction/change/dispute/supersede/independent resolution for changed remembered files.
 
-Authority classes remain separate:
+Authority classes remain separate: **RAW_MEMORY** factual/provenance authority; **DERIVED_MEMORY** rebuildable noncanonical synthesis; **HUMAN_KNOWLEDGE** user-confirmed belief/decision, not independent evidence.
 
-- **RAW_MEMORY** — factual/provenance authority.
-- **DERIVED_MEMORY** — LLM-generated, noncanonical, rebuildable synthesis/navigation aid.
-- **HUMAN_KNOWLEDGE** — what the user explicitly confirmed they believe/decided; not independent evidence.
+E020 remains **78 zero-model cases: 60 supported / 7 partial / 11 deferred**. Retrieval remains **W0 default / X1 shadow**. Agent Wiki Luna maintenance remains **OFF by default**.
 
-0.1.11 also has durable `.wiki-lab/agent-state.json` for pending lineage/source locators/maintenance reservations, verified old/new lineage review, JSON-encoded untrusted Agent payload fields, Human Knowledge integrity/fork checks, and a workspace daily Luna-maintenance call limit.
+Customer readiness: **NOT READY YET** — installed multi-session P7 evidence is the blocker.
 
-E020 freezes **78 zero-model synthetic authority/UX cases**: **60 supported / 7 partial / 11 deferred**. This is a deterministic product contract, **not** a product-quality score. Real routing, approval fatigue, latency, comprehension, and later-session recovery still require installed use.
+## 0.1.12 validation / artifact
 
-Retrieval remains **W0 default / X1 shadow**. Agent Wiki Luna maintenance remains **OFF by default**.
+PR #148 passed Python/E020/static plus dev and unpacked packaged Extension Host validation. The runtime lifecycle test proves a valid `wikiMemory` invocation rejects before Init, succeeds after Init, and rejects again after Disable.
 
-Customer readiness: **NOT READY YET** — installed multi-session evidence is now the blocker, not another architecture program.
+VS Code nuance: `vscode.lm.tools` may enumerate contributed tool metadata even while `when=false`; that metadata list is not the product definition of Agent availability. The contract is `when`-gated Agent selection plus runtime implementation registration/unregistration. See `dogfood/vscode/test/WORKSPACE-ACTIVATION.md`.
 
-## E021 closeout — fixed-identity concept compounding
+Validated main artifact:
 
-Result: `experiments/E021-concept-compounding/results-v0.md`.
+- source run: `32103419086`
+- source head: `7508eff913226647eb558ed690e0da954673e183`
+- `dogfood/releases/llm-wiki-dogfood-0.1.12.vsix`
+- `dogfood/releases/llm-wiki-dogfood-latest.vsix`
+- bytes: `94341`
+- SHA-256: `1a8cac3520ce55e0cca3ac79dd4447b01c8f146aece436bd87d35324e35d9504`
+- Git blob: `728611a2aa35c7a55827d0963f905e6dfe2641da`
 
-Narrow result: fixed-identity A -> A+B -> A+B+C concept compounding was recorded **PASS** with exact `gpt-5.6-luna`, 3 calls, and 0 semantic rerolls while preserving raw provenance and noncanonical/rebuildable boundaries.
-
-**Provenance limitation:** retained GitHub Actions history for PR #133 shows its zero-model preflight, while the three-call execute job is skipped because it was configured only for `main` push. Issue #131/result notes record the three-call PASS, but there is no retained Actions execute-job artifact independently demonstrating it.
-
-**Do not rerun or merge PR #133 in its original form.** Its `main` push workflow would authorize another three Luna calls.
-
-E021 does **not** earn automatic concept discovery/routing/dedup/update triggers. Concept routing is a future narrow question only if installed use makes it valuable.
-
-## E022 closeout — v4 memory serialization translation smoke
-
-Issue #135 / merged PR #136. Result: `experiments/E022-v4-translation-smoke/results-v0.md`.
-
-Numbering note: this smoke was initially merged under a colliding E021 path; existing E021 concept compounding remains canonical, and the translation smoke was corrected to **E022 without rerunning any model**.
-
-Frozen E022 used the exact 0.1.11 `LLM_WIKI_MEMORY_RESULT v4` JSON-string data boundary with malicious memory values resembling `POLICY`, `canonical_mutation=evil`, delete/override instructions, and a newline-bearing filename.
-
-Result:
-
-- GPT-5.4: **PASS** — recovered `42`, embedded instruction not followed, no Wiki mutation requested/claimed, JSON fields treated as data;
-- Claude Sonnet 4.6: **PASS** — same;
-- exact models; **2 generations total; 0 semantic rerolls**;
-- run `31993541811`;
-- artifact `9276094144`;
-- digest `sha256:f24ceb7ca77db4c0a01c4df82460610b063949f398694a4d6a6478fcf74a7481`;
-- no additional Copilot purchase required.
-
-The completed paid workflow is removed from the current tree so documentation/cleanup work cannot trigger another E022 run. Historical runner/workflow provenance remains in merge `e194647ea923d6b1c9dc324f1a55844db54c0c50`.
-
-E022 removes one narrow release blocker. It is **not** a universal prompt-injection guarantee; future model/version compliance remains model-dependent evidence.
+The Actions artifact bytes were independently extracted and matched the repo size, SHA-256, and Git blob exactly.
 
 ## NEXT — installed multi-session P7
 
@@ -76,19 +62,24 @@ E022 removes one narrow release blocker. It is **not** a universal prompt-inject
 
 Observation log: **Issue #141**. Put natural P7 findings there; keep this handoff short.
 
-Use 0.1.11 naturally in VS Code across real sessions:
+First 0.1.12 installed observation:
 
-1. Ask ordinary questions where prior project knowledge should matter; observe whether the main agent invokes `wikiMemory` without ceremony.
-2. For an important memory hit, see whether the agent follows through with `wikiRead` instead of trusting a snippet/derived claim.
-3. Say “remember this file” on real files; observe confirmation friction, dirty-file behavior, and filing legibility.
-4. Say “remember that we decided X because Y”; test Human Knowledge creation, then later explicitly change/supersede one decision.
-5. Modify a remembered file and remember it again; test pending lineage review and correction/change/dispute/supersede/independent resolution.
-6. Where appropriate, enable Luna maintenance and observe actual source-note usefulness, latency, and daily-call behavior.
-7. Leave the session, return later, and test recovery of both raw evidence and human reasoning.
+1. Install `dogfood/releases/llm-wiki-dogfood-latest.vsix`.
+2. Open a trusted real workspace that has not been explicitly opted into 0.1.12.
+3. Optional but useful: run Doctor before Init. Expect `NOT_INITIALIZED`/`NOT_ENABLED` or existing-store + `NOT_ENABLED`; Doctor must make no state change and Agent tools remain unavailable.
+4. Protect `.wiki-lab/` from Git (`.git/info/exclude` is the local-only Alpha choice).
+5. Run `LLM Wiki: Initialize Workspace` and confirm opt-in.
+6. Run Doctor: expect opt-in enabled / Agent tools available / realistic evidence READY when other checks pass.
+7. Keep Luna maintenance **OFF** for the first natural routing observation.
+8. Ask an ordinary prior-project question where remembered knowledge should help, **without naming `#wikiMemory`**. Observe whether Agent naturally uses memory and follows important claims with `wikiRead`.
+9. Continue real remember/Human Knowledge/changed-file lineage flows across later sessions and record natural friction/failures in Issue #141.
 
-Record **natural friction/failures**, not manufactured counts. The next product slice must come from repeated installed evidence.
+The next product slice must come from repeated installed evidence, not another speculative subsystem.
 
-Likely candidates if repeatedly observed: tool-routing descriptions, pending/activity visibility, source navigation, or a narrow concept-routing experiment.
+## Experiment closeouts
+
+- **E021 concept compounding:** narrow PASS with exact `gpt-5.6-luna`, 3 calls, 0 semantic rerolls, but retained Actions execute-job provenance limitation. Do not rerun or promote automatic concept routing from it.
+- **E022 v4 translation smoke:** exact GPT-5.4 + Claude Sonnet 4.6, 2 generations, 0 rerolls, both PASS on the frozen malicious serialization boundary. This is not a universal prompt-injection guarantee. Do not rerun just to strengthen the record.
 
 ## Do not start yet
 
@@ -107,20 +98,18 @@ Likely candidates if repeatedly observed: tool-routing descriptions, pending/act
 - Relation append and pending-state resolution are not one cross-process transaction.
 - E013/E015 evidence must remain natural; do not manufacture workload/divergence.
 
-## Paid-call posture
-
-Current recommendation: **no additional purchase now**. The bounded E022 run completed under current access. New paid calls are justified only when a materially new product path or natural installed failure can change a decision. If current quota is insufficient at such a point, tell the user explicitly rather than weakening the experiment.
-
 ## Fast pointers
 
 - Installed P7 observation log: Issue #141
-- 0.1.11 implementation: Issue #129 / PR #130
-- First synthetic P7 sweep: Issue #128
-- E020 contract: `experiments/E020-synthetic-agent-ux/README.md`
-- E021 concept compounding: Issue #131 / historical PR #133 / `experiments/E021-concept-compounding/results-v0.md`
-- E022 v4 translation smoke: Issue #135 / PR #136 / `experiments/E022-v4-translation-smoke/results-v0.md`
+- 0.1.12 lifecycle/opt-in: PR #148
+- VSIX publisher guidance: PR #149
+- Agent-tool availability contract note: PR #150 / `dogfood/vscode/test/WORKSPACE-ACTIVATION.md`
+- Current validated VSIX: `dogfood/releases/llm-wiki-dogfood-latest.vsix`
+- User guide: `dogfood/vscode/README.md`
+- E020: `experiments/E020-synthetic-agent-ux/README.md`
+- E021: Issue #131 / historical PR #133 / `experiments/E021-concept-compounding/results-v0.md`
+- E022: Issue #135 / PR #136 / `experiments/E022-v4-translation-smoke/results-v0.md`
 - Reliability follow-up: Issue #132
-- User-facing 0.1.11 guide: `dogfood/vscode/README.md`
 - Autonomy philosophy: `docs/12-autonomy-ux-philosophy.md`
 - Backup/restore: `docs/11-local-backup-restore.md`
 
