@@ -1,0 +1,103 @@
+name: Publish validated VSIX in repo
+
+on:
+  workflow_run:
+    workflows: ["VS Code Dogfood"]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: publish-dogfood-vsix-in-repo
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Download validated VSIX artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN: ${{ github.event.workflow_run.id }}
+        run: |
+          rm -rf /tmp/llm-wiki-vsix
+          mkdir -p /tmp/llm-wiki-vsix
+          gh run download "$SOURCE_RUN" \
+            --repo "$GITHUB_REPOSITORY" \
+            --name llm-wiki-dogfood-vsix \
+            --dir /tmp/llm-wiki-vsix
+          test -s /tmp/llm-wiki-vsix/llm-wiki-dogfood.vsix
+
+      - name: Publish validated bytes to stable repo paths
+        env:
+          SOURCE_RUN: ${{ github.event.workflow_run.id }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          version="$(python3 - <<'PY'
+          import json
+          from pathlib import Path
+          print(json.loads(Path('dogfood/vscode/package.json').read_text())['version'])
+          PY
+          )"
+          src=/tmp/llm-wiki-vsix/llm-wiki-dogfood.vsix
+          dir=dogfood/releases
+          versioned="$dir/llm-wiki-dogfood-${version}.vsix"
+          latest="$dir/llm-wiki-dogfood-latest.vsix"
+          mkdir -p "$dir"
+
+          if [ -f "$versioned" ] && ! cmp -s "$src" "$versioned"; then
+            echo "::error::Versioned VSIX already exists with different bytes: $versioned"
+            exit 1
+          fi
+
+          cp "$src" "$versioned"
+          cp "$src" "$latest"
+          digest="$(sha256sum "$src" | awk '{print $1}')"
+          bytes="$(wc -c < "$src" | tr -d ' ')"
+
+          cat > "$dir/README.md" <<EOF
+          # Dogfood VSIX releases
+
+          This directory keeps the validated installable VS Code dogfood extension in Git so it can be transferred into environments where GitHub Actions artifacts are inconvenient to access.
+
+          ## Current
+
+          - Versioned: \`llm-wiki-dogfood-${version}.vsix\`
+          - Stable convenience path: \`llm-wiki-dogfood-latest.vsix\`
+          - Extension version: \`${version}\`
+          - VSIX bytes: \`${bytes}\`
+          - VSIX SHA-256: \`${digest}\`
+          - Validated GitHub Actions build: run \`${SOURCE_RUN}\`
+          - Validated build head: \`${SOURCE_SHA}\`
+
+          Both VSIX paths contain the exact artifact bytes emitted only after the `VS Code Dogfood` workflow has completed successfully on `main`, including the unpacked packaged Extension Host test.
+
+          ## Install
+
+          In VS Code, open Extensions -> \`...\` -> **Install from VSIX...** and choose either file above. Then open a trusted workspace and run \`LLM Wiki: Doctor (Zero Model Calls)\` before realistic dogfood.
+
+          ## Publishing rule
+
+          This directory is maintained by \`.github/workflows/publish-vsix-in-repo.yml\`. A versioned file is immutable: if a successful build for the same extension version produces different bytes, publishing fails instead of silently replacing it. Bump the extension version for a new product binary.
+          EOF
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$dir"
+          if git diff --cached --quiet; then
+            echo "Validated VSIX already published; no repository change."
+            exit 0
+          fi
+          git commit -m "Publish validated Dogfood ${version} VSIX"
+          git push origin HEAD:main
