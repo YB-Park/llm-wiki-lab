@@ -6,6 +6,8 @@ const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const vscode = require('vscode');
 const humanKnowledge = require('./human-knowledge');
+const { boundedProcessFailure } = require('./process-errors');
+const { resolvePythonRuntime } = require('./python-runtime');
 const { parseIngestReceipt, workspaceRelativePath } = require('./product-helpers');
 
 const execFileAsync = promisify(execFile);
@@ -26,6 +28,7 @@ const LINEAGE_RELATIONS = new Set(['correction', 'change', 'dispute', 'supersede
 function firstWorkspaceFolder() {
   const folders = vscode.workspace.workspaceFolders || [];
   if (!folders.length) throw new Error('Open a trusted VS Code workspace/folder before using LLM Wiki tools.');
+  if (folders.length !== 1) throw new Error('LLM Wiki currently supports one workspace folder at a time. Open the project as a single-folder workspace before using project memory.');
   return folders[0];
 }
 
@@ -70,36 +73,14 @@ function coreRoot(context, folder) {
   return path.resolve(context.extensionPath, '..', '..');
 }
 
-function boundedProcessFailure(detail) {
-  const text = String(detail || '').trim();
-  const known = [
-    /agent_wiki_model_call_not_authorized/,
-    /agent_wiki_source_too_large:\d+>\d+/,
-    /agent_wiki_source_not_current/,
-    /agent_wiki_source_changed_during_generation/,
-    /agent_wiki_[a-z0-9_]+_invalid/,
-    /copilot_cli_not_found/,
-    /copilot_cli_argument_error/,
-    /copilot_auth_failed/,
-    /copilot_model_unavailable/,
-    /copilot_call_failed:\d+/,
-    /copilot_model_mismatch:[A-Za-z0-9_.-]+/,
-    /copilot_[a-z0-9_]+/,
-  ];
-  for (const pattern of known) {
-    const matches = [...text.matchAll(new RegExp(pattern.source, 'g'))];
-    if (matches.length) return matches[matches.length - 1][0];
-  }
-  return 'llm_wiki_process_failed';
-}
-
 async function runPythonModule(context, folder, moduleName, args) {
-  const python = String(configuration().get('pythonExecutable', 'python3') || 'python3');
+  const runtime = await resolvePythonRuntime(folder);
+  if (!runtime) throw new Error('python_runtime_not_found');
   const root = coreRoot(context, folder);
   const pythonPath = process.env.PYTHONPATH ? `${root}${path.delimiter}${process.env.PYTHONPATH}` : root;
   const fullArgs = ['-m', moduleName, '--root', wikiRoot(folder), ...args];
   try {
-    const result = await execFileAsync(python, fullArgs, {
+    const result = await execFileAsync(runtime.executable, fullArgs, {
       cwd: folder.uri.fsPath,
       env: { ...process.env, PYTHONPATH: pythonPath },
       maxBuffer: MAX_BUFFER,
@@ -241,7 +222,7 @@ async function confirmMaintenanceSoftGuard(context, folder) {
   let continued = true;
   if (context.extensionMode !== vscode.ExtensionMode.Test) {
     const choice = await vscode.window.showWarningMessage(
-      `Continue AI summaries for the rest of today?`,
+      'Continue AI summaries for the rest of today?',
       {
         modal: true,
         detail: `LLM Wiki has reserved ${usage.reservedCalls} model-backed AI-summary call${usage.reservedCalls === 1 ? '' : 's'} today. Your saved source is already safe. This choice affects only optional AI summaries; the ${threshold}-call setting is a reminder, not a hard cap.`,
