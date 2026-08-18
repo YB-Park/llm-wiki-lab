@@ -12,7 +12,7 @@ This directory keeps the validated installable VS Code dogfood extension in Git 
 - Validated GitHub Actions build: run `32086377938`
 - Validated build head: `7c8259ee7d1eb785bbea5830b413890ee79dfe5f`
 
-Both VSIX paths contain the exact artifact bytes emitted only after the  workflow has completed successfully on , including the unpacked packaged Extension Host test.
+Both VSIX paths contain the exact artifact bytes emitted only after the `VS Code Dogfood` workflow has completed successfully on `main`, including the unpacked packaged Extension Host test.
 
 ## Install
 
