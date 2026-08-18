@@ -4,12 +4,45 @@ import argparse
 import json
 from pathlib import Path
 
-from .agent_wiki import build_agent_source_note, read_agent_source_note, search_agent_notes
+from .agent_wiki import AGENT_WIKI_POLICY, build_agent_source_note, read_agent_source_note, search_agent_notes
 from .calibration import resolve_topic
 
 
 def _root(value: str) -> Path:
     return Path(value).expanduser()
+
+
+def _safe_build_failure(error: RuntimeError) -> tuple[str, int] | None:
+    detail = str(error)
+    exact = {
+        "copilot_cli_argument_error": ("FAILED_COPILOT_CLI_ARGUMENT", 0),
+        "copilot_auth_failed": ("FAILED_COPILOT_AUTH", 0),
+        "copilot_model_unavailable": ("FAILED_COPILOT_MODEL_UNAVAILABLE", 0),
+        "copilot_cli_not_found": ("FAILED_COPILOT_CLI_NOT_FOUND", 0),
+        "copilot_jsonl_invalid": ("FAILED_COPILOT_OUTPUT_CONTRACT", 1),
+        "copilot_tool_request_present": ("FAILED_COPILOT_OUTPUT_CONTRACT", 1),
+        "copilot_source_citation_missing": ("FAILED_COPILOT_OUTPUT_CONTRACT", 1),
+        "agent_wiki_json_invalid": ("FAILED_COPILOT_OUTPUT_CONTRACT", 1),
+        "agent_wiki_payload_shape_invalid": ("FAILED_COPILOT_OUTPUT_CONTRACT", 1),
+        "agent_wiki_title_invalid": ("FAILED_COPILOT_OUTPUT_CONTRACT", 1),
+        "agent_wiki_summary_invalid": ("FAILED_COPILOT_OUTPUT_CONTRACT", 1),
+        "agent_wiki_rules_invalid": ("FAILED_COPILOT_OUTPUT_CONTRACT", 1),
+        "agent_wiki_boundaries_invalid": ("FAILED_COPILOT_OUTPUT_CONTRACT", 1),
+        "agent_wiki_questions_invalid": ("FAILED_COPILOT_OUTPUT_CONTRACT", 1),
+        "agent_wiki_load_bearing_citation_missing": ("FAILED_COPILOT_OUTPUT_CONTRACT", 1),
+        "agent_wiki_citation_scope_invalid": ("FAILED_COPILOT_OUTPUT_CONTRACT", 1),
+    }
+    if detail in exact:
+        return exact[detail]
+    if detail.startswith("copilot_call_failed:"):
+        return "FAILED_COPILOT_CALL", 0
+    if detail.startswith("copilot_final_message_count:"):
+        return "FAILED_COPILOT_OUTPUT_CONTRACT", 1
+    if detail.startswith("copilot_model_mismatch:"):
+        return "FAILED_COPILOT_MODEL_MISMATCH", 1
+    if detail.startswith("copilot_raw_source_citation_forbidden:") or detail.startswith("copilot_unknown_citation_handle:"):
+        return "FAILED_COPILOT_OUTPUT_CONTRACT", 1
+    return None
 
 
 def parser() -> argparse.ArgumentParser:
@@ -40,14 +73,37 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "build":
         topic_id = resolve_topic(root, args.topic)["topic_id"]
-        result = build_agent_source_note(
-            root,
-            args.source_id,
-            topic_id=topic_id,
-            model=args.model,
-            max_ai_credits=args.max_ai_credits,
-            allow_model_call=args.allow_model_call,
-        )
+        try:
+            result = build_agent_source_note(
+                root,
+                args.source_id,
+                topic_id=topic_id,
+                model=args.model,
+                max_ai_credits=args.max_ai_credits,
+                allow_model_call=args.allow_model_call,
+            )
+        except RuntimeError as error:
+            failure = _safe_build_failure(error)
+            if failure is None:
+                raise
+            status, model_calls = failure
+            print(
+                json.dumps(
+                    {
+                        "status": status,
+                        "model_calls": model_calls,
+                        "source_id": args.source_id,
+                        "topic_id": topic_id,
+                        "model": args.model,
+                        "policy": AGENT_WIKI_POLICY,
+                        "markdown_path": "",
+                    },
+                    ensure_ascii=False,
+                    sort_keys=True,
+                )
+            )
+            return 0
+
         record = result["record"]
         print(
             json.dumps(
