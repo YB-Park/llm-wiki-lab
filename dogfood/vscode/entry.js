@@ -8,6 +8,7 @@ const vscode = require('vscode');
 const base = require('./extension');
 const { registerAgentTools } = require('./agent-tools');
 const { classifyGitSafety } = require('./git-safety');
+const { clearPythonRuntimeCache, resolvePythonRuntime } = require('./python-runtime');
 const workspaceActivation = require('./workspace-activation');
 const { discoverCopilotModels } = require('./lm-discovery');
 
@@ -54,12 +55,6 @@ function coreRoot(context, folder) {
   return path.resolve(context.extensionPath, '..', '..');
 }
 
-function pythonExecutable(folder) {
-  const configured = String(configuration().get('pythonExecutable', 'python3') || 'python3');
-  if (path.isAbsolute(configured) || (!configured.includes('/') && !configured.includes('\\'))) return configured;
-  return path.resolve(folder.uri.fsPath, configured);
-}
-
 function coreMode(context) {
   const configured = String(configuration().get('corePath', '') || '').trim();
   if (configured) return 'configured';
@@ -82,9 +77,11 @@ async function executableAvailable(executable, args, cwd) {
 }
 
 async function runCoreCommand(context, folder, args) {
+  const runtime = await resolvePythonRuntime(folder);
+  if (!runtime) throw new Error('python_runtime_not_found');
   const core = coreRoot(context, folder);
   const result = await execFileAsync(
-    pythonExecutable(folder),
+    runtime.executable,
     ['-m', 'dogfood.llm_wiki.cli', '--root', wikiRoot(folder), ...args],
     {
       cwd: core,
@@ -189,11 +186,10 @@ async function initializeWorkspace(context) {
     return false;
   }
 
-  const python = pythonExecutable(folder);
-  const pythonReady = await executableAvailable(python, ['--version'], folder.uri.fsPath);
-  if (!pythonReady) {
+  const runtime = await resolvePythonRuntime(folder);
+  if (!runtime) {
     const openSettings = await showSetupAction(
-      `Project memory needs Python, but “${python}” could not be started. Install Python or choose a different executable in LLM Wiki settings.`,
+      'Project memory needs Python, but LLM Wiki could not find a usable Python runtime. Install Python or set an explicit executable in LLM Wiki settings, then run setup again.',
       'Open Settings'
     );
     if (openSettings) await vscode.commands.executeCommand('workbench.action.openSettings', 'llmWiki.pythonExecutable');
@@ -247,13 +243,13 @@ async function disableWorkspace(context) {
 
 async function doctor(context) {
   const folder = firstWorkspaceFolder();
-  const python = pythonExecutable(folder);
+  const runtime = await resolvePythonRuntime(folder);
+  const pythonReady = Boolean(runtime);
   const root = wikiRoot(folder);
   const storePresent = workspaceActivation.hasWorkspaceState(root);
   const storeInitialized = workspaceActivation.isCoreInitialized(root);
   const workspaceEnabled = workspaceActivation.isWorkspaceEnabled(root);
   const configPath = path.join(root, 'config.json');
-  const pythonReady = await executableAvailable(python, ['--version'], folder.uri.fsPath);
 
   let coreReady = false;
   let compiledDisabled = false;
@@ -310,14 +306,16 @@ async function doctor(context) {
   doctorOutput.appendLine(`Workspace opt-in: ${workspaceEnabled ? 'ENABLED' : 'NOT_ENABLED'}`);
   doctorOutput.appendLine(`Agent tools: ${workspaceEnabled ? 'AVAILABLE' : 'HIDDEN'}`);
   doctorOutput.appendLine(`Local memory store: ${storeLabel}`);
-  doctorOutput.appendLine(`Python runtime: ${pythonReady ? 'FOUND' : 'MISSING'}${pythonReady ? '' : ` — configured as ${python}`}`);
+  doctorOutput.appendLine(`Python runtime: ${pythonReady ? `FOUND (${runtime.executable}, ${runtime.source})` : 'MISSING'}`);
   doctorOutput.appendLine(`Local data integrity: ${!storePresent ? 'NOT CHECKED' : (integrityReady ? 'PASS' : 'NEEDS ATTENTION')}`);
   doctorOutput.appendLine(`Git privacy: ${gitSafety === 'UNPROTECTED' ? 'NEEDS ATTENTION — local memory directory is not ignored by Git' : 'PASS'} (${gitSafety})`);
   doctorOutput.appendLine(`AI summaries: ${maintenanceOn ? 'ON' : 'OFF'}`);
   doctorOutput.appendLine(`Copilot CLI executable: ${copilotReady ? 'FOUND' : 'NOT FOUND'}`);
   doctorOutput.appendLine('AI-summary model-call readiness: NOT VERIFIED (this check intentionally makes no model calls)');
   doctorOutput.appendLine('');
-  if (!storePresent) {
+  if (!pythonReady) {
+    doctorOutput.appendLine('Next action: install Python or set LLM Wiki: Python Executable explicitly, then run this check again.');
+  } else if (!storePresent) {
     doctorOutput.appendLine('Next action: run “LLM Wiki: Set Up Project Memory”.');
   } else if (!storeInitialized || !integrityReady) {
     doctorOutput.appendLine('Next action: inspect or restore the local LLM Wiki store before writing more memory. Setup will not overwrite damaged history.');
@@ -347,6 +345,8 @@ async function doctor(context) {
     storeInitialized,
     workspaceEnabled,
     pythonReady,
+    pythonRuntime: runtime ? runtime.executable : '',
+    pythonRuntimeSource: runtime ? runtime.source : '',
     coreReady,
     compiledDisabled,
     integrityReady,
@@ -467,6 +467,14 @@ async function commandBoundary(label, fn) {
       vscode.window.showErrorMessage(MULTI_ROOT_MESSAGE);
       return undefined;
     }
+    if (detail === 'python_runtime_not_found') {
+      const choice = await vscode.window.showErrorMessage(
+        'LLM Wiki could not find a usable Python runtime.',
+        'Open Settings'
+      );
+      if (choice === 'Open Settings') await vscode.commands.executeCommand('workbench.action.openSettings', 'llmWiki.pythonExecutable');
+      return undefined;
+    }
     const choice = await vscode.window.showErrorMessage(
       `LLM Wiki could not complete “${label}”.`,
       'Check Setup'
@@ -487,6 +495,7 @@ async function activate(context) {
     void refreshWorkspaceRuntimeAvailability(context);
   }));
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration((event) => {
+    if (event.affectsConfiguration('llmWiki.pythonExecutable')) clearPythonRuntimeCache();
     if (event.affectsConfiguration('llmWiki.workspaceDirectory')) void refreshWorkspaceRuntimeAvailability(context);
   }));
 
