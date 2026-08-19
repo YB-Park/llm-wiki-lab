@@ -1,0 +1,1063 @@
+{
+  "execute_model": true,
+  "execution_source_sha": "7c604dd8d57a90c99526bdce5fb55fe7cdb7056f",
+  "format": "E023-G1b-v0",
+  "interpretation_boundary": "G1b tests temporary evidence-follow retrieval/selection only. No result directly authorizes semantic persistence or automatic identity routing.",
+  "model": "gpt-5.6-luna",
+  "model_call_attempts": 12,
+  "request": {
+    "candidate_followup_top_k": 3,
+    "final_source_limit": 5,
+    "initial_top_k": 5,
+    "max_ai_credits_per_call": 30,
+    "max_followup_queries": 2,
+    "max_model_call_attempts": 12,
+    "model": "gpt-5.6-luna",
+    "planner_snippet_chars": 320,
+    "request_id": "e023-g1b-evidence-follow-v0",
+    "target_question_ids": [
+      "Q001",
+      "Q002",
+      "Q004",
+      "Q010"
+    ]
+  },
+  "targets": [
+    {
+      "baseline_semantic_verdict": "CRITICAL_ERROR",
+      "candidate_metrics": {
+        "forbidden_conflation_sources_in_context": [
+          "S005"
+        ],
+        "missing_required_sources": [],
+        "required_complete": true,
+        "required_recall": 1.0
+      },
+      "candidate_source_ids": [
+        "S001",
+        "S005",
+        "S003",
+        "S006",
+        "S002",
+        "S004"
+      ],
+      "composer": {
+        "answer": "The ABC person was Jihoon Park (also listed as J.H. Park), ABC’s Privacy Counsel. He repeatedly raised the DPA concern in the January kickoff and February follow-up (S001, S003, S004).",
+        "cited_source_ids": [
+          "S001",
+          "S003",
+          "S004"
+        ],
+        "insufficient_evidence": false
+      },
+      "composer_contract_ok": true,
+      "composer_receipt": {
+        "elapsed_seconds": 2.935,
+        "model": "gpt-5.6-luna"
+      },
+      "final_metrics": {
+        "forbidden_conflation_sources_in_context": [],
+        "missing_required_sources": [
+          "S002"
+        ],
+        "required_complete": false,
+        "required_recall": 0.75
+      },
+      "followup_retrieval": [
+        {
+          "query": "\"J.H. Park\" \"Jihoon Park\" DPA",
+          "ranking": [
+            {
+              "rank": 1,
+              "score": 11.462022904671493,
+              "source_id": "S004"
+            },
+            {
+              "rank": 2,
+              "score": 10.273797108612605,
+              "source_id": "S001"
+            },
+            {
+              "rank": 3,
+              "score": 6.584057697142246,
+              "source_id": "S002"
+            },
+            {
+              "rank": 4,
+              "score": 6.115315267412614,
+              "source_id": "S006"
+            },
+            {
+              "rank": 5,
+              "score": 4.534968932129013,
+              "source_id": "S005"
+            },
+            {
+              "rank": 6,
+              "score": 3.189690983161765,
+              "source_id": "S003"
+            }
+          ]
+        },
+        {
+          "query": "\"same privacy contact\" DPA Park",
+          "ranking": [
+            {
+              "rank": 1,
+              "score": 7.011985836315534,
+              "source_id": "S003"
+            },
+            {
+              "rank": 2,
+              "score": 5.424307314648073,
+              "source_id": "S004"
+            },
+            {
+              "rank": 3,
+              "score": 4.265462407034392,
+              "source_id": "S001"
+            },
+            {
+              "rank": 4,
+              "score": 4.213333908417417,
+              "source_id": "S002"
+            },
+            {
+              "rank": 5,
+              "score": 4.075199006105965,
+              "source_id": "S005"
+            },
+            {
+              "rank": 6,
+              "score": 3.9030817938769644,
+              "source_id": "S006"
+            },
+            {
+              "rank": 7,
+              "score": 2.43179971465467,
+              "source_id": "S015"
+            }
+          ]
+        }
+      ],
+      "initial_metrics": {
+        "forbidden_conflation_sources_in_context": [
+          "S005"
+        ],
+        "missing_required_sources": [
+          "S004"
+        ],
+        "required_complete": false,
+        "required_recall": 0.75
+      },
+      "initial_retrieval_ranking": [
+        {
+          "rank": 1,
+          "score": 7.560983889117901,
+          "source_id": "S001"
+        },
+        {
+          "rank": 2,
+          "score": 6.689024547828367,
+          "source_id": "S005"
+        },
+        {
+          "rank": 3,
+          "score": 4.082042778287757,
+          "source_id": "S003"
+        },
+        {
+          "rank": 4,
+          "score": 3.5785228337778423,
+          "source_id": "S006"
+        },
+        {
+          "rank": 5,
+          "score": 2.8702654102416973,
+          "source_id": "S002"
+        },
+        {
+          "rank": 6,
+          "score": 2.42258897227568,
+          "source_id": "S007"
+        },
+        {
+          "rank": 7,
+          "score": 1.8779374831549107,
+          "source_id": "S004"
+        },
+        {
+          "rank": 8,
+          "score": 1.6662933171646512,
+          "source_id": "S013"
+        },
+        {
+          "rank": 9,
+          "score": 0.34077558514642914,
+          "source_id": "S014"
+        },
+        {
+          "rank": 10,
+          "score": 0.30155643492249584,
+          "source_id": "S016"
+        },
+        {
+          "rank": 11,
+          "score": 0.29783245228170696,
+          "source_id": "S017"
+        },
+        {
+          "rank": 12,
+          "score": 0.2969181329516653,
+          "source_id": "S018"
+        },
+        {
+          "rank": 13,
+          "score": 0.29242035491923346,
+          "source_id": "S009"
+        },
+        {
+          "rank": 14,
+          "score": 0.2860630030148118,
+          "source_id": "S012"
+        },
+        {
+          "rank": 15,
+          "score": 0.2667383784508634,
+          "source_id": "S010"
+        },
+        {
+          "rank": 16,
+          "score": 0.2665716385427564,
+          "source_id": "S015"
+        },
+        {
+          "rank": 17,
+          "score": 0.22512171250356977,
+          "source_id": "S008"
+        },
+        {
+          "rank": 18,
+          "score": 0.17783232706940952,
+          "source_id": "S011"
+        }
+      ],
+      "initial_source_ids": [
+        "S001",
+        "S005",
+        "S003",
+        "S006",
+        "S002"
+      ],
+      "planner": {
+        "missing_or_ambiguous_relation": "Evidence should link J.H. Park and the January/February privacy contact to Jihoon Park, while distinguishing him from Park Jieun, who raised only a latency concern.",
+        "queries": [
+          "\"J.H. Park\" \"Jihoon Park\" DPA",
+          "\"same privacy contact\" DPA Park"
+        ]
+      },
+      "planner_contract_ok": true,
+      "planner_receipt": {
+        "elapsed_seconds": 4.059,
+        "model": "gpt-5.6-luna"
+      },
+      "previously_missing_required_sources_for_measurement_only": [
+        "S004"
+      ],
+      "question": "Who was the ABC person who repeatedly raised the DPA concern?",
+      "question_id": "Q001",
+      "selected_source_ids": [
+        "S001",
+        "S003",
+        "S004"
+      ],
+      "selector_contract_ok": true,
+      "selector_receipt": {
+        "elapsed_seconds": 8.154,
+        "model": "gpt-5.6-luna"
+      }
+    },
+    {
+      "baseline_semantic_verdict": "PASS",
+      "candidate_metrics": {
+        "forbidden_conflation_sources_in_context": [
+          "S005"
+        ],
+        "missing_required_sources": [
+          "S003"
+        ],
+        "required_complete": false,
+        "required_recall": 0.75
+      },
+      "candidate_source_ids": [
+        "S005",
+        "S001",
+        "S006",
+        "S002",
+        "S004"
+      ],
+      "composer": {
+        "answer": "Jihoon Park directly authored the statement that ABC requires privacy review of the DPA before exchanging production customer data, clarifying that this was not a general objection to cloud services (S002). The meeting record only attributed to “J.H. Park” the request to complete DPA review before exchanging production data; it does not establish that Park authored the note (S001). The directory links “J.H. Park” with Jihoon Park and identifies him as Privacy Counsel (S004).",
+        "cited_source_ids": [
+          "S002",
+          "S001",
+          "S004"
+        ],
+        "insufficient_evidence": false
+      },
+      "composer_contract_ok": true,
+      "composer_receipt": {
+        "elapsed_seconds": 3.988,
+        "model": "gpt-5.6-luna"
+      },
+      "final_metrics": {
+        "forbidden_conflation_sources_in_context": [],
+        "missing_required_sources": [
+          "S003"
+        ],
+        "required_complete": false,
+        "required_recall": 0.75
+      },
+      "followup_retrieval": [
+        {
+          "query": "\"Jihoon Park\" DPA authored email privacy review",
+          "ranking": [
+            {
+              "rank": 1,
+              "score": 8.386038427253288,
+              "source_id": "S004"
+            },
+            {
+              "rank": 2,
+              "score": 8.087256635798504,
+              "source_id": "S002"
+            },
+            {
+              "rank": 3,
+              "score": 7.5180206459532855,
+              "source_id": "S006"
+            },
+            {
+              "rank": 4,
+              "score": 7.310190057143039,
+              "source_id": "S001"
+            },
+            {
+              "rank": 5,
+              "score": 6.111596408833129,
+              "source_id": "S003"
+            },
+            {
+              "rank": 6,
+              "score": 5.2208660572854075,
+              "source_id": "S005"
+            },
+            {
+              "rank": 7,
+              "score": 1.0107579990944788,
+              "source_id": "S008"
+            }
+          ]
+        },
+        {
+          "query": "\"J.H. Park\" DPA meeting record privacy counsel",
+          "ranking": [
+            {
+              "rank": 1,
+              "score": 13.656555130242833,
+              "source_id": "S001"
+            },
+            {
+              "rank": 2,
+              "score": 11.038691962922634,
+              "source_id": "S004"
+            },
+            {
+              "rank": 3,
+              "score": 6.759294352160981,
+              "source_id": "S005"
+            },
+            {
+              "rank": 4,
+              "score": 6.629279884172518,
+              "source_id": "S003"
+            },
+            {
+              "rank": 5,
+              "score": 4.213333908417417,
+              "source_id": "S002"
+            },
+            {
+              "rank": 6,
+              "score": 3.9030817938769644,
+              "source_id": "S006"
+            },
+            {
+              "rank": 7,
+              "score": 1.5526367355526316,
+              "source_id": "S016"
+            },
+            {
+              "rank": 8,
+              "score": 1.3572692899546535,
+              "source_id": "S013"
+            },
+            {
+              "rank": 9,
+              "score": 1.159739237265657,
+              "source_id": "S007"
+            }
+          ]
+        }
+      ],
+      "initial_metrics": {
+        "forbidden_conflation_sources_in_context": [
+          "S005"
+        ],
+        "missing_required_sources": [
+          "S003"
+        ],
+        "required_complete": false,
+        "required_recall": 0.75
+      },
+      "initial_retrieval_ranking": [
+        {
+          "rank": 1,
+          "score": 10.362305109257134,
+          "source_id": "S005"
+        },
+        {
+          "rank": 2,
+          "score": 8.568966505461342,
+          "source_id": "S001"
+        },
+        {
+          "rank": 3,
+          "score": 8.5253767053057,
+          "source_id": "S006"
+        },
+        {
+          "rank": 4,
+          "score": 6.687139611424097,
+          "source_id": "S002"
+        },
+        {
+          "rank": 5,
+          "score": 6.165926812423475,
+          "source_id": "S004"
+        },
+        {
+          "rank": 6,
+          "score": 5.773033898683037,
+          "source_id": "S003"
+        },
+        {
+          "rank": 7,
+          "score": 4.463203403497152,
+          "source_id": "S007"
+        },
+        {
+          "rank": 8,
+          "score": 3.8767012562975856,
+          "source_id": "S016"
+        },
+        {
+          "rank": 9,
+          "score": 3.848585190870489,
+          "source_id": "S018"
+        },
+        {
+          "rank": 10,
+          "score": 2.97485135655083,
+          "source_id": "S015"
+        },
+        {
+          "rank": 11,
+          "score": 2.932543852150047,
+          "source_id": "S017"
+        },
+        {
+          "rank": 12,
+          "score": 2.4177737808898696,
+          "source_id": "S009"
+        },
+        {
+          "rank": 13,
+          "score": 2.38769373136516,
+          "source_id": "S013"
+        },
+        {
+          "rank": 14,
+          "score": 1.8974830569525167,
+          "source_id": "S012"
+        },
+        {
+          "rank": 15,
+          "score": 1.1352591259847995,
+          "source_id": "S011"
+        },
+        {
+          "rank": 16,
+          "score": 1.061284645164279,
+          "source_id": "S008"
+        },
+        {
+          "rank": 17,
+          "score": 1.046300220378722,
+          "source_id": "S014"
+        },
+        {
+          "rank": 18,
+          "score": 0.7935975503759775,
+          "source_id": "S010"
+        }
+      ],
+      "initial_source_ids": [
+        "S005",
+        "S001",
+        "S006",
+        "S002",
+        "S004"
+      ],
+      "planner": {
+        "missing_or_ambiguous_relation": "Confirm which DPA statements Jihoon Park personally authored versus statements merely attributed to J.H. Park in meeting notes, including whether the initials refer to the same person and the chronological relationship between them.",
+        "queries": [
+          "\"Jihoon Park\" DPA authored email privacy review",
+          "\"J.H. Park\" DPA meeting record privacy counsel"
+        ]
+      },
+      "planner_contract_ok": true,
+      "planner_receipt": {
+        "elapsed_seconds": 4.07,
+        "model": "gpt-5.6-luna"
+      },
+      "previously_missing_required_sources_for_measurement_only": [
+        "S003"
+      ],
+      "question": "What did Jihoon Park directly author about the DPA, and what was only attributed to him in meeting records?",
+      "question_id": "Q002",
+      "selected_source_ids": [
+        "S002",
+        "S001",
+        "S004"
+      ],
+      "selector_contract_ok": true,
+      "selector_receipt": {
+        "elapsed_seconds": 3.423,
+        "model": "gpt-5.6-luna"
+      }
+    },
+    {
+      "baseline_semantic_verdict": "PASS",
+      "candidate_metrics": {
+        "forbidden_conflation_sources_in_context": [],
+        "missing_required_sources": [],
+        "required_complete": true,
+        "required_recall": 1.0
+      },
+      "candidate_source_ids": [
+        "S010",
+        "S009",
+        "S005",
+        "S004",
+        "S007",
+        "S008"
+      ],
+      "composer": {
+        "answer": "Project Orchid chose not to use Redis for the first release because of operational complexity and the cost of owning another stateful service, not because Redis was considered technically poor; it used Postgres advisory locks instead (S009). The later lock-contention test did not reverse that decision: it was an intentionally unrealistic burst at roughly 20 times expected load, and the stated next steps were profiling and realistic load measurement (S010).",
+        "cited_source_ids": [
+          "S009",
+          "S010"
+        ],
+        "insufficient_evidence": false
+      },
+      "composer_contract_ok": true,
+      "composer_receipt": {
+        "elapsed_seconds": 3.461,
+        "model": "gpt-5.6-luna"
+      },
+      "final_metrics": {
+        "forbidden_conflation_sources_in_context": [],
+        "missing_required_sources": [
+          "S007",
+          "S008"
+        ],
+        "required_complete": false,
+        "required_recall": 0.5
+      },
+      "followup_retrieval": [
+        {
+          "query": "Orchid Redis decision after lock contention test",
+          "ranking": [
+            {
+              "rank": 1,
+              "score": 10.072398569250002,
+              "source_id": "S010"
+            },
+            {
+              "rank": 2,
+              "score": 3.918725616065373,
+              "source_id": "S009"
+            },
+            {
+              "rank": 3,
+              "score": 3.7501668186573482,
+              "source_id": "S007"
+            },
+            {
+              "rank": 4,
+              "score": 2.7451487907567684,
+              "source_id": "S012"
+            },
+            {
+              "rank": 5,
+              "score": 1.9714504165555282,
+              "source_id": "S008"
+            },
+            {
+              "rank": 6,
+              "score": 1.851792424362439,
+              "source_id": "S004"
+            },
+            {
+              "rank": 7,
+              "score": 1.6469788975332489,
+              "source_id": "S002"
+            },
+            {
+              "rank": 8,
+              "score": 1.4261483838113802,
+              "source_id": "S001"
+            }
+          ]
+        },
+        {
+          "query": "Orchid Postgres advisory locks realistic load measurement",
+          "ranking": [
+            {
+              "rank": 1,
+              "score": 10.270986270852905,
+              "source_id": "S010"
+            },
+            {
+              "rank": 2,
+              "score": 7.147937657925944,
+              "source_id": "S009"
+            },
+            {
+              "rank": 3,
+              "score": 2.7759652547284146,
+              "source_id": "S008"
+            },
+            {
+              "rank": 4,
+              "score": 1.851792424362439,
+              "source_id": "S004"
+            },
+            {
+              "rank": 5,
+              "score": 1.6469788975332489,
+              "source_id": "S002"
+            },
+            {
+              "rank": 6,
+              "score": 1.4261483838113802,
+              "source_id": "S001"
+            }
+          ]
+        }
+      ],
+      "initial_metrics": {
+        "forbidden_conflation_sources_in_context": [],
+        "missing_required_sources": [
+          "S008"
+        ],
+        "required_complete": false,
+        "required_recall": 0.75
+      },
+      "initial_retrieval_ranking": [
+        {
+          "rank": 1,
+          "score": 13.762636191754735,
+          "source_id": "S010"
+        },
+        {
+          "rank": 2,
+          "score": 8.721555753661711,
+          "source_id": "S009"
+        },
+        {
+          "rank": 3,
+          "score": 6.823382870325807,
+          "source_id": "S005"
+        },
+        {
+          "rank": 4,
+          "score": 5.717658357979547,
+          "source_id": "S004"
+        },
+        {
+          "rank": 5,
+          "score": 4.879327680502692,
+          "source_id": "S007"
+        },
+        {
+          "rank": 6,
+          "score": 4.6470614770043905,
+          "source_id": "S002"
+        },
+        {
+          "rank": 7,
+          "score": 3.5642828484584825,
+          "source_id": "S001"
+        },
+        {
+          "rank": 8,
+          "score": 3.0327350617198072,
+          "source_id": "S008"
+        },
+        {
+          "rank": 9,
+          "score": 2.4017537994551157,
+          "source_id": "S006"
+        },
+        {
+          "rank": 10,
+          "score": 2.3623588487812994,
+          "source_id": "S015"
+        },
+        {
+          "rank": 11,
+          "score": 2.315168008397326,
+          "source_id": "S016"
+        },
+        {
+          "rank": 12,
+          "score": 1.8974830569525167,
+          "source_id": "S012"
+        },
+        {
+          "rank": 13,
+          "score": 1.678122960888779,
+          "source_id": "S011"
+        },
+        {
+          "rank": 14,
+          "score": 1.544030404198757,
+          "source_id": "S017"
+        },
+        {
+          "rank": 15,
+          "score": 1.5035514564470878,
+          "source_id": "S013"
+        },
+        {
+          "rank": 16,
+          "score": 1.046300220378722,
+          "source_id": "S014"
+        },
+        {
+          "rank": 17,
+          "score": 1.0304244414105064,
+          "source_id": "S003"
+        },
+        {
+          "rank": 18,
+          "score": 0.6427518603003812,
+          "source_id": "S018"
+        }
+      ],
+      "initial_source_ids": [
+        "S010",
+        "S009",
+        "S005",
+        "S004",
+        "S007"
+      ],
+      "planner": {
+        "missing_or_ambiguous_relation": "Evidence linking the lock-contention test to a later reassessment or explicit confirmation of the Redis decision, including realistic-load results and the final rationale.",
+        "queries": [
+          "Orchid Redis decision after lock contention test",
+          "Orchid Postgres advisory locks realistic load measurement"
+        ]
+      },
+      "planner_contract_ok": true,
+      "planner_receipt": {
+        "elapsed_seconds": 3.729,
+        "model": "gpt-5.6-luna"
+      },
+      "previously_missing_required_sources_for_measurement_only": [
+        "S008"
+      ],
+      "question": "Why did Project Orchid decide not to use Redis, and did the later lock-contention test reverse that decision?",
+      "question_id": "Q004",
+      "selected_source_ids": [
+        "S009",
+        "S010"
+      ],
+      "selector_contract_ok": true,
+      "selector_receipt": {
+        "elapsed_seconds": 3.491,
+        "model": "gpt-5.6-luna"
+      }
+    },
+    {
+      "baseline_semantic_verdict": "PASS",
+      "candidate_metrics": {
+        "forbidden_conflation_sources_in_context": [
+          "S005"
+        ],
+        "missing_required_sources": [
+          "S003"
+        ],
+        "required_complete": false,
+        "required_recall": 0.75
+      },
+      "candidate_source_ids": [
+        "S002",
+        "S006",
+        "S001",
+        "S004",
+        "S005"
+      ],
+      "composer": {
+        "answer": "No. The evidence supports only a specific privacy-review requirement before exchanging production customer data, and explicitly says this was not a general objection to cloud services (S002). The later evidence says that privacy gate was closed but does not establish a broader change in position (S006). S005 concerns Park Jieun, not Jihoon Park, and does not support characterizing Jihoon (S005).",
+        "cited_source_ids": [
+          "S002",
+          "S006",
+          "S005"
+        ],
+        "insufficient_evidence": false
+      },
+      "composer_contract_ok": true,
+      "composer_receipt": {
+        "elapsed_seconds": 3.71,
+        "model": "gpt-5.6-luna"
+      },
+      "final_metrics": {
+        "forbidden_conflation_sources_in_context": [
+          "S005"
+        ],
+        "missing_required_sources": [
+          "S001",
+          "S003"
+        ],
+        "required_complete": false,
+        "required_recall": 0.5
+      },
+      "followup_retrieval": [
+        {
+          "query": "\"Jihoon Park\" cloud risk acceptance objection",
+          "ranking": [
+            {
+              "rank": 1,
+              "score": 8.81770198610861,
+              "source_id": "S002"
+            },
+            {
+              "rank": 2,
+              "score": 4.9917653938085405,
+              "source_id": "S004"
+            },
+            {
+              "rank": 3,
+              "score": 3.614938852076321,
+              "source_id": "S006"
+            },
+            {
+              "rank": 4,
+              "score": 1.7980780909626766,
+              "source_id": "S001"
+            },
+            {
+              "rank": 5,
+              "score": 1.6054369772024928,
+              "source_id": "S005"
+            },
+            {
+              "rank": 6,
+              "score": 1.0107579990944788,
+              "source_id": "S003"
+            }
+          ]
+        },
+        {
+          "query": "\"jihoon.park@abc.example\" cloud services",
+          "ranking": [
+            {
+              "rank": 1,
+              "score": 11.967879822298118,
+              "source_id": "S002"
+            },
+            {
+              "rank": 2,
+              "score": 8.721495301325891,
+              "source_id": "S004"
+            },
+            {
+              "rank": 3,
+              "score": 6.062570066759106,
+              "source_id": "S006"
+            },
+            {
+              "rank": 4,
+              "score": 3.1505517458808203,
+              "source_id": "S001"
+            },
+            {
+              "rank": 5,
+              "score": 2.7511040283819366,
+              "source_id": "S005"
+            },
+            {
+              "rank": 6,
+              "score": 2.0215159981889577,
+              "source_id": "S003"
+            }
+          ]
+        }
+      ],
+      "initial_metrics": {
+        "forbidden_conflation_sources_in_context": [
+          "S005"
+        ],
+        "missing_required_sources": [
+          "S003"
+        ],
+        "required_complete": false,
+        "required_recall": 0.75
+      },
+      "initial_retrieval_ranking": [
+        {
+          "rank": 1,
+          "score": 6.425877576985117,
+          "source_id": "S002"
+        },
+        {
+          "rank": 2,
+          "score": 5.240687409963844,
+          "source_id": "S006"
+        },
+        {
+          "rank": 3,
+          "score": 5.081615881654557,
+          "source_id": "S001"
+        },
+        {
+          "rank": 4,
+          "score": 4.9917653938085405,
+          "source_id": "S004"
+        },
+        {
+          "rank": 5,
+          "score": 4.440363753256378,
+          "source_id": "S005"
+        },
+        {
+          "rank": 6,
+          "score": 2.0815352191500986,
+          "source_id": "S014"
+        },
+        {
+          "rank": 7,
+          "score": 1.7447044315051388,
+          "source_id": "S010"
+        },
+        {
+          "rank": 8,
+          "score": 1.1652700126994777,
+          "source_id": "S003"
+        },
+        {
+          "rank": 9,
+          "score": 0.15451201360499892,
+          "source_id": "S013"
+        },
+        {
+          "rank": 10,
+          "score": 0.15077821746124792,
+          "source_id": "S016"
+        },
+        {
+          "rank": 11,
+          "score": 0.14891622614085348,
+          "source_id": "S017"
+        },
+        {
+          "rank": 12,
+          "score": 0.14845906647583265,
+          "source_id": "S018"
+        },
+        {
+          "rank": 13,
+          "score": 0.14621017745961673,
+          "source_id": "S009"
+        },
+        {
+          "rank": 14,
+          "score": 0.1430315015074059,
+          "source_id": "S012"
+        },
+        {
+          "rank": 15,
+          "score": 0.1332858192713782,
+          "source_id": "S015"
+        },
+        {
+          "rank": 16,
+          "score": 0.12414283394476483,
+          "source_id": "S007"
+        },
+        {
+          "rank": 17,
+          "score": 0.11256085625178489,
+          "source_id": "S008"
+        },
+        {
+          "rank": 18,
+          "score": 0.08891616353470476,
+          "source_id": "S011"
+        }
+      ],
+      "initial_source_ids": [
+        "S002",
+        "S006",
+        "S001",
+        "S004",
+        "S005"
+      ],
+      "planner": {
+        "missing_or_ambiguous_relation": "Evidence is needed about Jihoon Park’s broader cloud views or behavior beyond this specific DPA privacy gate, including any explicit pro/anti-cloud statements and whether similarly named Park Jieun is being confused with him.",
+        "queries": [
+          "\"Jihoon Park\" cloud risk acceptance objection",
+          "\"jihoon.park@abc.example\" cloud services"
+        ]
+      },
+      "planner_contract_ok": true,
+      "planner_receipt": {
+        "elapsed_seconds": 4.858,
+        "model": "gpt-5.6-luna"
+      },
+      "previously_missing_required_sources_for_measurement_only": [
+        "S003"
+      ],
+      "question": "Does the admitted evidence justify characterizing Jihoon Park as generally risk-averse or anti-cloud?",
+      "question_id": "Q010",
+      "selected_source_ids": [
+        "S002",
+        "S006",
+        "S005"
+      ],
+      "selector_contract_ok": true,
+      "selector_receipt": {
+        "elapsed_seconds": 3.75,
+        "model": "gpt-5.6-luna"
+      }
+    }
+  ],
+  "usage": {
+    "ai_credits_or_premium_requests": "unavailable_do_not_infer",
+    "model_calls": 12,
+    "tokens": "unavailable_unless_transport_exposes_machine_readable_usage"
+  }
+}
