@@ -29,6 +29,7 @@ jobs:
           python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_corpus.py
           python3 -m py_compile experiments/E023-generality-retrieval-composition/score_adjudication.py
           python3 -m py_compile experiments/E023-generality-retrieval-composition/analyze_selection_counterfactual.py
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_g1b_prereg.py
 
       - name: Validate frozen corpus and lexical diagnostic
         run: |
@@ -55,12 +56,26 @@ jobs:
           grep -q '"C@6": 10' /tmp/e023-selection.txt
           grep -q '"model_calls": 0' /tmp/e023-selection.txt
 
-      - name: Assert result boundaries
+      - name: Validate G1b targeted preregistration
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/validate_g1b_prereg.py \
+            | tee /tmp/e023-g1b.txt
+          grep -q '^E023 G1b prereg target validation: PASS$' /tmp/e023-g1b.txt
+          grep -q '"model_calls": 0' /tmp/e023-g1b.txt
+          grep -q '"Q001"' /tmp/e023-g1b.txt
+          grep -q '"Q010"' /tmp/e023-g1b.txt
+          grep -q '"max_semantic_calls_if_later_executed": 12' /tmp/e023-g1b.txt
+
+      - name: Assert result and preregistration boundaries
         run: |
           test -s experiments/E023-generality-retrieval-composition/results-v0.md
           test -s experiments/E023-generality-retrieval-composition/posthoc-zero-model-v0.md
+          test -s experiments/E023-generality-retrieval-composition/g1b-preregistration-v0.md
           test -s experiments/E023-generality-retrieval-composition/evidence/run-32215941344/result.json
           grep -q 'G1-C NOT EARNED' experiments/E023-generality-retrieval-composition/results-v0.md
           grep -q '^### What it does NOT earn$' experiments/E023-generality-retrieval-composition/results-v0.md
-          grep -q 'G1b' experiments/E023-generality-retrieval-composition/results-v0.md
+          grep -q '12 semantic model-call attempts' experiments/E023-generality-retrieval-composition/g1b-preregistration-v0.md
+          grep -q 'No G1b outcome directly authorizes' experiments/E023-generality-retrieval-composition/g1b-preregistration-v0.md
           test ! -e .github/workflows/e023-capture-frozen-g1-result.yml
+          test ! -e experiments/E023-generality-retrieval-composition/run_g1b.py
+          test ! -e remote-lab/e023-g1b-request.json
