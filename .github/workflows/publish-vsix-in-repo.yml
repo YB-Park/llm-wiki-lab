@@ -85,7 +85,9 @@ jobs:
 
           ## Install
 
-          In VS Code, open Extensions -> \`...\` -> **Install from VSIX...** and choose either file above. Open a trusted workspace, protect the configured Wiki directory from that Git repository, and run \`LLM Wiki: Initialize Workspace\` to explicitly opt that workspace in. \`LLM Wiki: Doctor (Zero Model Calls)\` is optional diagnostics and never initializes or enables the workspace.
+          In VS Code, open Extensions -> \`...\` -> **Install from VSIX...** and choose either file above. Open a trusted single-folder workspace, protect the configured project-memory directory from that Git repository, and run \`LLM Wiki: Set Up Project Memory\` to explicitly enable project memory for that workspace. \`LLM Wiki: Check Setup and Health\` is optional diagnostics and always makes **0 model calls / 0 state changes**.
+
+          AI summaries are optional and remain off until explicitly enabled for the workspace. Normal use is ordinary VS Code Agent conversation; users should not need to learn LLM Wiki tool names.
 
           ## Publishing rule
 
