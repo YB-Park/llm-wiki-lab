@@ -32,7 +32,7 @@
         "do not infer that the earlier privacy position was reversed or mistaken"
       ],
       "family": "identity_attribution",
-      "forbidden_conflation_sources": [],
+      "forbidden_conflation_sources": ["S005"],
       "question": "Did Jihoon Park's role change, and did his privacy position reverse?",
       "question_id": "Q003",
       "required_sources": ["S004", "S006"]
