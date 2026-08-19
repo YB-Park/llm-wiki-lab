@@ -1,0 +1,43 @@
+name: Validate E023 generality gate
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/**'
+      - 'docs/14-generality-and-semantic-projections.md'
+      - '.github/workflows/validate-e023-generality.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/**'
+      - 'docs/14-generality-and-semantic-projections.md'
+      - '.github/workflows/validate-e023-generality.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-e023-zero-model:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Compile zero-model validator
+        run: python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_corpus.py
+
+      - name: Validate frozen corpus and lexical diagnostic
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/validate_corpus.py \
+            | tee /tmp/e023-preflight.txt
+          grep -q '^E023 corpus integrity: PASS$' /tmp/e023-preflight.txt
+          grep -q '"model_calls": 0' /tmp/e023-preflight.txt
+          grep -q '"question_id": "Q001"' /tmp/e023-preflight.txt
+          grep -q '"question_id": "Q010"' /tmp/e023-preflight.txt
+
+      - name: Assert preregistration remains non-executing
+        run: |
+          test ! -e experiments/E023-generality-retrieval-composition/run_paid.py
+          test ! -e experiments/E023-generality-retrieval-composition/execute.py
+          grep -q 'Paid A/C execution must not begin until the preregistration is merged to `main`' experiments/E023-generality-retrieval-composition/README.md

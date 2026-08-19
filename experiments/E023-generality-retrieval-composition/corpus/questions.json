@@ -1,0 +1,127 @@
+{
+  "experiment": "E023",
+  "questions": [
+    {
+      "answer_requirements": [
+        "identify Park Jihoon / Jihoon Park / J.H. Park as the supported identity",
+        "connect the repeated DPA concern across meeting and direct-email evidence",
+        "do not conflate Park Jieun"
+      ],
+      "family": "identity_attribution",
+      "forbidden_conflation_sources": ["S005"],
+      "question": "Who was the ABC person who repeatedly raised the DPA concern?",
+      "question_id": "Q001",
+      "required_sources": ["S001", "S002", "S003", "S004"]
+    },
+    {
+      "answer_requirements": [
+        "distinguish direct authored email from meeting-note attribution",
+        "preserve the DPA-before-production-data substance",
+        "do not state meeting-note wording as a direct quote from Jihoon"
+      ],
+      "family": "identity_attribution",
+      "forbidden_conflation_sources": ["S005"],
+      "question": "What did Jihoon Park directly author about the DPA, and what was only attributed to him in meeting records?",
+      "question_id": "Q002",
+      "required_sources": ["S001", "S002", "S003", "S004"]
+    },
+    {
+      "answer_requirements": [
+        "state role changed from Privacy Counsel to Director of Data Governance",
+        "state the DPA review later completed",
+        "do not infer that the earlier privacy position was reversed or mistaken"
+      ],
+      "family": "identity_attribution",
+      "forbidden_conflation_sources": ["S005"],
+      "question": "Did Jihoon Park's role change, and did his privacy position reverse?",
+      "question_id": "Q003",
+      "required_sources": ["S004", "S006"]
+    },
+    {
+      "answer_requirements": [
+        "operational complexity was the reason",
+        "Redis was not rejected as technically poor",
+        "later synthetic contention did not itself reverse the decision"
+      ],
+      "family": "decision_rationale",
+      "forbidden_conflation_sources": [],
+      "question": "Why did Project Orchid decide not to use Redis, and did the later lock-contention test reverse that decision?",
+      "question_id": "Q004",
+      "required_sources": ["S007", "S008", "S009", "S010"]
+    },
+    {
+      "answer_requirements": [
+        "root cause was timeout-rollout retry storm",
+        "database saturation was downstream symptom",
+        "initial database-capacity explanation was an early hypothesis superseded by later evidence"
+      ],
+      "family": "incident_temporal",
+      "forbidden_conflation_sources": [],
+      "question": "What caused INC-77, and how should the initial database-capacity hypothesis be treated?",
+      "question_id": "Q005",
+      "required_sources": ["S011", "S012", "S013"]
+    },
+    {
+      "answer_requirements": [
+        "09:12 incident start",
+        "09:25 retry signal and rollback action",
+        "postmortem root cause retry storm",
+        "addendum corrected start time only and did not change root cause"
+      ],
+      "family": "incident_temporal",
+      "forbidden_conflation_sources": [],
+      "question": "Reconstruct the key INC-77 timeline and explain exactly what the addendum changed.",
+      "question_id": "Q006",
+      "required_sources": ["S011", "S012", "S013", "S014"]
+    },
+    {
+      "answer_requirements": [
+        "production data must remain in EU",
+        "backups/replicas are included",
+        "meeting uncertainty about DR location is not proof of compliance"
+      ],
+      "family": "vendor_constraint",
+      "forbidden_conflation_sources": [],
+      "question": "What EU data-residency constraint recurs across the Cobalt materials?",
+      "question_id": "Q007",
+      "required_sources": ["S015", "S016", "S017"]
+    },
+    {
+      "answer_requirements": [
+        "standard configuration can store backups in US and therefore conflicts with Cobalt requirement",
+        "EU-only option could satisfy residency if selected",
+        "do not treat encryption as resolving geographic non-compliance"
+      ],
+      "family": "vendor_constraint",
+      "forbidden_conflation_sources": [],
+      "question": "Does Northstar's standard disaster-recovery configuration satisfy Cobalt's requirement?",
+      "question_id": "Q008",
+      "required_sources": ["S015", "S017", "S018"]
+    },
+    {
+      "answer_requirements": [
+        "no, technical inferiority was not the reason",
+        "measured insufficiency of Postgres approach could reopen",
+        "unrealistic burst alone is not enough"
+      ],
+      "family": "decision_rationale",
+      "forbidden_conflation_sources": [],
+      "question": "Was Redis rejected because it was technically poor, and what evidence would justify reopening the decision?",
+      "question_id": "Q009",
+      "required_sources": ["S008", "S009", "S010"]
+    },
+    {
+      "answer_requirements": [
+        "answer no or unsupported",
+        "separate a specific DPA/privacy requirement from a broad personality or technology stance",
+        "note direct email explicitly says it is not a general objection to cloud services"
+      ],
+      "family": "identity_attribution",
+      "forbidden_conflation_sources": ["S005"],
+      "question": "Does the admitted evidence justify characterizing Jihoon Park as generally risk-averse or anti-cloud?",
+      "question_id": "Q010",
+      "required_sources": ["S001", "S002", "S003", "S006"]
+    }
+  ],
+  "version": 1
+}
