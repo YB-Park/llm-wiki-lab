@@ -35,16 +35,6 @@ jobs:
       - name: Apply reviewed 0.1.16 release patch
         run: |
           test -f .github/ux-release-016-patch.py
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path('.github/ux-release-016-patch.py')
-          text = p.read_text(encoding='utf-8')
-          bad = "must('register-lineage-tool', agentTools.includes('vscode.lm.registerTool(RESOLVE_LINEAGE_TOOL'));\\n"
-          good = "must('register-lineage-tool', agentTools.includes('vscode.lm.registerTool(RESOLVE_LINEAGE_TOOL')));\\n"
-          if bad not in text:
-              raise SystemExit('reviewed static marker not found')
-          p.write_text(text.replace(bad, good, 1), encoding='utf-8')
-          PY
           python3 .github/ux-release-016-patch.py
           git show HEAD^:.github/workflows/dogfood-v0.yml > .github/workflows/dogfood-v0.yml
       - name: Validate patched release files before commit
