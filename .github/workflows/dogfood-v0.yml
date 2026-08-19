@@ -149,7 +149,7 @@ jobs:
           test -f dist/unpacked/extension/process-errors.js
           test -f dist/unpacked/extension/python-runtime.js
           test -f dist/unpacked/extension/python-runtime-policy.js
-          test -f dist/unpacked/extension/media/walkthrough-ai-summaries.md'
+          test -f dist/unpacked/extension/media/walkthrough-ai-summaries.md
           xvfb-run -a npm run test:packaged
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v7
