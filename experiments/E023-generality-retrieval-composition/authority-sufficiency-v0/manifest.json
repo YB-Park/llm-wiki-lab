@@ -1,0 +1,45 @@
+{
+  "anchor_count": 15,
+  "anchor_text_sha256": {
+    "A001": "a414c0334a2ecf397813224f8a2c1f70732399708760906c657818b0a3ab2cfa",
+    "A002": "9cbb47f00750044c41485d40dff9e2c7b19a70ec774d201c34f8cfa518182f07",
+    "A003": "d1191e65f7057ba5a4d61929b6f7db09510ea4e2a8f6d8fd070e626792fa8910",
+    "A004": "1da88e1c1ff3aa626bca63860e692ec43df1a8e6aafbc1bc06081f4182c6b8e8",
+    "A005": "85a4e7410132deb1e2683b41d41d85b15147abbe8ee183ae6964f50d10cbcc3b",
+    "A006": "16d5e3fa4ec8e2a76a6e6d30b1b2a9ff8936aa4b27f6b335000fc20c912aaafa",
+    "A007": "f15539aa2189c2b24feab72d07e7a0b86922d42ba2d79c830dfb7dab3853b029",
+    "A008": "7db933c0e832795a615698cbcfd1fd2e14aae6ee8e9128c873491980276f6975",
+    "A009": "48202d5842fa161b85c07ece9e668500cc216060629768d5d055df5c7ebf2fe3",
+    "A010": "43495c0ae2322cc31e2c860a28cc8d9682dfde79d02463f0e37acac0e95f35e7",
+    "A011": "22e1e4e1a970e86e391e2080551a05dc0273fe50a0940c93573a99a63e1f902b",
+    "A012": "75112630b920aa5b23b02677c998689844669074115335ea76037dda721ad2d9",
+    "A013": "965a39da833d2cd66f3c1e29108d925580a9e521d2428c9d018559120fec1554",
+    "A014": "0b74c34b10c9db2a77d31d7764e05448d607b265ba94450c0dbea91c9f2339c1",
+    "A015": "b6bad7f5834ad027f804955daf32232186227237334a976bec77794701422e37"
+  },
+  "authority_type_counts": {
+    "HUMAN_KNOWLEDGE": 1,
+    "RAW_MEMORY": 14
+  },
+  "contract_canonical_sha256": "0a93b6c7f165cafee944f6fdb1151daf00651c5282bb0e5fb0d95fcac7fc1f52",
+  "evaluation_slice": "authority_sufficiency_v0",
+  "experiment": "E023",
+  "family_counts": {
+    "decision_rationale": 3,
+    "identity_attribution": 5,
+    "incident_temporal": 4,
+    "vendor_constraint": 3
+  },
+  "question_count": 6,
+  "question_spec_sha256": {
+    "AQ001": "891fd74badf7259550dbe5291b4ec502e78531023f732509f457963c01da3bd5",
+    "AQ002": "ab04cc26e6362c8e5777af0b0b2498234068f6da2a26eafb4725f03f2bf1451f",
+    "AQ003": "8f88e8398d4665db4cba724b63c561e2bc3f89b39ba1ee6b5d0ebf23cfe187ff",
+    "AQ004": "bd1cb7cc0f8741d3ca03f78d1bf09ba3ae16b9e48c3d67257f4150ec558aee90",
+    "AQ005": "e4078ea0ae354849374b9df52586b9841c6e3f068b22114d9290de416e9a7ea6",
+    "AQ006": "9853e43993f3bc3a02cbd6f9657855a16c60b661fb255a2d2e0cfb3f10f73e3c"
+  },
+  "reference_contexts_canonical_sha256": "534df91d32d51ee5ae1c6023c3c27b59506cf98a7758bbfccfa143b77de202f8",
+  "separation_rule": "No anchor ID or exact anchor text may overlap the frozen E023 G1 corpus. No model answer or semantic verdict is part of this material.",
+  "status": "PROSPECTIVE_ZERO_MODEL_EVALUATION_MATERIAL"
+}

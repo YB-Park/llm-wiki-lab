@@ -1,0 +1,70 @@
+{
+  "evaluation_slice": "authority_sufficiency_v0",
+  "experiment": "E023",
+  "questions": [
+    {
+      "family": "identity_attribution",
+      "load_bearing_propositions": [
+        "the recurring security contact is Maya Chen / M. Chen",
+        "the signing-key requirement was raised more than once",
+        "Mira Chen must not be conflated with the security contact"
+      ],
+      "question": "Who was the Atlas person who repeatedly required signing-key rotation before beta access?",
+      "question_id": "AQ001"
+    },
+    {
+      "family": "identity_attribution",
+      "load_bearing_propositions": [
+        "direct-authored wording must come from Maya Chen's email",
+        "meeting-note wording is attribution rather than direct authorship",
+        "M. Chen meeting attribution must be bridged explicitly to Maya Chen"
+      ],
+      "question": "What did Maya Chen directly author about signing-key rotation, and what was only attributed to her in meeting records?",
+      "question_id": "AQ002"
+    },
+    {
+      "family": "decision_rationale",
+      "load_bearing_propositions": [
+        "the decision and rationale are user-owned Human Knowledge",
+        "the rationale is operational ownership complexity rather than technical inferiority",
+        "the later unrealistic spike does not itself record a reversal"
+      ],
+      "question": "Why did the team decide not to add Kafka for the first release, and did the later 15x synthetic spike reverse that decision?",
+      "question_id": "AQ003"
+    },
+    {
+      "family": "incident_temporal",
+      "load_bearing_propositions": [
+        "the memory-leak explanation began as an unconfirmed hypothesis",
+        "retry behavior after the timeout rollout provides causal evidence",
+        "the postmortem identifies retry amplification as root cause and explicitly rejects the memory-leak hypothesis"
+      ],
+      "question": "What caused INC-204, and how should the initial memory-leak hypothesis be treated?",
+      "question_id": "AQ004"
+    },
+    {
+      "family": "incident_temporal",
+      "load_bearing_propositions": [
+        "the corrected start time is 10:02",
+        "the 10:17 retry signal and rollback matter",
+        "the final root cause is retry amplification",
+        "the addendum changes the start time only"
+      ],
+      "question": "Reconstruct the key INC-204 timeline and explain exactly what the addendum changed.",
+      "question_id": "AQ005"
+    },
+    {
+      "family": "vendor_constraint",
+      "load_bearing_propositions": [
+        "Maple's rule covers production data, backups, and replicas",
+        "encryption does not waive the geographic restriction",
+        "HelixCloud standard DR may place encrypted backups in the United States",
+        "a non-default Canada-only DR option exists"
+      ],
+      "question": "Does HelixCloud's standard disaster-recovery configuration satisfy Maple's Canada-only rule, and could the Canada-only option satisfy it?",
+      "question_id": "AQ006"
+    }
+  ],
+  "status": "SEPARATED_PROSPECTIVE_MATERIAL_NO_MODEL_ANSWERS",
+  "version": 1
+}

@@ -1,0 +1,205 @@
+{
+  "context_statuses": [
+    "INSUFFICIENT_AUTHORITY",
+    "SUFFICIENT_CLEAN",
+    "SUFFICIENT_WITH_CONFLATION_RISK"
+  ],
+  "contract_version": 1,
+  "experiment": "E023",
+  "gate": "G1_AUTHORITY_SUFFICIENCY_MEASUREMENT",
+  "purpose": "Measure whether a selected context contains sufficient typed terminal authority for every load-bearing proposition, separately from semantic answer quality and separately from forbidden-conflation risk.",
+  "questions": {
+    "AQ001": {
+      "clauses": [
+        {
+          "anchor_ids": ["A003"],
+          "clause_id": "identity_bridge",
+          "description": "An explicit project-directory bridge must establish that meeting abbreviation M. Chen refers to Maya Chen.",
+          "proposition_id": "target_identity",
+          "semantic_role": "identity_bridge",
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "type": "all_of"
+        },
+        {
+          "anchor_ids": ["A001", "A002", "A005"],
+          "clause_id": "repeated_key_rotation_requirement",
+          "description": "At least two admitted records must establish that the signing-key requirement recurred.",
+          "min_count": 2,
+          "proposition_id": "repeated_requirement",
+          "semantic_role": "repeated_support",
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "type": "min_count"
+        }
+      ],
+      "corroborating_optional_anchor_ids": [],
+      "forbidden_conflation_anchor_ids": ["A004"]
+    },
+    "AQ002": {
+      "clauses": [
+        {
+          "anchor_ids": ["A002"],
+          "clause_id": "direct_authorship",
+          "description": "Direct-authored wording requires Maya Chen's direct email.",
+          "proposition_id": "direct_authored_wording",
+          "semantic_role": "direct_attribution",
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "type": "all_of"
+        },
+        {
+          "anchor_ids": ["A001", "A005"],
+          "clause_id": "meeting_attribution",
+          "description": "At least one meeting record must establish meeting-note attribution rather than direct authorship.",
+          "proposition_id": "meeting_attributed_wording",
+          "semantic_role": "alternative_support",
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "type": "any_of"
+        },
+        {
+          "anchor_ids": ["A003"],
+          "clause_id": "identity_bridge",
+          "description": "The directory must bridge M. Chen in meeting records to Maya Chen.",
+          "proposition_id": "meeting_identity",
+          "semantic_role": "identity_bridge",
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "type": "all_of"
+        }
+      ],
+      "corroborating_optional_anchor_ids": [],
+      "forbidden_conflation_anchor_ids": ["A004"]
+    },
+    "AQ003": {
+      "clauses": [
+        {
+          "anchor_ids": ["A007"],
+          "clause_id": "user_owned_decision_and_rationale",
+          "description": "The first-release no-Kafka decision and its rationale must terminate in explicit user-owned Human Knowledge.",
+          "proposition_id": "first_release_decision",
+          "semantic_role": "human_knowledge_decision",
+          "terminal_authority_types": ["HUMAN_KNOWLEDGE"],
+          "type": "all_of"
+        },
+        {
+          "anchor_ids": ["A008"],
+          "clause_id": "later_spike_non_reversal",
+          "description": "The later synthetic spike must be present to establish that it was unrealistic and did not itself record a reversal.",
+          "proposition_id": "later_event_scope",
+          "semantic_role": "temporal_non_reversal",
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "type": "all_of"
+        }
+      ],
+      "corroborating_optional_anchor_ids": ["A006"],
+      "forbidden_conflation_anchor_ids": []
+    },
+    "AQ004": {
+      "clauses": [
+        {
+          "anchor_ids": ["A009"],
+          "clause_id": "early_hypothesis",
+          "description": "The memory-leak explanation must be shown as an unconfirmed early hypothesis.",
+          "proposition_id": "initial_hypothesis_status",
+          "semantic_role": "hypothesis_status",
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "type": "all_of"
+        },
+        {
+          "anchor_ids": ["A010"],
+          "clause_id": "causal_retry_signal",
+          "description": "The timeout-rollout retry signal and CPU response to disabling retries must be present.",
+          "proposition_id": "causal_signal",
+          "semantic_role": "causal_support",
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "type": "all_of"
+        },
+        {
+          "anchor_ids": ["A011"],
+          "clause_id": "final_root_cause_and_rejection",
+          "description": "The final postmortem must establish retry amplification as root cause and explicitly reject the memory-leak hypothesis.",
+          "proposition_id": "root_cause_and_negative_evidence",
+          "semantic_role": "negative_evidence",
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "type": "all_of"
+        }
+      ],
+      "corroborating_optional_anchor_ids": [],
+      "forbidden_conflation_anchor_ids": []
+    },
+    "AQ005": {
+      "clauses": [
+        {
+          "anchor_ids": ["A009", "A011", "A012"],
+          "clause_id": "corrected_start_time",
+          "description": "The corrected 10:02 start time may be established by any admitted record that explicitly records it.",
+          "proposition_id": "start_time",
+          "semantic_role": "alternative_support",
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "type": "any_of"
+        },
+        {
+          "anchor_ids": ["A010"],
+          "clause_id": "retry_signal_and_rollback",
+          "description": "The 10:17 retry signal and rollback action are required.",
+          "proposition_id": "mid_incident_signal",
+          "semantic_role": "temporal_event",
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "type": "all_of"
+        },
+        {
+          "anchor_ids": ["A011"],
+          "clause_id": "final_root_cause",
+          "description": "The final retry-amplification root cause is required.",
+          "proposition_id": "root_cause",
+          "semantic_role": "causal_support",
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "type": "all_of"
+        },
+        {
+          "anchor_ids": ["A012"],
+          "clause_id": "addendum_scope",
+          "description": "The addendum is required to establish that only the start time changed and the root cause did not.",
+          "proposition_id": "correction_scope",
+          "semantic_role": "temporal_correction",
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "type": "all_of"
+        }
+      ],
+      "corroborating_optional_anchor_ids": [],
+      "forbidden_conflation_anchor_ids": []
+    },
+    "AQ006": {
+      "clauses": [
+        {
+          "anchor_ids": ["A013"],
+          "clause_id": "canada_residency_scope",
+          "description": "The authoritative customer rule must establish that production data, backups, and replicas remain in Canada.",
+          "proposition_id": "customer_constraint",
+          "semantic_role": "unique_support",
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "type": "all_of"
+        },
+        {
+          "anchor_ids": ["A013"],
+          "clause_id": "encryption_not_waiver",
+          "description": "Explicit negative evidence must establish that encryption does not waive the geographic requirement.",
+          "proposition_id": "negative_constraint",
+          "semantic_role": "negative_evidence",
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "type": "all_of"
+        },
+        {
+          "anchor_ids": ["A014"],
+          "clause_id": "standard_and_canada_only_option",
+          "description": "The vendor response must establish both the standard US-backup behavior and the existence of a Canada-only non-default option.",
+          "proposition_id": "vendor_configuration",
+          "semantic_role": "vendor_capability",
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "type": "all_of"
+        }
+      ],
+      "corroborating_optional_anchor_ids": ["A015"],
+      "forbidden_conflation_anchor_ids": []
+    }
+  },
+  "status": "PROSPECTIVE_ZERO_MODEL_EVALUATION_CONTRACT",
+  "terminal_authority_types": ["RAW_MEMORY", "HUMAN_KNOWLEDGE"]
+}
