@@ -7,6 +7,7 @@ on:
       - 'remote-lab/e023-g1b-request.json'
       - 'docs/14-generality-and-semantic-projections.md'
       - '.github/workflows/validate-e023-generality.yml'
+      - '.github/workflows/e023-generality-g1c-r1.yml'
   push:
     branches: [main]
     paths:
@@ -14,6 +15,7 @@ on:
       - 'remote-lab/e023-g1b-request.json'
       - 'docs/14-generality-and-semantic-projections.md'
       - '.github/workflows/validate-e023-generality.yml'
+      - '.github/workflows/e023-generality-g1c-r1.yml'
   workflow_dispatch:
 
 permissions:
@@ -35,6 +37,8 @@ jobs:
           python3 -m py_compile experiments/E023-generality-retrieval-composition/score_g1b_adjudication.py
           python3 -m py_compile experiments/E023-generality-retrieval-composition/analyze_support_clauses.py
           python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_authority_sufficiency.py
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/analyze_g1c_r1_stage_transitions.py
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/score_g1c_r1_adjudication.py
 
       - name: Validate frozen corpus and lexical diagnostic
         run: |
@@ -102,6 +106,29 @@ jobs:
           grep -q '"g2_persistence_authorized": false' /tmp/e023-authority-sufficiency.txt
           grep -q '"g3_identity_routing_authorized": false' /tmp/e023-authority-sufficiency.txt
 
+      - name: Validate frozen G1c-R1 stage transitions
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/analyze_g1c_r1_stage_transitions.py \
+            | tee /tmp/e023-g1c-r1-stage.txt
+          grep -q '^E023 G1c-R1 zero-model stage analysis: PASS$' /tmp/e023-g1c-r1-stage.txt
+          grep -q '"model_calls": 0' /tmp/e023-g1c-r1-stage.txt
+          grep -q '"candidate_positive_authority_complete": "6/6"' /tmp/e023-g1c-r1-stage.txt
+          grep -q '"SUFFICIENT_CLEAN": 4' /tmp/e023-g1c-r1-stage.txt
+          grep -q '"INSUFFICIENT_AUTHORITY": 2' /tmp/e023-g1c-r1-stage.txt
+          grep -q '"frozen_retrieval_selection_verdict": "NOT_EARNED"' /tmp/e023-g1c-r1-stage.txt
+
+      - name: Validate frozen G1c-R1 adjudication arithmetic
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/score_g1c_r1_adjudication.py \
+            | tee /tmp/e023-g1c-r1-adjudication.txt
+          grep -q '^E023 G1c-R1 adjudication arithmetic: PASS$' /tmp/e023-g1c-r1-adjudication.txt
+          grep -q '"model_calls": 0' /tmp/e023-g1c-r1-adjudication.txt
+          grep -q '"retrieval_selection_verdict": "NOT_EARNED"' /tmp/e023-g1c-r1-adjudication.txt
+          grep -q '"B_semantic_improvements": 0' /tmp/e023-g1c-r1-adjudication.txt
+          grep -q '"B_semantic_regressions": 1' /tmp/e023-g1c-r1-adjudication.txt
+          grep -q '"B_new_critical_errors": 0' /tmp/e023-g1c-r1-adjudication.txt
+          grep -q '"candidate_pool_positive_authority_complete": "6/6"' /tmp/e023-g1c-r1-adjudication.txt
+
       - name: Assert frozen result boundaries
         run: |
           test -s experiments/E023-generality-retrieval-composition/results-v0.md
@@ -114,13 +141,25 @@ jobs:
           test -s experiments/E023-generality-retrieval-composition/authority-sufficiency-v0/contract.json
           test -s experiments/E023-generality-retrieval-composition/authority-sufficiency-v0/reference-contexts.json
           test -s experiments/E023-generality-retrieval-composition/authority-sufficiency-v0/manifest.json
+          test -s experiments/E023-generality-retrieval-composition/g1c-v0-execution-failure-v0.md
+          test -s experiments/E023-generality-retrieval-composition/g1c-r1-preregistration-v0.md
+          test -s experiments/E023-generality-retrieval-composition/g1c-r1-execution-addendum-v0.md
+          test -s experiments/E023-generality-retrieval-composition/g1c-r1-results-v0.md
+          test -s experiments/E023-generality-retrieval-composition/g1c-r1-adjudication-v0.json
           test -s experiments/E023-generality-retrieval-composition/evidence/run-32215941344/result.json
           test -s experiments/E023-generality-retrieval-composition/evidence/g1b-run-32217824760/result.json
+          test -s experiments/E023-generality-retrieval-composition/evidence/g1c-r1-run-32232116273/result.json
+          test -s experiments/E023-generality-retrieval-composition/evidence/g1c-r1-run-32232116273/result.sha256
+          test -s experiments/E023-generality-retrieval-composition/evidence/g1c-r1-run-32232116273/run-final.json
           test -s experiments/E023-generality-retrieval-composition/run_g1b.py
           test -s remote-lab/e023-g1b-request.json
           grep -q 'G1-C NOT EARNED' experiments/E023-generality-retrieval-composition/results-v0.md
           grep -q 'G1b PROMOTION NOT EARNED' experiments/E023-generality-retrieval-composition/g1b-results-v0.md
           grep -q 'DOES NOT CHANGE FROZEN VERDICTS' experiments/E023-generality-retrieval-composition/support-clause-analysis-v0.md
           grep -q 'PROSPECTIVELY FROZEN EVALUATION CONTRACT' experiments/E023-generality-retrieval-composition/authority-sufficiency-preregistration-v0.md
+          grep -q 'INVALID_EXECUTION' experiments/E023-generality-retrieval-composition/g1c-v0-execution-failure-v0.md
+          grep -q 'RETRIEVAL-SELECTION NOT EARNED' experiments/E023-generality-retrieval-composition/g1c-r1-results-v0.md
           grep -q 'No G1b outcome directly authorizes' experiments/E023-generality-retrieval-composition/g1b-preregistration-v0.md
+          grep -q "github.event_name == 'push' && github.sha == '5227ac2b3f93c4f807e388822bfff963d0041120'" .github/workflows/e023-generality-g1c-r1.yml
           test ! -e .github/workflows/e023-capture-frozen-g1-result.yml
+          test ! -e .github/workflows/e023-observe-g1c-run.yml
