@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Assert observer is zero-model
         run: |
-          grep -q "SOURCE_SHA='987ee7ec615f7eb869be59f14a1928a3811baeed'" .github/workflows/e023-observe-g1c-run.yml
+          grep -q "SOURCE_SHA: '987ee7ec615f7eb869be59f14a1928a3811baeed'" .github/workflows/e023-observe-g1c-run.yml
           test ! -e remote-lab/e023-g1c-observer-request.json
           ! grep -q 'copilot-requests: write' .github/workflows/e023-observe-g1c-run.yml
           ! grep -q -- '--execute-model' .github/workflows/e023-observe-g1c-run.yml
