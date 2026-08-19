@@ -26,19 +26,26 @@ jobs:
         with:
           ref: agent/release-ux-foundation-0.1.16
           fetch-depth: 0
-      - name: Fix reviewed patch marker and apply
+      - name: Apply reviewed patch
         run: |
+          test -f .github/ux-release-016-patch.py
           python3 - <<'PY'
           from pathlib import Path
           p = Path('.github/ux-release-016-patch.py')
           text = p.read_text(encoding='utf-8')
-          bad = "must('register-lineage-tool', agentTools.includes('vscode.lm.registerTool(RESOLVE_LINEAGE_TOOL'));\\n"
-          good = "must('register-lineage-tool', agentTools.includes('vscode.lm.registerTool(RESOLVE_LINEAGE_TOOL')));\\n"
-          if bad not in text:
-              raise SystemExit('reviewed static marker not found')
-          p.write_text(text.replace(bad, good, 1), encoding='utf-8')
+          strict = "replace_all(README, '0.1.15', '0.1.16')"
+          tolerant = "readme_path = ROOT / README\nreadme_text = readme_path.read_text(encoding='utf-8')\nreadme_path.write_text(readme_text.replace('0.1.15', '0.1.16'), encoding='utf-8')"
+          if strict not in text:
+              raise SystemExit('README release marker not found in patch script')
+          p.write_text(text.replace(strict, tolerant, 1), encoding='utf-8')
           PY
           python3 .github/ux-release-016-patch.py
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('docs/13-vscode-release-ux-audit.md')
+          p.write_text(p.read_text(encoding='utf-8').rstrip() + '\n', encoding='utf-8')
+          PY
+          git show 948c5c7707b6b144e4dcb084a0f2610863b2dfc0:.github/workflows/dogfood-v0.yml > .github/workflows/dogfood-v0.yml
       - name: Validate patched release files before commit
         run: |
           node --check dogfood/vscode/agent-tools.js
