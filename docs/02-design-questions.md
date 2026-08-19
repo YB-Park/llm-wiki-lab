@@ -80,10 +80,13 @@ W0 whole-object lexical retrieval remains the product floor. E023 shows that sou
 
 E023 Q001 produced a concrete trust failure: the explicit identity bridge was absent from context, yet Luna confidently merged `J.H. Park` with `Jihoon Park`. The merge happened to match frozen gold, but authority did not establish it.
 
+G1b then repaired that same case by evidence-aware follow-up retrieval: it recovered the explicit S004 identity bridge, selected it, dropped the same-surname distractor, and the unchanged composer moved Q001 from CRITICAL_ERROR to PASS.
+
 Current consequence:
 
 - identity/alias similarity is not authority;
 - high-consequence identity claims need an explicit authoritative bridge, further retrieval, or expressed ambiguity;
+- evidence-follow retrieval has a targeted positive signal;
 - do **not** add automatic entity merge/split, persistent identity objects, or graph infrastructure from this result.
 
 The architectural concept is broader than people: project/concept/vendor/incident/decision subject identity can have the same problem.
@@ -146,9 +149,11 @@ Terminal authority may be admitted RAW evidence or explicit HUMAN_KNOWLEDGE. DER
 **Status:** OPEN
 
 ### Q-PROV-004 — How should unsupported derived claims be detected or prevented?
-**Status:** **EXPERIMENTING — E023**
+**Status:** **EXPERIMENTING — E023 AUTHORITY-SUFFICIENCY GATE**
 
-E023 Q001 demonstrates a concrete unsupported semantic upgrade even when the final answer happens to be true. First test consequence-sensitive retrieval/uncertainty before adding a general verifier stack.
+Q001 shows that unsupported semantic upgrades can occur even when the guessed answer happens to be true. G1b shows that retrieving the missing authoritative bridge can repair the failure without a special-case composer prompt.
+
+The next controlled step is not a general verifier stack. First prospectively define how evaluation detects whether every load-bearing proposition had sufficient authority in context.
 
 ### Q-PROV-005 — How should users navigate from evidence back to the original local source?
 **Status:** EXPERIMENTING IN DOGFOOD
@@ -160,22 +165,22 @@ Navigation locators must remain separate from evidence identity/trust. Continue 
 ### Q-RET-001 — What is the baseline retrieval strategy?
 **Status:** **EXPERIMENTING — W0 FLOOR / E015 SHADOW / E023**
 
-Object-level lexical BM25 remains a credible simple floor. E023's exact-query A arm still achieved 8 PASS / 1 PARTIAL / 1 CRITICAL_ERROR across heterogeneous cross-source questions. Blind question-only planner + query rewrites + consensus RRF used twice the model calls and earned **0 semantic improvements**, so that G1a mechanism is not promoted.
+Object-level lexical BM25 remains a credible simple floor. E023 G1a's exact-query A arm achieved 8 PASS / 1 PARTIAL / 1 CRITICAL_ERROR across heterogeneous cross-source questions. Blind question-only planner + query rewrites + consensus RRF added 10 planner calls and earned **0 semantic improvements**, so that G1a mechanism is not promoted.
 
 ### Q-RET-002 — When must an answer descend to more authoritative evidence?
 **Status:** **EXPERIMENTING — NATURAL DOGFOOD + E023 G1**
 
-If a load-bearing identity/attribution/temporal relation is not established by current context, the Agent should retrieve more or surface uncertainty rather than silently bridge it. Q001 is the current controlled failure case.
+If a load-bearing identity/attribution/temporal relation is not established by current context, the Agent should retrieve more or surface uncertainty rather than silently bridge it. Q001 is the controlled case: G1b repaired it by recovering the missing authoritative identity bridge.
 
 ### Q-RET-003 — How should negative evidence and uncertainty be retrieved/expressed?
 **Status:** **EXPERIMENTING — E023**
 
-Q010 shows explicit negative evidence can successfully block an unsupported broad characterization. Q001 shows missing bridge evidence still needs consequence-sensitive uncertainty behavior.
+Q010 shows explicit negative evidence can successfully block an unsupported broad characterization. Q001 shows missing bridge evidence still needs consequence-sensitive retrieval or uncertainty behavior.
 
 ### Q-RET-004 — How should retrieval failures feed maintenance?
 **Status:** OPEN / DO NOT ASSUME PERSISTENCE
 
-First diagnose missing context vs composition error. A retrieval miss is not evidence that a persistent semantic page is required.
+First diagnose absent load-bearing authority vs composition error. A retrieval miss is not evidence that a persistent semantic page is required.
 
 ### Q-RET-005 — How should users recover knowledge when they forgot the topic?
 **Status:** EXPERIMENTING IN 0.1.16 DOGFOOD
@@ -183,11 +188,13 @@ First diagnose missing context vs composition error. A retrieval miss is not evi
 The Agent-facing `wikiMemory` path performs global current-evidence discovery; normal users no longer need to select a topic for the primary Agent loop. Keep validating natural routing rather than reopening the old manual topic ritual.
 
 ### Q-RET-006 — How should cross-source semantic recovery work before persistence?
-**Status:** **EXPERIMENTING — E023 G1**
+**Status:** **EXPERIMENTING — E023 G1 / PAID TUNING PAUSED**
 
-G1a is complete and **NOT_EARNED**: blind query expansion + RRF + top-5 did not outperform exact-query top-5. Zero-model posthoc shows C's four missing required sources all landed at fused rank 6, so selection/evidence budget remains a live simpler explanation.
+G1a is complete and **NOT_EARNED**: blind query expansion + RRF + top-5 did not outperform exact-query top-5.
 
-Next candidate, only after separate preregistration: **iterative evidence-follow retrieval** — initial search, inspect bounded hits/snippets, identify the missing relation, targeted follow-up search, then compose under a bounded evidence budget.
+G1b is also frozen **NOT_EARNED** under its preregistered broad promotion rule because only 1/4 previously-missing sources entered final context versus the required >=3/4. However, its semantic answers were 4 PASS, Q001 improved CRITICAL_ERROR -> PASS, and there were no regressions. The Q001 improvement came from recovering the explicit missing authority bridge with evidence-aware follow-up retrieval while keeping the composer prompt unchanged.
+
+This exposed that E023's flat `required_sources` metric conflated uniquely load-bearing authority with redundant corroboration. Do not run another paid retrieval-tuning gate until an authority-sufficiency evaluator is prospectively frozen on held-out/separated material.
 
 ## H. Human review and automation
 
@@ -207,14 +214,28 @@ Read/retrieval and reversible DERIVED maintenance may be autonomous inside grant
 ## I. Evaluation
 
 ### Q-EVAL-001 — What does “better Wiki” mean operationally?
-**Status:** **EXPERIMENTING — E010/E013/E015/E023 + NATURAL DOGFOOD**
+**Status:** **EXPERIMENTING — E023 AUTHORITY-SUFFICIENCY + NATURAL DOGFOOD**
 
-No single answer score is sufficient. E023 adds explicit separation of retrieval recall, semantic correctness, attribution/identity errors, epistemic upgrades, model-call cost, and posthoc selection behavior.
+No single answer score or flat source-recall score is sufficient.
+
+E023 now separates at least:
+
+- whether load-bearing authority was sufficient in context;
+- retrieval/selection behavior;
+- semantic correctness;
+- attribution/identity errors;
+- epistemic upgrades;
+- composition omissions when authority was present;
+- model-call cost.
+
+A posthoc zero-model hypothesis on frozen E023 contexts showed A and C were support-complete on 9/10 questions even though flat required-source completeness was only 6/10. The unique support-incomplete case was Q001, exactly the frozen CRITICAL_ERROR. Q008 was support-complete yet PARTIAL, isolating composition omission.
+
+This posthoc analysis does **not** rewrite frozen verdicts. The next step is to prospectively freeze an evaluation-only authority-sufficiency contract on held-out/separated material.
 
 ### Q-EVAL-002 — What corpus best approximates personal use?
 **Status:** EXPERIMENTING
 
-Use both natural private dogfood and controlled heterogeneous corpora. E023 exists because developer-project dogfood structurally favors developer-shaped `source-note-v0` and can hide a generality problem.
+Use both natural private dogfood and controlled heterogeneous corpora. E023 exists because developer-project dogfood structurally favors developer-shaped `source-note-v0` and can hide a generality problem. The next evaluator gate should use held-out or clearly separated material so support clauses are not reverse-engineered from known outcomes.
 
 ### Q-EVAL-003 — How do we measure maintenance debt?
 **Status:** OPEN
@@ -279,7 +300,7 @@ Current answer remains no. RAW/HUMAN authority remains recoverable; DERIVED proj
 ### Q-SYS-003 — How should one-off failures become durable system learning?
 **Status:** **EXPERIMENTING — E023 / DOGFOOD**
 
-E023 Q001 has already become an explicit trust failure class and design gate rather than a one-off prompt fix. Continue this pattern for natural failures.
+E023 Q001 has become an explicit trust failure class, evidence-follow mechanism test, and authority-sufficiency evaluation question rather than a one-off prompt fix. Continue this pattern for natural failures.
 
 ## Current critical path
 
@@ -288,14 +309,15 @@ Two tracks run in parallel and must not be confused.
 ### Product evidence
 
 1. Continue **natural installed Dogfood 0.1.16** across real sessions (Issue #141). Do not manufacture workload.
-2. Observe long-horizon recall, Agent routing/source follow-through, popup/soft-guard friction, causal errors, and hidden maintenance usage.
+2. Observe long-horizon recall, Agent routing/source follow-through, popup/soft-guard friction, causal errors, hidden maintenance usage, and real cross-source authority failures.
 
 ### Core architecture evidence
 
-1. E023 G1a is complete: blind planner/RRF is **NOT_EARNED** and G2 persistence remains unearned.
-2. Use the frozen E023 artifact for **zero-model** evidence-budget/selection analysis first.
-3. If another semantic gate is justified, preregister a narrow **G1b iterative evidence-follow retrieval** experiment before any calls.
-4. Only after a strong G1 path exists may a separate G2 compare ephemeral vs fixed-target persistent projection.
-5. G3 automatic identity/routing comes only after persistence itself earns value.
+1. E023 G1a is complete: blind planner/RRF is **NOT_EARNED**.
+2. E023 G1b is complete: broad frozen promotion is **NOT_EARNED**, but Q001 shows a real targeted evidence-follow trust repair.
+3. **Pause paid retrieval tuning.** Prospectively freeze an evaluation-only authority-sufficiency contract on held-out/separated material, with uniquely required authority, alternatives, repeated-support minima, negative evidence, identity/attribution bridges, and forbidden-conflation checks.
+4. Validate that evaluator with zero model calls before another semantic mechanism comparison.
+5. Only after a stronger G1 path and trustworthy evaluation exist may a separate G2 compare ephemeral vs fixed-target persistent projection.
+6. G3 automatic identity/routing comes only after persistence itself earns value.
 
 Do not reopen graph/entity/vector/ontology infrastructure merely because the semantic generality question is active.
