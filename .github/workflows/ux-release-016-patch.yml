@@ -7,6 +7,12 @@ on:
     paths:
       - '.github/ux-release-016-patch.py'
       - '.github/workflows/ux-release-016-patch.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/ux-release-016-patch.py'
+      - '.github/workflows/ux-release-016-patch.yml'
 
 permissions:
   contents: write
