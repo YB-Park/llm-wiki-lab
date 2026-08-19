@@ -1,0 +1,56 @@
+{
+  "adjudication_version": 1,
+  "comparison": {
+    "baseline_semantic_verdicts": {
+      "Q001": "CRITICAL_ERROR",
+      "Q002": "PASS",
+      "Q004": "PASS",
+      "Q010": "PASS"
+    },
+    "candidate_pool_missing_source_recovery_count": 2,
+    "final_context_missing_source_recovery_count": 1,
+    "g1b_promotion": "NOT_EARNED",
+    "new_critical_errors": 0,
+    "semantic_improvements": 1,
+    "semantic_regressions": 0,
+    "summary": "G1b repaired the Q001 critical identity failure and all four new answers passed, but the frozen retrieval promotion criterion failed because only 1/4 previously missing required sources entered final context versus the required >=3/4."
+  },
+  "experiment": "E023-G1b",
+  "result_sha256": "0b092a1b85577a12bb664fc9bee31a648b316fc317277d35454a9a72c0b7c2c1",
+  "run_id": 32217824760,
+  "run_source_sha": "7c604dd8d57a90c99526bdce5fb55fe7cdb7056f",
+  "verdicts": {
+    "Q001": {
+      "candidate_recovered_previously_missing_source": true,
+      "final_selected_previously_missing_source": true,
+      "previous_verdict": "CRITICAL_ERROR",
+      "reason": "The evidence-follow planner explicitly identified the missing alias/identity relation, retrieved S004 at rank 1, and the selector chose S001/S003/S004 while dropping same-surname distractor S005. The composer then used S004 as the explicit bridge for J.H. Park/Jihoon Park and grounded repeated DPA concern in S001/S003. The previous unsupported identity merge is repaired.",
+      "root_cause": "RETRIEVAL_AND_SELECTION_REPAIRED",
+      "verdict": "PASS"
+    },
+    "Q002": {
+      "candidate_recovered_previously_missing_source": false,
+      "final_selected_previously_missing_source": false,
+      "previous_verdict": "PASS",
+      "reason": "The follow-up queries did not bring previously missing S003 into the top-3 follow-up pool, but the selected S002/S001/S004 set is sufficient for the actual question: S002 is direct authorship, S001 is meeting attribution, and S004 bridges J.H. Park to Jihoon Park. The answer correctly preserves the distinction and does not regress.",
+      "root_cause": "REQUIRED_SOURCE_SET_CONTAINS_REDUNDANT_CORROBORATION",
+      "verdict": "PASS"
+    },
+    "Q004": {
+      "candidate_recovered_previously_missing_source": true,
+      "final_selected_previously_missing_source": false,
+      "previous_verdict": "PASS",
+      "reason": "Follow-up retrieval brought previously missing S008 into the temporary candidate pool, but the selector chose only S009/S010. Those two sources already establish the explicit no-Redis decision/rationale and the later unrealistic burst/non-reversal, so the answer remains fully correct despite failing the frozen missing-source-selection criterion.",
+      "root_cause": "SELECTOR_DROPPED_REDUNDANT_CORROBORATION",
+      "verdict": "PASS"
+    },
+    "Q010": {
+      "candidate_recovered_previously_missing_source": false,
+      "final_selected_previously_missing_source": false,
+      "previous_verdict": "PASS",
+      "reason": "The follow-up queries did not recover S003. The selector chose S002/S006/S005; S002 explicitly says the DPA requirement is not a general objection to cloud services, S006 does not establish a broader reversal, and S005 is correctly used only to distinguish Park Jieun from Jihoon Park. The broad characterization is correctly rejected without semantic regression.",
+      "root_cause": "REQUIRED_SOURCE_SET_CONTAINS_REDUNDANT_CORROBORATION",
+      "verdict": "PASS"
+    }
+  }
+}

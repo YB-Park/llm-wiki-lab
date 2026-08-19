@@ -1,0 +1,206 @@
+{
+  "experiment": "E023",
+  "status": "POSTHOC_ZERO_MODEL_HYPOTHESIS_NOT_PRIMARY_GROUND_TRUTH",
+  "purpose": "Test whether logical load-bearing authority clauses explain frozen semantic outcomes better than flat all-required-source recall. This file does not modify any preregistered verdict or promotion rule and is not a product claim graph schema.",
+  "questions": {
+    "Q001": {
+      "clauses": [
+        {
+          "clause_id": "identity_bridge",
+          "description": "Authoritative evidence must bridge J.H. Park / Park Jihoon / Jihoon Park for the identity claim.",
+          "type": "all_of",
+          "source_ids": ["S004"]
+        },
+        {
+          "clause_id": "repeated_dpa_concern",
+          "description": "At least two independent admitted records must support that the privacy contact raised/reiterated the DPA concern repeatedly.",
+          "type": "min_count",
+          "source_ids": ["S001", "S002", "S003"],
+          "min_count": 2
+        }
+      ],
+      "forbidden_conflation_sources": ["S005"]
+    },
+    "Q002": {
+      "clauses": [
+        {
+          "clause_id": "direct_authorship",
+          "description": "Direct-authored DPA wording requires Jihoon's direct email.",
+          "type": "all_of",
+          "source_ids": ["S002"]
+        },
+        {
+          "clause_id": "meeting_attribution",
+          "description": "At least one meeting record must attribute the DPA concern/request to J.H. Park / Park rather than treat it as direct authored text.",
+          "type": "any_of",
+          "source_ids": ["S001", "S003"]
+        },
+        {
+          "clause_id": "identity_bridge",
+          "description": "To attribute J.H. Park meeting statements to Jihoon Park, the explicit identity bridge is required.",
+          "type": "all_of",
+          "source_ids": ["S004"]
+        }
+      ],
+      "forbidden_conflation_sources": ["S005"]
+    },
+    "Q003": {
+      "clauses": [
+        {
+          "clause_id": "earlier_role",
+          "description": "Earlier Privacy Counsel role.",
+          "type": "all_of",
+          "source_ids": ["S004"]
+        },
+        {
+          "clause_id": "later_role_and_gate_closure",
+          "description": "Later Director of Data Governance role plus DPA completion/no statement that earlier position was mistaken.",
+          "type": "all_of",
+          "source_ids": ["S006"]
+        }
+      ],
+      "forbidden_conflation_sources": ["S005"]
+    },
+    "Q004": {
+      "clauses": [
+        {
+          "clause_id": "decision_and_rationale",
+          "description": "Explicit first-release no-Redis decision and operational-complexity rationale.",
+          "type": "all_of",
+          "source_ids": ["S009"]
+        },
+        {
+          "clause_id": "later_test_non_reversal",
+          "description": "Later 20x burst is unrealistic and does not reverse the decision.",
+          "type": "all_of",
+          "source_ids": ["S010"]
+        }
+      ],
+      "corroborating_optional_sources": ["S007", "S008"],
+      "forbidden_conflation_sources": []
+    },
+    "Q005": {
+      "clauses": [
+        {
+          "clause_id": "early_hypothesis",
+          "description": "Initial database-capacity explanation was explicitly an unconfirmed early hypothesis.",
+          "type": "all_of",
+          "source_ids": ["S011"]
+        },
+        {
+          "clause_id": "retry_signal",
+          "description": "Retry increase after timeout rollout and CPU response to pausing retries.",
+          "type": "all_of",
+          "source_ids": ["S012"]
+        },
+        {
+          "clause_id": "final_root_cause",
+          "description": "Final postmortem identifies timeout-rollout retry storm and database CPU as downstream symptom.",
+          "type": "all_of",
+          "source_ids": ["S013"]
+        }
+      ],
+      "forbidden_conflation_sources": []
+    },
+    "Q006": {
+      "clauses": [
+        {
+          "clause_id": "start_time_0912",
+          "description": "09:12 start time may be established by an original or corrected admitted record.",
+          "type": "any_of",
+          "source_ids": ["S011", "S013", "S014"]
+        },
+        {
+          "clause_id": "0925_retry_and_rollback",
+          "description": "09:25 retry signal and rollback action.",
+          "type": "all_of",
+          "source_ids": ["S012"]
+        },
+        {
+          "clause_id": "final_root_cause",
+          "description": "Final retry-storm root cause.",
+          "type": "all_of",
+          "source_ids": ["S013"]
+        },
+        {
+          "clause_id": "addendum_scope",
+          "description": "Addendum corrects start time only and preserves root cause.",
+          "type": "all_of",
+          "source_ids": ["S014"]
+        }
+      ],
+      "forbidden_conflation_sources": []
+    },
+    "Q007": {
+      "clauses": [
+        {
+          "clause_id": "production_eu_residency",
+          "description": "Production data and subprocessors must remain in EU.",
+          "type": "all_of",
+          "source_ids": ["S015"]
+        },
+        {
+          "clause_id": "dr_uncertainty",
+          "description": "Meeting record shows DR-copy location was not confirmed and therefore is not proof of compliance.",
+          "type": "all_of",
+          "source_ids": ["S016"]
+        },
+        {
+          "clause_id": "backups_replicas_included",
+          "description": "Direct clarification includes backups and replicas in EU-only requirement.",
+          "type": "all_of",
+          "source_ids": ["S017"]
+        }
+      ],
+      "forbidden_conflation_sources": []
+    },
+    "Q008": {
+      "clauses": [
+        {
+          "clause_id": "cobalt_backup_requirement",
+          "description": "Cobalt explicitly requires backups/replicas to remain EU-only.",
+          "type": "all_of",
+          "source_ids": ["S017"]
+        },
+        {
+          "clause_id": "northstar_standard_and_option",
+          "description": "Northstar standard DR may store US backups and an EU-only non-default option exists.",
+          "type": "all_of",
+          "source_ids": ["S018"]
+        }
+      ],
+      "corroborating_optional_sources": ["S015"],
+      "forbidden_conflation_sources": []
+    },
+    "Q009": {
+      "clauses": [
+        {
+          "clause_id": "decision_rationale_and_reopen_rule",
+          "description": "No-Redis rationale is operations complexity, not technical inferiority, and measured insufficiency can reopen it.",
+          "type": "all_of",
+          "source_ids": ["S009"]
+        },
+        {
+          "clause_id": "unrealistic_burst_not_enough",
+          "description": "20x synthetic burst is unrealistic and calls for profiling/realistic measurement rather than automatic reversal.",
+          "type": "all_of",
+          "source_ids": ["S010"]
+        }
+      ],
+      "corroborating_optional_sources": ["S008"],
+      "forbidden_conflation_sources": []
+    },
+    "Q010": {
+      "clauses": [
+        {
+          "clause_id": "explicit_narrow_scope_negative_evidence",
+          "description": "Direct evidence says the DPA requirement is specific and not a general objection to cloud services, blocking the broad anti-cloud characterization.",
+          "type": "all_of",
+          "source_ids": ["S002"]
+        }
+      ],
+      "corroborating_optional_sources": ["S001", "S003", "S006"],
+      "forbidden_conflation_sources": ["S005"]
+    }
+  }
+}
