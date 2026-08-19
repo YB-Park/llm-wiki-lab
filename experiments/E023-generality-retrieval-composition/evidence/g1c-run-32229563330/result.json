@@ -1,0 +1,749 @@
+{
+  "arms": {
+    "A": [
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "identity_bridge",
+              "satisfied": false
+            },
+            {
+              "clause_id": "repeated_key_rotation_requirement",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "A004"
+          ],
+          "missing_clause_ids": [
+            "identity_bridge"
+          ],
+          "status": "INSUFFICIENT_AUTHORITY"
+        },
+        "composer": {
+          "answer": "The Atlas person was Maya Chen of Atlas Security. M. Chen made the request in the July 2 review and reiterated it on July 15 (A001, A005); a July 5 email identifies the sender as Maya Chen and repeats the requirement (A002).",
+          "cited_anchor_ids": [
+            "A001",
+            "A002",
+            "A005"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 4.673,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Who was the Atlas person who repeatedly required signing-key rotation before beta access?",
+        "question_id": "AQ001",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "A005",
+            "rank": 1,
+            "score": 11.443655133725056
+          },
+          {
+            "anchor_id": "A002",
+            "rank": 2,
+            "score": 8.195484733397382
+          },
+          {
+            "anchor_id": "A001",
+            "rank": 3,
+            "score": 7.834133054940375
+          },
+          {
+            "anchor_id": "A006",
+            "rank": 4,
+            "score": 4.299739889258504
+          },
+          {
+            "anchor_id": "A004",
+            "rank": 5,
+            "score": 3.925153880560119
+          },
+          {
+            "anchor_id": "A003",
+            "rank": 6,
+            "score": 1.65472769601948
+          },
+          {
+            "anchor_id": "A011",
+            "rank": 7,
+            "score": 1.6002702781077534
+          },
+          {
+            "anchor_id": "A012",
+            "rank": 8,
+            "score": 0.17966887490009414
+          },
+          {
+            "anchor_id": "A014",
+            "rank": 9,
+            "score": 0.1727089615251981
+          },
+          {
+            "anchor_id": "A008",
+            "rank": 10,
+            "score": 0.17081837082534795
+          },
+          {
+            "anchor_id": "A007",
+            "rank": 11,
+            "score": 0.1671587032893159
+          },
+          {
+            "anchor_id": "A010",
+            "rank": 12,
+            "score": 0.16600611175757318
+          },
+          {
+            "anchor_id": "A013",
+            "rank": 13,
+            "score": 0.15106615691671593
+          },
+          {
+            "anchor_id": "A015",
+            "rank": 14,
+            "score": 0.15106615691671593
+          },
+          {
+            "anchor_id": "A009",
+            "rank": 15,
+            "score": 0.1496177243042332
+          }
+        ],
+        "selected_anchor_ids": [
+          "A005",
+          "A002",
+          "A001",
+          "A006",
+          "A004"
+        ]
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "direct_authorship",
+              "satisfied": true
+            },
+            {
+              "clause_id": "meeting_attribution",
+              "satisfied": true
+            },
+            {
+              "clause_id": "identity_bridge",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "A004"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "composer": {
+          "answer": "Maya Chen directly authored an email stating that signing keys must be rotated before beta access begins, clarifying that this was a key-management requirement rather than a general objection to managed cloud KMS products (A002). Meeting records only attributed the same signing-key rotation request to “M. Chen” from Atlas Security; they did not establish that Chen authored those notes (A001, A005). The directory identifies “M. Chen” as Maya Chen, Staff Security Engineer, with the matching email address (A003).",
+          "cited_anchor_ids": [
+            "A002",
+            "A001",
+            "A005",
+            "A003"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 4.846,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "What did Maya Chen directly author about signing-key rotation, and what was only attributed to her in meeting records?",
+        "question_id": "AQ002",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "A005",
+            "rank": 1,
+            "score": 8.350182302538155
+          },
+          {
+            "anchor_id": "A002",
+            "rank": 2,
+            "score": 8.024888109042775
+          },
+          {
+            "anchor_id": "A004",
+            "rank": 3,
+            "score": 6.509238136043892
+          },
+          {
+            "anchor_id": "A001",
+            "rank": 4,
+            "score": 6.36142502896552
+          },
+          {
+            "anchor_id": "A003",
+            "rank": 5,
+            "score": 5.9703038111774624
+          },
+          {
+            "anchor_id": "A015",
+            "rank": 6,
+            "score": 3.971033389183181
+          },
+          {
+            "anchor_id": "A013",
+            "rank": 7,
+            "score": 3.7035972389284177
+          },
+          {
+            "anchor_id": "A006",
+            "rank": 8,
+            "score": 3.5546442218712175
+          },
+          {
+            "anchor_id": "A014",
+            "rank": 9,
+            "score": 3.461316142393165
+          },
+          {
+            "anchor_id": "A007",
+            "rank": 10,
+            "score": 2.8948861556201497
+          },
+          {
+            "anchor_id": "A008",
+            "rank": 11,
+            "score": 2.1419215789605333
+          },
+          {
+            "anchor_id": "A010",
+            "rank": 12,
+            "score": 1.864738114479994
+          },
+          {
+            "anchor_id": "A012",
+            "rank": 13,
+            "score": 1.5327177723906902
+          },
+          {
+            "anchor_id": "A011",
+            "rank": 14,
+            "score": 1.4410399260137545
+          },
+          {
+            "anchor_id": "A009",
+            "rank": 15,
+            "score": 1.1659076266341335
+          }
+        ],
+        "selected_anchor_ids": [
+          "A005",
+          "A002",
+          "A004",
+          "A001",
+          "A003"
+        ]
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "user_owned_decision_and_rationale",
+              "satisfied": true
+            },
+            {
+              "clause_id": "later_spike_non_reversal",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "composer": {
+          "answer": "The team deferred Kafka for the first release because operating another stateful platform would add ownership and failure-mode complexity; this was not a judgment that Kafka was technically poor. The existing Postgres-backed queue already met first-release latency and throughput targets under realistic load, so no Kafka comparison was needed (A007, A006). The later approximately 15x spike did not reverse the decision: it was intentionally unrealistic for current traffic, and the note explicitly says it recorded no reversal. The next step was realistic measurement (A008).",
+          "cited_anchor_ids": [
+            "A007",
+            "A006",
+            "A008"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 5.021,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Why did the team decide not to add Kafka for the first release, and did the later 15x synthetic spike reverse that decision?",
+        "question_id": "AQ003",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "A007",
+            "rank": 1,
+            "score": 15.289614504309242
+          },
+          {
+            "anchor_id": "A008",
+            "rank": 2,
+            "score": 9.759331917831434
+          },
+          {
+            "anchor_id": "A006",
+            "rank": 3,
+            "score": 7.383792883743168
+          },
+          {
+            "anchor_id": "A004",
+            "rank": 4,
+            "score": 6.063391617493338
+          },
+          {
+            "anchor_id": "A013",
+            "rank": 5,
+            "score": 4.578826438695623
+          },
+          {
+            "anchor_id": "A002",
+            "rank": 6,
+            "score": 4.452996322819146
+          },
+          {
+            "anchor_id": "A010",
+            "rank": 7,
+            "score": 4.258927189314738
+          },
+          {
+            "anchor_id": "A001",
+            "rank": 8,
+            "score": 3.9182722798060694
+          },
+          {
+            "anchor_id": "A015",
+            "rank": 9,
+            "score": 2.8360362300487285
+          },
+          {
+            "anchor_id": "A005",
+            "rank": 10,
+            "score": 2.759026294054449
+          },
+          {
+            "anchor_id": "A009",
+            "rank": 11,
+            "score": 1.6147607995468332
+          },
+          {
+            "anchor_id": "A014",
+            "rank": 12,
+            "score": 1.1038466057833451
+          },
+          {
+            "anchor_id": "A012",
+            "rank": 13,
+            "score": 0.5390066247002825
+          },
+          {
+            "anchor_id": "A011",
+            "rank": 14,
+            "score": 0.4776910562819964
+          }
+        ],
+        "selected_anchor_ids": [
+          "A007",
+          "A008",
+          "A006",
+          "A004",
+          "A013"
+        ]
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "early_hypothesis",
+              "satisfied": true
+            },
+            {
+              "clause_id": "causal_retry_signal",
+              "satisfied": true
+            },
+            {
+              "clause_id": "final_root_cause_and_rejection",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "composer": {
+          "answer": "INC-204 was caused by the client-timeout rollout triggering retry amplification; elevated CPU was a downstream symptom, and disabling automatic retries reduced CPU and queue depth [A011] [A010]. Treat the initial memory-leak hypothesis as an unconfirmed early hypothesis that was later rejected because heap analysis found no memory leak [A009] [A011].",
+          "cited_anchor_ids": [
+            "A011",
+            "A010",
+            "A009"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 6.206,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "What caused INC-204, and how should the initial memory-leak hypothesis be treated?",
+        "question_id": "AQ004",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "A009",
+            "rank": 1,
+            "score": 14.372232153148339
+          },
+          {
+            "anchor_id": "A011",
+            "rank": 2,
+            "score": 11.189248973217664
+          },
+          {
+            "anchor_id": "A010",
+            "rank": 3,
+            "score": 6.266269574969208
+          },
+          {
+            "anchor_id": "A012",
+            "rank": 4,
+            "score": 2.738211981867017
+          },
+          {
+            "anchor_id": "A014",
+            "rank": 5,
+            "score": 1.8870217095466097
+          },
+          {
+            "anchor_id": "A015",
+            "rank": 6,
+            "score": 1.5554190987128387
+          },
+          {
+            "anchor_id": "A005",
+            "rank": 7,
+            "score": 1.4268831550725916
+          },
+          {
+            "anchor_id": "A013",
+            "rank": 8,
+            "score": 1.3332590944246838
+          },
+          {
+            "anchor_id": "A006",
+            "rank": 9,
+            "score": 1.3042618857571118
+          },
+          {
+            "anchor_id": "A007",
+            "rank": 10,
+            "score": 1.091210036974274
+          },
+          {
+            "anchor_id": "A001",
+            "rank": 11,
+            "score": 0.1845320215665385
+          },
+          {
+            "anchor_id": "A008",
+            "rank": 12,
+            "score": 0.17081837082534795
+          },
+          {
+            "anchor_id": "A004",
+            "rank": 13,
+            "score": 0.1454344189301763
+          },
+          {
+            "anchor_id": "A002",
+            "rank": 14,
+            "score": 0.13534324177344065
+          }
+        ],
+        "selected_anchor_ids": [
+          "A009",
+          "A011",
+          "A010",
+          "A012",
+          "A014"
+        ]
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "corrected_start_time",
+              "satisfied": true
+            },
+            {
+              "clause_id": "retry_signal_and_rollback",
+              "satisfied": true
+            },
+            {
+              "clause_id": "final_root_cause",
+              "satisfied": true
+            },
+            {
+              "clause_id": "addendum_scope",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "composer": {
+          "answer": "INC-204 began at 10:02 on July 21, when API CPU was elevated and latency rising; a memory leak was only an unconfirmed initial hypothesis (A009). By 10:17, retries had risen after the client-timeout rollout, and disabling automatic retries reduced CPU and queue depth as rollback began (A010). The postmortem concluded that the rollout caused retry amplification, with elevated CPU as a downstream symptom; heap analysis rejected the memory-leak hypothesis (A011). The addendum changed only the incident start time, correcting the earlier 10:00 entry to 10:02; it did not change the retry-amplification root-cause assessment (A012).",
+          "cited_anchor_ids": [
+            "A009",
+            "A010",
+            "A011",
+            "A012"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 5.341,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Reconstruct the key INC-204 timeline and explain exactly what the addendum changed.",
+        "question_id": "AQ005",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "A012",
+            "rank": 1,
+            "score": 7.692286638333239
+          },
+          {
+            "anchor_id": "A009",
+            "rank": 2,
+            "score": 4.235157602275156
+          },
+          {
+            "anchor_id": "A010",
+            "rank": 3,
+            "score": 4.01430693529878
+          },
+          {
+            "anchor_id": "A011",
+            "rank": 4,
+            "score": 2.7239673382082947
+          },
+          {
+            "anchor_id": "A005",
+            "rank": 5,
+            "score": 2.1758925206610646
+          },
+          {
+            "anchor_id": "A002",
+            "rank": 6,
+            "score": 2.0307563547841165
+          },
+          {
+            "anchor_id": "A013",
+            "rank": 7,
+            "score": 1.4843252513413998
+          },
+          {
+            "anchor_id": "A006",
+            "rank": 8,
+            "score": 1.4738768260311539
+          },
+          {
+            "anchor_id": "A007",
+            "rank": 9,
+            "score": 1.25836874026359
+          },
+          {
+            "anchor_id": "A001",
+            "rank": 10,
+            "score": 0.369064043133077
+          },
+          {
+            "anchor_id": "A014",
+            "rank": 11,
+            "score": 0.3454179230503962
+          },
+          {
+            "anchor_id": "A008",
+            "rank": 12,
+            "score": 0.3416367416506959
+          },
+          {
+            "anchor_id": "A015",
+            "rank": 13,
+            "score": 0.30213231383343186
+          },
+          {
+            "anchor_id": "A004",
+            "rank": 14,
+            "score": 0.2908688378603526
+          }
+        ],
+        "selected_anchor_ids": [
+          "A012",
+          "A009",
+          "A010",
+          "A011",
+          "A005"
+        ]
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "canada_residency_scope",
+              "satisfied": true
+            },
+            {
+              "clause_id": "encryption_not_waiver",
+              "satisfied": true
+            },
+            {
+              "clause_id": "standard_and_canada_only_option",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "composer": {
+          "answer": "No. HelixCloud’s standard disaster-recovery configuration does not satisfy Maple’s Canada-only rule because encrypted backups may be stored in the United States, while Maple’s geographic restriction applies to backups and replicas and is not waived by encryption (A014, A013). The Canada-only disaster-recovery option could satisfy the rule if it ensures every backup and replica remains in Canada, but the supplied authority only confirms that the option is available—not that it guarantees this outcome—so compliance is not conclusively established (A014, A013).",
+          "cited_anchor_ids": [
+            "A014",
+            "A013"
+          ],
+          "insufficient_authority": true
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 6.331,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Does HelixCloud's standard disaster-recovery configuration satisfy Maple's Canada-only rule, and could the Canada-only option satisfy it?",
+        "question_id": "AQ006",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "A014",
+            "rank": 1,
+            "score": 21.970149246628075
+          },
+          {
+            "anchor_id": "A015",
+            "rank": 2,
+            "score": 18.467343940963474
+          },
+          {
+            "anchor_id": "A013",
+            "rank": 3,
+            "score": 8.436083221906099
+          },
+          {
+            "anchor_id": "A003",
+            "rank": 4,
+            "score": 5.315471704345919
+          },
+          {
+            "anchor_id": "A007",
+            "rank": 5,
+            "score": 3.721559501602696
+          },
+          {
+            "anchor_id": "A001",
+            "rank": 6,
+            "score": 3.3478003282195523
+          },
+          {
+            "anchor_id": "A012",
+            "rank": 7,
+            "score": 3.2451044196814745
+          },
+          {
+            "anchor_id": "A008",
+            "rank": 8,
+            "score": 1.5460518224164872
+          },
+          {
+            "anchor_id": "A009",
+            "rank": 9,
+            "score": 1.3155253509383666
+          },
+          {
+            "anchor_id": "A006",
+            "rank": 10,
+            "score": 1.3042618857571118
+          },
+          {
+            "anchor_id": "A010",
+            "rank": 11,
+            "score": 1.2567836526658795
+          },
+          {
+            "anchor_id": "A005",
+            "rank": 12,
+            "score": 0.16368434795676795
+          },
+          {
+            "anchor_id": "A011",
+            "rank": 13,
+            "score": 0.1592303520939988
+          },
+          {
+            "anchor_id": "A004",
+            "rank": 14,
+            "score": 0.1454344189301763
+          },
+          {
+            "anchor_id": "A002",
+            "rank": 15,
+            "score": 0.13534324177344065
+          }
+        ],
+        "selected_anchor_ids": [
+          "A014",
+          "A015",
+          "A013",
+          "A003",
+          "A007"
+        ]
+      }
+    ],
+    "B": []
+  },
+  "execute_model": true,
+  "execution_source_sha": "987ee7ec615f7eb869be59f14a1928a3811baeed",
+  "format": "E023-G1c-v0",
+  "interpretation_boundary": "G1c compares exact BM25 with temporary evidence-follow retrieval/selection under a prospectively frozen authority-sufficiency evaluator. No result directly authorizes persistence, entity/graph storage, or automatic routing.",
+  "model": "gpt-5.6-luna",
+  "model_call_attempts": 6,
+  "request": {
+    "a_composer_calls": 6,
+    "b_composer_calls": 6,
+    "b_planner_calls": 6,
+    "b_selector_calls": 6,
+    "candidate_followup_top_k": 3,
+    "final_anchor_limit": 5,
+    "initial_top_k": 5,
+    "max_ai_credits_per_call": 30,
+    "max_followup_queries": 2,
+    "max_model_call_attempts": 24,
+    "model": "gpt-5.6-luna",
+    "planner_snippet_chars": 320,
+    "question_count": 6,
+    "request_id": "e023-g1c-authority-sufficiency-evidence-follow-v0"
+  },
+  "retrieval_selection_verdict": "NOT_EXECUTED",
+  "usage": {
+    "ai_credits_or_premium_requests": "unavailable_do_not_infer",
+    "model_calls": 6,
+    "tokens": "unavailable_unless_transport_exposes_machine_readable_usage"
+  }
+}
