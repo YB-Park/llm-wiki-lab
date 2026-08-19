@@ -1,0 +1,125 @@
+{
+  "adjudication_version": 1,
+  "experiment": "E023-G1c-R1",
+  "r1": {
+    "run_id": 32232116273,
+    "execution_source_sha": "5227ac2b3f93c4f807e388822bfff963d0041120",
+    "exact_model": "gpt-5.6-luna",
+    "model_call_attempts": 18,
+    "semantic_rerolls": 0,
+    "result_sha256": "8f3e77163db92f7dff0b0a9aed5776c6dadd0eebfdb122fbfecf4313d0dae822",
+    "execution_complete": true,
+    "retrieval_selection_verdict": "NOT_EARNED"
+  },
+  "v0_boundary": {
+    "run_id": 32229563330,
+    "status": "INVALID_EXECUTION",
+    "use_of_A_outputs": "A outputs are immutable auxiliary semantic baselines only. They do not make v0 a completed G1c comparison and do not rewrite the R1 retrieval-selection verdict."
+  },
+  "authority_stage_summary": {
+    "A_initial": {
+      "SUFFICIENT_CLEAN": 4,
+      "SUFFICIENT_WITH_CONFLATION_RISK": 1,
+      "INSUFFICIENT_AUTHORITY": 1
+    },
+    "R1_candidate_pool": {
+      "SUFFICIENT_CLEAN": 4,
+      "SUFFICIENT_WITH_CONFLATION_RISK": 2,
+      "INSUFFICIENT_AUTHORITY": 0
+    },
+    "R1_final_selected": {
+      "SUFFICIENT_CLEAN": 4,
+      "SUFFICIENT_WITH_CONFLATION_RISK": 0,
+      "INSUFFICIENT_AUTHORITY": 2
+    },
+    "candidate_pool_positive_authority_complete": "6/6",
+    "selector_clean_improvements": ["AQ002"],
+    "selector_regressions_from_candidate_pool": ["AQ001", "AQ004"],
+    "strict_promotion": "NOT_EARNED",
+    "targeted_signal_promotion": "NOT_EARNED"
+  },
+  "A_auxiliary_semantic_verdicts": {
+    "AQ001": {
+      "verdict": "CRITICAL_ERROR",
+      "root_cause": "RETRIEVAL_ROOTED_UNSUPPORTED_IDENTITY_MERGE",
+      "reason": "The exact top-5 lacks the explicit A003 M. Chen/Maya Chen identity bridge and contains same-surname distractor A004, yet the composer confidently identifies M. Chen as Maya Chen and marks authority sufficient. The identity happens to match the frozen material but is not established by the supplied context."
+    },
+    "AQ002": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The context contains direct email A002, meeting attribution A001/A005, and explicit identity bridge A003. Despite A004 being present as a distractor, the answer correctly distinguishes direct authorship from meeting attribution and does not conflate Mira Chen."
+    },
+    "AQ003": {
+      "verdict": "PARTIAL",
+      "root_cause": "COMPOSITION_EPISTEMIC_TYPE_OMISSION",
+      "reason": "The answer correctly states the decision rationale and non-reversal, but it presents the load-bearing decision as an ordinary team fact without surfacing that A007 is explicit user-owned HUMAN_KNOWLEDGE rather than independently observed external evidence."
+    },
+    "AQ004": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "A009/A010/A011 are present and the answer preserves the initial unconfirmed hypothesis, the retry signal, the final retry-amplification root cause, and rejection of the memory-leak hypothesis."
+    },
+    "AQ005": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The answer reconstructs 10:02, the 10:17 retry/rollback signal, the final retry-amplification cause, and the addendum's start-time-only correction from sufficient authority."
+    },
+    "AQ006": {
+      "verdict": "PARTIAL",
+      "root_cause": "COMPOSITION_OVERCAUTIOUS_INSUFFICIENCY",
+      "reason": "The context is support-complete for the frozen question: standard DR may use US backups, Maple covers backups/replicas and rejects encryption as a waiver, and a Canada-only option exists. The answer correctly says the option could satisfy the rule but then marks authority insufficient and adds a stronger guarantee requirement than the frozen proposition requires."
+    }
+  },
+  "B_R1_semantic_verdicts": {
+    "AQ001": {
+      "verdict": "CRITICAL_ERROR",
+      "root_cause": "SELECTOR_DROPPED_RECOVERED_IDENTITY_BRIDGE_THEN_COMPOSER_OVERCLAIMED",
+      "reason": "Follow-up retrieval recovered A003 into the candidate pool, making the positive authority clauses complete, and the selector removed distractor A004. But it also dropped A003, leaving the final context without the identity bridge. The composer again confidently identifies M. Chen as Maya Chen and marks authority sufficient."
+    },
+    "AQ002": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The selector removes A004 while retaining A002, A001/A005, and A003. The final context is SUFFICIENT_CLEAN and the answer correctly preserves direct authorship, meeting attribution, and identity."
+    },
+    "AQ003": {
+      "verdict": "PARTIAL",
+      "root_cause": "COMPOSITION_EPISTEMIC_TYPE_OMISSION",
+      "reason": "The selected context is SUFFICIENT_CLEAN and the decision/rationale/non-reversal are correct, but the answer again does not make explicit that the load-bearing decision authority A007 is HUMAN_KNOWLEDGE rather than external RAW evidence."
+    },
+    "AQ004": {
+      "verdict": "FAIL_RETRIEVAL",
+      "root_cause": "SELECTOR_OVERCOMPRESSION_REGRESSION",
+      "reason": "The initial and candidate contexts are SUFFICIENT_CLEAN, but the selector compresses them to A011 alone. This drops the explicit A009 unconfirmed early-hypothesis record and A010 causal retry/rollback signal required by the prospective authority contract. The answer states the final root cause and rejection but omits the load-bearing causal evidence path."
+    },
+    "AQ005": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The selector retains A009/A010/A011/A012 and the answer correctly covers the corrected start time, retry signal/rollback, final cause, and addendum scope."
+    },
+    "AQ006": {
+      "verdict": "PARTIAL",
+      "root_cause": "COMPOSITION_OVERCAUTIOUS_INSUFFICIENCY",
+      "reason": "The final context is SUFFICIENT_CLEAN using A013/A014. The answer correctly rejects standard DR and says the Canada-only option could satisfy the rule, but it still marks authority insufficient and adds a guarantee caveat beyond the frozen proposition."
+    }
+  },
+  "semantic_summary": {
+    "A_auxiliary": {
+      "PASS": 3,
+      "PARTIAL": 2,
+      "FAIL_RETRIEVAL": 0,
+      "FAIL_COMPOSITION": 0,
+      "CRITICAL_ERROR": 1
+    },
+    "B_R1": {
+      "PASS": 2,
+      "PARTIAL": 2,
+      "FAIL_RETRIEVAL": 1,
+      "FAIL_COMPOSITION": 0,
+      "CRITICAL_ERROR": 1
+    },
+    "B_semantic_improvements_vs_A_auxiliary": 0,
+    "B_semantic_regressions_vs_A_auxiliary": 1,
+    "B_new_critical_errors_vs_A_auxiliary": 0
+  },
+  "core_interpretation": "G1c-R1 does not earn the evidence-follow final-selection policy. Follow-up candidate generation is a positive mechanism signal because the candidate pools contain sufficient positive authority for all six questions, including recovery of the missing AQ001 identity bridge. The failure is concentrated in authority-preserving selection: the selector discards the recovered AQ001 bridge and regresses clean AQ004 to an insufficient single-source context. Separate composition issues remain for explicit HUMAN_KNOWLEDGE typing and overcautious sufficiency judgments. This does not authorize G2 persistence or G3 identity/routing."
+}
