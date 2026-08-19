@@ -1,0 +1,18 @@
+{
+  "artifact": {
+    "digest": "sha256:6fa06bf50e4eeccbce846d1b63444b225ecf095e5bdeead82c37a960980739db",
+    "id": 9357657606,
+    "name": "e023-g1c-r1-32232116273",
+    "size_in_bytes": 6798
+  },
+  "conclusion": "success",
+  "createdAt": "2026-08-19T08:20:20Z",
+  "databaseId": 32232116273,
+  "event": "push",
+  "headSha": "5227ac2b3f93c4f807e388822bfff963d0041120",
+  "run_attempt": 1,
+  "status": "completed",
+  "updatedAt": "2026-08-19T08:22:07Z",
+  "url": "https://github.com/YB-Park/llm-wiki-lab/actions/runs/32232116273",
+  "workflow": "E023 generality G1c-R1"
+}
