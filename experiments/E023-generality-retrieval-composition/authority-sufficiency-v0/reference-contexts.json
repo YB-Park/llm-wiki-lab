@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {"case_id":"AQ001-clean","expected_status":"SUFFICIENT_CLEAN","question_id":"AQ001","selected_anchor_ids":["A001","A002","A003"]},
+    {"case_id":"AQ001-missing-bridge","expected_status":"INSUFFICIENT_AUTHORITY","question_id":"AQ001","selected_anchor_ids":["A001","A002"]},
+    {"case_id":"AQ001-risk","expected_status":"SUFFICIENT_WITH_CONFLATION_RISK","question_id":"AQ001","selected_anchor_ids":["A001","A002","A003","A004"]},
+    {"case_id":"AQ002-clean","expected_status":"SUFFICIENT_CLEAN","question_id":"AQ002","selected_anchor_ids":["A001","A002","A003"]},
+    {"case_id":"AQ002-missing-bridge","expected_status":"INSUFFICIENT_AUTHORITY","question_id":"AQ002","selected_anchor_ids":["A001","A002"]},
+    {"case_id":"AQ002-risk","expected_status":"SUFFICIENT_WITH_CONFLATION_RISK","question_id":"AQ002","selected_anchor_ids":["A001","A002","A003","A004"]},
+    {"case_id":"AQ003-clean","expected_status":"SUFFICIENT_CLEAN","question_id":"AQ003","selected_anchor_ids":["A007","A008"]},
+    {"case_id":"AQ003-missing-human-decision","expected_status":"INSUFFICIENT_AUTHORITY","question_id":"AQ003","selected_anchor_ids":["A008"]},
+    {"case_id":"AQ004-clean","expected_status":"SUFFICIENT_CLEAN","question_id":"AQ004","selected_anchor_ids":["A009","A010","A011"]},
+    {"case_id":"AQ004-missing-signal","expected_status":"INSUFFICIENT_AUTHORITY","question_id":"AQ004","selected_anchor_ids":["A009","A011"]},
+    {"case_id":"AQ005-clean","expected_status":"SUFFICIENT_CLEAN","question_id":"AQ005","selected_anchor_ids":["A010","A011","A012"]},
+    {"case_id":"AQ005-missing-root-cause","expected_status":"INSUFFICIENT_AUTHORITY","question_id":"AQ005","selected_anchor_ids":["A010","A012"]},
+    {"case_id":"AQ006-clean","expected_status":"SUFFICIENT_CLEAN","question_id":"AQ006","selected_anchor_ids":["A013","A014"]},
+    {"case_id":"AQ006-missing-customer-rule","expected_status":"INSUFFICIENT_AUTHORITY","question_id":"AQ006","selected_anchor_ids":["A014"]}
+  ],
+  "status": "ZERO_MODEL_EVALUATOR_REFERENCE_CASES",
+  "version": 1
+}

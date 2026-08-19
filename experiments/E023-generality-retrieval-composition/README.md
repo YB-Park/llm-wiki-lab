@@ -1,92 +1,130 @@
 # E023 — Generality Retrieval / Composition Gate
 
-Status: **G1-C NOT EARNED / RESULT RECORDED**  
+Status: **G1a NOT EARNED / G1b NOT EARNED / AUTHORITY-SUFFICIENCY EVALUATION CONTRACT PROSPECTIVELY FROZEN**  
 Tracking: Issue #160  
 Product baseline: Dogfood 0.1.16
 
 ## Question
 
-Can LLM Wiki recover trustworthy **cross-source semantic knowledge** from heterogeneous admitted evidence without first introducing persistent entity/graph/ontology state?
+Can LLM Wiki recover trustworthy **cross-source semantic knowledge** from heterogeneous admitted authority without first introducing persistent entity/graph/ontology state?
 
-E023 is intentionally **not** an entity-system experiment. It tests simpler retrieval/composition explanations before semantic persistence.
+E023 is intentionally **not** an entity-system experiment. It tests retrieval/composition explanations first and now freezes a better way to measure whether the required authority actually reached the composer.
 
 ## Core architecture guardrail
 
-- The Trust / Authority Core remains knowledge-type agnostic.
+- The Authority Core remains knowledge-type agnostic.
 - `source-note-v0` is one source-oriented **DERIVED projection**, not the ontology of LLM Wiki.
-- A load-bearing derived statement must resolve to an authoritative anchor whose epistemic type remains explicit: admitted RAW evidence or explicit HUMAN_KNOWLEDGE. DERIVED state is never terminal authority.
-- Semantic persistence is an optimization that must earn itself; it is not the default definition of knowledge.
+- Every load-bearing derived statement must resolve to explicit terminal authority: admitted `RAW_MEMORY` or explicit `HUMAN_KNOWLEDGE`.
+- `DERIVED_MEMORY` may help retrieval/compilation/navigation but is not terminal authority.
+- Semantic persistence is an optimization that must earn itself after a strong query-time path exists.
 
 ## Three gates, in order
 
-### G1 — Retrieval / Composition — **active**
+1. **G1 Retrieval / Composition** — active.
+2. **G2 Persistence** — future only if a strong G1 path still shows a persistence-shaped need.
+3. **G3 Identity / Routing** — last, only if persistent semantic targets themselves earn value.
 
-Test whether authoritative evidence can be found and composed at query time without persistent semantic state.
+A G1 failure does not authorize G2. A G2 success would not automatically authorize G3.
 
-The first G1 comparison is complete:
+## G1a — blind planned retrieval — complete / NOT EARNED
 
-- **A:** exact-question BM25 top-5 → Luna composer;
-- **C/G1a:** question-only Luna planner → 1–3 blind query rewrites → BM25 + RRF(k=60) → same top-5 evidence budget → same composer.
+Frozen run `32215941344`, exact `gpt-5.6-luna`, 30 calls, zero semantic rerolls.
 
-Frozen run `32215941344` used 30 exact-Luna calls with zero semantic rerolls.
+- **A:** exact-question BM25 top-5 -> composer.
+- **C:** question-only planner -> 1–3 blind query rewrites -> BM25 + deterministic RRF -> same top-5 -> same composer.
 
-Result:
+Frozen semantic result:
 
 - A: **8 PASS / 1 PARTIAL / 1 CRITICAL_ERROR**;
 - C: **8 PASS / 1 PARTIAL / 1 CRITICAL_ERROR**;
-- C semantic improvements over A: **0**;
-- C closed required-source recall@5 gaps: **0 / 4**;
-- therefore **blind query expansion + consensus RRF is not earned**.
+- C semantic improvements: **0**;
+- promotion: **NOT_EARNED**.
 
-The critical Q001 failure is the most important evidence: both arms omitted the explicit identity bridge S004 but confidently merged `J.H. Park` with `Jihoon Park`. The answer happened to match frozen gold, but the supplied authority did not establish the merge.
+Q001 was the key trust failure. Both arms omitted the explicit S004 identity bridge but confidently merged `J.H. Park` with `Jihoon Park`. The merge happened to match frozen gold, but the supplied authority did not establish it.
 
-See `results-v0.md` and `adjudication-v0.json`.
+> **Truth-by-luck is not trustworthy semantic recovery.**
 
-### G1b — next candidate, not yet authorized
+## G1b — evidence-follow retrieval — complete / frozen promotion NOT EARNED
 
-Stay inside retrieval/composition. A separately preregistered follow-up may test **iterative evidence-follow retrieval**:
+Frozen run `32217824760`, exact `gpt-5.6-luna`, 12 calls, zero rerolls.
 
-1. retrieve first candidates;
-2. inspect bounded metadata/snippets;
-3. identify a concrete missing/ambiguous relation;
-4. issue targeted follow-up retrieval;
-5. compose under the same bounded evidence budget;
-6. require uncertainty for high-consequence identity/attribution when no explicit authoritative bridge was recovered.
+G1b used:
 
-Do zero-model counterfactual analysis of the frozen G1 artifact before authorizing more semantic calls.
+> exact-query top-5 -> inspect bounded evidence -> identify a missing/ambiguous relation -> targeted follow-up BM25 -> bounded selector -> unchanged G1a composer.
 
-### G2 — Persistence — future only if earned
+Frozen result:
 
-Hold a strong retrieval/composition procedure fixed, then compare ephemeral synthesis with a fixed-identity persistent derived projection. G1a's failure does **not** authorize G2.
+- previously-missing source reached candidate pool: **2 / 4**;
+- previously-missing source entered final context: **1 / 4**;
+- semantic verdicts: **4 PASS**;
+- Q001: **CRITICAL_ERROR -> PASS**;
+- regressions: **0**;
+- promotion: **NOT_EARNED** because the preregistered final-recovery threshold was >=3/4.
 
-### G3 — Identity / Routing — last
+The targeted signal is still important: Q001 was repaired because evidence-follow retrieval recovered S004, selected the explicit identity bridge, and dropped the same-surname distractor while the composer prompt stayed unchanged.
 
-Only if persistence itself demonstrates value may a later experiment test identity candidates, alias routing, merge/split, or bounded automatic target routing.
+## Evaluation finding — authority sufficiency is not flat source completeness
 
-## Frozen corpus
+Posthoc zero-model analysis of already-frozen contexts found:
 
-18 normalized text sources / 10 cross-source questions / four families:
+- G1a A flat required-source complete: **6/10**; load-bearing support complete: **9/10**;
+- G1a C flat required-source complete: **6/10**; load-bearing support complete: **9/10**;
+- G1b final contexts: **4/4 support-complete**;
+- unique G1a support-incomplete question: **Q001**, exactly the frozen critical error;
+- Q008: support-complete yet semantically PARTIAL, isolating a composition omission.
 
-- identity / attribution / role-over-time;
-- project decision rationale;
-- incident timeline / hypothesis correction;
-- vendor constraint conflict.
+This does not rewrite any frozen verdict.
 
-The person-heavy cases are stress tests, not a product proposal for people profiles. Binary PDF/DOCX/MSG extraction remains a separate provenance/adapter axis.
+The better measurement question is:
 
-## Evidence
+> **Did the selected context contain enough typed authoritative support to establish every load-bearing proposition?**
 
-- preregistration merge: `17d1a2798357c2723c4776a7fa45ffc081124c9f`;
-- execution-contract merge/source: `7315b858ed5ce764fa81ed131ee17f77c1ea11ae`;
-- frozen run: `32215941344`;
-- immutable captured result: `evidence/run-32215941344/result.json`;
-- result SHA-256: `e578feb61454f124fce2294bf1a8e6ce396de213984cd889f760343f788c779a`;
-- model calls: **30**;
-- token totals: unknown — transport did not expose machine-readable totals in this runner;
-- AI credits/premium requests: unknown — never infer from call count.
+## Prospective authority-sufficiency contract — zero-model / no paid run
+
+`authority-sufficiency-preregistration-v0.md` and `authority-sufficiency-v0/` freeze a new separated evaluation slice before any new semantic answer is generated.
+
+The package contains:
+
+- 15 new typed authoritative anchors;
+- 6 new questions;
+- explicit `RAW_MEMORY` and load-bearing `HUMAN_KNOWLEDGE`;
+- `all_of`, `any_of`, and `min_count` support clauses;
+- unique support, alternatives, repeated-support minima, identity bridges, attribution, negative evidence, temporal correction, and forbidden conflation;
+- 14 deterministic zero-model reference contexts;
+- no model answers or semantic verdicts.
+
+The evaluator distinguishes:
+
+- `INSUFFICIENT_AUTHORITY`;
+- `SUFFICIENT_CLEAN`;
+- `SUFFICIENT_WITH_CONFLATION_RISK`.
+
+Forbidden-conflation risk is deliberately not collapsed into missing positive authority.
+
+Run:
+
+```bash
+python3 experiments/E023-generality-retrieval-composition/validate_authority_sufficiency.py
+```
+
+Expected first line:
+
+```text
+E023 authority-sufficiency prereg validation: PASS
+```
+
+This evaluation representation is **not** a product claim graph, semantic storage schema, or authorization for G2/G3.
+
+## Current next decision
+
+Paid retrieval tuning remains paused.
+
+After this prospective evaluator contract is merged and validated, decide whether another **G1 retrieval/selection/composition** mechanism comparison deserves semantic calls. Any such run requires a separate frozen preregistration and execution contract.
+
+Do not jump from G1a/G1b to persistent dossiers, graph/entity infrastructure, vector defaults, or automatic identity/routing.
 
 ## Relationship to the product
 
-Dogfood 0.1.16 remains unchanged. E023 adds no graph, entity store, vector default, background worker, new canonical schema, or product binary behavior.
+Dogfood 0.1.16 remains unchanged.
 
-Natural multi-session dogfood continues in parallel. E023 exists because developer-project dogfood strongly favors the current developer-shaped source-note projection and cannot be the only generality test.
+Natural installed dogfood continues in parallel because controlled corpora cannot establish long-horizon value, ambient routing behavior, popup/spend friction, or whether useful reasoning is recovered days or weeks later.

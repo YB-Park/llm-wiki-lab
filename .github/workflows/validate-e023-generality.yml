@@ -34,6 +34,7 @@ jobs:
           python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_g1b_prereg.py
           python3 -m py_compile experiments/E023-generality-retrieval-composition/score_g1b_adjudication.py
           python3 -m py_compile experiments/E023-generality-retrieval-composition/analyze_support_clauses.py
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_authority_sufficiency.py
 
       - name: Validate frozen corpus and lexical diagnostic
         run: |
@@ -87,12 +88,32 @@ jobs:
           grep -q '"C": 9' /tmp/e023-support-clauses.txt
           grep -q '"G1b_targets": 4' /tmp/e023-support-clauses.txt
 
+      - name: Validate prospective authority-sufficiency contract
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/validate_authority_sufficiency.py \
+            | tee /tmp/e023-authority-sufficiency.txt
+          grep -q '^E023 authority-sufficiency prereg validation: PASS$' /tmp/e023-authority-sufficiency.txt
+          grep -q '"model_calls": 0' /tmp/e023-authority-sufficiency.txt
+          grep -q '"anchor_count": 15' /tmp/e023-authority-sufficiency.txt
+          grep -q '"question_count": 6' /tmp/e023-authority-sufficiency.txt
+          grep -q '"HUMAN_KNOWLEDGE": 1' /tmp/e023-authority-sufficiency.txt
+          grep -q '"SUFFICIENT_WITH_CONFLATION_RISK": 2' /tmp/e023-authority-sufficiency.txt
+          grep -q '"semantic_calls_authorized": false' /tmp/e023-authority-sufficiency.txt
+          grep -q '"g2_persistence_authorized": false' /tmp/e023-authority-sufficiency.txt
+          grep -q '"g3_identity_routing_authorized": false' /tmp/e023-authority-sufficiency.txt
+
       - name: Assert frozen result boundaries
         run: |
           test -s experiments/E023-generality-retrieval-composition/results-v0.md
           test -s experiments/E023-generality-retrieval-composition/g1b-preregistration-v0.md
           test -s experiments/E023-generality-retrieval-composition/g1b-results-v0.md
           test -s experiments/E023-generality-retrieval-composition/support-clause-analysis-v0.md
+          test -s experiments/E023-generality-retrieval-composition/authority-sufficiency-preregistration-v0.md
+          test -s experiments/E023-generality-retrieval-composition/authority-sufficiency-v0/anchors.jsonl
+          test -s experiments/E023-generality-retrieval-composition/authority-sufficiency-v0/questions.json
+          test -s experiments/E023-generality-retrieval-composition/authority-sufficiency-v0/contract.json
+          test -s experiments/E023-generality-retrieval-composition/authority-sufficiency-v0/reference-contexts.json
+          test -s experiments/E023-generality-retrieval-composition/authority-sufficiency-v0/manifest.json
           test -s experiments/E023-generality-retrieval-composition/evidence/run-32215941344/result.json
           test -s experiments/E023-generality-retrieval-composition/evidence/g1b-run-32217824760/result.json
           test -s experiments/E023-generality-retrieval-composition/run_g1b.py
@@ -100,5 +121,6 @@ jobs:
           grep -q 'G1-C NOT EARNED' experiments/E023-generality-retrieval-composition/results-v0.md
           grep -q 'G1b PROMOTION NOT EARNED' experiments/E023-generality-retrieval-composition/g1b-results-v0.md
           grep -q 'DOES NOT CHANGE FROZEN VERDICTS' experiments/E023-generality-retrieval-composition/support-clause-analysis-v0.md
+          grep -q 'PROSPECTIVELY FROZEN EVALUATION CONTRACT' experiments/E023-generality-retrieval-composition/authority-sufficiency-preregistration-v0.md
           grep -q 'No G1b outcome directly authorizes' experiments/E023-generality-retrieval-composition/g1b-preregistration-v0.md
           test ! -e .github/workflows/e023-capture-frozen-g1-result.yml
