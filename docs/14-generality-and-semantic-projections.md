@@ -110,6 +110,8 @@ Strong identifiers such as an email address or external contact ID are **identit
 
 Resolve ambiguity when consequence requires it rather than forcing every mention into a durable merge/split decision during ingest.
 
+E023 G1 makes this boundary concrete: when an explicit identity bridge was omitted from context, Luna confidently merged two aliases anyway. The final merge happened to match frozen gold, but the context did not establish it. **Truth-by-luck is not trustworthy semantic recovery.**
+
 ## Query-time synthesis is a first-class architecture option
 
 An LLM-facing Wiki differs from a human-only wiki: a useful semantic page may be assembled on demand and discarded.
@@ -119,6 +121,8 @@ The baseline competitor for persistent semantic infrastructure is therefore incr
 > authoritative evidence + strong retrieval/planning + enough context + capable LLM
 
 If that baseline reliably answers cross-source questions, not persisting a dossier is a positive architecture result, not a missing feature.
+
+E023 G1 also narrows what “strong retrieval/planning” means. A question-only planner that emits several blind query rewrites and combines them with consensus RRF is **not automatically stronger** than a simple exact-query baseline. Retrieval planning should be judged by whether it brings missing load-bearing authority into bounded context, not by whether it produces more queries.
 
 ## Evaluation discipline
 
@@ -139,6 +143,8 @@ Generality cannot be reduced to one answer score. Separate at least:
 
 When an answer fails, first determine whether the required evidence was absent from context (**retrieval failure**) or present but mishandled (**composition failure**) before proposing persistent semantic structure.
 
+Some failures are joint: E023 Q001 was **retrieval-rooted** because the explicit identity bridge was absent, but also **epistemic/compositional** because the model should have surfaced uncertainty instead of converting circumstantial similarity into a supported identity claim.
+
 ## Separate axis: source-container ingestion
 
 PDF/DOCX/MSG/EML support is a distinct provenance/adapter problem. Future source adapters may need original immutable artifact identity, normalized rendition, extractor/version metadata, and structural locators.
@@ -151,11 +157,21 @@ Do not combine binary extraction quality with the first semantic-generality expe
 - E017 also showed a CPython failure where the correct long source was retrieved but the decisive region was omitted from context: evidence that retrieval/context construction can mimic a “memory architecture” failure.
 - E021 showed fixed-target persistent cross-source concept compounding can work with Luna, but did not test discovery, routing, identity, or whether persistence is necessary.
 - Natural P7 dogfood remains essential, but its developer-project source mix is favorable to the current developer-shaped source-note projection and therefore cannot be the only generality test.
+- **E023 G1 frozen run `32215941344`:** simple A and planned C both scored 8 PASS / 1 PARTIAL / 1 CRITICAL_ERROR. C added 10 planner calls but produced 0 semantic improvements and closed 0/4 required-source recall@5 gaps. The critical Q001 failure was an unsupported identity merge with the explicit alias bridge absent from both contexts.
 
 ## Current action
 
-E023 tests **G1 Retrieval / Composition only**. It introduces no product semantic store.
+Stay inside **G1 Retrieval / Composition**.
 
-If E023 shows query-time planning/composition value, use that result before considering persistence. If it fails, diagnose retrieval versus composition. Do not leap to a graph/entity architecture.
+The first planned-query mechanism is not earned as a default. Do **not** interpret that result as evidence for G2 persistence.
+
+Before any more semantic calls:
+
+1. analyze the frozen G1 artifact with zero-model counterfactual selection/fusion checks;
+2. if the remaining failure is worth another controlled gate, preregister a narrower **iterative evidence-follow** path: initial retrieval → inspect bounded hits/snippets → identify the specific missing relation → targeted follow-up retrieval → same bounded final context;
+3. add consequence-sensitive answer behavior: when a load-bearing identity/attribution relation lacks an explicit authoritative bridge, surface uncertainty rather than silently merging;
+4. keep 0.1.16 product behavior unchanged until controlled evidence and natural dogfood jointly justify a product slice.
+
+Do not move to persistent semantic dossiers, graph/entity infrastructure, or automatic identity/routing from E023 G1.
 
 Any durable semantic architecture still requires its own evidence gate and, if promoted to policy, an ADR.
