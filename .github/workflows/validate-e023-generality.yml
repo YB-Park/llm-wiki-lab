@@ -61,6 +61,6 @@ jobs:
           test -s experiments/E023-generality-retrieval-composition/posthoc-zero-model-v0.md
           test -s experiments/E023-generality-retrieval-composition/evidence/run-32215941344/result.json
           grep -q 'G1-C NOT EARNED' experiments/E023-generality-retrieval-composition/results-v0.md
-          grep -q 'does not authorize' experiments/E023-generality-retrieval-composition/results-v0.md
+          grep -q 'does NOT authorize' experiments/E023-generality-retrieval-composition/results-v0.md
           grep -q 'G1b' experiments/E023-generality-retrieval-composition/results-v0.md
           test ! -e .github/workflows/e023-capture-frozen-g1-result.yml
