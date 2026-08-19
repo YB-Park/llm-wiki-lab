@@ -1,0 +1,3398 @@
+{
+  "arms": {
+    "A": [
+      {
+        "composer": {
+          "answer": "The ABC person was Jihoon Park. He raised the DPA concern in the January kickoff and reiterated it in February (S001, S003), and a direct email confirms his identity (S002). Park Jieun was associated with a separate latency concern, not the DPA (S005).",
+          "cited_source_ids": [
+            "S001",
+            "S003",
+            "S002",
+            "S005"
+          ],
+          "insufficient_evidence": false
+        },
+        "contract_ok": true,
+        "forbidden_conflation_sources_in_context": [
+          "S005"
+        ],
+        "missing_required_sources": [
+          "S004"
+        ],
+        "model_receipt": {
+          "elapsed_seconds": 5.634,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Who was the ABC person who repeatedly raised the DPA concern?",
+        "question_id": "Q001",
+        "required_complete": false,
+        "required_recall_at_5": 0.75,
+        "required_sources": [
+          "S001",
+          "S002",
+          "S003",
+          "S004"
+        ],
+        "retrieval_ranking": [
+          {
+            "rank": 1,
+            "score": 7.560983889117901,
+            "source_id": "S001"
+          },
+          {
+            "rank": 2,
+            "score": 6.689024547828367,
+            "source_id": "S005"
+          },
+          {
+            "rank": 3,
+            "score": 4.082042778287757,
+            "source_id": "S003"
+          },
+          {
+            "rank": 4,
+            "score": 3.5785228337778423,
+            "source_id": "S006"
+          },
+          {
+            "rank": 5,
+            "score": 2.8702654102416973,
+            "source_id": "S002"
+          },
+          {
+            "rank": 6,
+            "score": 2.42258897227568,
+            "source_id": "S007"
+          },
+          {
+            "rank": 7,
+            "score": 1.8779374831549107,
+            "source_id": "S004"
+          },
+          {
+            "rank": 8,
+            "score": 1.6662933171646512,
+            "source_id": "S013"
+          },
+          {
+            "rank": 9,
+            "score": 0.34077558514642914,
+            "source_id": "S014"
+          },
+          {
+            "rank": 10,
+            "score": 0.30155643492249584,
+            "source_id": "S016"
+          },
+          {
+            "rank": 11,
+            "score": 0.29783245228170696,
+            "source_id": "S017"
+          },
+          {
+            "rank": 12,
+            "score": 0.2969181329516653,
+            "source_id": "S018"
+          },
+          {
+            "rank": 13,
+            "score": 0.29242035491923346,
+            "source_id": "S009"
+          },
+          {
+            "rank": 14,
+            "score": 0.2860630030148118,
+            "source_id": "S012"
+          },
+          {
+            "rank": 15,
+            "score": 0.2667383784508634,
+            "source_id": "S010"
+          },
+          {
+            "rank": 16,
+            "score": 0.2665716385427564,
+            "source_id": "S015"
+          },
+          {
+            "rank": 17,
+            "score": 0.22512171250356977,
+            "source_id": "S008"
+          },
+          {
+            "rank": 18,
+            "score": 0.17783232706940952,
+            "source_id": "S011"
+          }
+        ],
+        "selected_source_ids": [
+          "S001",
+          "S005",
+          "S003",
+          "S006",
+          "S002"
+        ]
+      },
+      {
+        "composer": {
+          "answer": "Jihoon Park directly authored that ABC required privacy review of the DPA before exchanging production customer data, and that the review was later complete and the privacy gate closed (S002, S006). The meeting record only attributed the earlier DPA concern and request for review to “J.H. Park”; it did not say Jihoon authored that note (S001).",
+          "cited_source_ids": [
+            "S002",
+            "S006",
+            "S001"
+          ],
+          "insufficient_evidence": false
+        },
+        "contract_ok": true,
+        "forbidden_conflation_sources_in_context": [
+          "S005"
+        ],
+        "missing_required_sources": [
+          "S003"
+        ],
+        "model_receipt": {
+          "elapsed_seconds": 6.086,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "What did Jihoon Park directly author about the DPA, and what was only attributed to him in meeting records?",
+        "question_id": "Q002",
+        "required_complete": false,
+        "required_recall_at_5": 0.75,
+        "required_sources": [
+          "S001",
+          "S002",
+          "S003",
+          "S004"
+        ],
+        "retrieval_ranking": [
+          {
+            "rank": 1,
+            "score": 10.362305109257134,
+            "source_id": "S005"
+          },
+          {
+            "rank": 2,
+            "score": 8.568966505461342,
+            "source_id": "S001"
+          },
+          {
+            "rank": 3,
+            "score": 8.5253767053057,
+            "source_id": "S006"
+          },
+          {
+            "rank": 4,
+            "score": 6.687139611424097,
+            "source_id": "S002"
+          },
+          {
+            "rank": 5,
+            "score": 6.165926812423475,
+            "source_id": "S004"
+          },
+          {
+            "rank": 6,
+            "score": 5.773033898683037,
+            "source_id": "S003"
+          },
+          {
+            "rank": 7,
+            "score": 4.463203403497152,
+            "source_id": "S007"
+          },
+          {
+            "rank": 8,
+            "score": 3.8767012562975856,
+            "source_id": "S016"
+          },
+          {
+            "rank": 9,
+            "score": 3.848585190870489,
+            "source_id": "S018"
+          },
+          {
+            "rank": 10,
+            "score": 2.97485135655083,
+            "source_id": "S015"
+          },
+          {
+            "rank": 11,
+            "score": 2.932543852150047,
+            "source_id": "S017"
+          },
+          {
+            "rank": 12,
+            "score": 2.4177737808898696,
+            "source_id": "S009"
+          },
+          {
+            "rank": 13,
+            "score": 2.38769373136516,
+            "source_id": "S013"
+          },
+          {
+            "rank": 14,
+            "score": 1.8974830569525167,
+            "source_id": "S012"
+          },
+          {
+            "rank": 15,
+            "score": 1.1352591259847995,
+            "source_id": "S011"
+          },
+          {
+            "rank": 16,
+            "score": 1.061284645164279,
+            "source_id": "S008"
+          },
+          {
+            "rank": 17,
+            "score": 1.046300220378722,
+            "source_id": "S014"
+          },
+          {
+            "rank": 18,
+            "score": 0.7935975503759775,
+            "source_id": "S010"
+          }
+        ],
+        "selected_source_ids": [
+          "S005",
+          "S001",
+          "S006",
+          "S002",
+          "S004"
+        ]
+      },
+      {
+        "composer": {
+          "answer": "Yes. Jihoon Park’s role changed from Privacy Counsel to Director of Data Governance (S004, S006). His privacy position did not reverse: the DPA review was completed and the privacy gate closed, but the evidence explicitly says this does not mean his earlier position was mistaken (S006); his earlier position was that privacy review was required before exchanging production customer data (S002).",
+          "cited_source_ids": [
+            "S004",
+            "S006",
+            "S002"
+          ],
+          "insufficient_evidence": false
+        },
+        "contract_ok": true,
+        "forbidden_conflation_sources_in_context": [
+          "S005"
+        ],
+        "missing_required_sources": [],
+        "model_receipt": {
+          "elapsed_seconds": 4.706,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Did Jihoon Park's role change, and did his privacy position reverse?",
+        "question_id": "Q003",
+        "required_complete": true,
+        "required_recall_at_5": 1.0,
+        "required_sources": [
+          "S004",
+          "S006"
+        ],
+        "retrieval_ranking": [
+          {
+            "rank": 1,
+            "score": 11.923400679158119,
+            "source_id": "S006"
+          },
+          {
+            "rank": 2,
+            "score": 8.915122723413534,
+            "source_id": "S005"
+          },
+          {
+            "rank": 3,
+            "score": 8.386038427253288,
+            "source_id": "S004"
+          },
+          {
+            "rank": 4,
+            "score": 5.377121666037344,
+            "source_id": "S002"
+          },
+          {
+            "rank": 5,
+            "score": 3.078621748452063,
+            "source_id": "S010"
+          },
+          {
+            "rank": 6,
+            "score": 2.7023524510156918,
+            "source_id": "S001"
+          },
+          {
+            "rank": 7,
+            "score": 2.0215159981889577,
+            "source_id": "S003"
+          },
+          {
+            "rank": 8,
+            "score": 1.0463429624500948,
+            "source_id": "S011"
+          },
+          {
+            "rank": 9,
+            "score": 0.9487237889124941,
+            "source_id": "S008"
+          },
+          {
+            "rank": 10,
+            "score": 0.8090594085933388,
+            "source_id": "S017"
+          },
+          {
+            "rank": 11,
+            "score": 0.7494335275445311,
+            "source_id": "S012"
+          },
+          {
+            "rank": 12,
+            "score": 0.7060703475094522,
+            "source_id": "S016"
+          },
+          {
+            "rank": 13,
+            "score": 0.6602283611505457,
+            "source_id": "S009"
+          }
+        ],
+        "selected_source_ids": [
+          "S006",
+          "S005",
+          "S004",
+          "S002",
+          "S010"
+        ]
+      },
+      {
+        "composer": {
+          "answer": "Project Orchid chose not to use Redis because adding and operating another stateful service would create unnecessary operational complexity and ownership cost; the decision was not based on Redis being technically poor (S009). Redis had been considered for low-latency distributed locks, pending an Operations assessment of whether another stateful service was justified (S007). The later lock-contention test did not reverse the decision: it used an intentionally unrealistic burst at roughly 20 times expected first-release load, and the note explicitly says it does not reverse the no-Redis decision (S010).",
+          "cited_source_ids": [
+            "S009",
+            "S007",
+            "S010"
+          ],
+          "insufficient_evidence": false
+        },
+        "contract_ok": true,
+        "forbidden_conflation_sources_in_context": [],
+        "missing_required_sources": [
+          "S008"
+        ],
+        "model_receipt": {
+          "elapsed_seconds": 5.165,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Why did Project Orchid decide not to use Redis, and did the later lock-contention test reverse that decision?",
+        "question_id": "Q004",
+        "required_complete": false,
+        "required_recall_at_5": 0.75,
+        "required_sources": [
+          "S007",
+          "S008",
+          "S009",
+          "S010"
+        ],
+        "retrieval_ranking": [
+          {
+            "rank": 1,
+            "score": 13.762636191754735,
+            "source_id": "S010"
+          },
+          {
+            "rank": 2,
+            "score": 8.721555753661711,
+            "source_id": "S009"
+          },
+          {
+            "rank": 3,
+            "score": 6.823382870325807,
+            "source_id": "S005"
+          },
+          {
+            "rank": 4,
+            "score": 5.717658357979547,
+            "source_id": "S004"
+          },
+          {
+            "rank": 5,
+            "score": 4.879327680502692,
+            "source_id": "S007"
+          },
+          {
+            "rank": 6,
+            "score": 4.6470614770043905,
+            "source_id": "S002"
+          },
+          {
+            "rank": 7,
+            "score": 3.5642828484584825,
+            "source_id": "S001"
+          },
+          {
+            "rank": 8,
+            "score": 3.0327350617198072,
+            "source_id": "S008"
+          },
+          {
+            "rank": 9,
+            "score": 2.4017537994551157,
+            "source_id": "S006"
+          },
+          {
+            "rank": 10,
+            "score": 2.3623588487812994,
+            "source_id": "S015"
+          },
+          {
+            "rank": 11,
+            "score": 2.315168008397326,
+            "source_id": "S016"
+          },
+          {
+            "rank": 12,
+            "score": 1.8974830569525167,
+            "source_id": "S012"
+          },
+          {
+            "rank": 13,
+            "score": 1.678122960888779,
+            "source_id": "S011"
+          },
+          {
+            "rank": 14,
+            "score": 1.544030404198757,
+            "source_id": "S017"
+          },
+          {
+            "rank": 15,
+            "score": 1.5035514564470878,
+            "source_id": "S013"
+          },
+          {
+            "rank": 16,
+            "score": 1.046300220378722,
+            "source_id": "S014"
+          },
+          {
+            "rank": 17,
+            "score": 1.0304244414105064,
+            "source_id": "S003"
+          },
+          {
+            "rank": 18,
+            "score": 0.6427518603003812,
+            "source_id": "S018"
+          }
+        ],
+        "selected_source_ids": [
+          "S010",
+          "S009",
+          "S005",
+          "S004",
+          "S007"
+        ]
+      },
+      {
+        "composer": {
+          "answer": "INC-77 was caused by a timeout-configuration rollout that triggered a retry storm; database CPU saturation was a downstream symptom, not the initiating cause (S013, S012). The initial database-capacity hypothesis was explicitly unconfirmed and should be treated as superseded by the final retry-storm assessment (S011, S013).",
+          "cited_source_ids": [
+            "S013",
+            "S012",
+            "S011"
+          ],
+          "insufficient_evidence": false
+        },
+        "contract_ok": true,
+        "forbidden_conflation_sources_in_context": [],
+        "missing_required_sources": [],
+        "model_receipt": {
+          "elapsed_seconds": 6.211,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "What caused INC-77, and how should the initial database-capacity hypothesis be treated?",
+        "question_id": "Q005",
+        "required_complete": true,
+        "required_recall_at_5": 1.0,
+        "required_sources": [
+          "S011",
+          "S012",
+          "S013"
+        ],
+        "retrieval_ranking": [
+          {
+            "rank": 1,
+            "score": 15.96291358056477,
+            "source_id": "S011"
+          },
+          {
+            "rank": 2,
+            "score": 10.91792214926065,
+            "source_id": "S013"
+          },
+          {
+            "rank": 3,
+            "score": 8.029003526915691,
+            "source_id": "S012"
+          },
+          {
+            "rank": 4,
+            "score": 2.8849263724825214,
+            "source_id": "S014"
+          },
+          {
+            "rank": 5,
+            "score": 2.072042644258758,
+            "source_id": "S008"
+          },
+          {
+            "rank": 6,
+            "score": 1.9494838103665677,
+            "source_id": "S016"
+          },
+          {
+            "rank": 7,
+            "score": 1.6637199313326112,
+            "source_id": "S018"
+          },
+          {
+            "rank": 8,
+            "score": 1.1652700126994777,
+            "source_id": "S003"
+          },
+          {
+            "rank": 9,
+            "score": 1.124361035103159,
+            "source_id": "S002"
+          },
+          {
+            "rank": 10,
+            "score": 0.9579756347341923,
+            "source_id": "S017"
+          },
+          {
+            "rank": 11,
+            "score": 0.8634273672825424,
+            "source_id": "S005"
+          },
+          {
+            "rank": 12,
+            "score": 0.8064385386101625,
+            "source_id": "S009"
+          },
+          {
+            "rank": 13,
+            "score": 0.7935975503759775,
+            "source_id": "S010"
+          },
+          {
+            "rank": 14,
+            "score": 0.7416118849670218,
+            "source_id": "S006"
+          },
+          {
+            "rank": 15,
+            "score": 0.14758189837396754,
+            "source_id": "S001"
+          },
+          {
+            "rank": 16,
+            "score": 0.1332858192713782,
+            "source_id": "S015"
+          },
+          {
+            "rank": 17,
+            "score": 0.12414283394476483,
+            "source_id": "S007"
+          }
+        ],
+        "selected_source_ids": [
+          "S011",
+          "S013",
+          "S012",
+          "S014",
+          "S008"
+        ]
+      },
+      {
+        "composer": {
+          "answer": "INC-77 began at 09:12 on April 14, when database CPU was saturated and latency rising; the initial database-capacity explanation was explicitly unconfirmed (S011). By 09:25, increased retries and queue depth were linked to the timeout configuration rollout, pausing retries reduced CPU, and rollback began (S012). The final assessment identified a retry storm caused by that rollout, with database saturation as a downstream symptom, superseding the early hypothesis (S013). The April 17 addendum changed only the previously circulated start time—from 09:10 to the corrected 09:12 based on the source log—and did not change the root-cause assessment (S014).",
+          "cited_source_ids": [
+            "S011",
+            "S012",
+            "S013",
+            "S014"
+          ],
+          "insufficient_evidence": false
+        },
+        "contract_ok": true,
+        "forbidden_conflation_sources_in_context": [],
+        "missing_required_sources": [],
+        "model_receipt": {
+          "elapsed_seconds": 5.528,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Reconstruct the key INC-77 timeline and explain exactly what the addendum changed.",
+        "question_id": "Q006",
+        "required_complete": true,
+        "required_recall_at_5": 1.0,
+        "required_sources": [
+          "S011",
+          "S012",
+          "S013",
+          "S014"
+        ],
+        "retrieval_ranking": [
+          {
+            "rank": 1,
+            "score": 7.840322742507797,
+            "source_id": "S014"
+          },
+          {
+            "rank": 2,
+            "score": 4.3388247951505265,
+            "source_id": "S011"
+          },
+          {
+            "rank": 3,
+            "score": 4.150146036190365,
+            "source_id": "S012"
+          },
+          {
+            "rank": 4,
+            "score": 3.0235626071193047,
+            "source_id": "S013"
+          },
+          {
+            "rank": 5,
+            "score": 1.1738455014160638,
+            "source_id": "S008"
+          },
+          {
+            "rank": 6,
+            "score": 1.1068918608750458,
+            "source_id": "S017"
+          },
+          {
+            "rank": 7,
+            "score": 1.007626782431948,
+            "source_id": "S016"
+          },
+          {
+            "rank": 8,
+            "score": 0.9865147754021143,
+            "source_id": "S005"
+          },
+          {
+            "rank": 9,
+            "score": 0.9526487160697792,
+            "source_id": "S009"
+          },
+          {
+            "rank": 10,
+            "score": 0.9269667396014092,
+            "source_id": "S010"
+          },
+          {
+            "rank": 11,
+            "score": 0.8694840124186869,
+            "source_id": "S006"
+          },
+          {
+            "rank": 12,
+            "score": 0.30902402720999783,
+            "source_id": "S003"
+          },
+          {
+            "rank": 13,
+            "score": 0.2969181329516653,
+            "source_id": "S018"
+          },
+          {
+            "rank": 14,
+            "score": 0.2951637967479351,
+            "source_id": "S001"
+          },
+          {
+            "rank": 15,
+            "score": 0.2665716385427564,
+            "source_id": "S015"
+          },
+          {
+            "rank": 16,
+            "score": 0.24828566788952966,
+            "source_id": "S007"
+          },
+          {
+            "rank": 17,
+            "score": 0.16013044048053812,
+            "source_id": "S002"
+          }
+        ],
+        "selected_source_ids": [
+          "S014",
+          "S011",
+          "S012",
+          "S013",
+          "S008"
+        ]
+      },
+      {
+        "composer": {
+          "answer": "The recurring constraint is EU-only residency for production data, including subprocessors, backups, replicas, and disaster-recovery copies—not merely primary storage. Standard disaster recovery may place encrypted backups in the United States, so an EU-only configuration is required for compliance (S015, S016, S017, S018).",
+          "cited_source_ids": [
+            "S015",
+            "S016",
+            "S017",
+            "S018"
+          ],
+          "insufficient_evidence": false
+        },
+        "contract_ok": true,
+        "forbidden_conflation_sources_in_context": [],
+        "missing_required_sources": [],
+        "model_receipt": {
+          "elapsed_seconds": 4.202,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "What EU data-residency constraint recurs across the Cobalt materials?",
+        "question_id": "Q007",
+        "required_complete": true,
+        "required_recall_at_5": 1.0,
+        "required_sources": [
+          "S015",
+          "S016",
+          "S017"
+        ],
+        "retrieval_ranking": [
+          {
+            "rank": 1,
+            "score": 7.4812839103585365,
+            "source_id": "S016"
+          },
+          {
+            "rank": 2,
+            "score": 6.331902256922793,
+            "source_id": "S015"
+          },
+          {
+            "rank": 3,
+            "score": 4.815666789650062,
+            "source_id": "S017"
+          },
+          {
+            "rank": 4,
+            "score": 2.5382059496468163,
+            "source_id": "S018"
+          },
+          {
+            "rank": 5,
+            "score": 1.1652700126994777,
+            "source_id": "S003"
+          },
+          {
+            "rank": 6,
+            "score": 1.124361035103159,
+            "source_id": "S002"
+          },
+          {
+            "rank": 7,
+            "score": 1.0776269116985915,
+            "source_id": "S006"
+          },
+          {
+            "rank": 8,
+            "score": 1.0518562584269826,
+            "source_id": "S001"
+          },
+          {
+            "rank": 9,
+            "score": 0.17038779257321457,
+            "source_id": "S014"
+          },
+          {
+            "rank": 10,
+            "score": 0.15451201360499892,
+            "source_id": "S013"
+          },
+          {
+            "rank": 11,
+            "score": 0.14621017745961673,
+            "source_id": "S009"
+          },
+          {
+            "rank": 12,
+            "score": 0.1430315015074059,
+            "source_id": "S012"
+          },
+          {
+            "rank": 13,
+            "score": 0.1333691892254317,
+            "source_id": "S010"
+          },
+          {
+            "rank": 14,
+            "score": 0.12414283394476483,
+            "source_id": "S007"
+          },
+          {
+            "rank": 15,
+            "score": 0.12308740811957186,
+            "source_id": "S005"
+          },
+          {
+            "rank": 16,
+            "score": 0.11256085625178489,
+            "source_id": "S008"
+          },
+          {
+            "rank": 17,
+            "score": 0.08891616353470476,
+            "source_id": "S011"
+          }
+        ],
+        "selected_source_ids": [
+          "S016",
+          "S015",
+          "S017",
+          "S018",
+          "S003"
+        ]
+      },
+      {
+        "composer": {
+          "answer": "No. Northstar’s standard disaster-recovery configuration may store encrypted backups in the United States, while Cobalt requires backups and replicas to remain in the EU; an outside-EU backup is non-compliant unless the contract is amended (S018, S017).",
+          "cited_source_ids": [
+            "S018",
+            "S017"
+          ],
+          "insufficient_evidence": false
+        },
+        "contract_ok": true,
+        "forbidden_conflation_sources_in_context": [],
+        "missing_required_sources": [],
+        "model_receipt": {
+          "elapsed_seconds": 4.089,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Does Northstar's standard disaster-recovery configuration satisfy Cobalt's requirement?",
+        "question_id": "Q008",
+        "required_complete": true,
+        "required_recall_at_5": 1.0,
+        "required_sources": [
+          "S015",
+          "S017",
+          "S018"
+        ],
+        "retrieval_ranking": [
+          {
+            "rank": 1,
+            "score": 14.712628778702808,
+            "source_id": "S016"
+          },
+          {
+            "rank": 2,
+            "score": 12.343087906644758,
+            "source_id": "S018"
+          },
+          {
+            "rank": 3,
+            "score": 3.949136434831709,
+            "source_id": "S017"
+          },
+          {
+            "rank": 4,
+            "score": 2.028361213501177,
+            "source_id": "S015"
+          },
+          {
+            "rank": 5,
+            "score": 1.8713800929014448,
+            "source_id": "S012"
+          },
+          {
+            "rank": 6,
+            "score": 1.6469788975332489,
+            "source_id": "S002"
+          },
+          {
+            "rank": 7,
+            "score": 1.6113352422797071,
+            "source_id": "S010"
+          },
+          {
+            "rank": 8,
+            "score": 1.497876430435858,
+            "source_id": "S006"
+          },
+          {
+            "rank": 9,
+            "score": 1.4261483838113802,
+            "source_id": "S001"
+          },
+          {
+            "rank": 10,
+            "score": 1.1681749849728076,
+            "source_id": "S013"
+          },
+          {
+            "rank": 11,
+            "score": 1.1681749849728076,
+            "source_id": "S014"
+          }
+        ],
+        "selected_source_ids": [
+          "S016",
+          "S018",
+          "S017",
+          "S015",
+          "S012"
+        ]
+      },
+      {
+        "composer": {
+          "answer": "No. Redis was rejected for the first release because of operational complexity and the burden of owning another stateful service, not because it was considered technically poor (S009). Operations noted that Postgres already had established backup, patching, monitoring, and on-call procedures, while Redis would add another failure mode, patch cycle, and ownership burden (S008). Reopening would be justified by measurements showing that Postgres advisory locks cannot meet the actual requirements, supported by profiling and realistic-load testing; the synthetic 20× burst alone is explicitly insufficient because it was unrealistic and did not reverse the decision (S010).",
+          "cited_source_ids": [
+            "S009",
+            "S008",
+            "S010"
+          ],
+          "insufficient_evidence": false
+        },
+        "contract_ok": true,
+        "forbidden_conflation_sources_in_context": [],
+        "missing_required_sources": [],
+        "model_receipt": {
+          "elapsed_seconds": 4.766,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Was Redis rejected because it was technically poor, and what evidence would justify reopening the decision?",
+        "question_id": "Q009",
+        "required_complete": true,
+        "required_recall_at_5": 1.0,
+        "required_sources": [
+          "S008",
+          "S009",
+          "S010"
+        ],
+        "retrieval_ranking": [
+          {
+            "rank": 1,
+            "score": 10.332547739104855,
+            "source_id": "S007"
+          },
+          {
+            "rank": 2,
+            "score": 9.561950929278572,
+            "source_id": "S009"
+          },
+          {
+            "rank": 3,
+            "score": 4.943882488296691,
+            "source_id": "S008"
+          },
+          {
+            "rank": 4,
+            "score": 4.567670158462913,
+            "source_id": "S006"
+          },
+          {
+            "rank": 5,
+            "score": 4.09738154418212,
+            "source_id": "S010"
+          },
+          {
+            "rank": 6,
+            "score": 3.790423665719597,
+            "source_id": "S001"
+          },
+          {
+            "rank": 7,
+            "score": 2.922809991243148,
+            "source_id": "S016"
+          },
+          {
+            "rank": 8,
+            "score": 2.869050593514306,
+            "source_id": "S013"
+          },
+          {
+            "rank": 9,
+            "score": 1.5664470654322549,
+            "source_id": "S018"
+          },
+          {
+            "rank": 10,
+            "score": 1.1352591259847995,
+            "source_id": "S011"
+          },
+          {
+            "rank": 11,
+            "score": 0.9579756347341923,
+            "source_id": "S017"
+          },
+          {
+            "rank": 12,
+            "score": 0.8924650290519369,
+            "source_id": "S012"
+          },
+          {
+            "rank": 13,
+            "score": 0.8634273672825424,
+            "source_id": "S005"
+          },
+          {
+            "rank": 14,
+            "score": 0.17038779257321457,
+            "source_id": "S014"
+          },
+          {
+            "rank": 15,
+            "score": 0.15451201360499892,
+            "source_id": "S003"
+          },
+          {
+            "rank": 16,
+            "score": 0.1332858192713782,
+            "source_id": "S015"
+          },
+          {
+            "rank": 17,
+            "score": 0.08006522024026906,
+            "source_id": "S002"
+          }
+        ],
+        "selected_source_ids": [
+          "S007",
+          "S009",
+          "S008",
+          "S006",
+          "S010"
+        ]
+      },
+      {
+        "composer": {
+          "answer": "No. The evidence does not justify characterizing Jihoon Park as generally risk-averse or anti-cloud. His directly authored message describes a specific DPA privacy-review requirement and explicitly says it is not a general objection to cloud services (S002). The DPA gate was later closed, while the evidence does not say his earlier position was mistaken (S006). The meeting note independently records a similar concern but does not claim Park authored it (S001); the directory supports the Jihoon Park identity and role (S004).",
+          "cited_source_ids": [
+            "S002",
+            "S006",
+            "S001",
+            "S004"
+          ],
+          "insufficient_evidence": false
+        },
+        "contract_ok": true,
+        "forbidden_conflation_sources_in_context": [
+          "S005"
+        ],
+        "missing_required_sources": [
+          "S003"
+        ],
+        "model_receipt": {
+          "elapsed_seconds": 5.187,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Does the admitted evidence justify characterizing Jihoon Park as generally risk-averse or anti-cloud?",
+        "question_id": "Q010",
+        "required_complete": false,
+        "required_recall_at_5": 0.75,
+        "required_sources": [
+          "S001",
+          "S002",
+          "S003",
+          "S006"
+        ],
+        "retrieval_ranking": [
+          {
+            "rank": 1,
+            "score": 6.425877576985117,
+            "source_id": "S002"
+          },
+          {
+            "rank": 2,
+            "score": 5.240687409963844,
+            "source_id": "S006"
+          },
+          {
+            "rank": 3,
+            "score": 5.081615881654557,
+            "source_id": "S001"
+          },
+          {
+            "rank": 4,
+            "score": 4.9917653938085405,
+            "source_id": "S004"
+          },
+          {
+            "rank": 5,
+            "score": 4.440363753256378,
+            "source_id": "S005"
+          },
+          {
+            "rank": 6,
+            "score": 2.0815352191500986,
+            "source_id": "S014"
+          },
+          {
+            "rank": 7,
+            "score": 1.7447044315051388,
+            "source_id": "S010"
+          },
+          {
+            "rank": 8,
+            "score": 1.1652700126994777,
+            "source_id": "S003"
+          },
+          {
+            "rank": 9,
+            "score": 0.15451201360499892,
+            "source_id": "S013"
+          },
+          {
+            "rank": 10,
+            "score": 0.15077821746124792,
+            "source_id": "S016"
+          },
+          {
+            "rank": 11,
+            "score": 0.14891622614085348,
+            "source_id": "S017"
+          },
+          {
+            "rank": 12,
+            "score": 0.14845906647583265,
+            "source_id": "S018"
+          },
+          {
+            "rank": 13,
+            "score": 0.14621017745961673,
+            "source_id": "S009"
+          },
+          {
+            "rank": 14,
+            "score": 0.1430315015074059,
+            "source_id": "S012"
+          },
+          {
+            "rank": 15,
+            "score": 0.1332858192713782,
+            "source_id": "S015"
+          },
+          {
+            "rank": 16,
+            "score": 0.12414283394476483,
+            "source_id": "S007"
+          },
+          {
+            "rank": 17,
+            "score": 0.11256085625178489,
+            "source_id": "S008"
+          },
+          {
+            "rank": 18,
+            "score": 0.08891616353470476,
+            "source_id": "S011"
+          }
+        ],
+        "selected_source_ids": [
+          "S002",
+          "S006",
+          "S001",
+          "S004",
+          "S005"
+        ]
+      }
+    ],
+    "C": [
+      {
+        "composer": {
+          "answer": "The ABC person was Jihoon Park. Direct emails identify Jihoon Park as the person requiring DPA privacy review (S002, S006), and the meeting notes attribute the repeated concern to the same privacy contact (S001, S003). Park Jieun was unrelated to the DPA concern (S005).",
+          "cited_source_ids": [
+            "S001",
+            "S002",
+            "S003",
+            "S005",
+            "S006"
+          ],
+          "insufficient_evidence": false
+        },
+        "contract_ok": true,
+        "forbidden_conflation_sources_in_context": [
+          "S005"
+        ],
+        "fusion_queries": [
+          "Who was the ABC person who repeatedly raised the DPA concern?",
+          "\"DPA\" concern repeatedly raised by ABC person name alias identity",
+          "ABC \"DPA concern\" repeated raised author",
+          "\"DPA\" \"raised\" ABC person decision rationale"
+        ],
+        "missing_required_sources": [
+          "S004"
+        ],
+        "model_receipt": {
+          "elapsed_seconds": 5.3,
+          "model": "gpt-5.6-luna"
+        },
+        "planner_contract_ok": true,
+        "planner_queries": [
+          "\"DPA\" concern repeatedly raised by ABC person name alias identity",
+          "ABC \"DPA concern\" repeated raised author",
+          "\"DPA\" \"raised\" ABC person decision rationale"
+        ],
+        "planner_receipt": {
+          "elapsed_seconds": 4.5,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Who was the ABC person who repeatedly raised the DPA concern?",
+        "question_id": "Q001",
+        "required_complete": false,
+        "required_recall_at_5": 0.75,
+        "required_sources": [
+          "S001",
+          "S002",
+          "S003",
+          "S004"
+        ],
+        "rrf_ranking": [
+          {
+            "per_query_ranks": [
+              1,
+              1,
+              2,
+              1
+            ],
+            "rank": 1,
+            "score": 0.06530936012691697,
+            "source_id": "S001"
+          },
+          {
+            "per_query_ranks": [
+              2,
+              2,
+              1,
+              2
+            ],
+            "rank": 2,
+            "score": 0.06478053939714437,
+            "source_id": "S005"
+          },
+          {
+            "per_query_ranks": [
+              3,
+              4,
+              3,
+              3
+            ],
+            "rank": 3,
+            "score": 0.06324404761904762,
+            "source_id": "S003"
+          },
+          {
+            "per_query_ranks": [
+              5,
+              5,
+              4,
+              4
+            ],
+            "rank": 4,
+            "score": 0.06201923076923077,
+            "source_id": "S002"
+          },
+          {
+            "per_query_ranks": [
+              4,
+              6,
+              6,
+              5
+            ],
+            "rank": 5,
+            "score": 0.06131264568764569,
+            "source_id": "S006"
+          },
+          {
+            "per_query_ranks": [
+              7,
+              3,
+              7,
+              8
+            ],
+            "rank": 6,
+            "score": 0.06042964449461377,
+            "source_id": "S004"
+          },
+          {
+            "per_query_ranks": [
+              10,
+              5
+            ],
+            "rank": 7,
+            "score": 0.02967032967032967,
+            "source_id": "S016"
+          },
+          {
+            "per_query_ranks": [
+              9,
+              7
+            ],
+            "rank": 8,
+            "score": 0.029418126757516764,
+            "source_id": "S014"
+          },
+          {
+            "per_query_ranks": [
+              13,
+              6
+            ],
+            "rank": 9,
+            "score": 0.028850145288501453,
+            "source_id": "S009"
+          },
+          {
+            "per_query_ranks": [
+              15,
+              7
+            ],
+            "rank": 10,
+            "score": 0.028258706467661692,
+            "source_id": "S010"
+          },
+          {
+            "per_query_ranks": [
+              6
+            ],
+            "rank": 11,
+            "score": 0.015151515151515152,
+            "source_id": "S007"
+          },
+          {
+            "per_query_ranks": [
+              8
+            ],
+            "rank": 12,
+            "score": 0.014705882352941176,
+            "source_id": "S013"
+          },
+          {
+            "per_query_ranks": [
+              11
+            ],
+            "rank": 13,
+            "score": 0.014084507042253521,
+            "source_id": "S017"
+          },
+          {
+            "per_query_ranks": [
+              12
+            ],
+            "rank": 14,
+            "score": 0.013888888888888888,
+            "source_id": "S018"
+          },
+          {
+            "per_query_ranks": [
+              14
+            ],
+            "rank": 15,
+            "score": 0.013513513513513514,
+            "source_id": "S012"
+          },
+          {
+            "per_query_ranks": [
+              16
+            ],
+            "rank": 16,
+            "score": 0.013157894736842105,
+            "source_id": "S015"
+          },
+          {
+            "per_query_ranks": [
+              17
+            ],
+            "rank": 17,
+            "score": 0.012987012987012988,
+            "source_id": "S008"
+          },
+          {
+            "per_query_ranks": [
+              18
+            ],
+            "rank": 18,
+            "score": 0.01282051282051282,
+            "source_id": "S011"
+          }
+        ],
+        "selected_source_ids": [
+          "S001",
+          "S005",
+          "S003",
+          "S002",
+          "S006"
+        ]
+      },
+      {
+        "composer": {
+          "answer": "Jihoon Park directly authored that ABC required privacy review of the DPA before exchanging production customer data, clarifying this was not a general objection to cloud services (S002). He later directly wrote that the DPA review was complete and the privacy gate closed, while noting a role change to Director of Data Governance (S006). In contrast, the meeting record only attributed to “J.H. Park” the act of raising the DPA concern and asking for review before production exchange; it did not claim Park authored that note (S001, S004).",
+          "cited_source_ids": [
+            "S002",
+            "S006",
+            "S001",
+            "S004"
+          ],
+          "insufficient_evidence": false
+        },
+        "contract_ok": true,
+        "forbidden_conflation_sources_in_context": [
+          "S005"
+        ],
+        "fusion_queries": [
+          "What did Jihoon Park directly author about the DPA, and what was only attributed to him in meeting records?",
+          "\"Jihoon Park\" DPA authored memo OR draft OR proposal",
+          "\"Jihoon Park\" DPA meeting minutes attributed said OR reported",
+          "\"Jihoon Park\" aliases DPA direct author meeting records"
+        ],
+        "missing_required_sources": [
+          "S003"
+        ],
+        "model_receipt": {
+          "elapsed_seconds": 10.506,
+          "model": "gpt-5.6-luna"
+        },
+        "planner_contract_ok": true,
+        "planner_queries": [
+          "\"Jihoon Park\" DPA authored memo OR draft OR proposal",
+          "\"Jihoon Park\" DPA meeting minutes attributed said OR reported",
+          "\"Jihoon Park\" aliases DPA direct author meeting records"
+        ],
+        "planner_receipt": {
+          "elapsed_seconds": 4.982,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "What did Jihoon Park directly author about the DPA, and what was only attributed to him in meeting records?",
+        "question_id": "Q002",
+        "required_complete": false,
+        "required_recall_at_5": 0.75,
+        "required_sources": [
+          "S001",
+          "S002",
+          "S003",
+          "S004"
+        ],
+        "rrf_ranking": [
+          {
+            "per_query_ranks": [
+              1,
+              1,
+              1,
+              5
+            ],
+            "rank": 1,
+            "score": 0.06456494325346784,
+            "source_id": "S005"
+          },
+          {
+            "per_query_ranks": [
+              2,
+              2,
+              4,
+              2
+            ],
+            "rank": 2,
+            "score": 0.06401209677419355,
+            "source_id": "S001"
+          },
+          {
+            "per_query_ranks": [
+              3,
+              5,
+              5,
+              1
+            ],
+            "rank": 3,
+            "score": 0.06303568926519747,
+            "source_id": "S006"
+          },
+          {
+            "per_query_ranks": [
+              5,
+              4,
+              2,
+              3
+            ],
+            "rank": 4,
+            "score": 0.06301166351569577,
+            "source_id": "S004"
+          },
+          {
+            "per_query_ranks": [
+              4,
+              3,
+              3,
+              4
+            ],
+            "rank": 5,
+            "score": 0.06299603174603174,
+            "source_id": "S002"
+          },
+          {
+            "per_query_ranks": [
+              6,
+              7,
+              6,
+              6
+            ],
+            "rank": 6,
+            "score": 0.060379918588873815,
+            "source_id": "S003"
+          },
+          {
+            "per_query_ranks": [
+              8,
+              7,
+              7
+            ],
+            "rank": 7,
+            "score": 0.04455662862159789,
+            "source_id": "S016"
+          },
+          {
+            "per_query_ranks": [
+              7,
+              8,
+              8
+            ],
+            "rank": 8,
+            "score": 0.044337137840210705,
+            "source_id": "S007"
+          },
+          {
+            "per_query_ranks": [
+              10,
+              6
+            ],
+            "rank": 9,
+            "score": 0.029437229437229435,
+            "source_id": "S015"
+          },
+          {
+            "per_query_ranks": [
+              9
+            ],
+            "rank": 10,
+            "score": 0.014492753623188406,
+            "source_id": "S018"
+          },
+          {
+            "per_query_ranks": [
+              11
+            ],
+            "rank": 11,
+            "score": 0.014084507042253521,
+            "source_id": "S017"
+          },
+          {
+            "per_query_ranks": [
+              12
+            ],
+            "rank": 12,
+            "score": 0.013888888888888888,
+            "source_id": "S009"
+          },
+          {
+            "per_query_ranks": [
+              13
+            ],
+            "rank": 13,
+            "score": 0.0136986301369863,
+            "source_id": "S013"
+          },
+          {
+            "per_query_ranks": [
+              14
+            ],
+            "rank": 14,
+            "score": 0.013513513513513514,
+            "source_id": "S012"
+          },
+          {
+            "per_query_ranks": [
+              15
+            ],
+            "rank": 15,
+            "score": 0.013333333333333334,
+            "source_id": "S011"
+          },
+          {
+            "per_query_ranks": [
+              16
+            ],
+            "rank": 16,
+            "score": 0.013157894736842105,
+            "source_id": "S008"
+          },
+          {
+            "per_query_ranks": [
+              17
+            ],
+            "rank": 17,
+            "score": 0.012987012987012988,
+            "source_id": "S014"
+          },
+          {
+            "per_query_ranks": [
+              18
+            ],
+            "rank": 18,
+            "score": 0.01282051282051282,
+            "source_id": "S010"
+          }
+        ],
+        "selected_source_ids": [
+          "S005",
+          "S001",
+          "S006",
+          "S004",
+          "S002"
+        ]
+      },
+      {
+        "composer": {
+          "answer": "Yes. Jihoon Park’s role changed from Privacy Counsel to Director of Data Governance (S004, S006). His privacy position did not reverse: he required DPA review before exchanging production data (S002), and later said the review was complete and the privacy gate closed—not that his earlier position was mistaken (S006).",
+          "cited_source_ids": [
+            "S004",
+            "S006",
+            "S002"
+          ],
+          "insufficient_evidence": false
+        },
+        "contract_ok": true,
+        "forbidden_conflation_sources_in_context": [
+          "S005"
+        ],
+        "fusion_queries": [
+          "Did Jihoon Park's role change, and did his privacy position reverse?",
+          "\"Jihoon Park\" role change position privacy",
+          "\"Jihoon Park\" privacy stance changed reversed",
+          "\"Jihoon Park\" alias role appointment privacy statement timeline"
+        ],
+        "missing_required_sources": [],
+        "model_receipt": {
+          "elapsed_seconds": 4.214,
+          "model": "gpt-5.6-luna"
+        },
+        "planner_contract_ok": true,
+        "planner_queries": [
+          "\"Jihoon Park\" role change position privacy",
+          "\"Jihoon Park\" privacy stance changed reversed",
+          "\"Jihoon Park\" alias role appointment privacy statement timeline"
+        ],
+        "planner_receipt": {
+          "elapsed_seconds": 4.98,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Did Jihoon Park's role change, and did his privacy position reverse?",
+        "question_id": "Q003",
+        "required_complete": true,
+        "required_recall_at_5": 1.0,
+        "required_sources": [
+          "S004",
+          "S006"
+        ],
+        "rrf_ranking": [
+          {
+            "per_query_ranks": [
+              3,
+              2,
+              1,
+              1
+            ],
+            "rank": 1,
+            "score": 0.06478893337698204,
+            "source_id": "S004"
+          },
+          {
+            "per_query_ranks": [
+              1,
+              1,
+              3,
+              2
+            ],
+            "rank": 2,
+            "score": 0.06478893337698202,
+            "source_id": "S006"
+          },
+          {
+            "per_query_ranks": [
+              4,
+              3,
+              2,
+              3
+            ],
+            "rank": 3,
+            "score": 0.06350006400409626,
+            "source_id": "S002"
+          },
+          {
+            "per_query_ranks": [
+              2,
+              4,
+              4,
+              4
+            ],
+            "rank": 4,
+            "score": 0.06300403225806452,
+            "source_id": "S005"
+          },
+          {
+            "per_query_ranks": [
+              6,
+              5,
+              5,
+              5
+            ],
+            "rank": 5,
+            "score": 0.06130536130536131,
+            "source_id": "S001"
+          },
+          {
+            "per_query_ranks": [
+              7,
+              6,
+              6,
+              7
+            ],
+            "rank": 6,
+            "score": 0.06015377657168702,
+            "source_id": "S003"
+          },
+          {
+            "per_query_ranks": [
+              5
+            ],
+            "rank": 7,
+            "score": 0.015384615384615385,
+            "source_id": "S010"
+          },
+          {
+            "per_query_ranks": [
+              6
+            ],
+            "rank": 8,
+            "score": 0.015151515151515152,
+            "source_id": "S014"
+          },
+          {
+            "per_query_ranks": [
+              8
+            ],
+            "rank": 9,
+            "score": 0.014705882352941176,
+            "source_id": "S011"
+          },
+          {
+            "per_query_ranks": [
+              9
+            ],
+            "rank": 10,
+            "score": 0.014492753623188406,
+            "source_id": "S008"
+          },
+          {
+            "per_query_ranks": [
+              10
+            ],
+            "rank": 11,
+            "score": 0.014285714285714285,
+            "source_id": "S017"
+          },
+          {
+            "per_query_ranks": [
+              11
+            ],
+            "rank": 12,
+            "score": 0.014084507042253521,
+            "source_id": "S012"
+          },
+          {
+            "per_query_ranks": [
+              12
+            ],
+            "rank": 13,
+            "score": 0.013888888888888888,
+            "source_id": "S016"
+          },
+          {
+            "per_query_ranks": [
+              13
+            ],
+            "rank": 14,
+            "score": 0.0136986301369863,
+            "source_id": "S009"
+          }
+        ],
+        "selected_source_ids": [
+          "S004",
+          "S006",
+          "S002",
+          "S005",
+          "S001"
+        ]
+      },
+      {
+        "composer": {
+          "answer": "Project Orchid chose not to use Redis for the first release because adding and owning another stateful service would increase operational complexity and cost; the decision was not based on Redis being technically poor (S009). Redis had been considered for low-latency distributed coordination, pending Operations’ assessment (S007). The later lock-contention test did not reverse the decision: it used an intentionally unrealistic burst at roughly 20 times expected first-release load, and the note explicitly says it does not reverse the no-Redis decision (S010).",
+          "cited_source_ids": [
+            "S009",
+            "S007",
+            "S010"
+          ],
+          "insufficient_evidence": false
+        },
+        "contract_ok": true,
+        "forbidden_conflation_sources_in_context": [],
+        "fusion_queries": [
+          "Why did Project Orchid decide not to use Redis, and did the later lock-contention test reverse that decision?",
+          "Project Orchid decision not to use Redis rationale alternatives constraints",
+          "Project Orchid Redis lock-contention test later results decision reversal",
+          "Project Orchid initial Redis evaluation versus final architecture decision and lock contention findings"
+        ],
+        "missing_required_sources": [
+          "S008"
+        ],
+        "model_receipt": {
+          "elapsed_seconds": 5.289,
+          "model": "gpt-5.6-luna"
+        },
+        "planner_contract_ok": true,
+        "planner_queries": [
+          "Project Orchid decision not to use Redis rationale alternatives constraints",
+          "Project Orchid Redis lock-contention test later results decision reversal",
+          "Project Orchid initial Redis evaluation versus final architecture decision and lock contention findings"
+        ],
+        "planner_receipt": {
+          "elapsed_seconds": 4.23,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Why did Project Orchid decide not to use Redis, and did the later lock-contention test reverse that decision?",
+        "question_id": "Q004",
+        "required_complete": false,
+        "required_recall_at_5": 0.75,
+        "required_sources": [
+          "S007",
+          "S008",
+          "S009",
+          "S010"
+        ],
+        "rrf_ranking": [
+          {
+            "per_query_ranks": [
+              1,
+              3,
+              1,
+              1
+            ],
+            "rank": 1,
+            "score": 0.06505334374186834,
+            "source_id": "S010"
+          },
+          {
+            "per_query_ranks": [
+              2,
+              1,
+              3,
+              4
+            ],
+            "rank": 2,
+            "score": 0.06402049075403121,
+            "source_id": "S009"
+          },
+          {
+            "per_query_ranks": [
+              4,
+              2,
+              2,
+              3
+            ],
+            "rank": 3,
+            "score": 0.0637560803891449,
+            "source_id": "S004"
+          },
+          {
+            "per_query_ranks": [
+              5,
+              6,
+              4,
+              2
+            ],
+            "rank": 4,
+            "score": 0.06229016279419505,
+            "source_id": "S007"
+          },
+          {
+            "per_query_ranks": [
+              6,
+              4,
+              6,
+              8
+            ],
+            "rank": 5,
+            "score": 0.060633912655971484,
+            "source_id": "S002"
+          },
+          {
+            "per_query_ranks": [
+              8,
+              7,
+              5,
+              6
+            ],
+            "rank": 6,
+            "score": 0.06016738602340007,
+            "source_id": "S008"
+          },
+          {
+            "per_query_ranks": [
+              7,
+              5,
+              7,
+              9
+            ],
+            "rank": 7,
+            "score": 0.05972811527646051,
+            "source_id": "S001"
+          },
+          {
+            "per_query_ranks": [
+              3,
+              14,
+              12
+            ],
+            "rank": 8,
+            "score": 0.043275418275418275,
+            "source_id": "S005"
+          },
+          {
+            "per_query_ranks": [
+              15,
+              8,
+              7
+            ],
+            "rank": 9,
+            "score": 0.04296458882060287,
+            "source_id": "S013"
+          },
+          {
+            "per_query_ranks": [
+              13,
+              13,
+              5
+            ],
+            "rank": 10,
+            "score": 0.04278187565858799,
+            "source_id": "S011"
+          },
+          {
+            "per_query_ranks": [
+              12,
+              10,
+              11
+            ],
+            "rank": 11,
+            "score": 0.042259110216856695,
+            "source_id": "S012"
+          },
+          {
+            "per_query_ranks": [
+              14,
+              12,
+              10
+            ],
+            "rank": 12,
+            "score": 0.041688116688116686,
+            "source_id": "S017"
+          },
+          {
+            "per_query_ranks": [
+              11,
+              15,
+              13
+            ],
+            "rank": 13,
+            "score": 0.04111647051257315,
+            "source_id": "S016"
+          },
+          {
+            "per_query_ranks": [
+              9,
+              17,
+              14
+            ],
+            "rank": 14,
+            "score": 0.040993280123714906,
+            "source_id": "S006"
+          },
+          {
+            "per_query_ranks": [
+              10,
+              9
+            ],
+            "rank": 15,
+            "score": 0.02877846790890269,
+            "source_id": "S015"
+          },
+          {
+            "per_query_ranks": [
+              16,
+              11
+            ],
+            "rank": 16,
+            "score": 0.027242401779095628,
+            "source_id": "S014"
+          },
+          {
+            "per_query_ranks": [
+              18,
+              16
+            ],
+            "rank": 17,
+            "score": 0.025978407557354925,
+            "source_id": "S018"
+          },
+          {
+            "per_query_ranks": [
+              17
+            ],
+            "rank": 18,
+            "score": 0.012987012987012988,
+            "source_id": "S003"
+          }
+        ],
+        "selected_source_ids": [
+          "S010",
+          "S009",
+          "S004",
+          "S007",
+          "S002"
+        ]
+      },
+      {
+        "composer": {
+          "answer": "INC-77 was caused by a retry storm triggered by the timeout configuration rollout; database CPU saturation was a downstream symptom, not the initiating cause (S013, S012). The initial database-capacity hypothesis was an early, unconfirmed hypothesis and is superseded by the final assessment (S011, S013).",
+          "cited_source_ids": [
+            "S013",
+            "S012",
+            "S011"
+          ],
+          "insufficient_evidence": false
+        },
+        "contract_ok": true,
+        "forbidden_conflation_sources_in_context": [],
+        "fusion_queries": [
+          "What caused INC-77, and how should the initial database-capacity hypothesis be treated?",
+          "INC-77 incident postmortem root cause database capacity hypothesis",
+          "INC-77 investigation final cause versus initial database-capacity hypothesis",
+          "INC-77 timeline decision rationale database capacity measurements"
+        ],
+        "missing_required_sources": [],
+        "model_receipt": {
+          "elapsed_seconds": 4.307,
+          "model": "gpt-5.6-luna"
+        },
+        "planner_contract_ok": true,
+        "planner_queries": [
+          "INC-77 incident postmortem root cause database capacity hypothesis",
+          "INC-77 investigation final cause versus initial database-capacity hypothesis",
+          "INC-77 timeline decision rationale database capacity measurements"
+        ],
+        "planner_receipt": {
+          "elapsed_seconds": 3.807,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "What caused INC-77, and how should the initial database-capacity hypothesis be treated?",
+        "question_id": "Q005",
+        "required_complete": true,
+        "required_recall_at_5": 1.0,
+        "required_sources": [
+          "S011",
+          "S012",
+          "S013"
+        ],
+        "rrf_ranking": [
+          {
+            "per_query_ranks": [
+              1,
+              2,
+              1,
+              1
+            ],
+            "rank": 1,
+            "score": 0.06530936012691699,
+            "source_id": "S011"
+          },
+          {
+            "per_query_ranks": [
+              2,
+              1,
+              2,
+              2
+            ],
+            "rank": 2,
+            "score": 0.06478053939714437,
+            "source_id": "S013"
+          },
+          {
+            "per_query_ranks": [
+              3,
+              4,
+              3,
+              4
+            ],
+            "rank": 3,
+            "score": 0.06299603174603174,
+            "source_id": "S012"
+          },
+          {
+            "per_query_ranks": [
+              4,
+              3,
+              4,
+              3
+            ],
+            "rank": 4,
+            "score": 0.06299603174603174,
+            "source_id": "S014"
+          },
+          {
+            "per_query_ranks": [
+              12,
+              5
+            ],
+            "rank": 5,
+            "score": 0.029273504273504274,
+            "source_id": "S009"
+          },
+          {
+            "per_query_ranks": [
+              11,
+              6
+            ],
+            "rank": 6,
+            "score": 0.029236022193768675,
+            "source_id": "S005"
+          },
+          {
+            "per_query_ranks": [
+              13,
+              7
+            ],
+            "rank": 7,
+            "score": 0.02862400327131466,
+            "source_id": "S010"
+          },
+          {
+            "per_query_ranks": [
+              5
+            ],
+            "rank": 8,
+            "score": 0.015384615384615385,
+            "source_id": "S008"
+          },
+          {
+            "per_query_ranks": [
+              6
+            ],
+            "rank": 9,
+            "score": 0.015151515151515152,
+            "source_id": "S016"
+          },
+          {
+            "per_query_ranks": [
+              7
+            ],
+            "rank": 10,
+            "score": 0.014925373134328358,
+            "source_id": "S018"
+          },
+          {
+            "per_query_ranks": [
+              8
+            ],
+            "rank": 11,
+            "score": 0.014705882352941176,
+            "source_id": "S003"
+          },
+          {
+            "per_query_ranks": [
+              9
+            ],
+            "rank": 12,
+            "score": 0.014492753623188406,
+            "source_id": "S002"
+          },
+          {
+            "per_query_ranks": [
+              10
+            ],
+            "rank": 13,
+            "score": 0.014285714285714285,
+            "source_id": "S017"
+          },
+          {
+            "per_query_ranks": [
+              14
+            ],
+            "rank": 14,
+            "score": 0.013513513513513514,
+            "source_id": "S006"
+          },
+          {
+            "per_query_ranks": [
+              15
+            ],
+            "rank": 15,
+            "score": 0.013333333333333334,
+            "source_id": "S001"
+          },
+          {
+            "per_query_ranks": [
+              16
+            ],
+            "rank": 16,
+            "score": 0.013157894736842105,
+            "source_id": "S015"
+          },
+          {
+            "per_query_ranks": [
+              17
+            ],
+            "rank": 17,
+            "score": 0.012987012987012988,
+            "source_id": "S007"
+          }
+        ],
+        "selected_source_ids": [
+          "S011",
+          "S013",
+          "S012",
+          "S014",
+          "S009"
+        ]
+      },
+      {
+        "composer": {
+          "answer": "INC-77 began at 09:12, when database CPU was saturated and latency was rising; database capacity was only an unconfirmed initial hypothesis (S011). By 09:25, retry volume and queue depth had sharply increased after the timeout configuration rollout, pausing retries reduced database CPU, and rollback began (S012). The final assessment identified the timeout rollout-induced retry storm as the root cause, with database saturation as a downstream symptom (S013). The addendum changed only the incident start time from the previously circulated 09:10 to the source-log time of 09:12; it did not change the root-cause assessment (S014).",
+          "cited_source_ids": [
+            "S011",
+            "S012",
+            "S013",
+            "S014"
+          ],
+          "insufficient_evidence": false
+        },
+        "contract_ok": true,
+        "forbidden_conflation_sources_in_context": [],
+        "fusion_queries": [
+          "Reconstruct the key INC-77 timeline and explain exactly what the addendum changed.",
+          "INC-77 timeline addendum original incident report chronology dates decisions rationale initial hypothesis final cause",
+          "INC-77 addendum exact changes revised findings scope constraints measurements attributed statements authorship",
+          "INC-77 aliases related incident identifiers earlier report later addendum root cause remediation timeline"
+        ],
+        "missing_required_sources": [],
+        "model_receipt": {
+          "elapsed_seconds": 6.704,
+          "model": "gpt-5.6-luna"
+        },
+        "planner_contract_ok": true,
+        "planner_queries": [
+          "INC-77 timeline addendum original incident report chronology dates decisions rationale initial hypothesis final cause",
+          "INC-77 addendum exact changes revised findings scope constraints measurements attributed statements authorship",
+          "INC-77 aliases related incident identifiers earlier report later addendum root cause remediation timeline"
+        ],
+        "planner_receipt": {
+          "elapsed_seconds": 4.736,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Reconstruct the key INC-77 timeline and explain exactly what the addendum changed.",
+        "question_id": "Q006",
+        "required_complete": true,
+        "required_recall_at_5": 1.0,
+        "required_sources": [
+          "S011",
+          "S012",
+          "S013",
+          "S014"
+        ],
+        "rrf_ranking": [
+          {
+            "per_query_ranks": [
+              1,
+              2,
+              1,
+              1
+            ],
+            "rank": 1,
+            "score": 0.06530936012691699,
+            "source_id": "S014"
+          },
+          {
+            "per_query_ranks": [
+              2,
+              3,
+              2,
+              3
+            ],
+            "rank": 2,
+            "score": 0.06400409626216078,
+            "source_id": "S011"
+          },
+          {
+            "per_query_ranks": [
+              4,
+              1,
+              4,
+              2
+            ],
+            "rank": 3,
+            "score": 0.06377247488101534,
+            "source_id": "S013"
+          },
+          {
+            "per_query_ranks": [
+              3,
+              4,
+              3,
+              5
+            ],
+            "rank": 4,
+            "score": 0.06275564713064713,
+            "source_id": "S012"
+          },
+          {
+            "per_query_ranks": [
+              8,
+              5
+            ],
+            "rank": 5,
+            "score": 0.030090497737556562,
+            "source_id": "S005"
+          },
+          {
+            "per_query_ranks": [
+              11,
+              4
+            ],
+            "rank": 6,
+            "score": 0.029709507042253523,
+            "source_id": "S006"
+          },
+          {
+            "per_query_ranks": [
+              9,
+              6
+            ],
+            "rank": 7,
+            "score": 0.02964426877470356,
+            "source_id": "S009"
+          },
+          {
+            "per_query_ranks": [
+              5
+            ],
+            "rank": 8,
+            "score": 0.015384615384615385,
+            "source_id": "S008"
+          },
+          {
+            "per_query_ranks": [
+              6
+            ],
+            "rank": 9,
+            "score": 0.015151515151515152,
+            "source_id": "S017"
+          },
+          {
+            "per_query_ranks": [
+              7
+            ],
+            "rank": 10,
+            "score": 0.014925373134328358,
+            "source_id": "S016"
+          },
+          {
+            "per_query_ranks": [
+              10
+            ],
+            "rank": 11,
+            "score": 0.014285714285714285,
+            "source_id": "S010"
+          },
+          {
+            "per_query_ranks": [
+              12
+            ],
+            "rank": 12,
+            "score": 0.013888888888888888,
+            "source_id": "S003"
+          },
+          {
+            "per_query_ranks": [
+              13
+            ],
+            "rank": 13,
+            "score": 0.0136986301369863,
+            "source_id": "S018"
+          },
+          {
+            "per_query_ranks": [
+              14
+            ],
+            "rank": 14,
+            "score": 0.013513513513513514,
+            "source_id": "S001"
+          },
+          {
+            "per_query_ranks": [
+              15
+            ],
+            "rank": 15,
+            "score": 0.013333333333333334,
+            "source_id": "S015"
+          },
+          {
+            "per_query_ranks": [
+              16
+            ],
+            "rank": 16,
+            "score": 0.013157894736842105,
+            "source_id": "S007"
+          },
+          {
+            "per_query_ranks": [
+              17
+            ],
+            "rank": 17,
+            "score": 0.012987012987012988,
+            "source_id": "S002"
+          }
+        ],
+        "selected_source_ids": [
+          "S014",
+          "S011",
+          "S013",
+          "S012",
+          "S005"
+        ]
+      },
+      {
+        "composer": {
+          "answer": "Across the Cobalt materials, the recurring constraint is that production data must remain exclusively in the EU, including data handled by subprocessors and all backups, replicas, and disaster-recovery copies (S015, S017). Standard disaster recovery may store encrypted backups in the United States, so Cobalt would require an EU-only configuration; that option is not the default (S016, S018).",
+          "cited_source_ids": [
+            "S015",
+            "S016",
+            "S017",
+            "S018"
+          ],
+          "insufficient_evidence": false
+        },
+        "contract_ok": true,
+        "forbidden_conflation_sources_in_context": [],
+        "fusion_queries": [
+          "What EU data-residency constraint recurs across the Cobalt materials?",
+          "Cobalt materials recurring EU data residency constraint data stored processed exclusively within EU",
+          "Cobalt EU data residency requirement customer data storage processing region constraint",
+          "Cobalt architecture policy decision rationale EU-only data hosting residency"
+        ],
+        "missing_required_sources": [],
+        "model_receipt": {
+          "elapsed_seconds": 4.619,
+          "model": "gpt-5.6-luna"
+        },
+        "planner_contract_ok": true,
+        "planner_queries": [
+          "Cobalt materials recurring EU data residency constraint data stored processed exclusively within EU",
+          "Cobalt EU data residency requirement customer data storage processing region constraint",
+          "Cobalt architecture policy decision rationale EU-only data hosting residency"
+        ],
+        "planner_receipt": {
+          "elapsed_seconds": 4.644,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "What EU data-residency constraint recurs across the Cobalt materials?",
+        "question_id": "Q007",
+        "required_complete": true,
+        "required_recall_at_5": 1.0,
+        "required_sources": [
+          "S015",
+          "S016",
+          "S017"
+        ],
+        "rrf_ranking": [
+          {
+            "per_query_ranks": [
+              1,
+              1,
+              2,
+              1
+            ],
+            "rank": 1,
+            "score": 0.06530936012691697,
+            "source_id": "S016"
+          },
+          {
+            "per_query_ranks": [
+              2,
+              2,
+              1,
+              3
+            ],
+            "rank": 2,
+            "score": 0.06452452301209573,
+            "source_id": "S015"
+          },
+          {
+            "per_query_ranks": [
+              3,
+              3,
+              3,
+              2
+            ],
+            "rank": 3,
+            "score": 0.06374807987711213,
+            "source_id": "S017"
+          },
+          {
+            "per_query_ranks": [
+              4,
+              4,
+              5,
+              4
+            ],
+            "rank": 4,
+            "score": 0.062259615384615385,
+            "source_id": "S018"
+          },
+          {
+            "per_query_ranks": [
+              6,
+              5,
+              4,
+              8
+            ],
+            "rank": 5,
+            "score": 0.06086701288907172,
+            "source_id": "S002"
+          },
+          {
+            "per_query_ranks": [
+              5,
+              6,
+              6,
+              9
+            ],
+            "rank": 6,
+            "score": 0.0601803993108341,
+            "source_id": "S003"
+          },
+          {
+            "per_query_ranks": [
+              7,
+              7,
+              7,
+              10
+            ],
+            "rank": 7,
+            "score": 0.059061833688699356,
+            "source_id": "S006"
+          },
+          {
+            "per_query_ranks": [
+              8,
+              8,
+              8,
+              11
+            ],
+            "rank": 8,
+            "score": 0.05820215410107705,
+            "source_id": "S001"
+          },
+          {
+            "per_query_ranks": [
+              11,
+              5
+            ],
+            "rank": 9,
+            "score": 0.02946912242686891,
+            "source_id": "S009"
+          },
+          {
+            "per_query_ranks": [
+              14,
+              6
+            ],
+            "rank": 10,
+            "score": 0.028665028665028666,
+            "source_id": "S007"
+          },
+          {
+            "per_query_ranks": [
+              13,
+              7
+            ],
+            "rank": 11,
+            "score": 0.02862400327131466,
+            "source_id": "S010"
+          },
+          {
+            "per_query_ranks": [
+              9
+            ],
+            "rank": 12,
+            "score": 0.014492753623188406,
+            "source_id": "S014"
+          },
+          {
+            "per_query_ranks": [
+              10
+            ],
+            "rank": 13,
+            "score": 0.014285714285714285,
+            "source_id": "S013"
+          },
+          {
+            "per_query_ranks": [
+              12
+            ],
+            "rank": 14,
+            "score": 0.013888888888888888,
+            "source_id": "S012"
+          },
+          {
+            "per_query_ranks": [
+              15
+            ],
+            "rank": 15,
+            "score": 0.013333333333333334,
+            "source_id": "S005"
+          },
+          {
+            "per_query_ranks": [
+              16
+            ],
+            "rank": 16,
+            "score": 0.013157894736842105,
+            "source_id": "S008"
+          },
+          {
+            "per_query_ranks": [
+              17
+            ],
+            "rank": 17,
+            "score": 0.012987012987012988,
+            "source_id": "S011"
+          }
+        ],
+        "selected_source_ids": [
+          "S016",
+          "S015",
+          "S017",
+          "S018",
+          "S002"
+        ]
+      },
+      {
+        "composer": {
+          "answer": "No. Cobalt requires backups and replicas to remain in the EU, and an outside-EU backup is non-compliant unless the contract is amended (S017). Northstar’s standard disaster-recovery configuration may store encrypted backups in the United States; the EU-only option is not the default (S018).",
+          "cited_source_ids": [
+            "S017",
+            "S018"
+          ],
+          "insufficient_evidence": false
+        },
+        "contract_ok": true,
+        "forbidden_conflation_sources_in_context": [],
+        "fusion_queries": [
+          "Does Northstar's standard disaster-recovery configuration satisfy Cobalt's requirement?",
+          "Northstar standard disaster-recovery configuration Cobalt requirement",
+          "Cobalt disaster-recovery requirement Northstar compliance gaps",
+          "Northstar DR configuration decision rationale and validation against Cobalt requirement"
+        ],
+        "missing_required_sources": [],
+        "model_receipt": {
+          "elapsed_seconds": 4.84,
+          "model": "gpt-5.6-luna"
+        },
+        "planner_contract_ok": true,
+        "planner_queries": [
+          "Northstar standard disaster-recovery configuration Cobalt requirement",
+          "Cobalt disaster-recovery requirement Northstar compliance gaps",
+          "Northstar DR configuration decision rationale and validation against Cobalt requirement"
+        ],
+        "planner_receipt": {
+          "elapsed_seconds": 3.969,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Does Northstar's standard disaster-recovery configuration satisfy Cobalt's requirement?",
+        "question_id": "Q008",
+        "required_complete": true,
+        "required_recall_at_5": 1.0,
+        "required_sources": [
+          "S015",
+          "S017",
+          "S018"
+        ],
+        "rrf_ranking": [
+          {
+            "per_query_ranks": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "rank": 1,
+            "score": 0.06557377049180328,
+            "source_id": "S016"
+          },
+          {
+            "per_query_ranks": [
+              2,
+              2,
+              2,
+              3
+            ],
+            "rank": 2,
+            "score": 0.06426011264720942,
+            "source_id": "S018"
+          },
+          {
+            "per_query_ranks": [
+              3,
+              3,
+              3,
+              2
+            ],
+            "rank": 3,
+            "score": 0.06374807987711213,
+            "source_id": "S017"
+          },
+          {
+            "per_query_ranks": [
+              4,
+              4,
+              4,
+              7
+            ],
+            "rank": 4,
+            "score": 0.06180037313432836,
+            "source_id": "S015"
+          },
+          {
+            "per_query_ranks": [
+              6,
+              6,
+              5,
+              8
+            ],
+            "rank": 5,
+            "score": 0.06039352804058687,
+            "source_id": "S002"
+          },
+          {
+            "per_query_ranks": [
+              5,
+              5,
+              4
+            ],
+            "rank": 6,
+            "score": 0.04639423076923077,
+            "source_id": "S012"
+          },
+          {
+            "per_query_ranks": [
+              10,
+              7,
+              9
+            ],
+            "rank": 7,
+            "score": 0.04370384104323105,
+            "source_id": "S013"
+          },
+          {
+            "per_query_ranks": [
+              11,
+              8,
+              10
+            ],
+            "rank": 8,
+            "score": 0.04307610368090898,
+            "source_id": "S014"
+          },
+          {
+            "per_query_ranks": [
+              7,
+              6
+            ],
+            "rank": 9,
+            "score": 0.03007688828584351,
+            "source_id": "S010"
+          },
+          {
+            "per_query_ranks": [
+              8,
+              14
+            ],
+            "rank": 10,
+            "score": 0.02821939586645469,
+            "source_id": "S006"
+          },
+          {
+            "per_query_ranks": [
+              5
+            ],
+            "rank": 11,
+            "score": 0.015384615384615385,
+            "source_id": "S009"
+          },
+          {
+            "per_query_ranks": [
+              9
+            ],
+            "rank": 12,
+            "score": 0.014492753623188406,
+            "source_id": "S001"
+          },
+          {
+            "per_query_ranks": [
+              11
+            ],
+            "rank": 13,
+            "score": 0.014084507042253521,
+            "source_id": "S011"
+          },
+          {
+            "per_query_ranks": [
+              12
+            ],
+            "rank": 14,
+            "score": 0.013888888888888888,
+            "source_id": "S008"
+          },
+          {
+            "per_query_ranks": [
+              13
+            ],
+            "rank": 15,
+            "score": 0.0136986301369863,
+            "source_id": "S005"
+          }
+        ],
+        "selected_source_ids": [
+          "S016",
+          "S018",
+          "S017",
+          "S015",
+          "S002"
+        ]
+      },
+      {
+        "composer": {
+          "answer": "No. Redis was rejected because of the operational complexity and burden of owning another stateful service, not because it was considered technically poor (S009, S008). Reopening would be justified by profiling and realistic load measurements showing that Postgres advisory locks cannot meet the requirements; the synthetic burst at roughly 20× expected load is explicitly unrealistic and does not reverse the decision (S010). The evidence does not yet show confirmed insufficiency under realistic conditions.",
+          "cited_source_ids": [
+            "S009",
+            "S008",
+            "S010"
+          ],
+          "insufficient_evidence": false
+        },
+        "contract_ok": true,
+        "forbidden_conflation_sources_in_context": [],
+        "fusion_queries": [
+          "Was Redis rejected because it was technically poor, and what evidence would justify reopening the decision?",
+          "Redis rejection decision rationale: technical limitations versus project fit, constraints, alternatives, and attributed statements",
+          "Evidence required to reopen Redis decision: benchmark results, workload changes, operational risks, cost, reliability, and migration reversibility",
+          "Redis initial hypothesis versus final cause: decision records, later measurements, production incidents, and repeated constraints"
+        ],
+        "missing_required_sources": [],
+        "model_receipt": {
+          "elapsed_seconds": 5.89,
+          "model": "gpt-5.6-luna"
+        },
+        "planner_contract_ok": true,
+        "planner_queries": [
+          "Redis rejection decision rationale: technical limitations versus project fit, constraints, alternatives, and attributed statements",
+          "Evidence required to reopen Redis decision: benchmark results, workload changes, operational risks, cost, reliability, and migration reversibility",
+          "Redis initial hypothesis versus final cause: decision records, later measurements, production incidents, and repeated constraints"
+        ],
+        "planner_receipt": {
+          "elapsed_seconds": 4.162,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Was Redis rejected because it was technically poor, and what evidence would justify reopening the decision?",
+        "question_id": "Q009",
+        "required_complete": true,
+        "required_recall_at_5": 1.0,
+        "required_sources": [
+          "S008",
+          "S009",
+          "S010"
+        ],
+        "rrf_ranking": [
+          {
+            "per_query_ranks": [
+              2,
+              1,
+              1,
+              3
+            ],
+            "rank": 1,
+            "score": 0.06478893337698204,
+            "source_id": "S009"
+          },
+          {
+            "per_query_ranks": [
+              5,
+              2,
+              3,
+              4
+            ],
+            "rank": 2,
+            "score": 0.06301166351569577,
+            "source_id": "S010"
+          },
+          {
+            "per_query_ranks": [
+              3,
+              4,
+              2,
+              7
+            ],
+            "rank": 3,
+            "score": 0.06255242126540875,
+            "source_id": "S008"
+          },
+          {
+            "per_query_ranks": [
+              1,
+              5,
+              4,
+              12
+            ],
+            "rank": 4,
+            "score": 0.0612919468964551,
+            "source_id": "S007"
+          },
+          {
+            "per_query_ranks": [
+              10,
+              6,
+              8,
+              1
+            ],
+            "rank": 5,
+            "score": 0.06053655441312143,
+            "source_id": "S011"
+          },
+          {
+            "per_query_ranks": [
+              7,
+              10,
+              14,
+              5
+            ],
+            "rank": 6,
+            "score": 0.05810921631817154,
+            "source_id": "S016"
+          },
+          {
+            "per_query_ranks": [
+              4,
+              11,
+              15,
+              9
+            ],
+            "rank": 7,
+            "score": 0.05753559399877527,
+            "source_id": "S006"
+          },
+          {
+            "per_query_ranks": [
+              12,
+              8,
+              5,
+              16
+            ],
+            "rank": 8,
+            "score": 0.05713728136328755,
+            "source_id": "S012"
+          },
+          {
+            "per_query_ranks": [
+              13,
+              9,
+              13,
+              8
+            ],
+            "rank": 9,
+            "score": 0.05659589625010218,
+            "source_id": "S005"
+          },
+          {
+            "per_query_ranks": [
+              11,
+              7,
+              11,
+              15
+            ],
+            "rank": 10,
+            "score": 0.056427720552168735,
+            "source_id": "S017"
+          },
+          {
+            "per_query_ranks": [
+              8,
+              9,
+              2
+            ],
+            "rank": 11,
+            "score": 0.045327668234194096,
+            "source_id": "S013"
+          },
+          {
+            "per_query_ranks": [
+              6,
+              12,
+              6
+            ],
+            "rank": 12,
+            "score": 0.04419191919191919,
+            "source_id": "S001"
+          },
+          {
+            "per_query_ranks": [
+              16,
+              7,
+              10
+            ],
+            "rank": 13,
+            "score": 0.04236898215688475,
+            "source_id": "S015"
+          },
+          {
+            "per_query_ranks": [
+              14,
+              10,
+              11
+            ],
+            "rank": 14,
+            "score": 0.04188373484148132,
+            "source_id": "S014"
+          },
+          {
+            "per_query_ranks": [
+              17,
+              6,
+              13
+            ],
+            "rank": 15,
+            "score": 0.041837158275514444,
+            "source_id": "S002"
+          },
+          {
+            "per_query_ranks": [
+              15,
+              14
+            ],
+            "rank": 16,
+            "score": 0.02684684684684685,
+            "source_id": "S003"
+          },
+          {
+            "per_query_ranks": [
+              3
+            ],
+            "rank": 17,
+            "score": 0.015873015873015872,
+            "source_id": "S004"
+          },
+          {
+            "per_query_ranks": [
+              9
+            ],
+            "rank": 18,
+            "score": 0.014492753623188406,
+            "source_id": "S018"
+          }
+        ],
+        "selected_source_ids": [
+          "S009",
+          "S010",
+          "S008",
+          "S007",
+          "S011"
+        ]
+      },
+      {
+        "composer": {
+          "answer": "No. The evidence supports only that Jihoon Park required a privacy review of the DPA before exchanging production customer data, and explicitly distinguishes that requirement from a general objection to cloud services (S002). The meeting record corroborates the same narrow DPA concern but is not authored by Park (S001); later, Park stated that the review was complete, without retracting the earlier privacy position (S006). This is insufficient to characterize Park as generally risk-averse or anti-cloud.",
+          "cited_source_ids": [
+            "S002",
+            "S001",
+            "S006"
+          ],
+          "insufficient_evidence": true
+        },
+        "contract_ok": true,
+        "forbidden_conflation_sources_in_context": [
+          "S005"
+        ],
+        "fusion_queries": [
+          "Does the admitted evidence justify characterizing Jihoon Park as generally risk-averse or anti-cloud?",
+          "Jihoon Park aliases identity evidence direct statements risk-averse cloud skepticism decisions rationale versus attributed claims",
+          "Jihoon Park cloud adoption decisions: initial concerns, final causes, later measurements, and repeated constraints across time",
+          "Evidence comparing Jihoon Park's direct-authored views on cloud risk with attributed statements and actual technology choices"
+        ],
+        "missing_required_sources": [
+          "S003"
+        ],
+        "model_receipt": {
+          "elapsed_seconds": 6.169,
+          "model": "gpt-5.6-luna"
+        },
+        "planner_contract_ok": true,
+        "planner_queries": [
+          "Jihoon Park aliases identity evidence direct statements risk-averse cloud skepticism decisions rationale versus attributed claims",
+          "Jihoon Park cloud adoption decisions: initial concerns, final causes, later measurements, and repeated constraints across time",
+          "Evidence comparing Jihoon Park's direct-authored views on cloud risk with attributed statements and actual technology choices"
+        ],
+        "planner_receipt": {
+          "elapsed_seconds": 4.726,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Does the admitted evidence justify characterizing Jihoon Park as generally risk-averse or anti-cloud?",
+        "question_id": "Q010",
+        "required_complete": false,
+        "required_recall_at_5": 0.75,
+        "required_sources": [
+          "S001",
+          "S002",
+          "S003",
+          "S006"
+        ],
+        "rrf_ranking": [
+          {
+            "per_query_ranks": [
+              1,
+              1,
+              1,
+              1
+            ],
+            "rank": 1,
+            "score": 0.06557377049180328,
+            "source_id": "S002"
+          },
+          {
+            "per_query_ranks": [
+              4,
+              2,
+              2,
+              4
+            ],
+            "rank": 2,
+            "score": 0.06350806451612903,
+            "source_id": "S004"
+          },
+          {
+            "per_query_ranks": [
+              2,
+              3,
+              4,
+              5
+            ],
+            "rank": 3,
+            "score": 0.06301166351569577,
+            "source_id": "S006"
+          },
+          {
+            "per_query_ranks": [
+              5,
+              5,
+              3,
+              6
+            ],
+            "rank": 4,
+            "score": 0.061793761793761795,
+            "source_id": "S005"
+          },
+          {
+            "per_query_ranks": [
+              3,
+              4,
+              10,
+              3
+            ],
+            "rank": 5,
+            "score": 0.06165674603174603,
+            "source_id": "S001"
+          },
+          {
+            "per_query_ranks": [
+              8,
+              6,
+              11,
+              8
+            ],
+            "rank": 6,
+            "score": 0.05864778689965103,
+            "source_id": "S003"
+          },
+          {
+            "per_query_ranks": [
+              10,
+              7,
+              11
+            ],
+            "rank": 7,
+            "score": 0.043295594462296166,
+            "source_id": "S016"
+          },
+          {
+            "per_query_ranks": [
+              18,
+              5,
+              7
+            ],
+            "rank": 8,
+            "score": 0.04313050133945656,
+            "source_id": "S011"
+          },
+          {
+            "per_query_ranks": [
+              17,
+              12,
+              2
+            ],
+            "rank": 9,
+            "score": 0.04300493413396639,
+            "source_id": "S008"
+          },
+          {
+            "per_query_ranks": [
+              13,
+              8,
+              12
+            ],
+            "rank": 10,
+            "score": 0.04229340137881636,
+            "source_id": "S009"
+          },
+          {
+            "per_query_ranks": [
+              11,
+              13,
+              9
+            ],
+            "rank": 11,
+            "score": 0.04227589080242823,
+            "source_id": "S017"
+          },
+          {
+            "per_query_ranks": [
+              7,
+              15,
+              13
+            ],
+            "rank": 12,
+            "score": 0.041957336604647996,
+            "source_id": "S010"
+          },
+          {
+            "per_query_ranks": [
+              14,
+              14,
+              10
+            ],
+            "rank": 13,
+            "score": 0.04131274131274131,
+            "source_id": "S012"
+          },
+          {
+            "per_query_ranks": [
+              6,
+              6
+            ],
+            "rank": 14,
+            "score": 0.030303030303030304,
+            "source_id": "S014"
+          },
+          {
+            "per_query_ranks": [
+              9,
+              9
+            ],
+            "rank": 15,
+            "score": 0.028985507246376812,
+            "source_id": "S013"
+          },
+          {
+            "per_query_ranks": [
+              12
+            ],
+            "rank": 16,
+            "score": 0.013888888888888888,
+            "source_id": "S018"
+          },
+          {
+            "per_query_ranks": [
+              15
+            ],
+            "rank": 17,
+            "score": 0.013333333333333334,
+            "source_id": "S015"
+          },
+          {
+            "per_query_ranks": [
+              16
+            ],
+            "rank": 18,
+            "score": 0.013157894736842105,
+            "source_id": "S007"
+          }
+        ],
+        "selected_source_ids": [
+          "S002",
+          "S004",
+          "S006",
+          "S005",
+          "S001"
+        ]
+      }
+    ]
+  },
+  "execute_model": true,
+  "format": "E023-G1-v0",
+  "interpretation_boundary": "G1 tests retrieval planning plus ephemeral composition only. No result directly authorizes semantic persistence or automatic identity/routing.",
+  "model": "gpt-5.6-luna",
+  "model_call_attempts": 30,
+  "request": {
+    "a_composer_calls": 10,
+    "arms": [
+      "A",
+      "C"
+    ],
+    "c_composer_calls": 10,
+    "c_planner_calls": 10,
+    "context_top_k": 5,
+    "max_ai_credits_per_call": 30,
+    "max_model_call_attempts": 30,
+    "max_planner_queries": 3,
+    "model": "gpt-5.6-luna",
+    "question_count": 10,
+    "request_id": "e023-g1-retrieval-composition-v0",
+    "rrf_k": 60
+  },
+  "usage": {
+    "ai_credits_or_premium_requests": "unavailable_do_not_infer",
+    "model_calls": 30,
+    "tokens": "unavailable_unless_transport_artifact_exposes_machine_readable_usage"
+  }
+}
