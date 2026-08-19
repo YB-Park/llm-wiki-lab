@@ -28,6 +28,7 @@ jobs:
         run: |
           python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_corpus.py
           python3 -m py_compile experiments/E023-generality-retrieval-composition/score_adjudication.py
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/analyze_selection_counterfactual.py
 
       - name: Validate frozen corpus and lexical diagnostic
         run: |
@@ -46,10 +47,20 @@ jobs:
           grep -q '"g1_promotion": "NOT_EARNED"' /tmp/e023-adjudication.txt
           grep -q '"model_calls": 30' /tmp/e023-adjudication.txt
 
+      - name: Validate zero-model selection counterfactual
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/analyze_selection_counterfactual.py \
+            | tee /tmp/e023-selection.txt
+          grep -q '^E023 zero-model selection counterfactual: PASS$' /tmp/e023-selection.txt
+          grep -q '"C@6": 10' /tmp/e023-selection.txt
+          grep -q '"model_calls": 0' /tmp/e023-selection.txt
+
       - name: Assert result boundaries
         run: |
           test -s experiments/E023-generality-retrieval-composition/results-v0.md
+          test -s experiments/E023-generality-retrieval-composition/posthoc-zero-model-v0.md
           test -s experiments/E023-generality-retrieval-composition/evidence/run-32215941344/result.json
           grep -q 'G1-C NOT EARNED' experiments/E023-generality-retrieval-composition/results-v0.md
           grep -q 'does not authorize' experiments/E023-generality-retrieval-composition/results-v0.md
           grep -q 'G1b' experiments/E023-generality-retrieval-composition/results-v0.md
+          test ! -e .github/workflows/e023-capture-frozen-g1-result.yml
