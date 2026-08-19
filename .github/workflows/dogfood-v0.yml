@@ -21,51 +21,9 @@ on:
       - '.github/workflows/dogfood-v0.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  apply-release-patch:
-    if: github.actor != 'github-actions[bot]'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          ref: agent/release-ux-foundation-0.1.16
-          fetch-depth: 0
-      - name: Apply reviewed 0.1.16 release patch
-        run: |
-          test -f .github/ux-release-016-patch.py
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path('.github/ux-release-016-patch.py')
-          text = p.read_text(encoding='utf-8')
-          strict = "replace_all(README, '0.1.15', '0.1.16')"
-          tolerant = "readme_path = ROOT / README\nreadme_text = readme_path.read_text(encoding='utf-8')\nreadme_path.write_text(readme_text.replace('0.1.15', '0.1.16'), encoding='utf-8')"
-          if strict not in text:
-              raise SystemExit('README release marker not found in patch script')
-          p.write_text(text.replace(strict, tolerant, 1), encoding='utf-8')
-          PY
-          python3 .github/ux-release-016-patch.py
-          git show 948c5c7707b6b144e4dcb084a0f2610863b2dfc0:.github/workflows/dogfood-v0.yml > .github/workflows/dogfood-v0.yml
-      - name: Validate patched release files before commit
-        run: |
-          node --check dogfood/vscode/agent-tools.js
-          node --check dogfood/vscode/entry.js
-          node dogfood/vscode/test/static.js
-          python3 experiments/E020-synthetic-agent-ux/score_contract.py
-          test ! -e .github/ux-release-016-patch.py
-          test ! -e .github/workflows/ux-release-016-patch.yml
-          git diff --check
-      - name: Commit final release candidate
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git diff --cached --check
-          git diff --cached --stat
-          git commit -m "Finish 0.1.16 release UX"
-          git push origin HEAD:agent/release-ux-foundation-0.1.16
-
   python39-compat:
     name: Python 3.9 bundled-core compatibility
     runs-on: ubuntu-latest
@@ -191,7 +149,7 @@ jobs:
           test -f dist/unpacked/extension/process-errors.js
           test -f dist/unpacked/extension/python-runtime.js
           test -f dist/unpacked/extension/python-runtime-policy.js
-          test -f dist/unpacked/extension/media/walkthrough-ai-summaries.md
+          test -f dist/unpacked/extension/media/walkthrough-ai-summaries.md'
           xvfb-run -a npm run test:packaged
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v7
