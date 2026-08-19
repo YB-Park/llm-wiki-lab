@@ -1,0 +1,140 @@
+name: E023 generality G1c
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/run_g1c.py'
+      - 'experiments/E023-generality-retrieval-composition/g1c-execution-addendum-v0.md'
+      - 'remote-lab/e023-g1c-request.json'
+      - '.github/workflows/e023-generality-g1c.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/run_g1c.py'
+      - 'experiments/E023-generality-retrieval-composition/g1c-execution-addendum-v0.md'
+      - 'remote-lab/e023-g1c-request.json'
+      - '.github/workflows/e023-generality-g1c.yml'
+
+jobs:
+  preflight:
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile frozen G1c runner
+        run: python -m py_compile experiments/E023-generality-retrieval-composition/run_g1c.py
+      - name: Revalidate G1c preregistration
+        run: |
+          python experiments/E023-generality-retrieval-composition/validate_g1c_prereg.py \
+            | tee /tmp/e023-g1c-prereg.txt
+          grep -q '^E023 G1c prereg baseline validation: PASS$' /tmp/e023-g1c-prereg.txt
+          grep -q '"max_semantic_calls_if_later_executed": 24' /tmp/e023-g1c-prereg.txt
+      - name: Run zero-model G1c preflight
+        env:
+          PYTHONPATH: .
+        run: |
+          rm -rf remote-lab/out/e023-g1c
+          python experiments/E023-generality-retrieval-composition/run_g1c.py \
+            | tee /tmp/e023-g1c-preflight.txt
+          grep -q '"execute_model": false' /tmp/e023-g1c-preflight.txt
+          grep -q '"model_calls": 0' /tmp/e023-g1c-preflight.txt
+          grep -q '"retrieval_selection_verdict": "NOT_EXECUTED"' /tmp/e023-g1c-preflight.txt
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          row = json.loads(Path('remote-lab/out/e023-g1c/result.json').read_text())
+          assert row['format'] == 'E023-G1c-v0', row
+          assert row['execute_model'] is False, row
+          assert row['model_call_attempts'] == 0, row
+          assert [x['question_id'] for x in row['arms']['A']] == [f'AQ00{i}' for i in range(1, 7)], row
+          assert [x['question_id'] for x in row['arms']['B']] == [f'AQ00{i}' for i in range(1, 7)], row
+          assert all(x.get('not_executed') == 'planner_selector_composer_require_model' for x in row['arms']['B']), row
+          assert all(len(x['selected_anchor_ids']) == 5 for x in row['arms']['A']), row
+          assert row['request']['request_id'] == 'e023-g1c-authority-sufficiency-evidence-follow-v0', row
+          assert row['request']['max_model_call_attempts'] == 24, row
+          PY
+
+  execute:
+    if: github.event_name == 'push'
+    permissions:
+      actions: read
+      contents: write
+      copilot-requests: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - name: Install standalone GitHub Copilot CLI
+        run: npm install -g @github/copilot
+      - name: Execute frozen G1c authority-sufficiency gate
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PYTHONPATH: .
+        run: python experiments/E023-generality-retrieval-composition/run_g1c.py --execute-model
+      - name: Upload raw G1c artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e023-g1c-${{ github.run_id }}
+          path: remote-lab/out/e023-g1c/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Commit immutable G1c evidence to main
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          result=/tmp/e023-g1c-result.json
+          cp remote-lab/out/e023-g1c/result.json "$result"
+
+          git fetch origin main
+          git checkout -B e023-g1c-evidence origin/main
+
+          evidence_dir="experiments/E023-generality-retrieval-composition/evidence/g1c-run-$RUN_ID"
+          test ! -e "$evidence_dir"
+          mkdir -p "$evidence_dir"
+          cp "$result" "$evidence_dir/result.json"
+          gh run view "$RUN_ID" \
+            --repo "$GITHUB_REPOSITORY" \
+            --json databaseId,headSha,status,conclusion,createdAt,updatedAt,url \
+            > "$evidence_dir/run.json"
+          sha256sum "$evidence_dir/result.json" > "$evidence_dir/result.sha256"
+
+          python3 - "$SOURCE_SHA" "$RUN_ID" "$evidence_dir/result.json" "$evidence_dir/run.json" <<'PY'
+          import json, sys
+          source_sha, run_id, result_path, run_path = sys.argv[1:]
+          result = json.load(open(result_path, encoding='utf-8'))
+          run = json.load(open(run_path, encoding='utf-8'))
+          assert str(run['databaseId']) == run_id, run
+          assert run['headSha'] == source_sha, run
+          assert result['format'] == 'E023-G1c-v0', result
+          assert result['execute_model'] is True, result
+          assert result['request']['request_id'] == 'e023-g1c-authority-sufficiency-evidence-follow-v0', result
+          assert result['request']['model'] == 'gpt-5.6-luna', result
+          assert result['request']['max_model_call_attempts'] == 24, result
+          assert [row['question_id'] for row in result['arms']['A']] == [f'AQ00{i}' for i in range(1, 7)], result
+          assert [row['question_id'] for row in result['arms']['B']] == [f'AQ00{i}' for i in range(1, 7)], result
+          PY
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$evidence_dir"
+          git commit -m "Capture frozen E023 G1c run $RUN_ID"
+          git push origin HEAD:main
