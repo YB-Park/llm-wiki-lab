@@ -1,0 +1,82 @@
+name: E023 generality G1
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/**'
+      - 'remote-lab/e023-g1-request.json'
+      - '.github/workflows/e023-generality-g1.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/run_g1.py'
+      - 'experiments/E023-generality-retrieval-composition/execution-addendum-v0.md'
+      - 'remote-lab/e023-g1-request.json'
+      - '.github/workflows/e023-generality-g1.yml'
+
+jobs:
+  preflight:
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile frozen G1 runner
+        run: python -m py_compile experiments/E023-generality-retrieval-composition/run_g1.py
+      - name: Run zero-model G1 preflight
+        env:
+          PYTHONPATH: .
+        run: |
+          rm -rf remote-lab/out/e023-g1
+          python experiments/E023-generality-retrieval-composition/run_g1.py \
+            | tee /tmp/e023-g1-preflight.txt
+          grep -q '"execute_model": false' /tmp/e023-g1-preflight.txt
+          grep -q '"model_calls": 0' /tmp/e023-g1-preflight.txt
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          row = json.loads(Path('remote-lab/out/e023-g1/result.json').read_text())
+          assert row['execute_model'] is False, row
+          assert row['model_call_attempts'] == 0, row
+          assert len(row['arms']['A']) == 10, row
+          assert len(row['arms']['C']) == 10, row
+          assert all(x.get('not_executed') == 'planner_requires_model' for x in row['arms']['C']), row
+          PY
+      - name: Revalidate frozen corpus
+        run: python experiments/E023-generality-retrieval-composition/validate_corpus.py >/tmp/e023-corpus.txt
+
+  execute:
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      copilot-requests: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - name: Install standalone GitHub Copilot CLI
+        run: npm install -g @github/copilot
+      - name: Execute frozen A/C Luna comparison
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PYTHONPATH: .
+        run: python experiments/E023-generality-retrieval-composition/run_g1.py --execute-model
+      - name: Upload E023 G1 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e023-g1-${{ github.run_id }}
+          path: remote-lab/out/e023-g1/
+          if-no-files-found: error
+          retention-days: 30
