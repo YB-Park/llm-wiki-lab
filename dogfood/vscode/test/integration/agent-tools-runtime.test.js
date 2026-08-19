@@ -138,6 +138,16 @@ suite('LLM Wiki Agent Tools', () => {
       assert.equal(agentState.format, 'llm-wiki-agent-state-v0');
       assert.equal(agentState.source_locators[sourceId].relative_path, 'runtime-dirty-remember.md');
       assert.equal(agentState.maintenance_usage.reserved_calls, 0);
+
+      const manifestAfterAdmission = fs.readFileSync(path.join(wikiRoot, 'manifest.jsonl'), 'utf8');
+      const reused = toolText(await vscode.lm.invokeTool('llmWiki_rememberSource', {
+        input: { filePath: sourcePath }, toolInvocationToken: undefined,
+      }));
+      assert.match(reused, /authority=existing_source_reuse/);
+      assert.match(reused, /raw_admission=reused_existing/);
+      assert.match(reused, /canonical_mutation=none/);
+      assert.equal(field(reused, 'source_id'), sourceId);
+      assert.equal(fs.readFileSync(path.join(wikiRoot, 'manifest.jsonl'), 'utf8'), manifestAfterAdmission, 'same bytes reuse must not append canonical history');
     } finally {
       await config.update('agentWikiMaintenanceEnabled', false, vscode.ConfigurationTarget.Workspace);
       await config.update('agentWikiMaintenanceDailyCallLimit', 10, vscode.ConfigurationTarget.Workspace);

@@ -2,10 +2,13 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const vscode = require('vscode');
 const humanKnowledge = require('./human-knowledge');
+const { boundedProcessFailure } = require('./process-errors');
+const { resolvePythonRuntime } = require('./python-runtime');
 const { parseIngestReceipt, workspaceRelativePath } = require('./product-helpers');
 
 const execFileAsync = promisify(execFile);
@@ -26,6 +29,7 @@ const LINEAGE_RELATIONS = new Set(['correction', 'change', 'dispute', 'supersede
 function firstWorkspaceFolder() {
   const folders = vscode.workspace.workspaceFolders || [];
   if (!folders.length) throw new Error('Open a trusted VS Code workspace/folder before using LLM Wiki tools.');
+  if (folders.length !== 1) throw new Error('LLM Wiki currently supports one workspace folder at a time. Open the project as a single-folder workspace before using project memory.');
   return folders[0];
 }
 
@@ -71,12 +75,13 @@ function coreRoot(context, folder) {
 }
 
 async function runPythonModule(context, folder, moduleName, args) {
-  const python = String(configuration().get('pythonExecutable', 'python3') || 'python3');
+  const runtime = await resolvePythonRuntime(folder);
+  if (!runtime) throw new Error('python_runtime_not_found');
   const root = coreRoot(context, folder);
   const pythonPath = process.env.PYTHONPATH ? `${root}${path.delimiter}${process.env.PYTHONPATH}` : root;
   const fullArgs = ['-m', moduleName, '--root', wikiRoot(folder), ...args];
   try {
-    const result = await execFileAsync(python, fullArgs, {
+    const result = await execFileAsync(runtime.executable, fullArgs, {
       cwd: folder.uri.fsPath,
       env: { ...process.env, PYTHONPATH: pythonPath },
       maxBuffer: MAX_BUFFER,
@@ -87,7 +92,7 @@ async function runPythonModule(context, folder, moduleName, args) {
     const stderr = error && error.stderr ? String(error.stderr).trim() : '';
     const stdout = error && error.stdout ? String(error.stdout).trim() : '';
     const detail = stderr || stdout || (error && error.message) || String(error);
-    throw new Error(detail);
+    throw new Error(boundedProcessFailure(detail));
   }
 }
 
@@ -186,6 +191,7 @@ async function reserveMaintenanceCall(context, folder) {
   };
 }
 
+// Product contract: a positive threshold is a soft guard, not a hard cap.
 async function confirmMaintenanceSoftGuard(context, folder) {
   const threshold = maintenanceDailyCallLimit();
   const usage = await maintenanceUsage(context, folder);
@@ -206,24 +212,37 @@ async function confirmMaintenanceSoftGuard(context, folder) {
   const saved = context.workspaceState.get(key, {});
   if (
     saved
-    && saved.continueToday === true
     && saved.day === usage.day
     && Number(saved.threshold) === threshold
   ) {
-    budget.softGuardAcknowledged = true;
-    return { allowed: true, status: 'SOFT_GUARD_ACKNOWLEDGED', budget };
+    if (saved.pauseToday === true) {
+      budget.softGuardPaused = true;
+      return { allowed: false, status: 'SKIPPED_SOFT_GUARD_PAUSED', budget };
+    }
+    if (saved.continueToday === true) {
+      budget.softGuardAcknowledged = true;
+      return { allowed: true, status: 'SOFT_GUARD_ACKNOWLEDGED', budget };
+    }
   }
 
-  let continued = true;
+  let choice = 'Continue Today';
   if (context.extensionMode !== vscode.ExtensionMode.Test) {
-    const choice = await vscode.window.showWarningMessage(
-      `LLM Wiki Agent Wiki maintenance has already reserved ${usage.reservedCalls} model-backed call${usage.reservedCalls === 1 ? '' : 's'} today. The configured ${threshold}-call daily threshold is a soft guard, not a hard cap. Raw evidence is already saved; this choice controls only optional derived Agent Wiki maintenance. Continue model-backed maintenance for the rest of today?`,
-      { modal: true },
-      'Continue Today'
+    choice = await vscode.window.showWarningMessage(
+      'Continue AI summaries for the rest of today?',
+      {
+        modal: true,
+        detail: `LLM Wiki has reserved ${usage.reservedCalls} model-backed AI-summary call${usage.reservedCalls === 1 ? '' : 's'} today. Your saved source is already safe. This choice affects only optional AI summaries; the ${threshold}-call setting is a reminder, not a hard cap.`,
+      },
+      'Continue Today',
+      'Pause AI Summaries Today'
     );
-    continued = choice === 'Continue Today';
   }
-  if (!continued) {
+  if (choice === 'Pause AI Summaries Today') {
+    await context.workspaceState.update(key, { day: usage.day, threshold, pauseToday: true });
+    budget.softGuardPaused = true;
+    return { allowed: false, status: 'SKIPPED_SOFT_GUARD_PAUSED', budget };
+  }
+  if (choice !== 'Continue Today') {
     return { allowed: false, status: 'SKIPPED_SOFT_GUARD_DECLINED', budget };
   }
 
@@ -385,6 +404,29 @@ function dirtyOpenDocumentFor(filePath) {
   ));
 }
 
+function fileSha256(filePath) {
+  return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+}
+
+async function findExactCurrentRememberedSource(context, folder, target, digest) {
+  if (!isWikiInitialized(folder)) return undefined;
+  const locators = await durableSourceLocators(context, folder);
+  const matchingSourceIds = new Set(
+    Object.entries(locators)
+      .filter(([, locator]) => locator && locator.relative_path === target.relativePath && locator.sha256 === digest)
+      .map(([sourceId]) => sourceId)
+  );
+  if (!matchingSourceIds.size) return undefined;
+
+  const topics = parseTopics(await runCli(context, folder, ['topic', 'list']));
+  for (const topic of topics) {
+    const rows = parseJsonLines(await runCli(context, folder, ['source', 'list', '--topic', topic.id, '--json']));
+    const row = rows.find((candidate) => matchingSourceIds.has(candidate.source_id) && candidate.sha256 === digest);
+    if (row) return { sourceId: row.source_id, sha256: digest, topic };
+  }
+  return undefined;
+}
+
 async function rememberLocator(context, folder, sourceId, relativePath, digest) {
   if (!sourceId || !relativePath || !digest) return;
   const key = sourceLocatorKey(folder);
@@ -426,9 +468,9 @@ async function currentSameFileCandidates(context, folder, topic, target, current
   return matches;
 }
 
-async function explicitHumanConfirm(context, _title, message, button) {
+async function explicitHumanConfirm(context, title, detail, button) {
   if (context.extensionMode === vscode.ExtensionMode.Test) return true;
-  const choice = await vscode.window.showWarningMessage(message, { modal: true }, button);
+  const choice = await vscode.window.showWarningMessage(title, { modal: true, detail }, button);
   return choice === button;
 }
 
@@ -446,6 +488,9 @@ async function maintainSource(context, folder, sourceId, topicId) {
       modelCalls: Number(row.model_calls || 0),
       model: String(row.model || AGENT_WIKI_MODEL),
       policy: String(row.policy || ''),
+      failureCode: String(row.failure_code || ''),
+      stage: String(row.maintenance_stage || (Number(row.model_calls || 0) ? 'completed' : 'reuse')),
+      modelCallAttempted: String(row.model_call_attempted || (Number(row.model_calls || 0) ? 'yes' : 'no')),
       budget: await maintenanceUsage(context, folder),
     };
   } catch (error) {
@@ -471,6 +516,9 @@ async function maintainSource(context, folder, sourceId, topicId) {
     modelCalls: Number(row.model_calls || 0),
     model: String(row.model || AGENT_WIKI_MODEL),
     policy: String(row.policy || ''),
+    failureCode: String(row.failure_code || ''),
+    stage: String(row.maintenance_stage || 'completed'),
+    modelCallAttempted: String(row.model_call_attempted || 'yes'),
     budget,
   };
 }
@@ -516,7 +564,7 @@ class WikiMemorySearchTool {
 
   prepareInvocation(options) {
     const query = String((options.input && options.input.query) || '').trim();
-    return { invocationMessage: `Searching current LLM Wiki memory for “${query.slice(0, 80)}”` };
+    return { invocationMessage: `Searching project memory for “${query.slice(0, 80)}”` };
   }
 
   async invoke(options) {
@@ -548,7 +596,7 @@ class WikiReadSourceTool {
 
   prepareInvocation(options) {
     const sourceId = String((options.input && options.input.sourceId) || '').trim();
-    return { invocationMessage: `Reading verified LLM Wiki evidence ${sourceId}` };
+    return { invocationMessage: `Reading saved project evidence ${sourceId}` };
   }
 
   async invoke(options) {
@@ -610,7 +658,7 @@ class WikiRememberSourceTool {
 
   prepareInvocation(options) {
     const requested = String((options.input && options.input.filePath) || '').trim();
-    return { invocationMessage: `Preparing explicit LLM Wiki admission for ${requested || 'the active editor file'}` };
+    return { invocationMessage: `Preparing to save ${requested || 'the active editor file'} to project memory` };
   }
 
   async invoke(options) {
@@ -621,17 +669,70 @@ class WikiRememberSourceTool {
       throw new Error('LLM Wiki will not auto-save a dirty editor. Save the file explicitly, then ask to remember it again. No Wiki mutation occurred.');
     }
 
+    const digest = fileSha256(target.filePath);
+    const existing = await findExactCurrentRememberedSource(this.context, folder, target, digest);
+    if (existing) {
+      const pendingRows = await openPendingLineageRows(this.context, folder);
+      const pending = pendingRows.find((row) => (
+        row.workspace_file === target.relativePath
+        && (row.successor_source_id === existing.sourceId || row.predecessor_source_ids.includes(existing.sourceId))
+      ));
+      let maintenance = {
+        status: pending ? 'SKIPPED_PENDING_LINEAGE_DECISION' : 'SKIPPED_NO_WORKSPACE_GRANT',
+        modelCalls: 0, model: '', policy: '', budget: await maintenanceUsage(this.context, folder),
+      };
+      if (!pending) {
+        try {
+          maintenance = await maintainSource(this.context, folder, existing.sourceId, existing.topic.id);
+        } catch (_) {
+          maintenance = {
+            status: 'FAILED_AFTER_RAW_REUSE', modelCalls: 'unknown', model: AGENT_WIKI_MODEL, policy: '',
+            failureCode: 'UNCLASSIFIED_MAINTENANCE_FAILURE', stage: 'unknown', modelCallAttempted: 'unknown',
+            budget: await maintenanceUsage(this.context, folder),
+          };
+        }
+      }
+      const usage = await maintenanceUsage(this.context, folder);
+      const text = [
+        'LLM_WIKI_REMEMBER_RESULT v4',
+        'authority=existing_source_reuse',
+        'canonical_mutation=none',
+        'raw_admission=reused_existing',
+        `source_id=${existing.sourceId}`,
+        `sha256=${existing.sha256}`,
+        `workspace_file_json=${jsonData(target.relativePath)}`,
+        `topic_id=${existing.topic.id}`,
+        `topic_json=${jsonData(existing.topic.label)}`,
+        `model_calls=${maintenance.modelCalls}`,
+        `derived_agent_wiki_maintenance=${maintenance.status}`,
+        `maintenance_failure_code=${maintenance.failureCode || ''}`,
+        `maintenance_stage=${maintenance.stage || ''}`,
+        `maintenance_model_call_attempted=${maintenance.modelCallAttempted || ''}`,
+        `maintenance_daily_soft_guard=${maintenanceDailyCallLimit()}`,
+        `maintenance_soft_guard_acknowledged=${maintenance.budget && maintenance.budget.softGuardAcknowledged === true ? 'yes' : 'no'}`,
+        `maintenance_soft_guard_paused=${maintenance.budget && maintenance.budget.softGuardPaused === true ? 'yes' : 'no'}`,
+        `maintenance_reserved_today=${usage.reservedCalls}`,
+        `pending_lineage_decision=${pending ? 'yes' : 'no'}`,
+        pending ? `pending_decision_id=${pending.id}` : 'pending_decision_id=',
+        '',
+        pending
+          ? 'This exact file content was already saved. No new evidence was admitted, and AI-summary maintenance remains paused until the existing file-history decision is resolved.'
+          : 'This exact file content was already present as current project evidence, so LLM Wiki reused it without asking for another source-admission confirmation.',
+      ].join('\n');
+      return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(text)]);
+    }
+
     const dailySoftGuard = maintenanceDailyCallLimit();
     const maintenanceText = maintenanceEnabled()
       ? dailySoftGuard === 0
-        ? ` Agent Wiki maintenance grant is enabled, but new model-backed generation is disabled because the daily maintenance setting is 0. Existing notes may still be reused with zero model calls.`
-        : ` Agent Wiki maintenance is enabled: after safe admission, exact ${AGENT_WIKI_MODEL} may receive the admitted bytes, subject to per-call guard ${maintenanceCreditGuard()} and a daily soft guard after ${dailySoftGuard} model-backed calls. After that threshold, LLM Wiki asks once before continuing for the day.`
-      : ' Agent Wiki maintenance is disabled, so this admission makes no model call.';
+        ? 'AI summaries are on, but new model-backed summaries are disabled because the daily setting is 0. Existing summaries may still be reused without a model call.'
+        : `AI summaries are on. After this file is saved, its content may be sent to GitHub Copilot to create or reuse a rebuildable summary. LLM Wiki asks once after ${dailySoftGuard} model-backed summary calls in a day before continuing.`
+      : 'AI summaries are off, so saving this file makes no model call.';
     const confirmed = await explicitHumanConfirm(
       this.context,
-      'Remember source in LLM Wiki?',
-      `Admit ${target.relativePath} as immutable raw evidence?${maintenanceText} This does not authorize correction/change/dispute/supersession or Human Knowledge inference.`,
-      'Remember Source'
+      'Save this file to project memory?',
+      `File: ${target.relativePath}\n\nLLM Wiki will preserve the saved file content as verifiable project evidence. ${maintenanceText} Saving the file does not decide whether a future revision is a correction, a later change, a disagreement, or an independent source; those meanings remain explicit.`,
+      'Save to Project Memory'
     );
     if (!confirmed) {
       return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart('LLM_WIKI_REMEMBER_RESULT v4\nstatus=CANCELLED_BY_USER\nmodel_calls=0\ncanonical_mutation=none')]);
@@ -667,9 +768,16 @@ class WikiRememberSourceTool {
           modelCalls: 'unknown',
           model: AGENT_WIKI_MODEL,
           policy: '',
+          failureCode: 'UNCLASSIFIED_MAINTENANCE_FAILURE',
+          stage: 'unknown',
+          modelCallAttempted: 'unknown',
           budget: await maintenanceUsage(this.context, folder),
         };
-        vscode.window.showWarningMessage(`LLM Wiki remembered the raw source, but Agent Wiki maintenance failed. Raw admission was preserved. ${error && error.message ? error.message : error}`);
+        const choice = await vscode.window.showWarningMessage(
+          'The file was saved to project memory, but its optional AI summary did not finish. Your saved evidence was preserved.',
+          'Check Setup'
+        );
+        if (choice === 'Check Setup') await vscode.commands.executeCommand('llmWiki.doctor');
       }
     }
     const usage = await maintenanceUsage(this.context, folder);
@@ -686,12 +794,16 @@ class WikiRememberSourceTool {
       `workspace_file_json=${jsonData(target.relativePath)}`,
       `model_calls=${maintenance.modelCalls}`,
       `derived_agent_wiki_maintenance=${maintenance.status}`,
+      `maintenance_failure_code=${maintenance.failureCode || ''}`,
+      `maintenance_stage=${maintenance.stage || ''}`,
+      `maintenance_model_call_attempted=${maintenance.modelCallAttempted || ''}`,
       `maintenance_model=${maintenance.model}`,
       `maintenance_policy_json=${jsonData(maintenance.policy)}`,
       `maintenance_daily_limit=${maintenanceDailyCallLimit()}`,
       `maintenance_daily_limit_mode=${maintenanceDailyCallLimit() === 0 ? 'disabled' : 'soft_guard'}`,
       `maintenance_daily_soft_guard=${maintenanceDailyCallLimit()}`,
       `maintenance_soft_guard_acknowledged=${maintenance.budget && maintenance.budget.softGuardAcknowledged === true ? 'yes' : 'no'}`,
+      `maintenance_soft_guard_paused=${maintenance.budget && maintenance.budget.softGuardPaused === true ? 'yes' : 'no'}`,
       `maintenance_reserved_today=${usage.reservedCalls}`,
       `pending_lineage_decision=${pending ? 'yes' : 'no'}`,
       pending ? `pending_decision_id=${pending.id}` : 'pending_decision_id=',
@@ -712,7 +824,7 @@ class WikiResolveLineageTool {
 
   prepareInvocation(options) {
     const id = String((options.input && options.input.decisionId) || '').trim();
-    return { invocationMessage: `Preparing human-gated Wiki lineage decision ${id}` };
+    return { invocationMessage: `Preparing a saved-file history decision ${id}` };
   }
 
   async invoke(options) {
@@ -757,7 +869,7 @@ class WikiResolveLineageTool {
     ].filter(Boolean).join('\n');
     const confirmed = await explicitHumanConfirm(
       this.context,
-      'Confirm LLM Wiki lineage decision',
+      'Confirm what this saved file change means?',
       review,
       'Confirm Lineage'
     );
@@ -797,9 +909,16 @@ class WikiResolveLineageTool {
           modelCalls: 'unknown',
           model: AGENT_WIKI_MODEL,
           policy: '',
+          failureCode: 'UNCLASSIFIED_MAINTENANCE_FAILURE',
+          stage: 'unknown',
+          modelCallAttempted: 'unknown',
           budget: await maintenanceUsage(this.context, folder),
         };
-        vscode.window.showWarningMessage(`LLM Wiki recorded the human-confirmed lineage decision, but derived maintenance failed. Canonical relation was preserved. ${error && error.message ? error.message : error}`);
+        const choice = await vscode.window.showWarningMessage(
+          'The file-history decision was saved, but its optional AI summary did not finish. The confirmed history remains preserved.',
+          'Check Setup'
+        );
+        if (choice === 'Check Setup') await vscode.commands.executeCommand('llmWiki.doctor');
       }
     }
     const usage = await maintenanceUsage(this.context, folder);
@@ -817,10 +936,14 @@ class WikiResolveLineageTool {
       `continuation_decision_id=${stateResolution.continuation_decision_id || ''}`,
       `remaining_predecessor_source_ids=${(stateResolution.remaining_predecessor_source_ids || []).join(',')}`,
       `derived_agent_wiki_maintenance=${maintenance.status}`,
+      `maintenance_failure_code=${maintenance.failureCode || ''}`,
+      `maintenance_stage=${maintenance.stage || ''}`,
+      `maintenance_model_call_attempted=${maintenance.modelCallAttempted || ''}`,
       `model_calls=${maintenance.modelCalls}`,
       `maintenance_daily_limit_mode=${maintenanceDailyCallLimit() === 0 ? 'disabled' : 'soft_guard'}`,
       `maintenance_daily_soft_guard=${maintenanceDailyCallLimit()}`,
       `maintenance_soft_guard_acknowledged=${maintenance.budget && maintenance.budget.softGuardAcknowledged === true ? 'yes' : 'no'}`,
+      `maintenance_soft_guard_paused=${maintenance.budget && maintenance.budget.softGuardPaused === true ? 'yes' : 'no'}`,
       `maintenance_reserved_today=${usage.reservedCalls}`,
     ];
     return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(text.join('\n'))]);
@@ -831,7 +954,7 @@ class WikiRememberHumanKnowledgeTool {
   constructor(context) { this.context = context; }
 
   prepareInvocation() {
-    return { invocationMessage: 'Preparing explicit Human Knowledge memory for user confirmation' };
+    return { invocationMessage: 'Preparing your project knowledge for confirmation' };
   }
 
   async invoke(options) {
@@ -870,9 +993,9 @@ class WikiRememberHumanKnowledgeTool {
     ].filter(Boolean).join('\n');
     const confirmed = await explicitHumanConfirm(
       this.context,
-      'Save Human Knowledge?',
-      `Save this as your durable Human Knowledge? The full text below becomes user-confirmed memory, not raw external evidence.\n\n${preview}`,
-      'Save Human Knowledge'
+      'Save this as your confirmed project knowledge?',
+      `The full text below will be remembered as something you explicitly confirmed, not as independent external evidence.\n\n${preview}`,
+      'Save Project Knowledge'
     );
     if (!confirmed) {
       return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart('LLM_WIKI_HUMAN_KNOWLEDGE_RESULT v2\nstatus=CANCELLED_BY_USER\nwrite=none')]);
