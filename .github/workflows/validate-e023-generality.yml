@@ -4,12 +4,14 @@ on:
   pull_request:
     paths:
       - 'experiments/E023-generality-retrieval-composition/**'
+      - 'remote-lab/e023-g1b-request.json'
       - 'docs/14-generality-and-semantic-projections.md'
       - '.github/workflows/validate-e023-generality.yml'
   push:
     branches: [main]
     paths:
       - 'experiments/E023-generality-retrieval-composition/**'
+      - 'remote-lab/e023-g1b-request.json'
       - 'docs/14-generality-and-semantic-projections.md'
       - '.github/workflows/validate-e023-generality.yml'
   workflow_dispatch:
@@ -30,6 +32,8 @@ jobs:
           python3 -m py_compile experiments/E023-generality-retrieval-composition/score_adjudication.py
           python3 -m py_compile experiments/E023-generality-retrieval-composition/analyze_selection_counterfactual.py
           python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_g1b_prereg.py
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/score_g1b_adjudication.py
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/analyze_support_clauses.py
 
       - name: Validate frozen corpus and lexical diagnostic
         run: |
@@ -40,7 +44,7 @@ jobs:
           grep -q '"question_id": "Q001"' /tmp/e023-preflight.txt
           grep -q '"question_id": "Q010"' /tmp/e023-preflight.txt
 
-      - name: Validate frozen semantic adjudication arithmetic
+      - name: Validate frozen G1a semantic adjudication arithmetic
         run: |
           python3 experiments/E023-generality-retrieval-composition/score_adjudication.py \
             | tee /tmp/e023-adjudication.txt
@@ -59,23 +63,42 @@ jobs:
       - name: Validate G1b targeted preregistration
         run: |
           python3 experiments/E023-generality-retrieval-composition/validate_g1b_prereg.py \
-            | tee /tmp/e023-g1b.txt
-          grep -q '^E023 G1b prereg target validation: PASS$' /tmp/e023-g1b.txt
-          grep -q '"model_calls": 0' /tmp/e023-g1b.txt
-          grep -q '"Q001"' /tmp/e023-g1b.txt
-          grep -q '"Q010"' /tmp/e023-g1b.txt
-          grep -q '"max_semantic_calls_if_later_executed": 12' /tmp/e023-g1b.txt
+            | tee /tmp/e023-g1b-prereg.txt
+          grep -q '^E023 G1b prereg target validation: PASS$' /tmp/e023-g1b-prereg.txt
+          grep -q '"model_calls": 0' /tmp/e023-g1b-prereg.txt
+          grep -q '"max_semantic_calls_if_later_executed": 12' /tmp/e023-g1b-prereg.txt
 
-      - name: Assert result and preregistration boundaries
+      - name: Validate frozen G1b semantic adjudication arithmetic
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/score_g1b_adjudication.py \
+            | tee /tmp/e023-g1b-adjudication.txt
+          grep -q '^E023 G1b adjudication arithmetic: PASS$' /tmp/e023-g1b-adjudication.txt
+          grep -q '"model_calls": 12' /tmp/e023-g1b-adjudication.txt
+          grep -q '"final_missing_source_recovery": "1/4"' /tmp/e023-g1b-adjudication.txt
+          grep -q '"g1b_promotion": "NOT_EARNED"' /tmp/e023-g1b-adjudication.txt
+
+      - name: Validate posthoc support-clause hypothesis
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/analyze_support_clauses.py \
+            | tee /tmp/e023-support-clauses.txt
+          grep -q '^E023 posthoc support-clause analysis: PASS$' /tmp/e023-support-clauses.txt
+          grep -q '"model_calls": 0' /tmp/e023-support-clauses.txt
+          grep -q '"A": 9' /tmp/e023-support-clauses.txt
+          grep -q '"C": 9' /tmp/e023-support-clauses.txt
+          grep -q '"G1b_targets": 4' /tmp/e023-support-clauses.txt
+
+      - name: Assert frozen result boundaries
         run: |
           test -s experiments/E023-generality-retrieval-composition/results-v0.md
-          test -s experiments/E023-generality-retrieval-composition/posthoc-zero-model-v0.md
           test -s experiments/E023-generality-retrieval-composition/g1b-preregistration-v0.md
+          test -s experiments/E023-generality-retrieval-composition/g1b-results-v0.md
+          test -s experiments/E023-generality-retrieval-composition/support-clause-analysis-v0.md
           test -s experiments/E023-generality-retrieval-composition/evidence/run-32215941344/result.json
+          test -s experiments/E023-generality-retrieval-composition/evidence/g1b-run-32217824760/result.json
+          test -s experiments/E023-generality-retrieval-composition/run_g1b.py
+          test -s remote-lab/e023-g1b-request.json
           grep -q 'G1-C NOT EARNED' experiments/E023-generality-retrieval-composition/results-v0.md
-          grep -q '^### What it does NOT earn$' experiments/E023-generality-retrieval-composition/results-v0.md
-          grep -q '12 semantic model-call attempts' experiments/E023-generality-retrieval-composition/g1b-preregistration-v0.md
+          grep -q 'G1b PROMOTION NOT EARNED' experiments/E023-generality-retrieval-composition/g1b-results-v0.md
+          grep -q 'DOES NOT CHANGE FROZEN VERDICTS' experiments/E023-generality-retrieval-composition/support-clause-analysis-v0.md
           grep -q 'No G1b outcome directly authorizes' experiments/E023-generality-retrieval-composition/g1b-preregistration-v0.md
           test ! -e .github/workflows/e023-capture-frozen-g1-result.yml
-          test ! -e experiments/E023-generality-retrieval-composition/run_g1b.py
-          test ! -e remote-lab/e023-g1b-request.json
