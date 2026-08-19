@@ -1,0 +1,14 @@
+{
+  "a_composer_calls": 10,
+  "arms": ["A", "C"],
+  "c_composer_calls": 10,
+  "c_planner_calls": 10,
+  "context_top_k": 5,
+  "max_ai_credits_per_call": 30,
+  "max_model_call_attempts": 30,
+  "max_planner_queries": 3,
+  "model": "gpt-5.6-luna",
+  "question_count": 10,
+  "request_id": "e023-g1-retrieval-composition-v0",
+  "rrf_k": 60
+}
