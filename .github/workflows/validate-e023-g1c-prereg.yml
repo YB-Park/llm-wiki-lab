@@ -1,0 +1,61 @@
+name: Validate E023 G1c prereg
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/g1c-preregistration-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1c_prereg.py'
+      - 'experiments/E023-generality-retrieval-composition/authority-sufficiency-v0/**'
+      - 'experiments/E023-generality-retrieval-composition/validate_authority_sufficiency.py'
+      - '.github/workflows/validate-e023-g1c-prereg.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/g1c-preregistration-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1c_prereg.py'
+      - 'experiments/E023-generality-retrieval-composition/authority-sufficiency-v0/**'
+      - 'experiments/E023-generality-retrieval-composition/validate_authority_sufficiency.py'
+      - '.github/workflows/validate-e023-g1c-prereg.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-g1c-prereg-zero-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile zero-model validators
+        run: |
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_authority_sufficiency.py
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_g1c_prereg.py
+      - name: Revalidate prospective authority contract
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/validate_authority_sufficiency.py \
+            | tee /tmp/e023-authority.txt
+          grep -q '^E023 authority-sufficiency prereg validation: PASS$' /tmp/e023-authority.txt
+          grep -q '"semantic_calls_authorized": false' /tmp/e023-authority.txt
+      - name: Validate frozen G1c baseline and boundaries
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/validate_g1c_prereg.py \
+            | tee /tmp/e023-g1c-prereg.txt
+          grep -q '^E023 G1c prereg baseline validation: PASS$' /tmp/e023-g1c-prereg.txt
+          grep -q '"model_calls": 0' /tmp/e023-g1c-prereg.txt
+          grep -q '"SUFFICIENT_CLEAN": 4' /tmp/e023-g1c-prereg.txt
+          grep -q '"SUFFICIENT_WITH_CONFLATION_RISK": 1' /tmp/e023-g1c-prereg.txt
+          grep -q '"INSUFFICIENT_AUTHORITY": 1' /tmp/e023-g1c-prereg.txt
+          grep -q '"max_semantic_calls_if_later_executed": 24' /tmp/e023-g1c-prereg.txt
+          grep -q '"semantic_calls_authorized_on_this_pr": false' /tmp/e023-g1c-prereg.txt
+          grep -q '"g2_persistence_authorized": false' /tmp/e023-g1c-prereg.txt
+          grep -q '"g3_identity_routing_authorized": false' /tmp/e023-g1c-prereg.txt
+      - name: Assert prereg-only boundary
+        run: |
+          test -s experiments/E023-generality-retrieval-composition/g1c-preregistration-v0.md
+          grep -q 'NO PAID RUN AUTHORIZED' experiments/E023-generality-retrieval-composition/g1c-preregistration-v0.md
+          test ! -e experiments/E023-generality-retrieval-composition/run_g1c.py
+          test ! -e remote-lab/e023-g1c-request.json
+          test ! -e .github/workflows/e023-generality-g1c.yml
