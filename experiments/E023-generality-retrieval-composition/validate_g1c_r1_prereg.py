@@ -38,7 +38,7 @@ def main() -> int:
     assert "B-only" in prereg
     assert "18 semantic call attempts" in prereg
     assert "A semantic model calls are not repeated" in prereg
-    assert "zero rerolls" in prereg.lower()
+    assert "semantic rerolls inside R1: 0" in prereg
 
     assert "github.event_name == 'push' && github.sha == '987ee7ec615f7eb869be59f14a1928a3811baeed'" in workflow
 
