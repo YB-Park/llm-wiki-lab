@@ -89,13 +89,13 @@ jobs:
           node --check dogfood/vscode/human-knowledge.js
           node --check dogfood/vscode/git-safety.js
           node --check dogfood/vscode/lm-discovery.js
-          node --check dogfood/vscode/process-error.js
+          node --check dogfood/vscode/process-errors.js
           node --check dogfood/vscode/python-runtime.js
           node --check dogfood/vscode/python-runtime-policy.js
           node dogfood/vscode/test/static.js
           node dogfood/vscode/test/git-safety.js
           node dogfood/vscode/test/lm-discovery.js
-          node dogfood/vscode/test/process-error.js
+          node dogfood/vscode/test/process-errors.js
           node dogfood/vscode/test/python-runtime-policy.js
       - name: Install VS Code test/package tooling
         working-directory: dogfood/vscode
@@ -127,7 +127,7 @@ jobs:
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/human-knowledge.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/git-safety.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/lm-discovery.js'
-          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/process-error.js'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/process-errors.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python-runtime.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python-runtime-policy.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/media/walkthrough-ai-summaries.md'
@@ -146,7 +146,7 @@ jobs:
           test -f dist/unpacked/extension/human-knowledge.js
           test -f dist/unpacked/extension/git-safety.js
           test -f dist/unpacked/extension/lm-discovery.js
-          test -f dist/unpacked/extension/process-error.js
+          test -f dist/unpacked/extension/process-errors.js
           test -f dist/unpacked/extension/python-runtime.js
           test -f dist/unpacked/extension/python-runtime-policy.js
           test -f dist/unpacked/extension/media/walkthrough-ai-summaries.md
