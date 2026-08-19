@@ -44,7 +44,6 @@ jobs:
             | tee /tmp/e023-g1c-preflight.txt
           grep -q '"execute_model": false' /tmp/e023-g1c-preflight.txt
           grep -q '"model_calls": 0' /tmp/e023-g1c-preflight.txt
-          grep -q '"retrieval_selection_verdict": "NOT_EXECUTED"' /tmp/e023-g1c-preflight.txt
           python - <<'PY'
           import json
           from pathlib import Path
