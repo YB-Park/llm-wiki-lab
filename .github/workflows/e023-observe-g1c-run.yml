@@ -23,7 +23,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           text = Path('.github/workflows/e023-observe-g1c-run.yml').read_text(encoding='utf-8')
-          observer = text.split('  observe-and-salvage:', 1)[1]
+          observer = text.rsplit('\n  observe-and-salvage:\n', 1)[1]
           assert "SOURCE_SHA: '987ee7ec615f7eb869be59f14a1928a3811baeed'" in observer
           assert 'copilot-requests: write' not in observer
           assert '--execute-model' not in observer
