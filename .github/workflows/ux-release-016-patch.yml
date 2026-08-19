@@ -26,7 +26,7 @@ jobs:
         with:
           ref: agent/release-ux-foundation-0.1.16
           fetch-depth: 0
-      - name: Apply reviewed patch
+      - name: Apply reviewed product patch
         run: |
           test -f .github/ux-release-016-patch.py
           python3 - <<'PY'
@@ -35,9 +35,14 @@ jobs:
           text = p.read_text(encoding='utf-8')
           strict = "replace_all(README, '0.1.15', '0.1.16')"
           tolerant = "readme_path = ROOT / README\nreadme_text = readme_path.read_text(encoding='utf-8')\nreadme_path.write_text(readme_text.replace('0.1.15', '0.1.16'), encoding='utf-8')"
+          cleanup = "for rel in ['.github/ux-release-016-patch.py', '.github/workflows/ux-release-016-patch.yml']:\n    try:\n        (ROOT / rel).unlink()\n    except FileNotFoundError:\n        pass"
           if strict not in text:
               raise SystemExit('README release marker not found in patch script')
-          p.write_text(text.replace(strict, tolerant, 1), encoding='utf-8')
+          if cleanup not in text:
+              raise SystemExit('helper cleanup marker not found in patch script')
+          text = text.replace(strict, tolerant, 1)
+          text = text.replace(cleanup, "# helper cleanup is performed by the GitHub connector after the product commit", 1)
+          p.write_text(text, encoding='utf-8')
           PY
           python3 .github/ux-release-016-patch.py
           python3 - <<'PY'
@@ -45,21 +50,27 @@ jobs:
           p = Path('docs/13-vscode-release-ux-audit.md')
           p.write_text(p.read_text(encoding='utf-8').rstrip() + '\n', encoding='utf-8')
           PY
-          git show 948c5c7707b6b144e4dcb084a0f2610863b2dfc0:.github/workflows/dogfood-v0.yml > .github/workflows/dogfood-v0.yml
+          git restore .github/ux-release-016-patch.py
       - name: Validate patched release files before commit
         run: |
           node --check dogfood/vscode/agent-tools.js
           node --check dogfood/vscode/entry.js
           node dogfood/vscode/test/static.js
           python3 experiments/E020-synthetic-agent-ux/score_contract.py
-          test ! -e .github/ux-release-016-patch.py
-          test ! -e .github/workflows/ux-release-016-patch.yml
           git diff --check
-      - name: Commit final release candidate
+      - name: Commit product and test changes only
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
+          git add \
+            docs/13-vscode-release-ux-audit.md \
+            dogfood/vscode/agent-tools.js \
+            dogfood/vscode/entry.js \
+            dogfood/vscode/package.json \
+            dogfood/vscode/README.md \
+            dogfood/vscode/test/static.js \
+            dogfood/vscode/test/integration/agent-tools-runtime.test.js \
+            experiments/E020-synthetic-agent-ux/score_contract.py
           git diff --cached --check
           git diff --cached --stat
           git commit -m "Finish 0.1.16 release UX"
