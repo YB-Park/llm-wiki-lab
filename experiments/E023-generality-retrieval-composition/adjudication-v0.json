@@ -1,0 +1,119 @@
+{
+  "adjudication_version": 1,
+  "comparison": {
+    "c_net_question_level_improvements": 0,
+    "c_new_critical_errors": 0,
+    "g1_promotion": "NOT_EARNED",
+    "reason": "C produced no question-level semantic improvement over A and closed none of the four preregistered required-source recall@5 gaps."
+  },
+  "experiment": "E023",
+  "result_sha256": "e578feb61454f124fce2294bf1a8e6ce396de213984cd889f760343f788c779a",
+  "run_id": 32215941344,
+  "run_source_sha": "7315b858ed5ce764fa81ed131ee17f77c1ea11ae",
+  "verdicts": {
+    "A": {
+      "Q001": {
+        "reason": "Identity bridge S004 was absent from context, yet the answer asserted that J.H. Park and Jihoon Park were the same person and described S002 as confirming identity. The final identity happens to match gold, but the supplied authoritative evidence did not establish the alias merge.",
+        "root_cause": "RETRIEVAL_ROOTED_EPISTEMIC_UPGRADE",
+        "verdict": "CRITICAL_ERROR"
+      },
+      "Q002": {
+        "reason": "Correctly separated Jihoon's direct email authorship from meeting-note attribution and did not launder the meeting note into direct speech. S003 was absent but redundant to the requested distinction.",
+        "root_cause": "NONE",
+        "verdict": "PASS"
+      },
+      "Q003": {
+        "reason": "Correctly reported the role change and distinguished completion of the DPA gate from reversal or repudiation of the earlier privacy position; same-surname distractor S005 was not merged.",
+        "root_cause": "NONE",
+        "verdict": "PASS"
+      },
+      "Q004": {
+        "reason": "Correctly gave operational complexity rather than technical inferiority as the decision rationale and correctly stated that the unrealistic later burst did not reverse the decision. S009 carried the load-bearing rationale despite S008 being absent.",
+        "root_cause": "NONE",
+        "verdict": "PASS"
+      },
+      "Q005": {
+        "reason": "Correctly identified the timeout-rollout retry storm as root cause, database saturation as a downstream symptom, and the capacity explanation as an early superseded hypothesis.",
+        "root_cause": "NONE",
+        "verdict": "PASS"
+      },
+      "Q006": {
+        "reason": "Correctly reconstructed 09:12, the 09:25 retry/rollback signal, the final root cause, and the addendum's start-time-only correction.",
+        "root_cause": "NONE",
+        "verdict": "PASS"
+      },
+      "Q007": {
+        "reason": "Correctly synthesized EU-only production-data residency including backups/replicas and disaster-recovery implications across the Cobalt material.",
+        "root_cause": "NONE",
+        "verdict": "PASS"
+      },
+      "Q008": {
+        "reason": "Correctly rejected Northstar's standard DR configuration because US backups conflict with Cobalt's EU requirement, but did not complete the frozen requirement that the available EU-only DR option could satisfy residency if selected.",
+        "root_cause": "COMPOSITION_OMISSION",
+        "verdict": "PARTIAL"
+      },
+      "Q009": {
+        "reason": "Correctly rejected technical-inferiority framing, preserved the operational rationale, and required realistic measured insufficiency before reopening; the 20x synthetic burst was correctly treated as insufficient.",
+        "root_cause": "NONE",
+        "verdict": "PASS"
+      },
+      "Q010": {
+        "reason": "Correctly refused the broad risk-averse/anti-cloud characterization and used the direct-email negative evidence that the DPA requirement was not a general objection to cloud services.",
+        "root_cause": "NONE",
+        "verdict": "PASS"
+      }
+    },
+    "C": {
+      "Q001": {
+        "reason": "Planner/RRF still omitted identity bridge S004. The composer again asserted the J.H. Park/Jihoon Park merge without supplied authoritative identity evidence. This reproduces rather than fixes A's critical epistemic failure.",
+        "root_cause": "RETRIEVAL_ROOTED_EPISTEMIC_UPGRADE",
+        "verdict": "CRITICAL_ERROR"
+      },
+      "Q002": {
+        "reason": "Correctly separated direct-authored email from meeting-note attribution and used S004 to support identity. S003 remained absent but redundant to the requested distinction.",
+        "root_cause": "NONE",
+        "verdict": "PASS"
+      },
+      "Q003": {
+        "reason": "Correctly reported role change and no reversal of the earlier privacy position without merging S005.",
+        "root_cause": "NONE",
+        "verdict": "PASS"
+      },
+      "Q004": {
+        "reason": "Correctly stated the operational-complexity rationale and that the unrealistic later burst did not reverse the decision. Planner/RRF still failed to bring S008 into top five, so the result is not an improvement over A.",
+        "root_cause": "NONE",
+        "verdict": "PASS"
+      },
+      "Q005": {
+        "reason": "Correctly preserved final retry-storm root cause versus the early database-capacity hypothesis and downstream symptom distinction.",
+        "root_cause": "NONE",
+        "verdict": "PASS"
+      },
+      "Q006": {
+        "reason": "Correctly reconstructed the incident timeline and preserved that the addendum corrected only start time, not root cause.",
+        "root_cause": "NONE",
+        "verdict": "PASS"
+      },
+      "Q007": {
+        "reason": "Correctly synthesized the recurring EU-only residency constraint and its backup/DR implications.",
+        "root_cause": "NONE",
+        "verdict": "PASS"
+      },
+      "Q008": {
+        "reason": "Correctly rejected the standard DR configuration and noted that the EU-only option is not the default, but did not explicitly complete the frozen requirement that selecting the EU-only option could satisfy residency.",
+        "root_cause": "COMPOSITION_OMISSION",
+        "verdict": "PARTIAL"
+      },
+      "Q009": {
+        "reason": "Correctly preserved the operational rationale and realistic-measurement condition for reopening the Redis decision.",
+        "root_cause": "NONE",
+        "verdict": "PASS"
+      },
+      "Q010": {
+        "reason": "Correctly refused unsupported personality/technology characterization and explicitly treated the evidence as insufficient for that broad claim.",
+        "root_cause": "NONE",
+        "verdict": "PASS"
+      }
+    }
+  }
+}
