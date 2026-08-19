@@ -1,0 +1,43 @@
+name: Validate E023 G1c-R1 prereg
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/g1c-v0-execution-failure-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/g1c-r1-preregistration-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1c_r1_prereg.py'
+      - '.github/workflows/e023-generality-g1c.yml'
+      - '.github/workflows/validate-e023-g1c-r1-prereg.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/g1c-v0-execution-failure-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/g1c-r1-preregistration-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1c_r1_prereg.py'
+      - '.github/workflows/e023-generality-g1c.yml'
+      - '.github/workflows/validate-e023-g1c-r1-prereg.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-r1-prereg-zero-model:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile validator
+        run: python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_g1c_r1_prereg.py
+      - name: Validate invalid-v0 freeze and R1 boundaries
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/validate_g1c_r1_prereg.py | tee /tmp/r1.txt
+          grep -q '^E023 G1c-R1 prereg validation: PASS$' /tmp/r1.txt
+          grep -q '"model_calls": 0' /tmp/r1.txt
+          grep -q '"v0_status": "INVALID_EXECUTION"' /tmp/r1.txt
+          grep -q '"v0_actual_attempts_from_control_flow": 9' /tmp/r1.txt
+          grep -q '"r1_arm": "B_ONLY"' /tmp/r1.txt
+          grep -q '"r1_max_semantic_calls_if_later_executed": 18' /tmp/r1.txt
+          grep -q '"r1_semantic_calls_authorized_on_this_pr": false' /tmp/r1.txt
+          grep -q '"v0_workflow_source_locked": true' /tmp/r1.txt
