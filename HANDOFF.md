@@ -6,175 +6,241 @@ This file is the **continuation checkpoint only**. Keep historical evidence in c
 
 ## North Star
 
-Build a VS Code-first **LLM Wiki** where the user owns a verifiable project-memory system and the coding Agent naturally reads and maintains it inside explicit authority boundaries.
+Build a VS Code-first **LLM Wiki** where the user owns a verifiable project-memory system and the coding Agent naturally recovers and compounds useful knowledge inside explicit authority boundaries.
 
 > **Human controls admission and epistemic commitment. LLM controls routine retrieval/compilation/maintenance inside granted authority.**
 
-The normal product loop is ordinary VS Code Agent conversation. Users should not need to learn Wiki tool names or internal storage concepts.
+The normal product loop is ordinary VS Code Agent conversation. Users should not need to learn Wiki tool names, storage schemas, or filing concepts.
 
-## Current baseline — Dogfood 0.1.16
+A second core formulation is now explicit:
 
-0.1.16 is released from main via PR #159.
+> **LLM Wiki is a trustworthy Authority Core plus task-appropriate semantic projections. Generality is demonstrated at the capability/query boundary before it is enforced as uniformity at the storage boundary.**
+
+## Product baseline — Dogfood 0.1.16
+
+0.1.16 remains the released/dogfood product baseline via PR #159. E023 is research only and changes no product runtime behavior.
 
 Core authority remains unchanged:
 
-> **Installed capability != workspace permission.**
-
-- **Set Up Project Memory** is the explicit per-workspace opt-in. Before opt-in, Agent tool implementations are unavailable.
+- **Set Up Project Memory** is explicit per-workspace opt-in. Before opt-in, Agent tool implementations are unavailable.
 - **Check Setup and Health** is pure diagnostics: **0 model calls / 0 state changes**.
 - **Disable for This Workspace** removes Agent availability while preserving Wiki data.
-- New source bytes require a product-owned human confirmation before durable evidence admission.
-- **RAW_MEMORY** remains immutable factual/provenance evidence.
-- **DERIVED_MEMORY** remains noncanonical/rebuildable AI-maintained synthesis.
-- **HUMAN_KNOWLEDGE** remains explicit user-confirmed decision/belief/rationale, not independent evidence.
-- Changed remembered files remain pending until the human explicitly decides correction/change/dispute/supersede/independent semantics.
+- New source bytes require product-owned human confirmation before durable evidence admission.
+- **RAW_MEMORY** is immutable factual/provenance evidence.
+- **DERIVED_MEMORY** is noncanonical/rebuildable model synthesis.
+- **HUMAN_KNOWLEDGE** is explicit user-owned decision/belief/rationale/hypothesis authority; it is not external evidence.
+- Changed remembered files require explicit correction/change/dispute/supersede/independent semantics.
 - AI summaries remain **OFF by default** until explicitly granted per workspace.
 
-The five Agent tools still implement the model-facing contract, but normal users should not need to invoke or understand them directly.
+The five Agent tools remain the model-facing mechanism; normal users should not need to invoke them by name.
 
-E020 remains frozen at **78 zero-model cases: 60 supported / 7 partial / 11 deferred**. Retrieval remains **W0 default / X1 shadow**. Customer readiness still depends on natural installed multi-session evidence; synthetic green tests do not substitute for real project use.
+E020 remains frozen at **78 zero-model cases: 60 supported / 7 partial / 11 deferred**. Natural installed multi-session dogfood remains required for product readiness; controlled research does not replace real use.
 
-## 0.1.16 release UX baseline
+## Core architecture baseline after advisory review + E023
 
-### First-run and everyday UX
+Tracking: Issue #160. Working gate: `docs/14-generality-and-semantic-projections.md`.
 
-- Native VS Code Walkthrough explains four steps: local/user-controlled project memory -> explicit workspace setup -> optional AI summaries/Copilot setup -> normal Agent chat.
-- Normal UI language uses **project memory**, **AI summaries**, **saved evidence**, and **confirmed project knowledge** instead of leading with implementation terminology.
-- Default Command Palette surface is intentionally small: Set Up Project Memory, Check Setup and Health, Configure AI Summaries, Disable for This Workspace. Legacy/manual IDs remain available internally but hidden from the default Palette.
-- Status bar represents workspace project-memory state, not filing topic, and disappears immediately when disabled.
-- Multi-root workspaces fail closed in 0.1.16 instead of silently selecting the first folder. True multi-root semantics remain deferred.
+### Authority Core must stay ontology-agnostic
 
-### Install / prerequisite recovery
+The durable core owns trust facts, not a universal semantic ontology:
 
-- Python is auto-discovered when no override is configured:
-  - Windows: `python` -> `py` -> `python3`
-  - macOS/Linux: `python3` -> `python`
-- Setup, Agent tools, and advanced commands share the same Python resolver.
-- Check Setup and Health distinguishes **Copilot CLI executable presence** from **actual model-call readiness**, which the zero-model diagnostic intentionally does not claim to verify.
-- Copilot CLI capability probing remains authoritative over documentation/version assumptions. `compiled_provider=disabled` remains expected and unrelated to AI-summary maintenance.
+- evidence identity/integrity/provenance;
+- current/history and explicit temporal/contradiction semantics;
+- Human Knowledge authorship;
+- permission/privacy boundaries;
+- repairable deterministic storage invariants.
 
-### Notification / confirmation policy
+Do not add Person/Entity/Relation/KnowledgeUnit concepts to the Authority Core merely to make the Wiki feel more general.
 
-Routine success notifications are quiet. Modal confirmation is reserved for genuine user decisions:
+### `source-note-v0` is one projection, not the Wiki ontology
 
-- enabling project memory for a workspace;
-- admitting **new source bytes** as durable evidence;
-- saving Human Knowledge;
-- deciding changed-source lineage semantics;
-- granting AI-summary evidence sending;
-- the daily AI-summary spend checkpoint.
+The current Agent Wiki note is useful but deliberately narrow: one source plus developer-friendly `summary / operational_rules / boundaries / open_questions` structure.
 
-Do **not** remove these authority confirmations merely to reduce clicks without natural evidence that a safer equivalent exists.
+Treat it as **one DERIVED source-oriented projection under product test**.
 
-One deliberate P2 reduction is shipped: repeating an explicit remember request for the **exact same current workspace-file bytes** is a no-op reuse. It produces no new RAW admission, no canonical append, reuses the same source ID, and does not show a second source-admission modal. Optional AI-summary reuse/maintenance still follows the existing workspace grant and spend guard.
+Do not infer that:
 
-### AI-summary soft guard
+- every source should fit that shape;
+- source is the permanent semantic unit;
+- source notes must mediate every query;
+- adding more universal fields to source-note schema equals generality.
 
-The positive `llmWiki.agentWikiMaintenanceDailyCallLimit` remains a **soft-guard threshold**, not a hard cap. Default `10` means the product asks at the threshold and offers:
+### Authoritative-anchor invariant
 
-- **Continue Today** — keep model-backed AI summaries running for the rest of that local day;
-- **Pause AI Summaries Today** — stop further model-backed summaries for that local day/threshold without changing Wiki knowledge.
+> **Every load-bearing derived claim must resolve to an authoritative anchor whose epistemic type remains explicit.**
 
-Closing the dialog is not silently interpreted as a day-long pause. `0` still explicitly disables new model-backed maintenance generation. RAW evidence remains preserved when optional derived maintenance is paused, declined, or fails.
+Terminal authority may be:
 
-### Error / support contract
+- admitted `RAW_MEMORY`; or
+- explicit `HUMAN_KNOWLEDGE` for user-owned commitments.
 
-- Maintenance failures return bounded causal fields to the conversational Agent, including `failure_code`, `stage`, and `model_call_attempted` where known.
-- Arbitrary subprocess stderr/traceback is not passed directly to the Agent. Unknown process failures collapse to a bounded generic code; spoof/leak tests cover this boundary.
-- User-facing failures explain what was preserved and provide a next action rather than exposing implementation traceback.
-- Native VS Code **Issue Reporter** integration is available through `issue/reporter` / `vscode.openIssueReporter`.
-- Attached diagnostic metadata is deliberately bounded: extension/VS Code version, platform, workspace mode, project-memory state, Python presence/source, Git privacy, AI-summary state, and Copilot executable presence. It must not include project evidence, prompts, source text, local paths, usernames, hostnames, or environment variables.
+`DERIVED_MEMORY` may be working/navigation/compilation state, but persistence does not make it terminal authority.
 
-## Retained maintenance boundaries
+### Three gates, in order
 
-### Copilot CLI compatibility
+1. **G1 Retrieval / Composition** — can authoritative material be found and composed at query time without persistent semantic state?
+2. **G2 Persistence** — only after a strong G1 path exists, hold retrieval fixed and test whether durable projection materially improves repeated use after lifecycle cost.
+3. **G3 Identity / Routing** — only if persistent targets themselves earn value, test subject discovery/alias routing/merge-split automation.
 
-The 0.1.13 capability-aware adapter remains active. LLM Wiki probes the installed `copilot --help` with zero model calls, keeps the privacy boundary, and applies optional CLI flags only when the installed runtime advertises them. Runtime capability is the source of truth; do not treat a version range alone as sufficient compatibility proof.
+A G1 failure is **not** evidence for G2. A G2 success is **not** evidence for G3.
 
-### Source size
+## E023 G1a — completed / NOT EARNED
 
-The 0.1.15 source-size policy remains active:
+Preregistration: PR #162 -> main `17d1a2798357c2723c4776a7fa45ffc081124c9f`.
 
-- <=40,000 characters: preferred single-pass range;
-- 40,001–80,000: still one Luna maintenance pass, reported as `oversize_single_pass`;
-- >80,000: RAW admission remains preserved, derived maintenance stops before model call with causal `SKIPPED_SOURCE_TOO_LARGE` metadata;
-- never silently truncate.
+Execution contract: PR #163 -> main `7315b858ed5ce764fa81ed131ee17f77c1ea11ae`.
 
-Do not build chunk -> compile merely because the temporary ceiling exists. Add it only if natural >80k sources recur often enough to justify the complexity.
+Frozen semantic run:
 
-## Hidden maintenance usage is the leading UX follow-up
+- Actions run: `32215941344`
+- exact model: `gpt-5.6-luna`
+- semantic calls: **30 / 30**
+- semantic rerolls: **0**
+- immutable result: `experiments/E023-generality-retrieval-composition/evidence/run-32215941344/result.json`
+- result SHA-256: `e578feb61454f124fce2294bf1a8e6ce396de213984cd889f760343f788c779a`
+- results/adjudication merged via PR #165 -> main `219ac4f0c6e69b64f4dced1910890edb7c84b3f3`.
 
-Internal Luna consumption is still not sufficiently visible to the user. Keep these quantities distinct:
+### Frozen comparison
 
-- **maintenance model calls** — locally countable;
-- **tokens** — exact only when the transport exposes machine-readable input/output/cache usage;
-- **AI credits / premium requests** — never infer from calls or tokens; report only actual upstream values.
+A:
 
-Do not rely on the conversational Agent to volunteer usage. A future product-owned usage surface should be lightweight and visible even when the main Agent omits it. Candidate shape: per-operation + daily cumulative calls/tokens where known, explicit `unknown` for upstream billing units not reported, and no fake conversion from calls to credits.
+- exact user question;
+- production-shaped BM25;
+- top 5 raw source objects;
+- one Luna composer.
 
-Do not switch transports solely to obtain a prettier counter without first validating reliability/privacy/compatibility implications.
+C / G1a:
 
-## 0.1.16 validation / artifact
+- one Luna planner sees only the question;
+- 1–3 blind retrieval-query rewrites;
+- original + planned-query BM25;
+- deterministic RRF(k=60);
+- **same top-5 source budget**;
+- same Luna composer.
 
-PR #159 final clean head: `be4390af82aa9ec5749b53fdc2fd2ad5032a55a1`.
+Semantic adjudication:
 
-Final PR VS Code Dogfood run `32204630675` passed:
+- A: **8 PASS / 1 PARTIAL / 1 CRITICAL_ERROR**
+- C: **8 PASS / 1 PARTIAL / 1 CRITICAL_ERROR**
+- C net question-level improvements: **0**
+- C new critical errors relative A: **0**
+- preregistered C promotion: **NOT_EARNED**
 
-- Python 3.9 bundled-core compatibility;
-- **153 Python tests**;
-- CLI smoke;
-- E020 frozen zero-model contract;
-- syntax/static release UX boundaries;
-- bounded process-error spoof/leak tests;
-- Windows/macOS/Linux Python runtime policy tests;
-- dev Extension Host integration;
-- exact-current-bytes no-op reuse runtime regression (same source ID, no manifest append);
-- shared-core bundle verification;
-- VSIX packaging;
-- unpacked packaged VSIX Extension Host validation.
+C spent 20 calls vs A's 10 and produced no semantic improvement. Tokens and AI-credit/premium-request totals were not machine-readable in this runner; do not infer them from call count.
 
-Merged source:
+### Critical Q001 lesson — truth by luck is not enough
 
-- PR #159 merge/source commit: `e9370663d4763ae0f29d67c572d45c5b80f6c120`
-- validated main run: `32204779167`
-- Actions artifact: `llm-wiki-dogfood-vsix` / id `9348765994`
-- artifact ZIP digest: `sha256:deb64b2bfd5f689571ed92b3eeb94bcfae9266d612b9fbb573019049df229d25`
-- publisher commit: `3366df98e33dabbe72d00d396c2ea1820e50d9a4`
-- `dogfood/releases/llm-wiki-dogfood-0.1.16.vsix`
-- `dogfood/releases/llm-wiki-dogfood-latest.vsix`
+Q001 asked who the ABC person repeatedly raising the DPA concern was.
+
+The explicit alias/identity bridge S004 connected `Park Jihoon / Jihoon Park / J.H. Park` and the stable contact metadata.
+
+Both A and C omitted S004 from final context while including same-surname distractor S005. Both nevertheless asserted `J.H. Park == Jihoon Park`.
+
+That merge matches frozen gold, but the supplied authoritative evidence did **not** establish it. This is recorded as:
+
+> **CRITICAL_ERROR — retrieval-rooted epistemic upgrade / unsupported identity merge.**
+
+Do not score a trustworthy Wiki as successful merely because an unsupported inference happened to be true.
+
+### Zero-model posthoc selection frontier
+
+No semantic rerun was performed.
+
+Using only frozen rankings:
+
+- A top-5 complete required-source coverage: **6 / 10**
+- A top-6: **7 / 10**
+- C top-5: **6 / 10**
+- C top-6: **10 / 10**
+
+Every source missing from C top-5 sat exactly at fused rank 6.
+
+This does **not** rescue C's frozen verdict. It shows that the tested blind planner produced some latent retrieval signal which the top-5 selection policy discarded.
+
+Therefore do not summarize E023 as “query-time synthesis failed.” The exact result is narrower:
+
+> **question-only blind query expansion + consensus RRF + fixed top-5 did not outperform the strong simple baseline.**
+
+## NEXT CORE — stay inside G1
+
+Do **not** move to persistent semantic dossiers/entities/graphs yet.
+
+Before any further semantic calls:
+
+1. keep using the frozen E023 artifact for zero-model selection/evidence-budget analysis;
+2. if another controlled gate is justified, separately preregister **G1b iterative evidence-follow retrieval**;
+3. G1b should resemble the real Agent loop: initial retrieval -> inspect bounded hits/snippets -> identify a concrete missing/ambiguous relation -> targeted follow-up retrieval -> compose under a bounded final evidence budget;
+4. use an explicit character/token evidence budget rather than assume source-count `top-k` generalizes to real heterogeneous documents;
+5. isolate retrieval improvement from composition policy where possible;
+6. for high-consequence identity/attribution claims, test consequence-sensitive behavior: if no authoritative bridge is recovered, retrieve more or surface ambiguity instead of silently merging.
+
+A promising controlled target is Q001 because the missing identity bridge was discoverable (one G1a planned query ranked S004 at 3) yet the frozen RRF/top-5 selector discarded it.
+
+Do not spend another 30-call batch merely to tune retrieval. Use zero-model analysis to narrow the next semantic gate first.
+
+## Natural product dogfood continues in parallel
+
+Observation log: Issue #141.
+
+Real-project dogfood will take time and that is expected. Do not manufacture workload simply to make 0.1.16 look validated.
+
+Watch naturally for:
+
+- cross-source semantic questions that source-note-v0 handles awkwardly;
+- identity/alias/attribution uncertainty;
+- decisions whose rationale spans sources;
+- temporal correction or disagreement;
+- whether Agent naturally searches, follows evidence, and asks/expresses uncertainty when a bridge is missing;
+- remaining authority-popup fatigue;
+- soft-guard usefulness;
+- causal error reporting;
+- long-horizon value days/weeks later.
+
+A dedicated Tree/View remains evidence-gated.
+
+## Maintenance usage visibility — still important, no longer the leading core question
+
+Internal Luna use remains insufficiently visible:
+
+- **model calls** — locally countable;
+- **tokens** — exact only when transport exposes machine-readable input/output/cache usage;
+- **AI credits / premium requests** — never infer from calls/tokens; report only upstream values.
+
+Product-owned usage visibility remains a valid UX slice, but do not let it drive semantic architecture. The maintenance mechanism itself may evolve as generality research clarifies which projections deserve persistent upkeep.
+
+## Retained 0.1.16 / maintenance boundaries
+
+- Copilot CLI compatibility uses runtime capability probing; version alone is not the compatibility authority.
+- `compiled_provider=disabled` remains expected and unrelated to Agent Wiki maintenance.
+- positive daily maintenance setting is a **soft guard**, not a hard cap; Continue Today / Pause AI Summaries Today are available.
+- `0` disables new model-backed maintenance generation.
+- source-size policy: <=40k preferred single pass; 40,001–80k allowed single pass; >80k preserves RAW and skips derived maintenance before model call; never silently truncate.
+- exact-current-byte remember is no-op reuse without a second source-admission modal.
+- multi-root remains fail-closed in 0.1.16.
+
+## 0.1.16 validated artifact
+
+- source: `e9370663d4763ae0f29d67c572d45c5b80f6c120`
+- main validation run: `32204779167`
+- Actions artifact: `9348765994`
+- publisher: `3366df98e33dabbe72d00d396c2ea1820e50d9a4`
 - VSIX bytes: `102811`
-- VSIX SHA-256: `5fd7c76483b6bef16bff9d3e76fc7b05f05348ae04a2526237843a53891ffb08`
-- Git blob for both repo VSIX paths: `025c90bba243e7594c8e2b621c28bd51e5b9acd3`
-
-The main Actions artifact was independently downloaded and extracted. Its VSIX byte size, SHA-256, and `git hash-object` exactly match both in-repo release paths.
-
-## NEXT — natural installed multi-session use
-
-Observation log: **Issue #141**.
-
-Do not manufacture workload simply to make the product look validated. Real-project dogfood will take time and that is expected.
-
-During ordinary use, watch for:
-
-1. **First-run clarity** — does the Walkthrough/setup path explain enough without forcing the user to learn internals?
-2. **Popup fatigue** — do remaining authority modals occur only when the user perceives a real decision? In particular, confirm that exact-same-byte repeated remembers no longer show the source-admission modal.
-3. **Soft-guard behavior** — does Continue Today / Pause AI Summaries Today feel understandable, and is the threshold useful at all?
-4. **Agent routing** — can the main Agent naturally recover history without the user naming `#wikiMemory`, and does it follow load-bearing hits with verified source reads when needed?
-5. **Causal failure reporting** — does the conversational Agent describe source-size/auth/model/CLI failures from actual bounded outcome fields rather than inventing causes?
-6. **Usage uncertainty** — when internal Luna maintenance runs, how strongly does the lack of token/AI-credit visibility bother the user? This is the leading candidate for the next deliberate UX slice.
-7. **Navigation need** — do users actually miss a dedicated Tree/View? 0.1.16 intentionally adds none; build one only if natural behavior shows a recurring need.
-8. **Long-term value** — days/weeks later, does project memory recover reasoning that would otherwise have been lost?
+- SHA-256: `5fd7c76483b6bef16bff9d3e76fc7b05f05348ae04a2526237843a53891ffb08`
+- repo release Git blob: `025c90bba243e7594c8e2b621c28bd51e5b9acd3`
+- current install path: `dogfood/releases/llm-wiki-dogfood-latest.vsix`
 
 ## Do not start merely because it is available
 
+- G2 persistent semantic dossier before a stronger G1 path earns it;
+- graph DB / universal Entity/Relation/KnowledgeUnit schema;
+- automatic identity merge/split or automatic concept routing;
+- vector retrieval default changes without a concrete retrieval gate;
 - chunk compiler unless natural >80k sources recur;
-- vector/graph/ontology infrastructure;
-- background source watching;
+- background source watching/semantic maintenance;
 - broad automatic contradiction resolution;
 - permanent Tree View/activity UI without observed need;
-- federation or X2 without recurring natural evidence;
-- automatic concept routing from E021 alone;
-- paid reruns of frozen E017/E018/E019/E021/E022 cases.
+- federation/X2 without recurring natural evidence;
+- paid reruns of frozen E017/E018/E019/E021/E022/E023-G1a cases.
 
 ## Known non-blocking edges
 
@@ -183,21 +249,19 @@ During ordinary use, watch for:
 - Relation append and pending-state resolution are not one cross-process transaction.
 - Copilot CLI optional flags can change independently of public docs; runtime capability probing remains authoritative.
 - 80k is a temporary product ceiling, not a claimed Luna technical limit.
-- E013/E015 evidence must remain natural; do not manufacture workload/divergence.
+- E013/E015 evidence remains natural/data-gated; do not manufacture workload/divergence.
 
 ## Fast pointers
 
-- Installed/natural dogfood log: Issue #141
-- Release UX audit: Issue #158 / `docs/13-vscode-release-ux-audit.md`
+- Core generality gate: Issue #160 / `docs/14-generality-and-semantic-projections.md`
+- E023: `experiments/E023-generality-retrieval-composition/`
+- E023 G1 result: PR #165 / run `32215941344`
+- Installed/natural dogfood: Issue #141
 - 0.1.16 release UX: PR #159
-- 0.1.15 source-size / causal outcomes: PR #156
-- 0.1.14 maintenance soft guard: PR #154
-- 0.1.13 Copilot CLI compatibility: PR #152
-- 0.1.12 lifecycle/opt-in: PR #148
 - Current validated VSIX: `dogfood/releases/llm-wiki-dogfood-latest.vsix`
 - User guide: `dogfood/vscode/README.md`
-- Reliability follow-up: Issue #132
 - Autonomy philosophy: `docs/12-autonomy-ux-philosophy.md`
+- Reliability follow-up: Issue #132
 - Backup/restore: `docs/11-local-backup-restore.md`
 
 If this file conflicts with merged code or an accepted ADR, **code/ADR wins; fix this checkpoint immediately**.
