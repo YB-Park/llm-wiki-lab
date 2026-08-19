@@ -32,9 +32,9 @@ for (const command of [
   'llmWiki.configureAgentWikiMaintenance', 'llmWiki.ingestActiveFile', 'llmWiki.ingestAuthoritativeUpdate',
   'llmWiki.search', 'llmWiki.discoverAcrossTopics', 'llmWiki.markCorrection', 'llmWiki.markChange',
   'llmWiki.markDispute', 'llmWiki.feedback', 'llmWiki.ask', 'llmWiki.calibration', 'llmWiki.doctor',
-  'llmWiki.experimentalDiscoverCopilotModels',
+  'llmWiki.reportIssue', 'llmWiki.experimentalDiscoverCopilotModels',
 ]) must(`command:${command}`, commands.has(command));
-assert.equal(commands.size, 18, 'STATIC-BOUNDARY command-count');
+assert.equal(commands.size, 19, 'STATIC-BOUNDARY command-count');
 mustNot('internal-core-init-not-user-contributed', commands.has('llmWiki.init'));
 must('startup-activation', manifest.activationEvents.includes('onStartupFinished'));
 must('enable-activation', manifest.activationEvents.includes('onCommand:llmWiki.enableWorkspace'));
@@ -64,6 +64,11 @@ must('doctor-zero-state-change', entry.includes("doctorOutput.appendLine('State 
 must('doctor-user-setup-heading', entry.includes('LLM Wiki — Setup & Health'));
 must('doctor-copilot-executable-only', entry.includes('Copilot CLI executable:'));
 must('doctor-model-readiness-unverified', entry.includes('AI-summary model-call readiness: NOT VERIFIED'));
+must('issue-reporter-command', entry.includes("registerCommand('llmWiki.reportIssue'"));
+must('issue-reporter-native', entry.includes("executeCommand('vscode.openIssueReporter'"));
+must('issue-reporter-bounded', entry.includes('No project evidence, prompts, source text, local paths, usernames, hostnames, or environment variables are included.'));
+const issueReporterRows = manifest.contributes.menus['issue/reporter'] || [];
+assert.deepEqual(issueReporterRows.map((row) => row.command), ['llmWiki.reportIssue'], 'STATIC-BOUNDARY native-issue-reporter');
 must('doctor-compiled-provider-explained', entry.includes('disabled (expected; not used by AI summaries)'));
 must('doctor-python-selected-runtime', entry.includes('Python runtime: ${pythonReady ? `FOUND (${runtime.executable}, ${runtime.source})`'));
 mustNot('doctor-does-not-init-command', entry.includes("executeCommand('llmWiki.init')"));
@@ -93,7 +98,7 @@ assert.equal(hkSchema.reasoning.maxLength, 1600, 'STATIC-BOUNDARY hk-reasoning-b
 assert.equal(hkSchema.sourceIds.maxItems, 12, 'STATIC-BOUNDARY hk-source-bound');
 must('hk-supersedes-schema', Boolean(hkSchema.supersedesKnowledgeId));
 
-assert.equal(manifest.version, '0.1.15', 'STATIC-BOUNDARY version');
+assert.equal(manifest.version, '0.1.16', 'STATIC-BOUNDARY version');
 assert.equal(manifest.engines.vscode, '^1.95.0', 'STATIC-BOUNDARY vscode-engine');
 assert.equal(manifest.main, './entry.js', 'STATIC-BOUNDARY main-entry');
 assert.equal(manifest.private, true, 'STATIC-BOUNDARY private-package');
@@ -139,6 +144,9 @@ must('register-read-tool', agentTools.includes('vscode.lm.registerTool(READ_TOOL
 must('register-remember-tool', agentTools.includes('vscode.lm.registerTool(REMEMBER_TOOL'));
 must('register-hk-tool', agentTools.includes('vscode.lm.registerTool(HUMAN_KNOWLEDGE_TOOL'));
 must('register-lineage-tool', agentTools.includes('vscode.lm.registerTool(RESOLVE_LINEAGE_TOOL'));
+must('same-bytes-reuse-before-confirm', agentTools.indexOf('findExactCurrentRememberedSource') < agentTools.indexOf("'Save this file to project memory?'"));
+must('same-bytes-reuse-result', agentTools.includes('raw_admission=reused_existing') && agentTools.includes('authority=existing_source_reuse'));
+must('soft-guard-pause-today', agentTools.includes('Pause AI Summaries Today') && agentTools.includes('SKIPPED_SOFT_GUARD_PAUSED'));
 
 must('workspace-marker-format', workspaceActivation.includes("llm-wiki-workspace-opt-in-v1"));
 must('workspace-marker-separate-from-core', workspaceActivation.includes("WORKSPACE_OPT_IN_FILE = 'workspace-opt-in.json'"));

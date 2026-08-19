@@ -24,6 +24,7 @@ FEATURE_MARKERS = {
     "maintenance_grant": [(AGENT, "agentWikiMaintenanceEnabled"), (AGENT, "SKIPPED_NO_WORKSPACE_GRANT")],
     "daily_budget": [(AGENT, "agentWikiMaintenanceDailyCallLimit"), (AGENT, "confirmMaintenanceSoftGuard"), (AGENT_STATE, "reserve_maintenance_call")],
     "maintenance_reuse": [(AGENT, "agent_wiki_model_call_not_authorized"), (AGENT, "preflightStdout")],
+    "exact_source_reuse": [(AGENT, "raw_admission=reused_existing"), (AGENT, "authority=existing_source_reuse")],
     "pending_lineage": [(AGENT, "createPendingLineage"), (AGENT, "SKIPPED_PENDING_LINEAGE_DECISION")],
     "human_lineage_gate": [(AGENT, "Confirm what this saved file change means?"), (AGENT, "authority=human_confirmed_epistemic_relation")],
     "verified_lineage_review": [(AGENT_MEMORY, "llm-wiki-agent-raw-compare-v0"), (AGENT, "comparison.old_excerpt"), (AGENT, "comparison.new_excerpt"), (AGENT, "verifiedLineageComparison")],
@@ -64,7 +65,7 @@ CASES = [
     ("S09", "superseded raw source read is marked historical", "supported", ["source_currentness"]),
     ("S10", "remember local file with maintenance off", "supported", ["explicit_admission", "raw_first", "maintenance_grant"]),
     ("S11", "remember local file with maintenance on", "supported", ["explicit_admission", "raw_first", "maintenance_grant", "daily_budget"]),
-    ("S12", "same unchanged source reuses maintenance without spending again", "supported", ["maintenance_reuse"]),
+    ("S12", "same unchanged source reuses maintenance without spending again", "supported", ["maintenance_reuse", "exact_source_reuse"]),
     ("S13", "remember action never auto-saves a dirty target, even when it is not the active editor", "supported", ["dirty_fail_closed"]),
     ("S14", "remember requires product-owned human confirmation", "supported", ["explicit_admission"]),
     ("S15", "multiple/no selected topic can file to deterministic inbox", "supported", ["inbox_fallback"]),
@@ -164,7 +165,7 @@ def main() -> int:
     }
     hk_schema = next(row for row in MANIFEST["contributes"]["languageModelTools"] if row["name"] == "llmWiki_rememberHumanKnowledge")["inputSchema"]["properties"]
     assert "supersedesKnowledgeId" in hk_schema
-    assert MANIFEST["version"] == "0.1.15"
+    assert MANIFEST["version"] == "0.1.16"
 
     print(
         "E020-SYNTHETIC-CONTRACT PASS "

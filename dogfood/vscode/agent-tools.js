@@ -2,6 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const vscode = require('vscode');
@@ -211,27 +212,37 @@ async function confirmMaintenanceSoftGuard(context, folder) {
   const saved = context.workspaceState.get(key, {});
   if (
     saved
-    && saved.continueToday === true
     && saved.day === usage.day
     && Number(saved.threshold) === threshold
   ) {
-    budget.softGuardAcknowledged = true;
-    return { allowed: true, status: 'SOFT_GUARD_ACKNOWLEDGED', budget };
+    if (saved.pauseToday === true) {
+      budget.softGuardPaused = true;
+      return { allowed: false, status: 'SKIPPED_SOFT_GUARD_PAUSED', budget };
+    }
+    if (saved.continueToday === true) {
+      budget.softGuardAcknowledged = true;
+      return { allowed: true, status: 'SOFT_GUARD_ACKNOWLEDGED', budget };
+    }
   }
 
-  let continued = true;
+  let choice = 'Continue Today';
   if (context.extensionMode !== vscode.ExtensionMode.Test) {
-    const choice = await vscode.window.showWarningMessage(
+    choice = await vscode.window.showWarningMessage(
       'Continue AI summaries for the rest of today?',
       {
         modal: true,
         detail: `LLM Wiki has reserved ${usage.reservedCalls} model-backed AI-summary call${usage.reservedCalls === 1 ? '' : 's'} today. Your saved source is already safe. This choice affects only optional AI summaries; the ${threshold}-call setting is a reminder, not a hard cap.`,
       },
-      'Continue Today'
+      'Continue Today',
+      'Pause AI Summaries Today'
     );
-    continued = choice === 'Continue Today';
   }
-  if (!continued) {
+  if (choice === 'Pause AI Summaries Today') {
+    await context.workspaceState.update(key, { day: usage.day, threshold, pauseToday: true });
+    budget.softGuardPaused = true;
+    return { allowed: false, status: 'SKIPPED_SOFT_GUARD_PAUSED', budget };
+  }
+  if (choice !== 'Continue Today') {
     return { allowed: false, status: 'SKIPPED_SOFT_GUARD_DECLINED', budget };
   }
 
@@ -393,6 +404,29 @@ function dirtyOpenDocumentFor(filePath) {
   ));
 }
 
+function fileSha256(filePath) {
+  return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+}
+
+async function findExactCurrentRememberedSource(context, folder, target, digest) {
+  if (!isWikiInitialized(folder)) return undefined;
+  const locators = await durableSourceLocators(context, folder);
+  const matchingSourceIds = new Set(
+    Object.entries(locators)
+      .filter(([, locator]) => locator && locator.relative_path === target.relativePath && locator.sha256 === digest)
+      .map(([sourceId]) => sourceId)
+  );
+  if (!matchingSourceIds.size) return undefined;
+
+  const topics = parseTopics(await runCli(context, folder, ['topic', 'list']));
+  for (const topic of topics) {
+    const rows = parseJsonLines(await runCli(context, folder, ['source', 'list', '--topic', topic.id, '--json']));
+    const row = rows.find((candidate) => matchingSourceIds.has(candidate.source_id) && candidate.sha256 === digest);
+    if (row) return { sourceId: row.source_id, sha256: digest, topic };
+  }
+  return undefined;
+}
+
 async function rememberLocator(context, folder, sourceId, relativePath, digest) {
   if (!sourceId || !relativePath || !digest) return;
   const key = sourceLocatorKey(folder);
@@ -530,7 +564,7 @@ class WikiMemorySearchTool {
 
   prepareInvocation(options) {
     const query = String((options.input && options.input.query) || '').trim();
-    return { invocationMessage: `Searching current LLM Wiki memory for “${query.slice(0, 80)}”` };
+    return { invocationMessage: `Searching project memory for “${query.slice(0, 80)}”` };
   }
 
   async invoke(options) {
@@ -562,7 +596,7 @@ class WikiReadSourceTool {
 
   prepareInvocation(options) {
     const sourceId = String((options.input && options.input.sourceId) || '').trim();
-    return { invocationMessage: `Reading verified LLM Wiki evidence ${sourceId}` };
+    return { invocationMessage: `Reading saved project evidence ${sourceId}` };
   }
 
   async invoke(options) {
@@ -624,7 +658,7 @@ class WikiRememberSourceTool {
 
   prepareInvocation(options) {
     const requested = String((options.input && options.input.filePath) || '').trim();
-    return { invocationMessage: `Preparing explicit LLM Wiki admission for ${requested || 'the active editor file'}` };
+    return { invocationMessage: `Preparing to save ${requested || 'the active editor file'} to project memory` };
   }
 
   async invoke(options) {
@@ -633,6 +667,59 @@ class WikiRememberSourceTool {
     const target = resolveWorkspaceFile(folder, requestedPath || undefined);
     if (dirtyOpenDocumentFor(target.filePath)) {
       throw new Error('LLM Wiki will not auto-save a dirty editor. Save the file explicitly, then ask to remember it again. No Wiki mutation occurred.');
+    }
+
+    const digest = fileSha256(target.filePath);
+    const existing = await findExactCurrentRememberedSource(this.context, folder, target, digest);
+    if (existing) {
+      const pendingRows = await openPendingLineageRows(this.context, folder);
+      const pending = pendingRows.find((row) => (
+        row.workspace_file === target.relativePath
+        && (row.successor_source_id === existing.sourceId || row.predecessor_source_ids.includes(existing.sourceId))
+      ));
+      let maintenance = {
+        status: pending ? 'SKIPPED_PENDING_LINEAGE_DECISION' : 'SKIPPED_NO_WORKSPACE_GRANT',
+        modelCalls: 0, model: '', policy: '', budget: await maintenanceUsage(this.context, folder),
+      };
+      if (!pending) {
+        try {
+          maintenance = await maintainSource(this.context, folder, existing.sourceId, existing.topic.id);
+        } catch (_) {
+          maintenance = {
+            status: 'FAILED_AFTER_RAW_REUSE', modelCalls: 'unknown', model: AGENT_WIKI_MODEL, policy: '',
+            failureCode: 'UNCLASSIFIED_MAINTENANCE_FAILURE', stage: 'unknown', modelCallAttempted: 'unknown',
+            budget: await maintenanceUsage(this.context, folder),
+          };
+        }
+      }
+      const usage = await maintenanceUsage(this.context, folder);
+      const text = [
+        'LLM_WIKI_REMEMBER_RESULT v4',
+        'authority=existing_source_reuse',
+        'canonical_mutation=none',
+        'raw_admission=reused_existing',
+        `source_id=${existing.sourceId}`,
+        `sha256=${existing.sha256}`,
+        `workspace_file_json=${jsonData(target.relativePath)}`,
+        `topic_id=${existing.topic.id}`,
+        `topic_json=${jsonData(existing.topic.label)}`,
+        `model_calls=${maintenance.modelCalls}`,
+        `derived_agent_wiki_maintenance=${maintenance.status}`,
+        `maintenance_failure_code=${maintenance.failureCode || ''}`,
+        `maintenance_stage=${maintenance.stage || ''}`,
+        `maintenance_model_call_attempted=${maintenance.modelCallAttempted || ''}`,
+        `maintenance_daily_soft_guard=${maintenanceDailyCallLimit()}`,
+        `maintenance_soft_guard_acknowledged=${maintenance.budget && maintenance.budget.softGuardAcknowledged === true ? 'yes' : 'no'}`,
+        `maintenance_soft_guard_paused=${maintenance.budget && maintenance.budget.softGuardPaused === true ? 'yes' : 'no'}`,
+        `maintenance_reserved_today=${usage.reservedCalls}`,
+        `pending_lineage_decision=${pending ? 'yes' : 'no'}`,
+        pending ? `pending_decision_id=${pending.id}` : 'pending_decision_id=',
+        '',
+        pending
+          ? 'This exact file content was already saved. No new evidence was admitted, and AI-summary maintenance remains paused until the existing file-history decision is resolved.'
+          : 'This exact file content was already present as current project evidence, so LLM Wiki reused it without asking for another source-admission confirmation.',
+      ].join('\n');
+      return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(text)]);
     }
 
     const dailySoftGuard = maintenanceDailyCallLimit();
@@ -716,6 +803,7 @@ class WikiRememberSourceTool {
       `maintenance_daily_limit_mode=${maintenanceDailyCallLimit() === 0 ? 'disabled' : 'soft_guard'}`,
       `maintenance_daily_soft_guard=${maintenanceDailyCallLimit()}`,
       `maintenance_soft_guard_acknowledged=${maintenance.budget && maintenance.budget.softGuardAcknowledged === true ? 'yes' : 'no'}`,
+      `maintenance_soft_guard_paused=${maintenance.budget && maintenance.budget.softGuardPaused === true ? 'yes' : 'no'}`,
       `maintenance_reserved_today=${usage.reservedCalls}`,
       `pending_lineage_decision=${pending ? 'yes' : 'no'}`,
       pending ? `pending_decision_id=${pending.id}` : 'pending_decision_id=',
@@ -736,7 +824,7 @@ class WikiResolveLineageTool {
 
   prepareInvocation(options) {
     const id = String((options.input && options.input.decisionId) || '').trim();
-    return { invocationMessage: `Preparing human-gated Wiki lineage decision ${id}` };
+    return { invocationMessage: `Preparing a saved-file history decision ${id}` };
   }
 
   async invoke(options) {
@@ -855,6 +943,7 @@ class WikiResolveLineageTool {
       `maintenance_daily_limit_mode=${maintenanceDailyCallLimit() === 0 ? 'disabled' : 'soft_guard'}`,
       `maintenance_daily_soft_guard=${maintenanceDailyCallLimit()}`,
       `maintenance_soft_guard_acknowledged=${maintenance.budget && maintenance.budget.softGuardAcknowledged === true ? 'yes' : 'no'}`,
+      `maintenance_soft_guard_paused=${maintenance.budget && maintenance.budget.softGuardPaused === true ? 'yes' : 'no'}`,
       `maintenance_reserved_today=${usage.reservedCalls}`,
     ];
     return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(text.join('\n'))]);
@@ -865,7 +954,7 @@ class WikiRememberHumanKnowledgeTool {
   constructor(context) { this.context = context; }
 
   prepareInvocation() {
-    return { invocationMessage: 'Preparing explicit Human Knowledge memory for user confirmation' };
+    return { invocationMessage: 'Preparing your project knowledge for confirmation' };
   }
 
   async invoke(options) {

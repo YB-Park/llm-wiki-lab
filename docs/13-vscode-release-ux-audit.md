@@ -224,3 +224,12 @@ Natural multi-session dogfood should decide:
 - whether the daily AI-summary soft guard is useful, annoying, or unnecessary;
 - whether token / premium-request / AI-credit usage can be surfaced accurately enough to improve trust;
 - whether users ever need a dedicated history/navigation View.
+
+## 0.1.16 P1/P2 release decisions
+
+- Native VS Code Issue Reporter integration is included through `issue/reporter`; only bounded environment/readiness metadata is attached, never project evidence, prompts, source text, local paths, usernames, hostnames, or environment variables.
+- New source bytes still require the product-owned source-admission confirmation. Explicit Agent chat intent alone is not treated as sufficient authority for a new durable evidence mutation in 0.1.16.
+- Repeating an explicit remember request for the exact same current workspace file bytes is a no-op reuse: no new RAW admission, no canonical history append, and no second source-admission modal. Optional AI-summary reuse/maintenance still follows the existing workspace grant and spend guard.
+- The daily AI-summary guard remains a soft guard. Users can choose `Continue Today` or `Pause AI Summaries Today`; an explicit pause is remembered only for that local day/threshold and does not alter Wiki knowledge.
+- No dedicated Tree/View is added for 0.1.16. Normal Agent conversation remains primary; a permanent navigation UI remains evidence-gated.
+- No separate global progress notification is added. Agent tool invocations already have contextual progress, and setup is kept synchronous/short; a new progress surface should require measured latency evidence.

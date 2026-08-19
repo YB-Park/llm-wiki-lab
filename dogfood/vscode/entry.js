@@ -458,6 +458,36 @@ async function configureAgentWikiMaintenance() {
   return false;
 }
 
+async function reportIssue(context) {
+  const folders = vscode.workspace.workspaceFolders || [];
+  const lines = [
+    'LLM Wiki diagnostic metadata',
+    'No project evidence, prompts, source text, local paths, usernames, hostnames, or environment variables are included.',
+    `extension_version=${String((context.extension && context.extension.packageJSON && context.extension.packageJSON.version) || 'unknown')}`,
+    `vscode_version=${vscode.version}`,
+    `platform=${process.platform}`,
+    `workspace_folder_mode=${folders.length === 1 ? 'single' : (folders.length === 0 ? 'none' : 'multi')}`,
+  ];
+  if (folders.length === 1) {
+    const folder = folders[0];
+    const root = wikiRoot(folder);
+    const runtime = await resolvePythonRuntime(folder);
+    const copilotReady = await executableAvailable('copilot', ['--version'], folder.uri.fsPath);
+    const gitSafety = await classifyGitSafety(folder.uri.fsPath, root);
+    lines.push(`project_memory=${workspaceActivation.isWorkspaceEnabled(root) ? 'on' : (workspaceActivation.isCoreInitialized(root) ? 'off' : 'not_set_up')}`);
+    lines.push(`python_runtime=${runtime ? 'found' : 'missing'}`);
+    lines.push(`python_runtime_source=${runtime ? runtime.source : 'none'}`);
+    lines.push(`git_privacy=${gitSafety}`);
+    lines.push(`ai_summaries=${configuration().get('agentWikiMaintenanceEnabled', false) === true ? 'on' : 'off'}`);
+    lines.push(`copilot_cli_executable=${copilotReady ? 'found' : 'not_found'}`);
+  }
+  lines.push('ai_summary_model_call_readiness=not_verified_by_this_report');
+  await vscode.commands.executeCommand('vscode.openIssueReporter', {
+    extensionId: context.extension.id,
+    data: lines.join('\n'),
+  });
+}
+
 async function commandBoundary(label, fn) {
   try {
     return await fn();
@@ -504,6 +534,7 @@ async function activate(context) {
   context.subscriptions.push(vscode.commands.registerCommand('llmWiki.newKnowledgeNote', (options) => commandBoundary('New Human Knowledge Note', () => newHumanKnowledgeNote(options || {}))));
   context.subscriptions.push(vscode.commands.registerCommand('llmWiki.configureAgentWikiMaintenance', () => commandBoundary('Configure AI Summaries', () => configureAgentWikiMaintenance())));
   context.subscriptions.push(vscode.commands.registerCommand('llmWiki.doctor', () => commandBoundary('Check Setup and Health', () => doctor(context))));
+  context.subscriptions.push(vscode.commands.registerCommand('llmWiki.reportIssue', () => commandBoundary('Report an Issue', () => reportIssue(context))));
   context.subscriptions.push(vscode.commands.registerCommand('llmWiki.experimentalDiscoverCopilotModels', () => commandBoundary('Discover Copilot Models', () => discoverModels())));
 }
 

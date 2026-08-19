@@ -2,7 +2,7 @@
   "name": "llm-wiki-dogfood",
   "displayName": "LLM Wiki",
   "description": "Local, user-approved project memory for AI coding agents in VS Code.",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "private": true,
   "publisher": "llm-wiki-lab",
   "repository": { "type": "git", "url": "https://github.com/YB-Park/llm-wiki-lab.git", "directory": "dogfood/vscode" },
@@ -29,6 +29,8 @@
     "onCommand:llmWiki.ask",
     "onCommand:llmWiki.calibration",
     "onCommand:llmWiki.doctor",
+    "onCommand:llmWiki.reportIssue",
+    "onIssueReporterOpened",
     "onCommand:llmWiki.experimentalDiscoverCopilotModels",
     "onCommand:llmWiki.discoverAcrossTopics",
     "onCommand:llmWiki.markCorrection",
@@ -60,6 +62,7 @@
       { "command": "llmWiki.ask", "title": "Ask Luna with Saved Evidence (Read-only)", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
       { "command": "llmWiki.calibration", "title": "Show Calibration Summary", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
       { "command": "llmWiki.doctor", "title": "Check Setup and Health", "category": "LLM Wiki", "enablement": "isWorkspaceTrusted" },
+      { "command": "llmWiki.reportIssue", "title": "Report an Issue", "category": "LLM Wiki" },
       { "command": "llmWiki.experimentalDiscoverCopilotModels", "title": "Experimental: Inspect Copilot Model Metadata", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" }
     ],
     "menus": {
@@ -68,6 +71,7 @@
         { "command": "llmWiki.disableWorkspace", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
         { "command": "llmWiki.configureAgentWikiMaintenance", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
         { "command": "llmWiki.doctor", "when": "isWorkspaceTrusted" },
+        { "command": "llmWiki.reportIssue", "when": "false" },
         { "command": "llmWiki.createTopic", "when": "false" },
         { "command": "llmWiki.selectTopic", "when": "false" },
         { "command": "llmWiki.newKnowledgeNote", "when": "false" },
@@ -82,6 +86,9 @@
         { "command": "llmWiki.ask", "when": "false" },
         { "command": "llmWiki.calibration", "when": "false" },
         { "command": "llmWiki.experimentalDiscoverCopilotModels", "when": "false" }
+      ],
+      "issue/reporter": [
+        { "command": "llmWiki.reportIssue" }
       ]
     },
     "languageModelTools": [
