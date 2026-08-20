@@ -1,6 +1,6 @@
 # E023 — Generality Retrieval / Composition Gate
 
-Status: **G1a NOT EARNED / G1b NOT EARNED / G1c-R1 NOT EARNED / G1d NOT EARNED / EVIDENCE-BUDGET SIGNAL ACTIVE**  
+Status: **G1a/G1b/G1c-R1/G1d/G1e STRICT PROMOTIONS NOT EARNED / SIMPLE EVIDENCE-BUDGET SIGNAL STRENGTHENED / COMPOSITION BOTTLENECK ACTIVE**  
 Tracking: Issue #160  
 Product baseline: Dogfood 0.1.16
 
@@ -22,161 +22,127 @@ It is not an entity-system experiment.
 - Authority Core remains ontology-agnostic.
 - `source-note-v0` is one `DERIVED_MEMORY` projection, not the Wiki ontology.
 - Every load-bearing derived statement must resolve to admitted `RAW_MEMORY` or explicit `HUMAN_KNOWLEDGE`.
-- Evaluator clauses are evaluation-only and must not become runtime canonical structure by default.
+- Evaluator clauses are evaluation-only and do not become runtime canonical structure by default.
 - G1 failure does not authorize G2 persistence.
 - G2 success would not automatically authorize G3 identity/routing.
 
-## Frozen sequence
+## Frozen evidence sequence
 
 ### G1a — blind query planning / NOT EARNED
 
-Run `32215941344`, exact `gpt-5.6-luna`, 30 calls, zero rerolls.
+Run `32215941344`, exact `gpt-5.6-luna`, 30 calls, zero rerolls. Exact BM25 top-5 and blind planner+RRF both produced **8 PASS / 1 PARTIAL / 1 CRITICAL_ERROR**; planner improvements 0.
 
-Exact BM25 top-5 and blind planner+RRF both produced **8 PASS / 1 PARTIAL / 1 CRITICAL_ERROR**. Planner arm improvements: **0**.
-
-Q001 introduced the core trust lesson: the answer confidently merged aliases without the explicit identity bridge.
+Q001 introduced the core trust lesson:
 
 > **Truth-by-luck is not trustworthy semantic recovery.**
 
-### G1b — evidence-follow retrieval / NOT EARNED, targeted repair observed
+### G1b — evidence-follow / NOT EARNED, targeted repair
 
-Run `32217824760`, exact Luna, 12 calls, zero rerolls.
-
-Evidence-aware follow-up recovered the missing Q001 bridge and moved the semantic verdict `CRITICAL_ERROR -> PASS`, but final recovery reached only **1/4** versus the preregistered `>=3/4` threshold.
-
-This earned a targeted query-time repair signal, not broad policy.
+Run `32217824760`, exact Luna, 12 calls, zero rerolls. Evidence-aware follow-up repaired Q001 `CRITICAL_ERROR -> PASS`, but the preregistered broad recovery threshold was missed.
 
 ### Prospective authority-sufficiency evaluator
 
-A separated evaluation contract was frozen before later semantic answers. It distinguishes:
-
-- `INSUFFICIENT_AUTHORITY`;
-- `SUFFICIENT_CLEAN`;
-- `SUFFICIENT_WITH_CONFLATION_RISK`.
-
-It can express unique authority, alternatives, repeated-support minima, identity/attribution bridges, negative evidence, temporal correction, forbidden conflation, and load-bearing `HUMAN_KNOWLEDGE`.
+The evaluation-only contract distinguishes `INSUFFICIENT_AUTHORITY`, `SUFFICIENT_CLEAN`, and `SUFFICIENT_WITH_CONFLATION_RISK` and can express unique support, alternatives, repeated-support minima, identity/attribution bridges, negative evidence, temporal correction, forbidden conflation, and terminal `HUMAN_KNOWLEDGE`.
 
 This representation is **not** a product claim graph.
 
-### G1c v0 — INVALID_EXECUTION
-
-Run `32229563330` failed from a runner aggregation bug. No G1c verdict is taken from it and lost B outputs are not reconstructed or rerolled.
-
 ### G1c-R1 — free-form model selector / NOT EARNED
 
-Run `32232116273`, source `5227ac2b3f93c4f807e388822bfff963d0041120`, exact Luna, 18/18 calls, zero rerolls.
-
-| stage | clean | risk | insufficient |
-| --- | ---: | ---: | ---: |
-| exact initial top-5 | 4 | 1 | 1 |
-| evidence-follow candidate pool | 4 | 2 | **0** |
-| model selector final | 4 | 0 | **2** |
-
-Candidate pools contained enough positive authority for **6/6**, but the model selector discarded recovered/load-bearing authority in AQ001 and AQ004.
-
-This made **authority-preserving evidence selection/budgeting** the next G1 bottleneck.
-
-### G1c-R1 zero-model RRF counterfactual — posthoc only
-
-On the already-inspected AQ slice, deterministic RRF top-4 happened to yield **6/6 clean** contexts across a wide RRF-k sweep. Because the rule was selected after observing failures, it was not promotable. It only justified a new prospective test.
-
-See `g1c-r1-selection-counterfactual-v0.md`.
+Run `32232116273`, exact Luna, 18/18 calls, zero rerolls. Evidence-follow candidate pools reached sufficient positive authority on **6/6**, but the model selector dropped load-bearing evidence and produced two insufficient finals.
 
 ### G1d — deterministic RRF top-4 / NOT EARNED
 
-Preregistered on new separated `authority-sufficiency-v1` material: 23 anchors, 8 questions, 21 RAW + 2 HUMAN_KNOWLEDGE.
+Run `32322429563`, exact Luna, 24/24 calls, zero rerolls.
 
-Frozen run:
+- exact BM25 A: **3 clean / 4 risk / 1 insufficient**;
+- planner + targeted BM25 + deterministic RRF D: **3 clean / 3 risk / 2 insufficient**;
+- D authority improvements 0, regressions 1;
+- semantic A **7 PASS / 1 CRITICAL**;
+- semantic D **5 PASS / 2 PARTIAL / 1 CRITICAL**.
 
-- run `32322429563`;
-- source `c74673a83744789f271fa54c43b20212160007a2`;
-- exact `gpt-5.6-luna`;
-- **24/24** calls;
-- model selector calls **0**;
-- rerolls **0**;
-- workflow success;
-- result SHA-256 `ef57c7a43c782694a0c42d428421b5d9a4bbb72b0a48b52a60c36edafa310bda`;
-- result/adjudication: PR #184.
+RRF did not generalize from a posthoc prior slice. Repeated lexical consensus can amplify same-name/product/capability distractors. Planner diagnosis can also correctly identify a missing authority class while lexical candidate cutoffs still fail to retrieve the authoritative object.
 
-Arms:
+### G1d zero-model evidence-budget frontier
 
-- A: exact BM25 top-5 -> composer;
-- D: same top-5 -> evidence-aware planner -> targeted BM25 -> deterministic RRF `k=60` -> top-4 -> composer.
+PR #185 found that the sole exact top-5 positive-authority miss had its governing policy at exact rank 6. Exact top-6 was therefore positive-authority sufficient on 8/8 frozen G1d questions, while the top-5 risk cases were all semantic PASS.
 
-Authority result:
+This justified a new prospective simple-budget replication. It did not establish `k=6` as policy.
+
+## G1e — prospective exact top-5 vs top-6 replication
+
+G1e used new separated `authority-sufficiency-v2` material: **35 anchors / 8 questions / 32 RAW_MEMORY / 3 HUMAN_KNOWLEDGE**.
+
+There was no planner, query rewrite, RRF, or selector model. The only causal difference was the exact ranked evidence prefix.
+
+### Phase 0 — zero model / PASSED
+
+PR #187:
 
 | arm | clean | risk | insufficient |
 | --- | ---: | ---: | ---: |
-| A | 3 | 4 | 1 |
-| D | 3 | 3 | 2 |
+| A5 exact top-5 | 2 | 4 | 2 |
+| B6 same ranking top-6 | 3 | 5 | **0** |
 
-D improvements: **0**. D regressions: **1**. Promotion: **NOT_EARNED**.
+B6 authority improvements: **2**; regressions: **0**.
 
-Semantic result:
+The sixth object supplied:
 
-- A: **7 PASS / 1 CRITICAL_ERROR**;
-- D: **5 PASS / 2 PARTIAL / 1 CRITICAL_ERROR**;
-- D improvements: **0**;
-- D regressions: **2**;
-- D new critical errors: **0**.
+- CQ001 explicit `R. Singh -> Rina Singh` identity authority;
+- CQ008 the second independent monthly-close observation needed for the word “repeated”.
 
-#### Why deterministic RRF failed
+### Phase 1 — semantic result / strict promotion NOT EARNED
 
-The posthoc AQ result did not generalize. Repeated lexical agreement can reinforce a distractor:
+Run `32324460519`, source `505740b74776fc7b7988e9c168c9c9d0ed2067fa`, exact Luna, **16/16** composer calls, planner 0, selector 0, zero rerolls.
 
-- BQ002: same-name B004 remains above the load-bearing B003 identity bridge; B003 falls to fifth and is dropped;
-- BQ007: unrelated same-name product B019 remains;
-- BQ008: vendor local-admin capability B023 remains even though capability is not authorization policy.
+Result SHA-256: `865d89ad8c8b219493823bd21413196f658a9ffa2fdd3ed2948bb34b20f16727`.
 
-RRF is deterministic, but determinism is not authority awareness.
+Frozen semantic adjudication:
 
-#### BQ006 — semantic diagnosis succeeded, retrieval still failed
+- A5: **5 PASS / 1 PARTIAL / 1 FAIL_RETRIEVAL / 1 CRITICAL_ERROR**;
+- B6: **6 PASS / 2 PARTIAL / 0 FAIL / 0 CRITICAL_ERROR**;
+- B6 improvements: **2**;
+- B6 regressions: **0**;
+- B6 new critical errors: **0**.
 
-The D planner explicitly identifies Cedar's governing EU-only policy as missing. The authoritative B013 policy anchor ranks exact **6**, first follow-up **4**, and is absent on the second follow-up. Because candidate additions are top-3, B013 never becomes selectable.
+The frozen rule required >=7/8 B6 PASS. Actual is 6/8:
 
-Both A and D then give a definitive-looking compliance conclusion without the governing policy authority and are frozen `CRITICAL_ERROR`.
+> **G1e strict promotion is NOT_EARNED. Do not weaken the rule.**
 
-This extends the truth-by-luck lesson from identity to **policy/compliance**.
+### What the budget increase genuinely repaired
 
-## Zero-model evidence-budget frontier
+**CQ001:** A5 lacked the identity bridge and still asserted Rina Singh = R. Singh, a `CRITICAL_ERROR`. B6 adds rank-6 C003 and moves to `PASS`.
 
-Posthoc, 0 model calls, merged via PR #185. Does not alter G1d verdict.
+**CQ008:** A5 had only one independent monthly-close observation and correctly surfaced retrieval insufficiency. B6 adds rank-6 C033 and completes the repeated-observation authority.
 
-Exact BM25 frontier:
+Across all eight questions the extra evidence caused **0 semantic regressions and 0 new critical errors** with no planner/selector calls.
 
-| budget | clean | risk | insufficient |
-| --- | ---: | ---: | ---: |
-| top-3 | 4 | 0 | 4 |
-| top-4 | 2 | 2 | 4 |
-| top-5 | 3 | 4 | 1 |
-| **top-6** | **4** | **4** | **0** |
-| top-7 | 4 | 4 | 0 |
-| top-8 | 4 | 4 | 0 |
+This is the strongest prospective evidence-budget signal in E023 so far. It makes exact BM25 + modestly larger evidence prefix the current **strong simple retrieval baseline**. It does not make six sources a product default.
 
-The sole exact top-5 positive-authority miss is BQ006, and B013 sits at rank 6. Exact top-6 is therefore positive-authority sufficient on **8/8** frozen questions.
+## Current binding failures are composition-side
 
-The four A@5 risk contexts are all semantic PASS, so on this slice removing every distractor was not the critical semantic bottleneck. The critical error occurred where governing authority was absent.
+B6 has **zero authority-incomplete contexts**, but two semantic partials remain:
 
-This is a **budget signal**, not a `k=6` product decision.
+1. **CQ002 — overcautious insufficiency:** the context is sufficient for the proposition asked and the prose is substantively correct, but the structured answer declares insufficiency because it silently demands a stronger guarantee.
+2. **CQ008 — epistemic-type omission:** the context contains complete repeated-observation evidence plus the user-owned C034 capacity decision, but the answer presents that decision as an ordinary fact instead of preserving its `HUMAN_KNOWLEDGE` status in natural language.
+
+These are recurring E023 composition classes.
 
 ## Current action
 
-Stay inside **G1 Retrieval / Composition** and pause paid calls at this checkpoint.
+Paid calls pause. Do not rerun AQxxx/BQxxx/CQxxx.
 
 Next research question:
 
-> **Can a modest explicit query-time evidence budget recover load-bearing authority more reliably and cheaply than planner/selector complexity, without causing semantic conflation/noise failures?**
+> **Can a generic composer contract preserve terminal epistemic type and calibrate insufficiency to the actual load-bearing proposition, without exposing internal storage jargon or importing evaluator/domain schemas into runtime?**
 
-Before another paid comparison:
+Next deliberate work:
 
-1. use a **new separated slice**;
-2. freeze the evidence-budget rule before semantic answers exist;
-3. prefer a character/token budget over a universal source-count constant when practical;
-4. compare the strong exact-BM25 budget baseline against any more complex retrieval/planning path with the same composer;
-5. score positive authority sufficiency, conflation risk, semantic correctness, unsupported claims, evidence size, and model calls separately;
-6. do not semantically rerun AQxxx or BQxxx;
-7. keep evaluator clauses offline;
-8. keep G2/G3 and product runtime unchanged.
+1. keep B6-like simple evidence budgeting as the strong retrieval baseline; do not retune retrieval simultaneously;
+2. prospectively define generic composition rules for user-owned authority, direct-vs-attributed evidence, missing bridges, proposition-scoped insufficiency, temporal corrections, and explicit negative evidence;
+3. validate those rules with zero-model/adversarial fixtures first;
+4. only then run a new separated semantic comparison with retrieval held fixed;
+5. measure PASS/critical errors, epistemic-type preservation, insufficiency calibration, citations, and model calls separately;
+6. keep evaluator clauses offline and product runtime unchanged.
 
 ## Product relationship
 
