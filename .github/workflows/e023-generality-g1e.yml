@@ -45,7 +45,7 @@ jobs:
           grep -q '"semantic_calls_authorized_on_pr": false' /tmp/e023-g1e-execution.txt
       - name: Run zero-model G1e preflight
         env:
-          PYTHONPATH: experiments/E023-generality-retrieval-composition
+          PYTHONPATH: .
         run: |
           rm -rf remote-lab/out/e023-g1e
           python3 experiments/E023-generality-retrieval-composition/run_g1e.py \
@@ -94,7 +94,7 @@ jobs:
       - name: Execute frozen G1e A5/B6 semantic comparison
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          PYTHONPATH: experiments/E023-generality-retrieval-composition
+          PYTHONPATH: .
         run: python3 experiments/E023-generality-retrieval-composition/run_g1e.py --execute-model
       - name: Upload raw G1e artifact
         if: always()
