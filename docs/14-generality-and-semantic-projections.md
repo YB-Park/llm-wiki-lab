@@ -7,34 +7,21 @@ Experiment: E023
 
 ## Design target
 
-LLM Wiki must not accidentally define “Wiki” as developer-shaped source summaries just because that was the smallest useful Agent Wiki slice. But “generality” must also not become an excuse to install a universal Entity/Relation/KnowledgeUnit schema, graph database, vector default, or automatic identity machinery before the workload earns it.
+LLM Wiki must not define “Wiki” as developer-shaped source summaries merely because that was the smallest useful Agent Wiki slice. But “generality” must not become an excuse to install a universal Entity/Relation/KnowledgeUnit schema, graph database, vector default, or automatic identity machinery before the workload earns it.
 
 > **Capability generality before storage uniformity.**
 
 Working thesis:
 
-> **LLM Wiki is a trustworthy Authority Core plus task-appropriate semantic projections. The Agent should reconstruct and use the right semantic view at the moment of need; every useful view does not need to exist as a permanent node/page/schema.**
+> **LLM Wiki is a trustworthy Authority Core plus task-appropriate semantic projections. The Agent should reconstruct and use the right semantic view at the moment of need; every useful view does not need to exist as permanent semantic state.**
 
-## Layer 1 — Authority Core
+## Authority Core and projection boundary
 
-The durable core remains semantic-ontology agnostic. It owns:
+The durable Authority Core remains semantic-ontology agnostic. It owns admitted evidence identity/integrity/provenance, current/history and explicit correction/change/dispute semantics, Human Knowledge authorship, privacy/permission boundaries, and deterministic repairable storage invariants.
 
-- admitted RAW evidence and immutable identity/integrity;
-- provenance and local source navigation;
-- current/history and explicit correction/change/dispute semantics;
-- Human Knowledge authorship and explicit user epistemic commitments;
-- privacy/permission boundaries;
-- deterministic repairable storage invariants.
+Semantic projections may be source notes, ephemeral cross-source dossiers, timelines, project summaries, decision histories, or later persistent views **if persistence earns itself**.
 
-The core should not need to know whether a future semantic view is a person, project, incident, concept, decision, policy, vendor, timeline, or something not yet designed.
-
-## Layer 2 — semantic projections
-
-A semantic projection is a task/retrieval/maintenance aid built from authoritative anchors. It may be ephemeral or persistent **if persistence later earns itself**.
-
-Examples include `source-note-v0`, an ephemeral cross-source dossier, concept synthesis, decision history, timeline, project summary, fixed-target dossier, or retrieval index.
-
-Common safety properties matter more than one common schema:
+Common projection safety properties matter more than one common schema:
 
 - DERIVED;
 - NONCANONICAL;
@@ -47,157 +34,115 @@ Common safety properties matter more than one common schema:
 
 > **Every load-bearing derived claim must resolve to an authoritative anchor whose epistemic type remains explicit.**
 
-Terminal anchors may be admitted `RAW_MEMORY` or explicit `HUMAN_KNOWLEDGE`. `DERIVED_MEMORY` may help retrieval/compilation/navigation, but persistence never makes it terminal authority by itself.
+Terminal authority may be admitted `RAW_MEMORY` or explicit `HUMAN_KNOWLEDGE`. Persistence never makes DERIVED state terminal authority by itself.
 
-E023 adds an end-to-end refinement:
+E023 now sharpens this into an end-to-end requirement:
 
-> **Finding authority is not enough. Retrieval, evidence budgeting/selection, and composition must preserve the authority needed for every load-bearing claim.**
+> **Retrieval must expose sufficient authority; evidence budgeting must preserve it; composition must state only what that authority permits and preserve its epistemic type.**
 
-## Persistence remains earned
+## Ordered architecture gates
 
-Persistent semantic state adds refresh, staleness, repair/rebuild, migration, retrieval dominance, maintenance spend, and identity lifecycle obligations.
-
-Use this order:
-
-1. **G1 Retrieval / Composition** — can authority be found, budgeted, preserved, and composed at query time?
-2. **G2 Persistence** — only after a strong G1 path exists, hold retrieval strong/fixed and test repeated-use benefit after lifecycle cost.
-3. **G3 Identity / Routing** — only if persistent targets themselves earn value, test subject discovery/alias routing/merge-split automation.
+1. **G1 Retrieval / Composition** — can authority be found, budgeted, preserved, and faithfully composed at query time?
+2. **G2 Persistence** — only after a strong G1 path exists, hold retrieval/composition strong and test repeated-use benefit after lifecycle cost.
+3. **G3 Identity / Routing** — only if persistent semantic targets earn value, test automatic discovery/routing/merge-split.
 
 A G1 failure is not evidence for G2. A G2 success is not evidence for G3.
 
-## Semantic identity is an authority problem before it is a storage problem
+## E023 findings that remain architectural
 
-Identity ambiguity applies to people, projects, products, incidents, policies, decisions, vendors, concepts, and evolving names.
+### Truth-by-luck is a trust failure
 
-Strong identifiers are identity evidence, not universal identity truth. Name similarity remains a derived hypothesis unless authoritative evidence or a human supplies stronger semantics.
+G1a first showed that a correct-looking alias merge is unsafe when the explicit identity bridge is absent. Later E023 slices reproduced the same class for identity and governing policy/compliance.
 
-E023 repeatedly demonstrates the rule:
-
-- G1a Q001 omitted an identity bridge and Luna confidently merged aliases anyway;
-- G1c-R1 AQ001 recovered the bridge into the candidate pool, then the model selector discarded it and Luna again confidently merged from insufficient authority;
-- G1d BQ002 deterministic RRF placed a same-name distractor above the explicit identity bridge and dropped the bridge, but the composer safely expressed uncertainty instead of forcing the merge.
+Strong identifiers and similarity are evidence, not automatic identity truth. Missing governing policy cannot be replaced by a plausible compliance inference.
 
 > **Truth-by-luck is not trustworthy semantic recovery.**
 
-None of these cases implies a persistent identity graph is required. They first demand consequence-sensitive authority recovery and composition.
+None of these failures implies a persistent identity graph is required. They first require sufficient query-time authority and disciplined composition.
 
-## Query-time synthesis remains the baseline competitor
+### Planner/selector complexity has not earned itself
 
-The baseline competitor for persistent semantic infrastructure is:
+- G1a blind planner/RRF: NOT_EARNED.
+- G1b evidence-follow: broad NOT_EARNED, but targeted identity-bridge repair signal.
+- G1c-R1: candidate pools became authority-sufficient on 6/6, then a free-form model selector destructively dropped load-bearing evidence; NOT_EARNED.
+- G1d: replacing the model selector with deterministic RRF top-4 did not generalize; lexical consensus amplified same-name/product/capability distractors and missed governing policy; NOT_EARNED.
 
-> authoritative evidence + sufficiently strong retrieval + explicit evidence budget + authority-preserving composition
+Determinism is not authority awareness, and planner diagnosis does not guarantee retrieval of the authoritative object.
 
-If that reliably answers cross-source questions, not persisting a dossier is a positive architecture result.
+## G1e — prospective simple evidence-budget replication
 
-## E023 evidence sequence
+G1d's zero-model frontier found consequential authority immediately outside fixed top-5. G1e tested that signal prospectively on a new 35-anchor / 8-question slice.
 
-### G1a — blind planning NOT EARNED
+### Phase 0 — authority sufficiency, zero model
 
-Run `32215941344`, exact `gpt-5.6-luna`, 30 calls, zero rerolls.
-
-Exact BM25 top-5 and blind planner+RRF both produced **8 PASS / 1 PARTIAL / 1 CRITICAL_ERROR**. Planner improvements: **0**.
-
-### G1b — evidence-follow NOT EARNED, targeted repair signal
-
-Run `32217824760`, exact Luna, 12 calls, zero rerolls.
-
-Evidence-aware follow-up repaired Q001 by recovering the explicit identity bridge, but broad final-source recovery reached only `1/4` against the preregistered `>=3/4` threshold.
-
-Targeted mechanism signal earned; broad policy not earned.
-
-### Authority-sufficiency evaluator
-
-Flat source completeness was too coarse, so E023 froze an evaluation-only contract that can express unique support, alternatives, repeated support, identity/attribution bridges, negative evidence, temporal correction, Human Knowledge, and forbidden conflation.
-
-It distinguishes `INSUFFICIENT_AUTHORITY`, `SUFFICIENT_CLEAN`, and `SUFFICIENT_WITH_CONFLATION_RISK`.
-
-> **A richer evaluator is not evidence for a richer canonical storage schema.**
-
-### G1c-R1 — free-form final selector NOT EARNED
-
-Run `32232116273`, exact Luna, 18 calls, zero rerolls.
-
-| stage | clean | risk | insufficient |
-| --- | ---: | ---: | ---: |
-| initial top-5 | 4 | 1 | 1 |
-| evidence-follow candidates | 4 | 2 | **0** |
-| model selector final | 4 | 0 | **2** |
-
-Candidate generation reached positive-authority sufficiency on **6/6**, but the model selector discarded recovered/load-bearing evidence in AQ001 and AQ004. This rejected unconstrained semantic compression as an authority-preserving evidence policy.
-
-### Posthoc RRF top-4 signal — not promotable
-
-On the already-inspected AQ slice, evaluator-blind deterministic RRF top-4 happened to produce **6/6 clean** contexts across a wide RRF-k sweep. Because the mechanism was chosen after seeing failures, it only justified a new prospective test.
-
-### G1d — deterministic RRF top-4 NOT EARNED
-
-G1d prospectively froze a new 23-anchor / 8-question slice and removed the model selector.
-
-Run `32322429563`, source `c74673a83744789f271fa54c43b20212160007a2`, exact Luna, 24/24 calls, zero rerolls.
-
-- A = exact BM25 top-5 -> composer;
-- D = same top-5 -> evidence-aware planner -> targeted BM25 -> RRF `k=60` -> top-4 -> composer;
-- D selector model calls = 0.
-
-Authority result:
+PR #187:
 
 | arm | clean | risk | insufficient |
 | --- | ---: | ---: | ---: |
-| A | 3 | 4 | 1 |
-| D | 3 | 3 | 2 |
+| A5 exact BM25 top-5 | 2 | 4 | 2 |
+| B6 same ranking top-6 | 3 | 5 | **0** |
 
-D authority improvements: **0**; regressions: **1**. Selection promotion: **NOT_EARNED**.
+B6 authority improvements: **2**; regressions: **0**.
+
+Rank-6 evidence repaired:
+
+- an explicit R. Singh/Rina Singh identity bridge;
+- the second independent monthly-close observation required to establish recurrence.
+
+### Phase 1 — semantic safety/value
+
+Run `32324460519`, source `505740b74776fc7b7988e9c168c9c9d0ed2067fa`, exact `gpt-5.6-luna`, 16/16 composer calls, planner 0, selector 0, zero rerolls.
 
 Semantic result:
 
-- A: **7 PASS / 1 CRITICAL_ERROR**;
-- D: **5 PASS / 2 PARTIAL / 1 CRITICAL_ERROR**;
-- D improvements: **0**;
-- D regressions: **2**;
-- D new critical errors: **0**.
+- A5: **5 PASS / 1 PARTIAL / 1 FAIL_RETRIEVAL / 1 CRITICAL_ERROR**;
+- B6: **6 PASS / 2 PARTIAL / 0 FAIL / 0 CRITICAL_ERROR**;
+- B6 improvements: **2**;
+- B6 regressions: **0**;
+- B6 new critical errors: **0**.
 
-#### Deterministic does not mean authority-aware
+Strict promotion required >=7/8 B6 PASS, so G1e remains **NOT_EARNED**.
 
-The posthoc RRF signal failed to generalize. RRF repeatedly rewards lexical agreement, including dangerous distractors:
+The important positive signal is still prospective:
 
-- BQ002: same-name B004 outranks and displaces load-bearing B003 identity authority;
-- BQ007: unrelated same-name product B019 survives;
-- BQ008: vendor local-admin capability B023 survives despite not being customer authorization policy.
+- CQ001 A5 made an unsupported identity merge; B6 added the explicit bridge and moved `CRITICAL_ERROR -> PASS`;
+- CQ008 A5 safely lacked enough independent evidence to establish “repeated”; B6 added the second observation and repaired the authority deficiency;
+- the extra sixth object caused **no semantic regression** across the slice;
+- no planner/selector calls were required.
 
-Fixed RRF removes free-form model compression but does not solve semantic discrimination.
+This makes exact BM25 with a modestly larger evidence prefix the current **strong simple retrieval baseline**, not a product `k=6` rule.
 
-#### Planner diagnosis can be right while retrieval remains wrong
+## Composition is now the leading controlled bottleneck
 
-BQ006's planner explicitly identifies Cedar's governing EU-only rule as missing. Yet policy anchor B013 ranks exact **6**, first follow-up **4**, and is absent from the second follow-up. The top-3 candidate cutoff therefore excludes it.
+B6 had **0 authority-incomplete contexts**. The two remaining partials are composition-side and recur across E023:
 
-Both A and D then produce a definitive compliance-looking conclusion without the governing policy anchor. Both are `CRITICAL_ERROR`.
+1. **Overcautious insufficiency calibration** — the answer has enough authority for the proposition actually asked, but declares insufficiency because it silently demands a stronger guarantee.
+2. **Epistemic-type omission** — a user-owned decision is available as `HUMAN_KNOWLEDGE`, but the answer presents it as an ordinary project fact rather than preserving that terminal authority type.
 
-This extends the truth-by-luck class from identity to policy/compliance.
+This is the key architecture shift:
 
-## Evidence-budget frontier — current strongest zero-model signal
+> **The leading controlled question is no longer simply whether enough evidence can be retrieved. It is whether the Agent expresses exactly what the retrieved authority permits, with the correct epistemic type.**
 
-PR #185 analyzes the frozen G1d rankings with **0 model calls**.
+## What a composition contract may and may not do
 
-Exact BM25:
+A future G1 composition mechanism should remain generic and ontology-agnostic. It may require behaviors such as:
 
-| budget | clean | risk | insufficient |
-| --- | ---: | ---: | ---: |
-| top-3 | 4 | 0 | 4 |
-| top-4 | 2 | 2 | 4 |
-| top-5 | 3 | 4 | 1 |
-| **top-6** | **4** | **4** | **0** |
-| top-7 | 4 | 4 | 0 |
-| top-8 | 4 | 4 | 0 |
+- user-owned decisions/beliefs/rationale remain explicitly user-owned in the answer;
+- direct authorship is not collapsed into third-party attribution;
+- an absent identity/policy bridge causes uncertainty rather than synthesis-by-similarity;
+- insufficiency is scoped to the proposition actually asked, not an unstated stronger proposition;
+- corrections/temporal state and explicit negative evidence are preserved;
+- load-bearing citations point to terminal authority rather than DERIVED intermediates.
 
-The sole A@5 positive-authority miss is BQ006; its governing policy B013 is exact rank 6. Therefore exact top-6 contains sufficient positive authority on **8/8** frozen questions.
+It should **not** import evaluator clauses, Cxxx/AQ/BQ-specific rules, a universal claim graph, or domain-specific ontology into runtime.
 
-The four A@5 risk contexts are all frozen semantic PASS, so on this slice perfect distractor elimination was not the critical semantic bottleneck. The critical failure was omission of governing authority.
+User-facing language also need not expose internal labels like `HUMAN_KNOWLEDGE`; preserving epistemic meaning can be natural language such as “we decided…”, “your project decision says…”, or “the source records…”.
 
-This result does **not** establish `k=6` as policy. It establishes a stronger design priority:
+## Evidence-budget translation remains open
 
-> **Test evidence budget before adding more retrieval/planning/selector complexity.**
+G1e does not establish six sources as a product default.
 
-Earlier E023 work also observed consequential authority immediately outside fixed top-5 cutoffs. G1d reproduces the rank-boundary problem on separately frozen material.
+The current product's 6,000/12,000 character boundaries are per-source `wikiRead` windows, not global multi-source answer-context budgets. E014's 320 characters are per-hit retrieval snippets. A later product-facing budget should therefore be designed explicitly, likely in character/token terms, after the simple G1 mechanism is semantically sound.
 
 ## Evaluation discipline
 
@@ -205,37 +150,36 @@ Keep separate:
 
 - positive authority sufficiency;
 - conflation risk;
-- exact/follow-up rank position;
-- candidate-generation cutoff;
-- final evidence budget;
+- rank/candidate cutoff;
+- evidence size;
 - semantic correctness;
 - unsupported claims / epistemic upgrades;
 - direct-vs-attributed authorship;
-- terminal authority type (`RAW_MEMORY` vs `HUMAN_KNOWLEDGE`);
+- terminal authority type;
+- proposition-scoped insufficiency;
 - temporal/correction correctness;
-- evidence size and model-call cost.
+- model calls/cost.
 
-A context can be sufficient but risky; a risky context can still yield a correct answer; a clean context can still be composed badly. Do not collapse those failure surfaces into one score.
+A sufficient context can still be composed badly. A risky context can still yield a correct answer. Do not collapse these into one score.
 
 ## Current action
 
-Stay inside **G1 Retrieval / Composition**. Paid calls are paused at this checkpoint.
+Stay inside **G1 Retrieval / Composition**. Paid calls pause at this checkpoint.
 
 Immediate research question:
 
-> **Can a modest explicit query-time evidence budget recover load-bearing authority more reliably and cheaply than planner/selector complexity, without causing semantic conflation or context-noise errors?**
+> **Can a generic composer contract preserve terminal epistemic type and calibrate insufficiency to the actual load-bearing proposition without exposing storage jargon or importing evaluator/domain schemas into runtime?**
 
-Before another paid comparison:
+Before another paid run:
 
-1. freeze a **new separated slice** before semantic answers exist;
-2. freeze the evidence-budget rule prospectively;
-3. prefer a character/token budget over a universal source-count constant when practical;
-4. compare a strong exact-BM25 budget baseline against any more complex retrieval/planning mechanism using the same composer;
-5. score authority sufficiency, risk, semantic correctness, unsupported claims, evidence size, and model calls separately;
-6. do not semantically rerun AQxxx/BQxxx;
-7. keep evaluator clauses offline;
-8. keep Dogfood 0.1.16 runtime unchanged while natural installed use continues.
+1. freeze the composition rules prospectively and generically;
+2. validate them with zero-model/adversarial fixtures;
+3. use new separated material for any semantic comparison;
+4. hold retrieval/evidence budget fixed to the strong simple baseline rather than retuning retrieval simultaneously;
+5. measure PASS/critical errors, authority-type preservation, insufficiency calibration, citations, and model calls separately;
+6. do not rerun AQxxx/BQxxx/CQxxx semantically;
+7. keep Dogfood 0.1.16 unchanged while natural installed use continues.
 
-Do **not** move from G1d failure to persistent semantic dossiers, graph/entity infrastructure, a universal KnowledgeUnit schema, vector defaults, or automatic identity/routing.
+Do **not** jump to persistent dossiers, graph/entity infrastructure, universal KnowledgeUnit schema, vector defaults, automatic identity/routing, or evaluator clauses as runtime canonical structure.
 
 Any durable semantic architecture still requires its own evidence gate and, if promoted to policy, an ADR.

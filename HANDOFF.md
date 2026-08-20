@@ -36,15 +36,13 @@ E020 remains frozen at **78 zero-model cases: 60 supported / 7 partial / 11 defe
 
 ## Core architecture boundary
 
-Tracking: Issue #160. Working gate: `docs/14-generality-and-semantic-projections.md`. Current experiment family: `experiments/E023-generality-retrieval-composition/`.
+Tracking: Issue #160. Working gate: `docs/14-generality-and-semantic-projections.md`. Experiment family: `experiments/E023-generality-retrieval-composition/`.
 
 ### Authority Core stays ontology-agnostic
 
 The durable core owns evidence identity/integrity/provenance, temporal/contradiction semantics, Human Knowledge authorship, permission/privacy boundaries, and deterministic repairable storage invariants.
 
-Do **not** add Person/Entity/Relation/KnowledgeUnit concepts merely to make the Wiki feel general.
-
-`source-note-v0` remains one DERIVED source-oriented projection, not the Wiki ontology.
+Do **not** add Person/Entity/Relation/KnowledgeUnit concepts merely to make the Wiki feel general. `source-note-v0` remains one DERIVED source-oriented projection, not the Wiki ontology.
 
 ### Authoritative-anchor invariant
 
@@ -60,173 +58,150 @@ Terminal authority may be admitted `RAW_MEMORY` or explicit `HUMAN_KNOWLEDGE`. `
 
 A G1 failure is **not** evidence for G2. A G2 success would not automatically authorize G3.
 
-## E023 frozen sequence
+## E023 frozen sequence — current interpretation
 
-### G1a — complete / NOT EARNED
+### G1a / G1b
 
-Run `32215941344`, exact `gpt-5.6-luna`, 30 calls, zero rerolls.
+- G1a run `32215941344`: exact BM25 top-5 and blind planner+RRF both **8 PASS / 1 PARTIAL / 1 CRITICAL_ERROR**; planner improvements 0; NOT_EARNED.
+- Q001 established the trust class: aliases were merged without the explicit authority bridge. **Truth-by-luck is not trustworthy semantic recovery.**
+- G1b run `32217824760`: evidence-aware follow-up repaired Q001 `CRITICAL_ERROR -> PASS`, but broad preregistered recovery threshold missed; NOT_EARNED.
 
-- exact BM25 top-5 A: **8 PASS / 1 PARTIAL / 1 CRITICAL_ERROR**;
-- blind planner + BM25/RRF C: same semantic counts;
-- semantic improvements: **0**;
-- promotion: **NOT_EARNED**.
+### Prospective authority-sufficiency evaluator
 
-Q001 established the core trust lesson: aliases were merged without the explicit identity bridge. The final identity happened to be correct, but authority did not establish it.
-
-> **Truth-by-luck is not trustworthy semantic recovery.**
-
-### G1b — complete / NOT EARNED / targeted repair signal
-
-Run `32217824760`, exact Luna, 12 calls, zero rerolls.
-
-Evidence-aware follow-up recovered the missing Q001 identity bridge and moved Q001 `CRITICAL_ERROR -> PASS`, but the preregistered broad final-recovery threshold was missed (`1/4` vs required `>=3/4`). Promotion remains **NOT_EARNED**.
-
-This earned only a narrow mechanism signal: query-time follow-up can repair a consequential missing bridge without persistent identity state.
-
-### Prospective authority-sufficiency evaluator — frozen
-
-E023 replaced flat required-source completeness with an evaluation-only authority contract that distinguishes:
+E023 now distinguishes:
 
 - `INSUFFICIENT_AUTHORITY`;
 - `SUFFICIENT_CLEAN`;
 - `SUFFICIENT_WITH_CONFLATION_RISK`.
 
-It models uniquely load-bearing support, alternatives, repeated-support minima, explicit identity/attribution bridges, negative evidence, temporal correction, and forbidden conflation. It is **not** product storage or a canonical claim graph.
+The evaluation-only contract can express unique support, alternatives, repeated-support minima, identity/attribution bridges, negative evidence, temporal correction, forbidden conflation, and terminal `HUMAN_KNOWLEDGE`. It is **not** product storage or a canonical claim graph.
 
-### G1c v0 — INVALID_EXECUTION
+### G1c-R1 — model final selector NOT EARNED
 
-Run `32229563330`, source `987ee7ec615f7eb869be59f14a1928a3811baeed`.
+Run `32232116273`, exact Luna, 18/18 calls, zero rerolls.
 
-A runner aggregation bug invalidated the comparison. Do not reconstruct or reroll the lost B outputs. v0 remains `INVALID_EXECUTION`; its six persisted A outputs are auxiliary only.
+Candidate pools reached positive-authority sufficiency on **6/6**, but the model selector discarded load-bearing evidence and produced two insufficient final contexts. This moved the bottleneck from discovery alone to authority-preserving evidence budgeting/selection.
 
-### G1c-R1 — complete / model final selector NOT EARNED
+### G1d — deterministic RRF top-4 NOT EARNED
 
-Run `32232116273`, source `5227ac2b3f93c4f807e388822bfff963d0041120`, exact Luna, 18/18 calls, zero rerolls.
+Run `32322429563`, source `c74673a83744789f271fa54c43b20212160007a2`, exact Luna, 24/24 calls, zero rerolls.
 
-Stage result:
+- A exact BM25 top-5: **3 clean / 4 risk / 1 insufficient**;
+- D planner + targeted BM25 + deterministic RRF top-4: **3 clean / 3 risk / 2 insufficient**;
+- D authority improvements 0, regressions 1;
+- semantic A **7 PASS / 1 CRITICAL**;
+- semantic D **5 PASS / 2 PARTIAL / 1 CRITICAL**;
+- deterministic RRF did not generalize from the posthoc G1c slice.
 
-| stage | clean | risk | insufficient |
-| --- | ---: | ---: | ---: |
-| exact initial top-5 | 4 | 1 | 1 |
-| evidence-follow candidate pool | 4 | 2 | **0** |
-| model selector final | 4 | 0 | **2** |
+BQ006 was especially informative: the planner correctly identified the missing governing policy, but lexical candidate generation still excluded that authority. Both arms then made a truth-by-luck compliance conclusion.
 
-Candidate pools contained enough positive authority for **6/6** questions, but the model selector discarded recovered/load-bearing authority in AQ001 and AQ004. Promotion: **NOT_EARNED**.
+### G1d zero-model budget frontier
 
-This moved the controlled bottleneck from evidence discovery alone to **authority-preserving evidence selection/budgeting**.
+PR #185, 0 model calls:
 
-### G1c-R1 zero-model selector counterfactual — posthoc only
+- exact BM25 top-5: 3 clean / 4 risk / 1 insufficient;
+- exact BM25 top-6: **4 clean / 4 risk / 0 insufficient**;
+- sole top-5 positive-authority miss sat at exact rank 6;
+- all four top-5 risk cases were frozen semantic PASS.
 
-On the already-inspected AQ slice, deterministic RRF top-4 happened to produce **6/6 SUFFICIENT_CLEAN** contexts across a broad RRF-k sweep. Because that policy was chosen after seeing R1 failures, it was not promotable. It only justified a new prospective test.
+This was a budget signal, not a top-6 product rule.
 
-### G1d — complete / deterministic RRF top-4 NOT EARNED
+## G1e — exact top-5 vs top-6 prospective replication
 
-Preregistered on a new separated 23-anchor / 8-question slice (`authority-sufficiency-v1`).
+G1e used a **new separated 35-anchor / 8-question slice** and a two-stage gate.
 
-Frozen run:
+### Phase 0 — zero-model authority gate PASSED
 
-- run `32322429563`;
-- source `c74673a83744789f271fa54c43b20212160007a2`;
-- exact `gpt-5.6-luna`;
-- semantic calls **24 / 24**;
-- model-selector calls **0**;
-- rerolls **0**;
-- workflow conclusion **success**;
-- result SHA-256 `ef57c7a43c782694a0c42d428421b5d9a4bbb72b0a48b52a60c36edafa310bda`;
-- result/adjudication merged via PR #184;
-- frozen selection promotion: **NOT_EARNED**.
-
-Arms:
-
-- **A:** exact BM25 top-5 -> composer;
-- **D:** same initial top-5 -> evidence-aware planner -> targeted BM25 -> deterministic RRF `k=60` -> fixed top-4 -> composer.
-
-Authority result:
+PR #187, 0 model calls:
 
 | arm | clean | risk | insufficient |
 | --- | ---: | ---: | ---: |
-| A | 3 | 4 | 1 |
-| D | 3 | 3 | 2 |
+| A5 exact BM25 top-5 | 2 | 4 | 2 |
+| B6 same ranking top-6 | 3 | 5 | **0** |
 
-D authority improvements: **0**. D regressions: **1**.
+B6 authority improvements: **2**.  
+B6 authority regressions: **0**.
+
+The rank-6 additions repaired two prospectively frozen authority misses:
+
+- CQ001: explicit `R. Singh -> Rina Singh` identity bridge;
+- CQ008: second independent monthly-close observation required to establish recurrence.
+
+Evidence characters increased roughly 12–29% per question. No global character threshold was claimed; current product 6,000/12,000-char boundaries are per-source `wikiRead`, not multi-source answer budgets.
+
+### Phase 1 — semantic run complete / strict promotion NOT EARNED
+
+Frozen run:
+
+- run `32324460519`;
+- source `505740b74776fc7b7988e9c168c9c9d0ed2067fa`;
+- exact `gpt-5.6-luna`;
+- semantic calls **16 / 16**;
+- planner calls **0**;
+- selector calls **0**;
+- rerolls **0**;
+- workflow success;
+- result SHA-256 `865d89ad8c8b219493823bd21413196f658a9ffa2fdd3ed2948bb34b20f16727`;
+- result/adjudication merged via PR #189.
 
 Frozen semantic result:
 
-- A: **7 PASS / 1 CRITICAL_ERROR**;
-- D: **5 PASS / 2 PARTIAL / 1 CRITICAL_ERROR**;
-- D semantic improvements: **0**;
-- D semantic regressions: **2**;
-- D new critical errors: **0**.
+- A5: **5 PASS / 1 PARTIAL / 1 FAIL_RETRIEVAL / 1 CRITICAL_ERROR**;
+- B6: **6 PASS / 2 PARTIAL / 0 FAIL / 0 CRITICAL_ERROR**;
+- B6 semantic improvements: **2**;
+- B6 semantic regressions: **0**;
+- B6 new critical errors: **0**.
 
-#### What G1d disproved
+The frozen rule required at least **7/8 B6 PASS**. Actual was 6/8.
 
-The posthoc AQ-slice RRF top-4 result did **not** generalize.
+> **G1e strict promotion is NOT_EARNED. Do not weaken the frozen rule.**
 
-- BQ002: same-name distractor B004 is repeatedly retrieved and RRF places it above the uniquely load-bearing B003 identity bridge; B003 falls to fifth and is dropped.
-- BQ007: unrelated same-name product B019 remains in final context.
-- BQ008: vendor local-admin capability B023 remains in final context even though it is not customer authorization policy.
+### What G1e genuinely earned
 
-RRF consensus can therefore amplify **repeated lexical similarity**, not just repeated authoritative relevance.
+The simple evidence-budget mechanism signal is now prospective and materially stronger:
 
-#### BQ006 — planner knew what was missing, lexical retrieval still missed it
+1. B6 removed **both** authority insufficiencies with zero authority regressions;
+2. CQ001 moved from A5 truth-by-luck identity `CRITICAL_ERROR` to supported B6 `PASS` when rank-6 identity authority entered context;
+3. CQ008 moved from safe A5 retrieval insufficiency to complete repeated-observation authority under B6;
+4. the sixth object caused **0 semantic regressions and 0 new critical errors** across the eight questions;
+5. the result required **no planner and no selector calls**.
 
-BQ006 is the most important G1d retrieval failure.
+This does **not** make six sources a product default. It establishes exact-BM25 + modestly larger evidence prefix as the current **strong simple retrieval baseline**.
 
-The planner explicitly identifies Cedar's governing EU-only policy as missing. But the authoritative policy anchor B013 ranks:
+### Why the strict gate still failed — composition is now the binding bottleneck
 
-- exact BM25: **6**;
-- first targeted follow-up: **4**;
-- second targeted follow-up: absent.
+B6 has **0 authority-incomplete contexts**. Its two remaining partials are composition-side:
 
-The frozen follow-up candidate cutoff is top-3, so B013 never reaches the candidate pool. Both A and D then give a definitive-looking Cedar compliance conclusion without the governing policy anchor. Both are frozen `CRITICAL_ERROR`.
+- **CQ002 — `COMPOSITION_OVERCAUTIOUS_INSUFFICIENCY`:** the context is sufficient for the frozen `could satisfy` proposition, the prose answer is substantively correct, but `insufficient_authority=true` demands a stronger unstated guarantee.
+- **CQ008 — `COMPOSITION_EPISTEMIC_TYPE_OMISSION`:** the context now contains the user-owned C034 capacity decision plus two independent raw observations, but the answer presents the decision as an ordinary fact rather than making explicit that terminal decision authority is `HUMAN_KNOWLEDGE`.
 
-This is another truth-by-luck class, now for **policy/compliance authority**, not identity.
+These are recurring E023 classes, not new G1e noise failures.
 
-## New zero-model finding — evidence budget before more retrieval complexity
+## NEXT CORE — composition authority semantics, not more retrieval tuning
 
-Posthoc analysis merged via PR #185; **0 model calls**; does not change G1d verdict.
-
-Exact BM25 authority frontier on the G1d slice:
-
-| budget | clean | risk | insufficient |
-| --- | ---: | ---: | ---: |
-| top-3 | 4 | 0 | 4 |
-| top-4 | 2 | 2 | 4 |
-| top-5 | 3 | 4 | 1 |
-| **top-6** | **4** | **4** | **0** |
-| top-7 | 4 | 4 | 0 |
-| top-8 | 4 | 4 | 0 |
-
-The sole A@5 positive-authority miss is BQ006; B013 sits exactly at rank 6. Therefore A@6 is positive-authority sufficient on **8/8** frozen G1d questions.
-
-The four A@5 risk cases — BQ001/BQ002/BQ007/BQ008 — are all frozen semantic `PASS`: the composer ignored the distractors when the load-bearing authority was present.
-
-This does **not** prove distractors are harmless and does **not** make top-6 a product constant. It does change research priority:
-
-> **On the current controlled evidence, omission of governing/load-bearing authority is more consequential than making every context perfectly clean. Test evidence budget before adding more retrieval/selector machinery.**
-
-The recurrence matters: earlier E023 work also found consequential authority immediately outside fixed top-5 cutoffs. G1d independently reproduces the rank-boundary problem on new material.
-
-## NEXT CORE — prospective evidence-budget comparison, not another selector trick
-
-**Paid calls are paused at this checkpoint. Do not semantically rerun AQxxx or BQxxx. Do not start G2.**
+**Paid calls pause here. Do not semantically rerun AQxxx/BQxxx/CQxxx. Do not start G2.**
 
 Immediate research question:
 
-> **Can a modest, explicit query-time evidence budget recover load-bearing authority more reliably and cheaply than planner/selector complexity, without causing semantic conflation/noise failures?**
+> **Can the composer preserve terminal epistemic type and calibrate insufficiency to the actual load-bearing proposition, without exposing internal storage jargon or importing evaluator clauses/domain schemas into runtime?**
 
 Next deliberate work:
 
-1. treat `top-6` only as a **diagnostic signal**, not a product rule;
-2. define the next budget prospectively on **new separated material** before semantic answers exist;
-3. prefer an explicit **character/token evidence budget** over permanently hard-coding a source count when practical;
-4. compare a strong exact-BM25 budget baseline against any more complex planner/selector path using the same composer;
-5. score authority sufficiency, risk, semantic correctness, unsupported claims, model calls, and evidence size separately;
-6. keep evaluator clauses offline; no BQ/AQ-specific anchor rules may enter runtime selection;
-7. only if a stronger query-time path is earned may G2 persistence even be considered;
-8. keep natural Dogfood 0.1.16 running in parallel.
+1. treat B6 as the strong simple retrieval baseline for the next composition test; do **not** tune retrieval again first;
+2. define a small **generic composition contract** for at least:
+   - explicit user-owned decision/belief/rationale authority;
+   - direct vs attributed evidence;
+   - missing identity/policy bridges;
+   - proposition-scoped insufficiency rather than stronger unstated guarantees;
+3. keep the contract architecture-level and ontology-agnostic — no Cxxx/AQ/BQ-specific rules and no product claim graph;
+4. validate the contract itself with zero model calls and adversarial fixtures before any paid run;
+5. only then use **new separated material** for a composer comparison while holding retrieval/evidence budget fixed;
+6. measure semantic PASS/critical errors, epistemic-type preservation, insufficiency calibration, citations, and model calls separately;
+7. a composition success still would not by itself authorize G2; natural Dogfood evidence remains necessary.
 
-Do not infer from this checkpoint that “six sources is enough.” The hypothesis is **evidence-budget-first**, not `k=6`.
+The key shift is:
+
+> **The leading controlled problem is no longer “can we get enough authority into context?” On the G1e B6 slice, we can. The next problem is “does the Agent express exactly what that authority permits, with the right epistemic type?”**
 
 ## Natural product dogfood continues in parallel
 
@@ -236,8 +211,9 @@ Watch naturally for cross-source questions, identity/alias/attribution uncertain
 
 ## Do not start merely because it is available
 
-- another paid E023 run before a new prospective evidence-budget contract/slice exists;
-- same-slice AQ/BQ semantic reruns;
+- another paid retrieval/planner/selector tuning run before a composition contract is frozen;
+- same-slice AQ/BQ/CQ semantic reruns;
+- a hard-coded top-6 product default;
 - G2 persistent semantic dossiers;
 - graph DB / universal Entity/Relation/KnowledgeUnit schema;
 - automatic identity merge/split or concept routing;
@@ -260,28 +236,16 @@ Watch naturally for cross-source questions, identity/alias/attribution uncertain
 - Human Knowledge file deletion is not independently detectable without an index.
 - E013/E015 remain natural/data-gated; do not manufacture workload/divergence.
 
-## 0.1.16 validated artifact
-
-- source `e9370663d4763ae0f29d67c572d45c5b80f6c120`;
-- main validation run `32204779167`;
-- Actions artifact `9348765994`;
-- publisher `3366df98e33dabbe72d00d396c2ea1820e50d9a4`;
-- VSIX bytes `102811`;
-- SHA-256 `5fd7c76483b6bef16bff9d3e76fc7b05f05348ae04a2526237843a53891ffb08`;
-- install path `dogfood/releases/llm-wiki-dogfood-latest.vsix`.
-
 ## Fast pointers
 
 - Core generality gate: Issue #160 / `docs/14-generality-and-semantic-projections.md`
 - E023 root: `experiments/E023-generality-retrieval-composition/`
-- G1a: PR #165 / run `32215941344`
-- G1b: PR #169 / run `32217824760`
 - prospective evaluator: PR #172
 - G1c-R1: PR #179 / run `32232116273`
-- G1c-R1 selector counterfactual: PR #181
-- G1d prereg/execution/result: PRs #182/#183/#184 / run `32322429563`
-- G1d budget frontier: PR #185 / `g1d-budget-frontier-v0.md`
-- G1d result: `g1d-results-v0.md`
+- G1d: PRs #182/#183/#184 / run `32322429563`
+- G1d budget frontier: PR #185
+- G1e Phase 0 / execution / result: PRs #187/#188/#189 / run `32324460519`
+- G1e result: `g1e-results-v0.md`
 - natural installed dogfood: Issue #141
 - current VSIX: `dogfood/releases/llm-wiki-dogfood-latest.vsix`
 - user guide: `dogfood/vscode/README.md`
