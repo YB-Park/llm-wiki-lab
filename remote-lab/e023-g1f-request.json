@@ -1,0 +1,12 @@
+{
+  "request_id": "e023-g1f-authority-preserving-composition-v0",
+  "model": "gpt-5.6-luna",
+  "question_count": 8,
+  "context_top_k": 6,
+  "old_composer_calls": 8,
+  "new_composer_calls": 8,
+  "planner_calls": 0,
+  "selector_calls": 0,
+  "max_model_call_attempts": 16,
+  "max_ai_credits_per_call": 30
+}
