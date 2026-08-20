@@ -1,6 +1,6 @@
-# E023 — Generality Retrieval / Composition Gate
+# E023 — Generality Retrieval / Composition / Persistence Gate
 
-Status: **G1 QUERY-TIME BASELINE EARNED FOR G2 RESEARCH COMPARATOR / INDIVIDUAL G1 PROMOTIONS REMAIN AS FROZEN / G2 PREREG NEXT**  
+Status: **G1 CLOSED FOR COMPARATOR / G2 FIXED-IDENTITY PERSISTENCE NOT EARNED AND PARKED / G3 NOT OPENED**  
 Tracking: Issue #160  
 Product baseline: Dogfood 0.1.16
 
@@ -8,7 +8,7 @@ Product baseline: Dogfood 0.1.16
 
 Can LLM Wiki recover trustworthy cross-source semantic knowledge at query time before persistent semantic state, and—only after that path is strong—does persistence add enough repeated-use value to justify lifecycle risk?
 
-E023 deliberately orders the work:
+E023 deliberately ordered:
 
 1. G1 retrieval/composition;
 2. G2 persistence;
@@ -22,125 +22,157 @@ It is not a universal entity-system experiment.
 - `source-note-v0` is one DERIVED projection, not the Wiki ontology.
 - Every load-bearing derived statement must resolve to admitted `RAW_MEMORY` or explicit `HUMAN_KNOWLEDGE`.
 - Evaluator clauses remain evaluation-only.
-- Exact BM25 top-6 is an experimental baseline, not product policy.
-- G2 does not authorize G3.
+- Exact BM25 top-6 is a research comparator, not product policy.
+- A G2 failure does not justify G3.
 
-## G1 sequence
+## G1 — exploratory mechanism search closed
 
-### G1a / G1b
+Planner/selector/RRF complexity repeatedly failed to beat the simple path safely.
 
-Blind planning did not beat the simple baseline. Evidence-follow produced one targeted repair but missed its broad gate.
+G1e established the strongest simple evidence-budget signal: exact BM25 top-6 removed two authority misses with zero semantic regressions, though its strict individual promotion threshold remained NOT_EARNED.
 
-Key lesson:
-
-> **Truth-by-luck is not trustworthy semantic recovery.**
-
-### G1c-R1
-
-A model selector received authority-sufficient candidate pools on 6/6 but dropped load-bearing evidence. NOT_EARNED.
-
-### G1d
-
-Planner + deterministic RRF top-4 did not generalize; the simple exact-BM25 arm was stronger. NOT_EARNED.
-
-A zero-model frontier then found consequential authority at exact rank 6.
-
-### G1e — simple evidence-budget replication
-
-New separated 35-anchor / 8-question slice.
-
-Exact top-6 versus top-5:
-
-- authority improvements 2, regressions 0;
-- top-6 authority incomplete contexts 0;
-- semantic improvements 2, regressions 0, new criticals 0;
-- planner/selector calls 0.
-
-Strict top-6 gate was still NOT_EARNED because B6 reached 6/8 PASS against a frozen >=7/8 threshold.
-
-Nevertheless, exact BM25 + modestly larger evidence prefix became the strongest simple retrieval baseline.
-
-### Composition contract v0
-
-PR #191 froze a generic zero-model contract for:
-
-- user-owned authority;
-- direct vs attributed evidence;
-- missing bridges;
-- proposition-scoped insufficiency;
-- negative characterization;
-- temporal/correction state;
-- terminal citations;
-- conflation-risk restraint.
-
-`composition_prompt_v1` was a prospective candidate, not a promoted composer.
-
-### G1f — paired composition comparison
-
-PR #193 preregistered new separated DQ material. PR #194 froze a one-shot execution. Run `32349241403`; result PR #195.
-
-Both arms used exact `gpt-5.6-luna` and the exact same frozen top-6 context per question.
+G1f then compared the frozen old composer to `composition_prompt_v1` on new separated material with byte-identical top-6 contexts:
 
 | arm | PASS | PARTIAL | CRITICAL |
 | --- | ---: | ---: | ---: |
-| O — frozen old composer | **7** | **1** | **0** |
-| N — `composition_prompt_v1` | **7** | **1** | **0** |
+| old composer | 7 | 1 | 0 |
+| `composition_prompt_v1` | 7 | 1 | 0 |
 
-N improvements: **0**. Regressions: **0**. New criticals: **0**.
+The new prompt produced zero paired improvements, so it was NOT_EARNED.
 
-Both arms passed:
-
-- DQ003 deliberately authority-incomplete identity negative control;
-- DQ004 proposition-scoped `could satisfy` case;
-- DQ001/DQ007 user-owned decision cases;
-- direct-vs-attributed, temporal/correction, repeated-support, and project-identity cases.
-
-Both were PARTIAL only on DQ006 because neither used prospectively required D033 broader-serverless corroboration.
-
-Frozen N promotion required >=1 paired improvement:
-
-> **`composition_prompt_v1` candidate promotion is NOT_EARNED.**
-
-Do not tune/rerun the DQ slice.
-
-## G1 closure
-
-The experiment family now distinguishes **mechanism promotion** from **baseline adequacy**.
-
-Several individual mechanisms missed strict gates. But accumulated separated evidence supports this narrower architecture conclusion:
-
-> **The simple query-time path is sufficiently strong and stable to serve as the fixed control for a G2 persistence-value experiment.**
-
-Frozen G2 control:
+G1 closure therefore carried forward only this narrow **research comparator**:
 
 - exact whole-object BM25 top-6;
 - frozen old `run_g1c.py` composer;
-- no planner, selector, or RRF.
+- planner / selector / RRF = 0.
 
-This does not turn those choices into product defaults.
+This is not product default policy.
 
-## Next: G2 fixed-identity persistence preregistration
+## G2 — first fixed-identity persistence candidate
 
-G2 asks whether a rebuildable persistent semantic projection earns itself over the fixed G1 control under repeated use and lifecycle change.
+PR #197 preregistered new separated repeated-use/lifecycle material. PR #198 froze the one-shot execution. Run `32353304896`; result PR #199.
 
-First G2 design must:
+G2 held subject identity and final composer fixed:
 
-- use new separated repeated-use/update material;
-- supply subject identity prospectively;
-- forbid automatic identity discovery/routing;
-- include addition, correction/supersession, and stale-state hazards;
-- keep persistent claims anchored to terminal authority;
-- measure answer semantics, critical stale/unsupported claims, calls/cost, maintenance/rebuild work, and human intervention;
-- include a stale-view negative control;
-- keep prereg semantic calls at zero;
-- require a separate execution contract.
+- **Q:** current terminal authority -> exact BM25 top-6 -> frozen composer;
+- **P:** query-blind persisted DERIVED retrieval projection -> deterministic terminal-anchor selection -> same composer;
+- projection text never entered answer context;
+- stale snapshot mismatch required exact Q bypass.
 
-No graph DB, universal Entity/Relation/KnowledgeUnit schema, vector default, or product runtime change is authorized.
+Execution:
 
-## Product relationship
+- exact `gpt-5.6-luna`;
+- 29/29 semantic attempts;
+- 5 projection build/rebuild calls;
+- 12 Q answer calls + 12 P answer calls;
+- zero rerolls;
+- planner / selector / vector = 0.
 
-Dogfood 0.1.16 remains unchanged.
+### Semantic result
 
-Natural installed use on Issue #141 remains the source for product-value evidence such as ambient recall, long-horizon usefulness, setup/notification friction, hidden usage visibility, and whether users actually miss dedicated navigation.
+| arm | PASS | FAIL_RETRIEVAL | CRITICAL_ERROR |
+| --- | ---: | ---: | ---: |
+| Q | 9 | 1 | 2 |
+| P | 8 | 1 | 3 |
+
+P improvements vs Q: **2**.  
+P regressions vs Q: **3**.  
+P new critical errors: **3**.
+
+Frozen promotion required >=10/12 P PASS, >=2 improvements, zero regressions, zero new criticals, both prospective authority opportunities repaired, zero other fresh authority regressions, and safe correction/staleness behavior.
+
+> **`G2_PERSISTENCE_CANDIDATE_EARNED` = NOT_EARNED.**
+
+Do not weaken the frozen rule.
+
+## What G2 did earn
+
+### Snapshot freshness guard
+
+PQ007 and PQ011 detected stale projection snapshots and reproduced the exact Q terminal context.
+
+PQ011—the primary 30 -> 90-day correction stale negative control—avoided stale/current inversion.
+
+Reusable principle:
+
+> **Any future persisted/rebuildable derived state should be bound to a deterministic source-authority snapshot and fail closed to current authority when stale.**
+
+This is a safety mechanism signal, not a persistence-value promotion.
+
+### Context efficiency
+
+Across ten fresh-projection queries:
+
+- Q terminal evidence chars: 10,282;
+- P terminal evidence chars: 7,019;
+- P/Q = **68.3%**.
+
+The <=85% efficiency gate passed.
+
+### One prospective recovery
+
+PQ004 recovered the prospectively missing P004 broader portfolio evidence and moved Q `CRITICAL_ERROR` to P `PASS`.
+
+## Why persistence remained unearned
+
+The projection compiler preserved every terminal anchor. The later query-time retrieval stage over projection statements discarded load-bearing authority:
+
+- PQ008: required P021 existed in rebuilt projection but was not selected;
+- PQ009: governing P026 existed in projection entry rank 3 but top-2 selection omitted it -> P critical regression;
+- PQ012: user-owned superseding P034 existed in projection entry rank 3 but top-2 selection omitted it -> P critical regression.
+
+This repeats an E023 invariant:
+
+> **A representation may preserve authority globally while a later selection bottleneck destroys it locally.**
+
+Persistence can move the evidence-selection problem into another layer while adding build/rebuild and stale-state obligations.
+
+PQ007 is a causal nuance: stale bypass gave P and Q identical terminal context/question/prompt. Q safely returned `FAIL_RETRIEVAL`; the independent P model call asserted unsupported repetition. Count the frozen regression, but do not attribute it to persistence selection.
+
+## G2 closure
+
+G2 is **PARKED**. G3 is **NOT_OPENED**.
+
+Do not respond with same-slice projection top-k tuning. The required PQ008 anchor was much deeper in projection ranking, so a trivial top-3 posthoc tweak does not solve the prospective failure set.
+
+Reopen persistence only if independent evidence makes it materially relevant, such as repeated installed use showing query-time reconstruction is too slow/costly/unreliable or users repeatedly need a durable derived view current raw/query-time behavior cannot serve.
+
+Any reopened G2 experiment requires new separated material and fresh preregistration. PQ is diagnostic history, not a tuning set.
+
+## Product relationship — current priority
+
+Dogfood 0.1.16 remains unchanged. Natural installed use on Issue #141 is now the primary project-evidence track.
+
+Observe naturally:
+
+- ambient memory routing in ordinary Agent conversation;
+- `wikiRead` provenance follow-through;
+- recovery of useful reasoning days/weeks later;
+- setup/permission/popup friction;
+- whether hidden Luna maintenance usage becomes repeated enough to justify product-owned usage visibility;
+- whether a dedicated navigation/history surface is actually missed.
+
+Do not manufacture demand to justify Tree View, usage accounting, or architecture layers.
 
 Issue #132 reliability work remains evidence-gated rather than a pretext for premature database/WAL architecture.
+
+## Current posture
+
+Paid E023 semantic calls pause.
+
+Do not start:
+
+- same-slice AQ/BQ/CQ/DQ/PQ semantic reruns;
+- product top-6 policy;
+- product persistent semantic dossiers;
+- graph/entity/KU storage;
+- G3 automatic identity merge/split/routing;
+- vector defaults;
+- background semantic maintenance.
+
+See:
+
+- `g1-closure-decision-v0.md`
+- `g2-results-v0.md`
+- `g2-closure-decision-v0.md`
+- `docs/14-generality-and-semantic-projections.md`
