@@ -1,0 +1,91 @@
+{
+  "evaluation_slice": "authority_sufficiency_v1",
+  "experiment": "E023",
+  "status": "SEPARATED_PROSPECTIVE_MATERIAL_NO_MODEL_ANSWERS",
+  "version": 1,
+  "questions": [
+    {
+      "question_id": "BQ001",
+      "family": "identity_attribution",
+      "question": "Who was the Kestrel security contact who repeatedly required HSM signing-key rotation before pilot access?",
+      "load_bearing_propositions": [
+        "the recurring Kestrel security contact is Dana Ortiz / D. Ortiz",
+        "the HSM signing-key requirement was raised more than once",
+        "Diego Ortiz from Kestrel Finance must not be conflated with the security contact"
+      ]
+    },
+    {
+      "question_id": "BQ002",
+      "family": "identity_attribution",
+      "question": "What did Dana Ortiz directly author about HSM key rotation, and what was only attributed to D. Ortiz in meeting records?",
+      "load_bearing_propositions": [
+        "direct-authored wording must come from Dana Ortiz's email",
+        "meeting-note wording is attribution rather than direct authorship",
+        "D. Ortiz in Kestrel Security records must be bridged explicitly to Dana Ortiz"
+      ]
+    },
+    {
+      "question_id": "BQ003",
+      "family": "decision_rationale",
+      "question": "Why did we decide not to add NATS for the first release, and did the later 20x synthetic burst reverse that decision?",
+      "load_bearing_propositions": [
+        "the no-NATS decision and rationale are user-owned Human Knowledge",
+        "the rationale is operating ownership and failure modes rather than technical inferiority",
+        "the later unrealistic burst does not itself record a reversal"
+      ]
+    },
+    {
+      "question_id": "BQ004",
+      "family": "incident_temporal",
+      "question": "What caused INC-311, and how should the initial connection-leak hypothesis be treated?",
+      "load_bearing_propositions": [
+        "connection leak began as an unconfirmed hypothesis",
+        "retry behavior after the client-backoff change provides causal evidence",
+        "the postmortem identifies retry amplification as root cause and rejects the connection-leak hypothesis"
+      ]
+    },
+    {
+      "question_id": "BQ005",
+      "family": "incident_temporal",
+      "question": "Reconstruct the key INC-311 timeline and explain exactly what its addendum changed.",
+      "load_bearing_propositions": [
+        "the corrected start time is 14:06",
+        "the 14:21 retry signal and rollback matter",
+        "the final root cause is retry amplification",
+        "the addendum changes the start time only"
+      ]
+    },
+    {
+      "question_id": "BQ006",
+      "family": "vendor_constraint",
+      "question": "Does NimbusGrid's standard disaster-recovery configuration satisfy Cedar's EU-only rule, and could the EU-only option satisfy it?",
+      "load_bearing_propositions": [
+        "Cedar's rule covers production data, backups, and replicas",
+        "encryption does not waive the geographic restriction",
+        "NimbusGrid standard DR may place encrypted backups in the United States",
+        "a non-default EU-only DR option exists"
+      ]
+    },
+    {
+      "question_id": "BQ007",
+      "family": "project_identity",
+      "question": "Did the Lark project decide to deprecate v1 webhooks, and what is that project's current name?",
+      "load_bearing_propositions": [
+        "Lark and Harbor are the same project identity PRJ-482",
+        "the Harbor decision deprecates v1 webhooks after the compatibility window",
+        "Harbor Analytics is a separate product and must not be conflated with PRJ-482"
+      ]
+    },
+    {
+      "question_id": "BQ008",
+      "family": "policy_exception",
+      "question": "When can the break-glass administrator bypass SSO, and does that exception waive audit logging or allow routine local-admin access?",
+      "load_bearing_propositions": [
+        "normal privileged administrator access requires corporate SSO with phishing-resistant MFA",
+        "break-glass bypass is limited to a declared incident when the identity provider is unavailable",
+        "every break-glass use still requires logging and post-incident review",
+        "vendor support for local emergency login does not itself authorize routine use"
+      ]
+    }
+  ]
+}
