@@ -1,0 +1,136 @@
+{
+  "adjudication_version": 1,
+  "experiment": "E023-G1d",
+  "run": {
+    "run_id": 32322429563,
+    "execution_source_sha": "c74673a83744789f271fa54c43b20212160007a2",
+    "exact_model": "gpt-5.6-luna",
+    "model_call_attempts": 24,
+    "semantic_rerolls": 0,
+    "result_sha256": "ef57c7a43c782694a0c42d428421b5d9a4bbb72b0a48b52a60c36edafa310bda",
+    "execution_complete": true,
+    "workflow_conclusion": "success",
+    "retrieval_selection_verdict": "NOT_EARNED"
+  },
+  "authority_stage_summary": {
+    "A_exact_top5": {
+      "SUFFICIENT_CLEAN": 3,
+      "SUFFICIENT_WITH_CONFLATION_RISK": 4,
+      "INSUFFICIENT_AUTHORITY": 1
+    },
+    "D_final_selected": {
+      "SUFFICIENT_CLEAN": 3,
+      "SUFFICIENT_WITH_CONFLATION_RISK": 3,
+      "INSUFFICIENT_AUTHORITY": 2
+    },
+    "D_authority_improvements_vs_A": 0,
+    "D_authority_regressions_vs_A": 1,
+    "D_insufficient": 2,
+    "D_clean": 3,
+    "selection_promotion": "NOT_EARNED"
+  },
+  "A_semantic_verdicts": {
+    "BQ001": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The context contains the explicit B003 D. Ortiz/Dana Ortiz bridge and repeated HSM-rotation support. Although same-surname distractor B004 is present, the answer ignores it and grounds the identity and repeated requirement in B001/B002/B003/B005."
+    },
+    "BQ002": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The answer correctly separates Dana Ortiz's directly authored email B002 from meeting-note attribution B001/B005, uses B003 for the D. Ortiz identity bridge, and explicitly distinguishes Diego Ortiz using B004 rather than conflating him."
+    },
+    "BQ003": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The answer presents the no-NATS decision in first-person project terms ('We did not add NATS'), grounds the rationale in user-owned HUMAN_KNOWLEDGE B007, uses B006 only as measurement support, and correctly treats B008 as a non-reversal. It does not launder B007 into an independently observed external fact."
+    },
+    "BQ004": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The answer preserves the initial unconfirmed connection-leak hypothesis B009, the retry/mitigation signal B010, and the final retry-amplification root cause plus rejection in B011."
+    },
+    "BQ005": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The answer reconstructs 14:06, the 14:21 retry/rollback signal, the final root cause, and the addendum's start-time-only correction from B009/B010/B011/B012."
+    },
+    "BQ006": {
+      "verdict": "CRITICAL_ERROR",
+      "root_cause": "RETRIEVAL_ROOTED_UNSUPPORTED_COMPLIANCE_CONCLUSION",
+      "reason": "The exact top-5 omits B013, the only authority establishing that Cedar's EU rule covers backups/replicas and that encryption does not waive the restriction. The answer nevertheless opens with the definitive conclusion that standard DR does not satisfy Cedar's rule. Marking insufficient_authority=true and adding a later caveat does not supply the missing policy authority; the compliance conclusion is truth-by-luck relative to the frozen corpus."
+    },
+    "BQ007": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The answer uses B017 to bridge Lark to Harbor/PRJ-482 and B018 for the user-owned webhook deprecation decision. Although B019 is present as a forbidden same-name product distractor, the answer does not conflate Harbor Analytics with the project."
+    },
+    "BQ008": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The answer correctly limits break-glass bypass to the declared-incident/IdP-unavailable condition B021, preserves audit obligations B022, and states the normal SSO/MFA rule B020. It does not treat vendor capability B023 as authorization."
+    }
+  },
+  "D_semantic_verdicts": {
+    "BQ001": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "Despite retaining distractor B004, D preserves B003 and enough repeated support. The answer grounds Dana Ortiz identity in B003 and repeated HSM rotation in B002/B005 without conflating Diego Ortiz."
+    },
+    "BQ002": {
+      "verdict": "PARTIAL",
+      "root_cause": "SELECTION_DROPPED_IDENTITY_BRIDGE_BUT_COMPOSER_EXPRESSED_UNCERTAINTY",
+      "reason": "RRF drops B003, leaving the final context authority-incomplete. The composer behaves safely in prose by explicitly saying the supplied records do not establish Dana Ortiz and D. Ortiz as definitively the same person, rather than making an unsupported merge. However, it simultaneously emits insufficient_authority=false, contradicting its own uncertainty and the frozen authority status."
+    },
+    "BQ003": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The answer preserves the user-owned B007 decision/rationale in first-person project terms, uses B006 as measurement support, and correctly treats B008 as a non-reversal."
+    },
+    "BQ004": {
+      "verdict": "PARTIAL",
+      "root_cause": "COMPOSITION_CAUSAL_SIGNAL_OMISSION",
+      "reason": "The final context is SUFFICIENT_CLEAN and includes B009/B010/B011/B012, but the answer cites only B009/B011 and omits the explicit B010 retry-change/mitigation signal that the prospectively frozen question marks as load-bearing causal evidence. The final cause and rejected hypothesis are correct, but the causal evidence path is incomplete."
+    },
+    "BQ005": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The answer correctly covers 14:06, the 14:21 retry/rollback event, retry-amplification root cause, connection-leak rejection, and addendum scope from B009/B010/B011/B012."
+    },
+    "BQ006": {
+      "verdict": "CRITICAL_ERROR",
+      "root_cause": "PLANNER_IDENTIFIED_MISSING_POLICY_BUT_RETRIEVAL_FAILED_THEN_COMPOSER_OVERCLAIMED",
+      "reason": "The planner correctly states that Cedar's authoritative EU-only rule is missing, but follow-up BM25 never brings B013 into the candidate pool. D remains authority-incomplete and still gives the definitive conclusion that standard DR does not satisfy Cedar's rule. The later insufficiency caveat does not authorize that compliance conclusion."
+    },
+    "BQ007": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "D retains forbidden-conflation distractor B019, but the answer grounds project identity in B017 and the user-owned deprecation decision in B018 and does not conflate Harbor Analytics."
+    },
+    "BQ008": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "D retains vendor-capability distractor B023, but the answer relies on B020/B021/B022 for policy, exception scope, and audit obligations and does not convert product capability into routine authorization."
+    }
+  },
+  "semantic_summary": {
+    "A": {
+      "PASS": 7,
+      "PARTIAL": 0,
+      "FAIL_RETRIEVAL": 0,
+      "FAIL_COMPOSITION": 0,
+      "CRITICAL_ERROR": 1
+    },
+    "D": {
+      "PASS": 5,
+      "PARTIAL": 2,
+      "FAIL_RETRIEVAL": 0,
+      "FAIL_COMPOSITION": 0,
+      "CRITICAL_ERROR": 1
+    },
+    "D_semantic_improvements_vs_A": 0,
+    "D_semantic_regressions_vs_A": 2,
+    "D_new_critical_errors_vs_A": 0
+  },
+  "core_interpretation": "G1d does not earn deterministic RRF top-4 as the authority-preserving selector. On the new separated slice, lexical consensus preserves or amplifies forbidden-conflation distractors and can demote a uniquely load-bearing identity bridge. BQ006 additionally shows that a planner can correctly identify the missing authority class while lexical follow-up retrieval still fails to recover the authoritative policy anchor. The result narrows the next G1 problem to consequence-sensitive authority recovery and discriminative evidence budgeting without smuggling evaluator clauses into runtime. It does not authorize G2 persistence or G3 identity/routing."
+}

@@ -1,0 +1,15 @@
+{
+  "artifact": {
+    "digest": "sha256:c6c69d06df4a66febbbfb0dde37dde9ead4a6d705e30853ce87ca0942bb5ba09",
+    "id": 9390249066,
+    "name": "e023-g1d-32322429563"
+  },
+  "conclusion": "success",
+  "created_at": "2026-08-20T01:49:54Z",
+  "execution_source_sha": "c74673a83744789f271fa54c43b20212160007a2",
+  "run_attempt": 1,
+  "run_id": 32322429563,
+  "status": "completed",
+  "updated_at": "2026-08-20T01:51:55Z",
+  "workflow": "E023 generality G1d"
+}
