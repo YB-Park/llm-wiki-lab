@@ -177,6 +177,8 @@ must('memory-preserves-hk-support', memoryRead.includes('supporting_source_ids')
 must('agent-load-human-knowledge', agentTools.includes("require('./human-knowledge')"));
 must('agent-load-process-errors', agentTools.includes("require('./process-errors')"));
 must('agent-load-python-runtime', agentTools.includes("require('./python-runtime')"));
+must('agent-load-memory-read-service', agentTools.includes("require('./memory-read-service')"));
+must('agent-shared-memory-service', agentTools.includes('memoryRead.collectMemoryRows'));
 must('agent-single-folder-failclosed', agentTools.includes('currently supports one workspace folder at a time'));
 must('register-search-tool', agentTools.includes('vscode.lm.registerTool(SEARCH_TOOL'));
 must('register-read-tool', agentTools.includes('vscode.lm.registerTool(READ_TOOL'));
@@ -195,7 +197,7 @@ must('workspace-disable-only-unlinks-marker', workspaceActivation.includes('fs.u
 mustNot('workspace-disable-does-not-remove-root', workspaceActivation.includes('rmSync(root'));
 
 must('ambient-v4', agentTools.includes('LLM_WIKI_MEMORY_RESULT v4'));
-must('ambient-discover-current', agentTools.includes("['discover', query, '--top-k-per-topic', '3', '--json']"));
+must('ambient-discover-current', memoryRead.includes("['discover', query, '--top-k-per-topic', '3', '--json']"));
 must('verified-read-v2', agentTools.includes('LLM_WIKI_SOURCE_READ v2'));
 must('verified-read-cli', agentTools.includes('runAgentMemoryCli(this.context, folder, args)'));
 must('raw-memory-class', agentTools.includes('RAW_MEMORY R'));
