@@ -72,7 +72,7 @@ jobs:
           PY
 
   execute:
-    if: github.event_name == 'push' && github.event.before == 'c674f93728db7d4fe0d8b84328feca34b87fd655'
+    if: github.event_name == 'push' && github.sha == '505740b74776fc7b7988e9c168c9c9d0ed2067fa'
     permissions:
       actions: read
       contents: write
