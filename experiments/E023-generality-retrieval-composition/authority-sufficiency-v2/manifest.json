@@ -1,0 +1,38 @@
+{
+  "experiment": "E023",
+  "slice": "authority_sufficiency_v2",
+  "version": 1,
+  "status": "PROSPECTIVELY_FROZEN_BEFORE_SEMANTIC_EXECUTION",
+  "anchor_count": 35,
+  "question_count": 8,
+  "authority_type_counts": {
+    "RAW_MEMORY": 32,
+    "HUMAN_KNOWLEDGE": 3
+  },
+  "families": [
+    "identity_attribution",
+    "vendor_constraint",
+    "decision_rationale",
+    "incident_temporal",
+    "project_identity",
+    "policy_exception",
+    "negative_characterization",
+    "repeated_observation"
+  ],
+  "separation": {
+    "shares_anchor_ids_with_v0_or_v1": false,
+    "shares_exact_anchor_text_with_v0_or_v1": false,
+    "contains_model_answers": false,
+    "contains_semantic_verdicts": false
+  },
+  "stress_design": {
+    "purpose": "Prospectively test a small exact-rank evidence-budget increment while retaining conflation-risk cases; this is a controlled mechanism slice, not a workload-frequency estimate.",
+    "contains_rank_boundary_stress_cases": true,
+    "contains_existing_top5_conflation_risk_cases": true
+  },
+  "intended_gate": "G1e exact BM25 top-5 versus top-6 evidence budget",
+  "product_top6_authorized": false,
+  "character_or_token_budget_policy_authorized": false,
+  "g2_persistence_authorized": false,
+  "g3_identity_routing_authorized": false
+}
