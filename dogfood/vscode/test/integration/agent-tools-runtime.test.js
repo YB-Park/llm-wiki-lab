@@ -34,12 +34,35 @@ async function resetAndEnable() {
 }
 
 suite('LLM Wiki Agent Tools', () => {
+  test('registers Query Plane in the same workspace lifecycle; disabled grant makes zero model calls and workspace disable removes the tool', async () => {
+    await resetAndEnable();
+    let toolNames = new Set(vscode.lm.tools.map((tool) => tool.name));
+    assert.ok(toolNames.has('llmWiki_consultMemory'), 'wikiConsult must be registered only after workspace opt-in');
+
+    const disabled = toolText(await vscode.lm.invokeTool('llmWiki_consultMemory', {
+      input: { query: 'What did we decide about the current retry budget?' }, toolInvocationToken: undefined,
+    }));
+    assert.match(disabled, /LLM_WIKI_BRIEF v2/);
+    assert.match(disabled, /state=query_plane_disabled/);
+    assert.match(disabled, /model_calls=0/);
+    assert.match(disabled, /fallback=none/);
+
+    const config = vscode.workspace.getConfiguration('llmWiki');
+    assert.equal(config.inspect('queryPlaneEnabled'), undefined, 'query grant must not be a workspace configuration setting');
+
+    const disabledWorkspace = await vscode.commands.executeCommand('llmWiki.disableWorkspace');
+    assert.equal(disabledWorkspace, true);
+    toolNames = new Set(vscode.lm.tools.map((tool) => tool.name));
+    assert.equal(toolNames.has('llmWiki_consultMemory'), false, 'workspace disable must dispose wikiConsult registration');
+    assert.equal(toolNames.has('llmWiki_searchMemory'), false, 'workspace disable must dispose legacy Wiki read registration too');
+  });
+
   test('registers hardened tools only after opt-in and supports search -> verified read with JSON-encoded untrusted data', async () => {
     const { folder, wikiRoot } = await resetAndEnable();
 
     const toolNames = new Set(vscode.lm.tools.map((tool) => tool.name));
     for (const name of [
-      'llmWiki_searchMemory', 'llmWiki_readSource', 'llmWiki_rememberSource',
+      'llmWiki_searchMemory', 'llmWiki_consultMemory', 'llmWiki_readSource', 'llmWiki_rememberSource',
       'llmWiki_rememberHumanKnowledge', 'llmWiki_resolveLineage',
     ]) assert.ok(toolNames.has(name), `missing Agent Wiki tool after opt-in: ${name}`);
 
