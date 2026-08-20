@@ -1,0 +1,38 @@
+{
+  "question_version": 1,
+  "questions": [
+    {
+      "question": "For Project Alder, why did we choose the staged rollout, and what evidence supported that choice?",
+      "question_id": "DQ001"
+    },
+    {
+      "question": "For Project Borealis, what did Nia Patel directly author, and what was only attributed to Nia in meeting notes?",
+      "question_id": "DQ002"
+    },
+    {
+      "question": "For Project Cinder, did J. Moreno approve the temporary export exception, and is J. Moreno the same person as Julia Moreno?",
+      "question_id": "DQ003"
+    },
+    {
+      "question": "For Project Delta, could the EU-only archive option satisfy the customer's residency rule, and does vendor capability by itself authorize emergency access?",
+      "question_id": "DQ004"
+    },
+    {
+      "question": "For Project Ember, what caused the incident, how should the initial cache hypothesis be treated, and did the later correction reverse the root-cause assessment?",
+      "question_id": "DQ005"
+    },
+    {
+      "question": "For Project Fjord, was Rhea Kim generally opposed to serverless, or was her signing requirement narrower?",
+      "question_id": "DQ006"
+    },
+    {
+      "question": "For Project Grove, why did we raise queue capacity, and what evidence made the month-close issue repeated?",
+      "question_id": "DQ007"
+    },
+    {
+      "question": "For Project Harbor, is Harbor Next the same project as Harbor Classic after the rename, and does the similarly named Harbor Analytics belong to it?",
+      "question_id": "DQ008"
+    }
+  ],
+  "status": "PROSPECTIVE_G1F_SEPARATED_MATERIAL_NO_MODEL_OUTPUTS"
+}

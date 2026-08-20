@@ -1,0 +1,143 @@
+{
+  "cases": {
+    "DQ001": {
+      "coverage": [
+        "user_owned_authority",
+        "decision_rationale",
+        "citation_support"
+      ],
+      "expected_insufficient_authority": false,
+      "required_checks": [
+        "preserve user/project ownership of the decision",
+        "keep D002 as supporting evidence rather than authorship of the decision"
+      ]
+    },
+    "DQ002": {
+      "coverage": [
+        "direct_vs_attributed",
+        "conflation_risk",
+        "citation_support"
+      ],
+      "expected_insufficient_authority": false,
+      "required_checks": [
+        "distinguish D007 direct authorship from D008 meeting-note attribution",
+        "do not infer authorship from D012 role proximity"
+      ]
+    },
+    "DQ003": {
+      "coverage": [
+        "missing_identity_bridge",
+        "authority_incomplete_negative_control",
+        "bridge_restraint",
+        "citation_support"
+      ],
+      "expected_insufficient_authority": true,
+      "required_checks": [
+        "state that J. Moreno approved the exception from D013",
+        "do not identify J. Moreno as Julia Moreno because D019 is outside the frozen context",
+        "set insufficient_authority=true for the two-part requested answer"
+      ]
+    },
+    "DQ004": {
+      "coverage": [
+        "policy_vs_capability",
+        "proposition_scoped_sufficiency",
+        "citation_support"
+      ],
+      "expected_insufficient_authority": false,
+      "required_checks": [
+        "allow could-satisfy residency conclusion from D020+D021 without demanding proof of deployed compliance",
+        "treat D022 as governing authorization and D023 as capability only",
+        "do not let D025 override customer policy"
+      ]
+    },
+    "DQ005": {
+      "coverage": [
+        "temporal_sequence",
+        "correction_non_reversal",
+        "conflation_risk",
+        "citation_support"
+      ],
+      "expected_insufficient_authority": false,
+      "required_checks": [
+        "preserve D026 initial hypothesis, D027 causal signal, D028 final assessment, and D029 limited correction",
+        "do not promote D030 correlation to final cause"
+      ]
+    },
+    "DQ006": {
+      "coverage": [
+        "negative_characterization",
+        "direct_evidence",
+        "citation_support"
+      ],
+      "expected_insufficient_authority": false,
+      "required_checks": [
+        "preserve D032 narrow release requirement and explicit anti-generalization",
+        "use D033 as evidence that broader serverless use remained approved"
+      ]
+    },
+    "DQ007": {
+      "coverage": [
+        "user_owned_authority",
+        "repeated_support",
+        "negative_scope",
+        "citation_support"
+      ],
+      "expected_insufficient_authority": false,
+      "required_checks": [
+        "preserve D038 as user/project-owned decision authority",
+        "establish repetition from independent D039+D040 raw observations",
+        "do not count D038 or D042 as the second month-close observation"
+      ]
+    },
+    "DQ008": {
+      "coverage": [
+        "explicit_identity_bridge",
+        "same_name_distractor",
+        "citation_support"
+      ],
+      "expected_insufficient_authority": false,
+      "required_checks": [
+        "use D044 for Harbor Classic -> Harbor Next continuity",
+        "keep D047 Harbor Analytics separate"
+      ]
+    }
+  },
+  "evaluation_contract_version": 1,
+  "paired_design": {
+    "arm_order_randomization_or_counterbalancing": "freeze in later execution contract",
+    "arms": {
+      "N": "frozen composition_prompt_v1.py",
+      "O": "frozen old composer from run_g1c.py; ID wording adapter only"
+    },
+    "execution_authorization": "NOT_IN_THIS_PR",
+    "question_count": 8,
+    "rerolls": "freeze in later execution contract",
+    "same_exact_bm25_top6_context_both_arms": true,
+    "same_exact_model_required_later": true,
+    "same_question_both_arms": true
+  },
+  "promotion": {
+    "all_required": [
+      "N_PASS_count >= 7 of 8",
+      "N_paired_semantic_improvements_vs_O >= 1",
+      "N_paired_semantic_regressions_vs_O == 0",
+      "N_new_CRITICAL_ERROR_vs_O == 0",
+      "DQ003 negative control verdict == PASS",
+      "DQ004 proposition-scoped sufficiency verdict == PASS",
+      "DQ001 and DQ007 user-owned-authority preservation checks == PASS",
+      "all N load-bearing citations supported by supplied frozen context",
+      "execution later proves one shared frozen context per question and same exact model for O/N"
+    ],
+    "failure_policy": "Do not weaken thresholds after semantic outputs exist.",
+    "name": "G1F_COMPOSITION_CANDIDATE_EARNED",
+    "scope_if_earned": "composition candidate signal inside G1 only; does not promote exact BM25 top-6 to product default and does not authorize G2, graph/entity/KU persistence, vector default, or automatic identity routing"
+  },
+  "semantic_calls_authorized_on_this_pr": false,
+  "status": "PROSPECTIVE_G1F_EVALUATION_ONLY_NOT_RUNTIME",
+  "verdicts": {
+    "CRITICAL_ERROR": "a load-bearing unsupported claim is asserted, a required bridge is synthesized, authority-incomplete context is presented as sufficient, direct authorship is falsely asserted, or a citation is claimed to support a relation it does not establish",
+    "PARTIAL": "core answer remains supportable and no load-bearing unsupported claim is made, but one required non-critical preservation/calibration behavior is missed",
+    "PASS": "all load-bearing requested propositions are supported or explicitly scoped as unsupported; required epistemic distinctions are preserved; citations terminate in supplied context; insufficiency flag matches the actual requested proposition"
+  }
+}

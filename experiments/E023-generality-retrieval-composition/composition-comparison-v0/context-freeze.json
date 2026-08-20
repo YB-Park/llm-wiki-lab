@@ -1,0 +1,160 @@
+{
+  "context_freeze_version": 1,
+  "contexts": [
+    {
+      "authority_status": "SUFFICIENT_CLEAN",
+      "missing_clause_ids": [],
+      "negative_control": false,
+      "question_id": "DQ001",
+      "rank7_anchor_id": "D027",
+      "retrieval": "EXACT_BM25_TOP6_WHOLE_OBJECT",
+      "selected_anchor_ids": [
+        "D002",
+        "D004",
+        "D006",
+        "D005",
+        "D001",
+        "D003"
+      ],
+      "selected_context_chars": 2296,
+      "selected_context_sha256": "85a072af4d780d434e3f24930b43711f411a191cc4f022364bd238e747db0c40"
+    },
+    {
+      "authority_status": "SUFFICIENT_WITH_CONFLATION_RISK",
+      "missing_clause_ids": [],
+      "negative_control": false,
+      "question_id": "DQ002",
+      "rank7_anchor_id": "D034",
+      "retrieval": "EXACT_BM25_TOP6_WHOLE_OBJECT",
+      "selected_anchor_ids": [
+        "D008",
+        "D007",
+        "D012",
+        "D010",
+        "D011",
+        "D009"
+      ],
+      "selected_context_chars": 2195,
+      "selected_context_sha256": "f48e9b60789e0d7df429fc26d4d5e3a4e818f4ccf19ee7ae11515759a1510304"
+    },
+    {
+      "authority_status": "INSUFFICIENT_AUTHORITY",
+      "missing_clause_ids": [
+        "abbreviation_to_full_name_identity_bridge"
+      ],
+      "negative_control": true,
+      "question_id": "DQ003",
+      "rank7_anchor_id": "D019",
+      "retrieval": "EXACT_BM25_TOP6_WHOLE_OBJECT",
+      "selected_anchor_ids": [
+        "D013",
+        "D014",
+        "D018",
+        "D016",
+        "D017",
+        "D015"
+      ],
+      "selected_context_chars": 2295,
+      "selected_context_sha256": "854be57655eb1ffe3a871d513342310af00bafea937801b82c2b43f1e5cce5e6"
+    },
+    {
+      "authority_status": "SUFFICIENT_WITH_CONFLATION_RISK",
+      "missing_clause_ids": [],
+      "negative_control": false,
+      "question_id": "DQ004",
+      "rank7_anchor_id": "D024",
+      "retrieval": "EXACT_BM25_TOP6_WHOLE_OBJECT",
+      "selected_anchor_ids": [
+        "D020",
+        "D025",
+        "D021",
+        "D023",
+        "D022",
+        "D006"
+      ],
+      "selected_context_chars": 2354,
+      "selected_context_sha256": "79dca46bd75e9b44f825faffb0a3a16d5a22f3cda7216bd90bc91c2dba503bd0"
+    },
+    {
+      "authority_status": "SUFFICIENT_WITH_CONFLATION_RISK",
+      "missing_clause_ids": [],
+      "negative_control": false,
+      "question_id": "DQ005",
+      "rank7_anchor_id": "D004",
+      "retrieval": "EXACT_BM25_TOP6_WHOLE_OBJECT",
+      "selected_anchor_ids": [
+        "D027",
+        "D028",
+        "D029",
+        "D026",
+        "D031",
+        "D030"
+      ],
+      "selected_context_chars": 2323,
+      "selected_context_sha256": "72a2e6da8f4e6e6d58800015d33e785a96e21ce858e96408b2de117a595ce706"
+    },
+    {
+      "authority_status": "SUFFICIENT_CLEAN",
+      "missing_clause_ids": [],
+      "negative_control": false,
+      "question_id": "DQ006",
+      "rank7_anchor_id": "D037",
+      "retrieval": "EXACT_BM25_TOP6_WHOLE_OBJECT",
+      "selected_anchor_ids": [
+        "D034",
+        "D032",
+        "D036",
+        "D033",
+        "D035",
+        "D038"
+      ],
+      "selected_context_chars": 2268,
+      "selected_context_sha256": "c0435f2a5f3543aa6a7e05bd0f7491eb5127a8cad3835ec28d2f321a05bd40e7"
+    },
+    {
+      "authority_status": "SUFFICIENT_WITH_CONFLATION_RISK",
+      "missing_clause_ids": [],
+      "negative_control": false,
+      "question_id": "DQ007",
+      "rank7_anchor_id": "D004",
+      "retrieval": "EXACT_BM25_TOP6_WHOLE_OBJECT",
+      "selected_anchor_ids": [
+        "D038",
+        "D039",
+        "D040",
+        "D042",
+        "D041",
+        "D043"
+      ],
+      "selected_context_chars": 2193,
+      "selected_context_sha256": "b39999df5e529fc1e8212d9f853c80419a35a6e7273b936874a827430b6fda52"
+    },
+    {
+      "authority_status": "SUFFICIENT_CLEAN",
+      "missing_clause_ids": [],
+      "negative_control": false,
+      "question_id": "DQ008",
+      "rank7_anchor_id": "D019",
+      "retrieval": "EXACT_BM25_TOP6_WHOLE_OBJECT",
+      "selected_anchor_ids": [
+        "D049",
+        "D044",
+        "D047",
+        "D048",
+        "D046",
+        "D045"
+      ],
+      "selected_context_chars": 2006,
+      "selected_context_sha256": "4af61675f44ee79781e0b888ca6513cb6baf3faf8075eb15c609e1cecce48638"
+    }
+  ],
+  "retrieval": {
+    "arm_specific_retrieval_allowed": false,
+    "implementation": "g1d_common.bm25_ranking",
+    "product_default_authorized": false,
+    "ranking": "exact whole-object BM25",
+    "single_context_per_question_shared_by_arms": true,
+    "top_k": 6
+  },
+  "status": "PROSPECTIVE_ZERO_MODEL_EXACT_CONTEXT_FREEZE"
+}

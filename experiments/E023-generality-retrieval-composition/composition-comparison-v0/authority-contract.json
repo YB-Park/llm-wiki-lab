@@ -1,0 +1,296 @@
+{
+  "contract_version": 1,
+  "questions": {
+    "DQ001": {
+      "clauses": [
+        {
+          "anchor_ids": [
+            "D001"
+          ],
+          "clause_id": "decision_and_rationale",
+          "terminal_authority_types": [
+            "HUMAN_KNOWLEDGE"
+          ],
+          "type": "all_of"
+        },
+        {
+          "anchor_ids": [
+            "D002"
+          ],
+          "clause_id": "supporting_rollout_evidence",
+          "terminal_authority_types": [
+            "RAW_MEMORY"
+          ],
+          "type": "all_of"
+        }
+      ],
+      "corroborating_optional_anchor_ids": [
+        "D004",
+        "D005",
+        "D006"
+      ],
+      "forbidden_conflation_anchor_ids": []
+    },
+    "DQ002": {
+      "clauses": [
+        {
+          "anchor_ids": [
+            "D007"
+          ],
+          "clause_id": "direct_authorship",
+          "terminal_authority_types": [
+            "RAW_MEMORY"
+          ],
+          "type": "all_of"
+        },
+        {
+          "anchor_ids": [
+            "D008"
+          ],
+          "clause_id": "attributed_meeting_wording",
+          "terminal_authority_types": [
+            "RAW_MEMORY"
+          ],
+          "type": "all_of"
+        }
+      ],
+      "corroborating_optional_anchor_ids": [
+        "D009",
+        "D010",
+        "D011"
+      ],
+      "forbidden_conflation_anchor_ids": [
+        "D012"
+      ]
+    },
+    "DQ003": {
+      "clauses": [
+        {
+          "anchor_ids": [
+            "D013"
+          ],
+          "clause_id": "approval_by_abbreviated_name",
+          "terminal_authority_types": [
+            "RAW_MEMORY"
+          ],
+          "type": "all_of"
+        },
+        {
+          "anchor_ids": [
+            "D019"
+          ],
+          "clause_id": "abbreviation_to_full_name_identity_bridge",
+          "terminal_authority_types": [
+            "RAW_MEMORY"
+          ],
+          "type": "all_of"
+        }
+      ],
+      "corroborating_optional_anchor_ids": [
+        "D016",
+        "D017"
+      ],
+      "forbidden_conflation_anchor_ids": [
+        "D014",
+        "D015",
+        "D018"
+      ]
+    },
+    "DQ004": {
+      "clauses": [
+        {
+          "anchor_ids": [
+            "D020"
+          ],
+          "clause_id": "governing_residency_rule",
+          "terminal_authority_types": [
+            "RAW_MEMORY"
+          ],
+          "type": "all_of"
+        },
+        {
+          "anchor_ids": [
+            "D021"
+          ],
+          "clause_id": "regional_option_capability",
+          "terminal_authority_types": [
+            "RAW_MEMORY"
+          ],
+          "type": "all_of"
+        },
+        {
+          "anchor_ids": [
+            "D022"
+          ],
+          "clause_id": "governing_emergency_access_policy",
+          "terminal_authority_types": [
+            "RAW_MEMORY"
+          ],
+          "type": "all_of"
+        },
+        {
+          "anchor_ids": [
+            "D023"
+          ],
+          "clause_id": "vendor_emergency_login_capability",
+          "terminal_authority_types": [
+            "RAW_MEMORY"
+          ],
+          "type": "all_of"
+        }
+      ],
+      "corroborating_optional_anchor_ids": [
+        "D024"
+      ],
+      "forbidden_conflation_anchor_ids": [
+        "D025"
+      ]
+    },
+    "DQ005": {
+      "clauses": [
+        {
+          "anchor_ids": [
+            "D026"
+          ],
+          "clause_id": "initial_hypothesis",
+          "terminal_authority_types": [
+            "RAW_MEMORY"
+          ],
+          "type": "all_of"
+        },
+        {
+          "anchor_ids": [
+            "D027"
+          ],
+          "clause_id": "intermediate_causal_signal",
+          "terminal_authority_types": [
+            "RAW_MEMORY"
+          ],
+          "type": "all_of"
+        },
+        {
+          "anchor_ids": [
+            "D028"
+          ],
+          "clause_id": "final_root_cause_assessment",
+          "terminal_authority_types": [
+            "RAW_MEMORY"
+          ],
+          "type": "all_of"
+        },
+        {
+          "anchor_ids": [
+            "D029"
+          ],
+          "clause_id": "later_correction_and_non_reversal",
+          "terminal_authority_types": [
+            "RAW_MEMORY"
+          ],
+          "type": "all_of"
+        }
+      ],
+      "corroborating_optional_anchor_ids": [
+        "D031"
+      ],
+      "forbidden_conflation_anchor_ids": [
+        "D030"
+      ]
+    },
+    "DQ006": {
+      "clauses": [
+        {
+          "anchor_ids": [
+            "D032"
+          ],
+          "clause_id": "direct_narrow_requirement_and_anti_generalization",
+          "terminal_authority_types": [
+            "RAW_MEMORY"
+          ],
+          "type": "all_of"
+        },
+        {
+          "anchor_ids": [
+            "D033"
+          ],
+          "clause_id": "broader_serverless_approval",
+          "terminal_authority_types": [
+            "RAW_MEMORY"
+          ],
+          "type": "all_of"
+        }
+      ],
+      "corroborating_optional_anchor_ids": [
+        "D034",
+        "D035",
+        "D036",
+        "D037"
+      ],
+      "forbidden_conflation_anchor_ids": []
+    },
+    "DQ007": {
+      "clauses": [
+        {
+          "anchor_ids": [
+            "D038"
+          ],
+          "clause_id": "user_owned_capacity_decision",
+          "terminal_authority_types": [
+            "HUMAN_KNOWLEDGE"
+          ],
+          "type": "all_of"
+        },
+        {
+          "anchor_ids": [
+            "D039",
+            "D040"
+          ],
+          "clause_id": "independent_repeated_month_close_support",
+          "min_count": 2,
+          "terminal_authority_types": [
+            "RAW_MEMORY"
+          ],
+          "type": "min_count"
+        }
+      ],
+      "corroborating_optional_anchor_ids": [
+        "D041",
+        "D043"
+      ],
+      "forbidden_conflation_anchor_ids": [
+        "D042"
+      ]
+    },
+    "DQ008": {
+      "clauses": [
+        {
+          "anchor_ids": [
+            "D044"
+          ],
+          "clause_id": "explicit_project_rename_identity_bridge",
+          "terminal_authority_types": [
+            "RAW_MEMORY"
+          ],
+          "type": "all_of"
+        },
+        {
+          "anchor_ids": [
+            "D047"
+          ],
+          "clause_id": "separate_similarly_named_project",
+          "terminal_authority_types": [
+            "RAW_MEMORY"
+          ],
+          "type": "all_of"
+        }
+      ],
+      "corroborating_optional_anchor_ids": [
+        "D045",
+        "D046",
+        "D048",
+        "D049"
+      ],
+      "forbidden_conflation_anchor_ids": []
+    }
+  },
+  "status": "PROSPECTIVE_EVALUATION_ONLY_NOT_RUNTIME"
+}
