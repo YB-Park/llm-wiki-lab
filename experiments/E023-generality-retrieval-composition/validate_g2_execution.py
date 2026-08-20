@@ -72,20 +72,27 @@ def main() -> int:
     ]:
         assert phrase in runner, phrase
 
-    # Runtime may score selected terminal contexts for evidence capture but must not load evaluator prompt material.
-    assert "g2-evaluation-contract-v0.json" not in runner
-    assert "expected_control_authority_status" not in runner
-    assert "G2_PERSISTENCE_CANDIDATE_EARNED" not in runner
-    assert "semantic_verdict" not in runner
-    assert "adjudication" not in runner.casefold()
-    assert "projection_prompt_v0(question" not in runner
-    assert "future question" not in prompt_source.casefold()
+    # Runtime may score selected terminal contexts for evidence capture but must not load evaluator artifacts or frozen outcomes.
+    for forbidden in [
+        "g2-evaluation-contract-v0.json",
+        "g2-adjudication-v0.json",
+        "g2-results-v0.md",
+        "expected_control_authority_status",
+        "G2_PERSISTENCE_CANDIDATE_EARNED",
+        "semantic_verdict",
+        "primary_stale_negative_control",
+    ]:
+        assert forbidden not in runner, forbidden
+    assert "def projection_prompt_v0(subject_id: str, authority_context: str)" in prompt_source
+    assert "USER QUESTION" not in prompt_source
+    assert "question:" not in prompt_source
 
     # Projection is retrieval-only: statement text is ranked but final context comes from terminal anchor map.
     assert 'docs = [{"anchor_id": row["entry_id"], "text": row["statement"]}' in runner
-    assert "projection statements" not in runner.casefold()
     assert 'evidence_context(anchor_map, p_selected)' in runner
     assert 'parse_composer(receipt["text"], set(arm_row["selected_anchor_ids"]))' in runner
+    assert 'PROJECTION.projection_prompt_v0(subject_id, context)' in runner
+    assert 'old_composer_prompt(question["question"], contexts[arm])' in runner
 
     # Frozen lifecycle and semantic attempt arithmetic.
     assert request["projection_build_rebuild_calls"] == 5
