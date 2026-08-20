@@ -1,0 +1,149 @@
+name: E023 generality G1d
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/run_g1d.py'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1d_execution.py'
+      - 'experiments/E023-generality-retrieval-composition/g1d-execution-addendum-v0.md'
+      - 'remote-lab/e023-g1d-request.json'
+      - '.github/workflows/e023-generality-g1d.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/run_g1d.py'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1d_execution.py'
+      - 'experiments/E023-generality-retrieval-composition/g1d-execution-addendum-v0.md'
+      - 'remote-lab/e023-g1d-request.json'
+      - '.github/workflows/e023-generality-g1d.yml'
+
+jobs:
+  preflight:
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile G1d execution assets
+        run: |
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/g1d_common.py
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/run_g1d.py
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_g1d_execution.py
+      - name: Validate frozen G1d execution contract
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/validate_g1d_execution.py \
+            | tee /tmp/e023-g1d-execution.txt
+          grep -q '^E023 G1d execution contract validation: PASS$' /tmp/e023-g1d-execution.txt
+          grep -q '"model_calls": 0' /tmp/e023-g1d-execution.txt
+          grep -q '"max_semantic_calls": 24' /tmp/e023-g1d-execution.txt
+          grep -q '"model_selector_calls": 0' /tmp/e023-g1d-execution.txt
+          grep -q '"semantic_calls_authorized_on_pr": false' /tmp/e023-g1d-execution.txt
+      - name: Run zero-model G1d preflight
+        env:
+          PYTHONPATH: .
+        run: |
+          rm -rf remote-lab/out/e023-g1d
+          python3 experiments/E023-generality-retrieval-composition/run_g1d.py \
+            | tee /tmp/e023-g1d-preflight.txt
+          grep -q '"execute_model": false' /tmp/e023-g1d-preflight.txt
+          grep -q '"model_call_attempts": 0' /tmp/e023-g1d-preflight.txt
+          grep -q '"retrieval_selection_verdict": "NOT_EXECUTED"' /tmp/e023-g1d-preflight.txt
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          row=json.loads(Path('remote-lab/out/e023-g1d/result.json').read_text())
+          assert row['format']=='E023-G1d-v0', row
+          assert row['execute_model'] is False, row
+          assert row['model_call_attempts']==0, row
+          assert row['execution_complete'] is False, row
+          assert len(row['arms']['A'])==8, row
+          assert len(row['arms']['D'])==8, row
+          assert all(x.get('stage')=='ZERO_MODEL_PREFLIGHT_ONLY' for x in row['arms']['D']), row
+          assert row['request']['request_id']=='e023-g1d-deterministic-selection-v0', row
+          assert row['request']['max_model_call_attempts']==24, row
+          assert row['request']['d_selector_calls']==0, row
+          PY
+
+  execute:
+    if: github.event_name == 'push' && github.event.before == 'b0042a87cf871070b334a6c5bef79f390b5a6434'
+    permissions:
+      actions: read
+      contents: write
+      copilot-requests: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - name: Install standalone GitHub Copilot CLI
+        run: npm install -g @github/copilot
+      - name: Execute frozen G1d comparison
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PYTHONPATH: .
+        run: python3 experiments/E023-generality-retrieval-composition/run_g1d.py --execute-model
+      - name: Upload raw G1d artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e023-g1d-${{ github.run_id }}
+          path: remote-lab/out/e023-g1d/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Commit immutable G1d result evidence
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          result=/tmp/e023-g1d-result.json
+          cp remote-lab/out/e023-g1d/result.json "$result"
+
+          git fetch origin main
+          git checkout -B e023-g1d-evidence origin/main
+          evidence_dir="experiments/E023-generality-retrieval-composition/evidence/g1d-run-$RUN_ID"
+          test ! -e "$evidence_dir"
+          mkdir -p "$evidence_dir"
+          cp "$result" "$evidence_dir/result.json"
+          sha256sum "$evidence_dir/result.json" > "$evidence_dir/result.sha256"
+          python3 - "$SOURCE_SHA" "$RUN_ID" > "$evidence_dir/source.json" <<'PY'
+          import json, sys
+          source_sha, run_id = sys.argv[1:]
+          print(json.dumps({
+              'run_id': int(run_id),
+              'execution_source_sha': source_sha,
+              'workflow': 'E023 generality G1d',
+              'request_id': 'e023-g1d-deterministic-selection-v0',
+          }, indent=2, sort_keys=True))
+          PY
+          python3 - "$SOURCE_SHA" "$evidence_dir/result.json" <<'PY'
+          import json, sys
+          source_sha, path = sys.argv[1:]
+          result=json.load(open(path,encoding='utf-8'))
+          assert result['format']=='E023-G1d-v0', result
+          assert result['execute_model'] is True, result
+          assert result['execution_source_sha']==source_sha, result
+          assert result['request']['model']=='gpt-5.6-luna', result
+          assert result['request']['max_model_call_attempts']==24, result
+          assert result['request']['d_selector_calls']==0, result
+          PY
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$evidence_dir"
+          git commit -m "Capture frozen E023 G1d run $RUN_ID"
+          git push origin HEAD:main
