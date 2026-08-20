@@ -1,8 +1,8 @@
 # Current Handoff
 
-Last updated: 2026-08-19 KST
+Last updated: 2026-08-20 KST
 
-This file is the **continuation checkpoint only**. Keep historical evidence in code, issues, PRs, experiments, and Git. Replace stale sections instead of appending a diary.
+This file is the **continuation checkpoint only**. Keep historical detail in experiments, issues, PRs, ADRs, and Git. Replace stale guidance rather than appending a diary.
 
 ## North Star
 
@@ -12,232 +12,253 @@ Build a VS Code-first **LLM Wiki** where the user owns a verifiable project-memo
 
 Normal product use is ordinary VS Code Agent conversation. Users should not need to learn Wiki tool names, storage schemas, filing concepts, or semantic infrastructure.
 
-Current core formulation:
+Current architecture thesis:
 
 > **LLM Wiki is a trustworthy Authority Core plus task-appropriate semantic projections. Generality is demonstrated at the capability/query boundary before it is enforced as uniformity at the storage boundary.**
 
 ## Product baseline — Dogfood 0.1.16
 
-Dogfood 0.1.16 remains the released/product baseline via PR #159. E023 is research only and changes no runtime behavior.
+Dogfood 0.1.16 remains the released/product baseline via PR #159. E023 is research only and changes no product runtime behavior.
 
-Core authority remains unchanged:
+Authority floor remains unchanged:
 
-- **Set Up Project Memory** is explicit per-workspace opt-in. Before opt-in, Agent tool implementations are unavailable.
-- **Check Setup and Health** is pure diagnostics: **0 model calls / 0 state changes**.
-- **Disable for This Workspace** removes Agent availability while preserving Wiki data.
-- New source bytes require product-owned human confirmation before durable evidence admission.
-- `RAW_MEMORY` is immutable admitted factual/provenance evidence.
-- `DERIVED_MEMORY` is noncanonical/rebuildable model synthesis.
-- `HUMAN_KNOWLEDGE` is explicit user-owned decision/belief/rationale/hypothesis authority; it is **not external evidence**.
-- Changed remembered files require explicit correction/change/dispute/supersede/independent semantics.
-- AI summaries remain **OFF by default** until explicitly granted per workspace.
+- explicit per-workspace opt-in;
+- **Check Setup and Health** = 0 model calls / 0 state changes;
+- disabling removes Agent availability while preserving Wiki data;
+- new source bytes require human confirmation before durable admission;
+- `RAW_MEMORY` = immutable admitted evidence/provenance;
+- `DERIVED_MEMORY` = noncanonical/rebuildable synthesis;
+- `HUMAN_KNOWLEDGE` = explicit user-owned decision/belief/rationale/hypothesis authority, not external evidence;
+- changed remembered files require explicit correction/change/dispute/supersede/independent semantics;
+- AI summaries remain off by default until explicitly granted.
 
-E020 remains frozen at **78 zero-model cases: 60 supported / 7 partial / 11 deferred**. Natural installed multi-session dogfood remains required for product readiness; controlled research does not replace real use.
+E020 remains frozen at **78 zero-model cases: 60 supported / 7 partial / 11 deferred**. Natural installed multi-session dogfood remains required; controlled experiments do not establish long-horizon product value.
 
-## Core architecture baseline
+## Core architecture boundary
 
-Tracking: Issue #160. Working gate: `docs/14-generality-and-semantic-projections.md`. Experiment: `experiments/E023-generality-retrieval-composition/`.
+Tracking: Issue #160. Working gate: `docs/14-generality-and-semantic-projections.md`. Current experiment family: `experiments/E023-generality-retrieval-composition/`.
 
 ### Authority Core stays ontology-agnostic
 
-The durable core owns trust facts rather than a universal semantic ontology:
+The durable core owns evidence identity/integrity/provenance, temporal/contradiction semantics, Human Knowledge authorship, permission/privacy boundaries, and deterministic repairable storage invariants.
 
-- evidence identity / integrity / provenance;
-- current/history and explicit temporal/contradiction semantics;
-- Human Knowledge authorship;
-- permission/privacy boundaries;
-- deterministic repairable storage invariants.
+Do **not** add Person/Entity/Relation/KnowledgeUnit concepts merely to make the Wiki feel general.
 
-Do not add Person/Entity/Relation/KnowledgeUnit concepts merely to make the Wiki feel more general.
-
-### `source-note-v0` is one projection, not the Wiki ontology
-
-Treat the current one-source Agent Wiki note as **one DERIVED source-oriented projection under product test**. Do not infer that every source should fit that shape, that source is the permanent semantic unit, or that adding universal semantic fields equals generality.
+`source-note-v0` remains one DERIVED source-oriented projection, not the Wiki ontology.
 
 ### Authoritative-anchor invariant
 
 > **Every load-bearing derived claim must resolve to an authoritative anchor whose epistemic type remains explicit.**
 
-Terminal authority may be admitted `RAW_MEMORY` or explicit `HUMAN_KNOWLEDGE`. `DERIVED_MEMORY` may be working/navigation/compilation state, but persistence never makes it terminal authority by itself.
+Terminal authority may be admitted `RAW_MEMORY` or explicit `HUMAN_KNOWLEDGE`. `DERIVED_MEMORY` may help retrieval/navigation/compilation, but persistence never turns it into terminal authority.
 
-### Three gates, in order
+### Gates remain ordered
 
-1. **G1 Retrieval / Composition** — can authoritative material be found, preserved, and composed at query time without persistent semantic state?
-2. **G2 Persistence** — only after a strong G1 path exists, hold retrieval fixed and test whether durable projection materially improves repeated use after lifecycle cost.
-3. **G3 Identity / Routing** — only if persistent targets themselves earn value, test subject discovery/alias routing/merge-split automation.
+1. **G1 Retrieval / Composition** — can the right authority be found, preserved, and composed at query time without persistent semantic state?
+2. **G2 Persistence** — only after a strong G1 path exists, hold retrieval strong/fixed and test whether durable projections improve repeated use after lifecycle cost.
+3. **G3 Identity / Routing** — only if persistent semantic targets themselves earn value, test automatic subject discovery/routing/merge-split.
 
-A G1 failure is **not** evidence for G2. A G2 success is **not** evidence for G3.
+A G1 failure is **not** evidence for G2. A G2 success would not automatically authorize G3.
 
 ## E023 frozen sequence
 
 ### G1a — complete / NOT EARNED
 
-Run `32215941344`, source `7315b858ed5ce764fa81ed131ee17f77c1ea11ae`, exact `gpt-5.6-luna`, 30/30 calls, zero rerolls.
+Run `32215941344`, exact `gpt-5.6-luna`, 30 calls, zero rerolls.
 
-- A exact-question BM25 top-5: **8 PASS / 1 PARTIAL / 1 CRITICAL_ERROR**.
-- C blind planner -> BM25 -> RRF top-5: **8 PASS / 1 PARTIAL / 1 CRITICAL_ERROR**.
-- C semantic improvements: **0**.
+- exact BM25 top-5 A: **8 PASS / 1 PARTIAL / 1 CRITICAL_ERROR**;
+- blind planner + BM25/RRF C: same semantic counts;
+- semantic improvements: **0**;
 - promotion: **NOT_EARNED**.
 
-Q001 omitted the explicit identity bridge but confidently merged aliases. The merge happened to match frozen gold, but supplied authority did not establish it.
+Q001 established the core trust lesson: aliases were merged without the explicit identity bridge. The final identity happened to be correct, but authority did not establish it.
 
 > **Truth-by-luck is not trustworthy semantic recovery.**
 
-### G1b — complete / promotion NOT EARNED / targeted trust repair observed
+### G1b — complete / NOT EARNED / targeted repair signal
 
-Run `32217824760`, source `7c604dd8d57a90c99526bdce5fb55fe7cdb7056f`, exact Luna, 12/12 calls, zero rerolls.
+Run `32217824760`, exact Luna, 12 calls, zero rerolls.
 
-Evidence-follow loop:
+Evidence-aware follow-up recovered the missing Q001 identity bridge and moved Q001 `CRITICAL_ERROR -> PASS`, but the preregistered broad final-recovery threshold was missed (`1/4` vs required `>=3/4`). Promotion remains **NOT_EARNED**.
 
-> exact top-5 -> inspect bounded hits -> identify missing/ambiguous relation -> targeted BM25 -> bounded selector -> unchanged composer.
+This earned only a narrow mechanism signal: query-time follow-up can repair a consequential missing bridge without persistent identity state.
 
-Frozen result:
+### Prospective authority-sufficiency evaluator — frozen
 
-- missing source reached candidate pool: **2/4**;
-- entered final context: **1/4** vs preregistered >=3/4;
-- semantic verdicts: **4 PASS**;
-- Q001: `CRITICAL_ERROR -> PASS`;
-- regressions: **0**;
-- promotion: **NOT_EARNED**.
+E023 replaced flat required-source completeness with an evaluation-only authority contract that distinguishes:
 
-This established a real narrow signal: evidence-aware follow-up retrieval can recover a missing load-bearing identity bridge without persistent identity state.
+- `INSUFFICIENT_AUTHORITY`;
+- `SUFFICIENT_CLEAN`;
+- `SUFFICIENT_WITH_CONFLATION_RISK`.
 
-## Authority-sufficiency evaluation — prospectively frozen and exercised
+It models uniquely load-bearing support, alternatives, repeated-support minima, explicit identity/attribution bridges, negative evidence, temporal correction, and forbidden conflation. It is **not** product storage or a canonical claim graph.
 
-G1b exposed that flat `required_sources` mixed uniquely load-bearing authority with redundant corroboration. A richer **evaluation-only** contract was therefore frozen on separated material before G1c answers existed.
+### G1c v0 — INVALID_EXECUTION
 
-Prospective slice:
+Run `32229563330`, source `987ee7ec615f7eb869be59f14a1928a3811baeed`.
 
-- 15 typed authoritative anchors;
-- 6 questions `AQ001`–`AQ006`;
-- 14 `RAW_MEMORY` + 1 load-bearing `HUMAN_KNOWLEDGE`;
-- unique support, alternatives, repeated-support minima, identity/attribution bridges, negative evidence, temporal correction, forbidden conflation;
-- statuses: `INSUFFICIENT_AUTHORITY`, `SUFFICIENT_CLEAN`, `SUFFICIENT_WITH_CONFLATION_RISK`.
+A runner aggregation bug invalidated the comparison. Do not reconstruct or reroll the lost B outputs. v0 remains `INVALID_EXECUTION`; its six persisted A outputs are auxiliary only.
 
-This evaluator is richer than product storage **by design**. Do not turn evaluation clauses into canonical claim nodes or a product graph.
+### G1c-R1 — complete / model final selector NOT EARNED
 
-## G1c v0 — INVALID_EXECUTION / no experiment verdict
+Run `32232116273`, source `5227ac2b3f93c4f807e388822bfff963d0041120`, exact Luna, 18/18 calls, zero rerolls.
 
-Execution source `987ee7ec615f7eb869be59f14a1928a3811baeed`, run `32229563330`.
+Stage result:
 
-A runner aggregation bug crashed after six A composer calls and the first B planner/selector/composer sequence, before the first B row was persisted. Control flow establishes nine actual attempts; the three first-B outputs are unrecoverable.
-
-Therefore:
-
-- v0 is frozen as **`INVALID_EXECUTION`**;
-- no G1c retrieval-selection verdict is taken from v0;
-- six A outputs are auxiliary semantic baselines only;
-- lost B output is not reconstructed or silently rerolled.
-
-## G1c-R1 — complete / final selection NOT EARNED
-
-Frozen evidence:
-
-- run `32232116273`;
-- execution source `5227ac2b3f93c4f807e388822bfff963d0041120`;
-- exact `gpt-5.6-luna`;
-- calls **18 / 18**;
-- rerolls **0**;
-- execution complete: **true**;
-- result SHA-256 `8f3e77163db92f7dff0b0a9aed5776c6dadd0eebfdb122fbfecf4313d0dae822`;
-- result/adjudication merged via PR #179;
-- frozen retrieval-selection verdict: **NOT_EARNED**.
-
-R1 executed only the B evidence-follow arm under the already-frozen G1c mechanism and authority evaluator.
-
-### The key stage decomposition
-
-| stage | clean | sufficient + conflation risk | insufficient |
-|---|---:|---:|---:|
-| exact-query initial top-5 | 4 | 1 | 1 |
+| stage | clean | risk | insufficient |
+| --- | ---: | ---: | ---: |
+| exact initial top-5 | 4 | 1 | 1 |
 | evidence-follow candidate pool | 4 | 2 | **0** |
-| final selector output | 4 | 0 | **2** |
+| model selector final | 4 | 0 | **2** |
 
-The candidate pools contained enough positive load-bearing authority for **6/6** questions.
+Candidate pools contained enough positive authority for **6/6** questions, but the model selector discarded recovered/load-bearing authority in AQ001 and AQ004. Promotion: **NOT_EARNED**.
 
-This materially changes the diagnosis:
+This moved the controlled bottleneck from evidence discovery alone to **authority-preserving evidence selection/budgeting**.
 
-> **The current leading G1 bottleneck is no longer evidence discovery alone. It is authority-preserving final selection.**
+### G1c-R1 zero-model selector counterfactual — posthoc only
 
-### AQ001 — bridge recovered, then discarded
+On the already-inspected AQ slice, deterministic RRF top-4 happened to produce **6/6 SUFFICIENT_CLEAN** contexts across a broad RRF-k sweep. Because that policy was chosen after seeing R1 failures, it was not promotable. It only justified a new prospective test.
 
-The initial context lacked A003, the explicit `M. Chen -> Maya Chen` bridge, and contained same-surname distractor A004. Follow-up retrieval recovered A003 into the candidate pool.
+### G1d — complete / deterministic RRF top-4 NOT EARNED
 
-The selector removed A004 **and A003**, returning the final context to `INSUFFICIENT_AUTHORITY`. The composer then confidently asserted the identity anyway.
+Preregistered on a new separated 23-anchor / 8-question slice (`authority-sufficiency-v1`).
 
-AQ001 remains `CRITICAL_ERROR`. Truth-by-luck is still a trust failure even when the missing authority was found earlier in the same loop and then discarded.
+Frozen run:
 
-### AQ002 — selector improvement
+- run `32322429563`;
+- source `c74673a83744789f271fa54c43b20212160007a2`;
+- exact `gpt-5.6-luna`;
+- semantic calls **24 / 24**;
+- model-selector calls **0**;
+- rerolls **0**;
+- workflow conclusion **success**;
+- result SHA-256 `ef57c7a43c782694a0c42d428421b5d9a4bbb72b0a48b52a60c36edafa310bda`;
+- result/adjudication merged via PR #184;
+- frozen selection promotion: **NOT_EARNED**.
 
-The selector retained direct email, meeting attribution, and A003 identity bridge while removing A004. Final context became `SUFFICIENT_CLEAN`; semantic verdict is PASS.
+Arms:
 
-### AQ004 — destructive over-compression
+- **A:** exact BM25 top-5 -> composer;
+- **D:** same initial top-5 -> evidence-aware planner -> targeted BM25 -> deterministic RRF `k=60` -> fixed top-4 -> composer.
 
-Initial and candidate contexts were already `SUFFICIENT_CLEAN`, but the selector compressed them to final postmortem A011 alone. That dropped the explicit early-hypothesis A009 and retry/rollback causal signal A010 required by the prospective authority contract.
+Authority result:
 
-Final context became `INSUFFICIENT_AUTHORITY`; semantic verdict regressed from auxiliary A PASS to B `FAIL_RETRIEVAL`.
+| arm | clean | risk | insufficient |
+| --- | ---: | ---: | ---: |
+| A | 3 | 4 | 1 |
+| D | 3 | 3 | 2 |
 
-### Separate composition findings
+D authority improvements: **0**. D regressions: **1**.
 
-- **AQ003:** selected context is clean and substantively correct, but the answer does not make explicit that load-bearing A007 is `HUMAN_KNOWLEDGE`, not independently observed RAW evidence. Verdict: PARTIAL.
-- **AQ006:** selected context is clean and supports the frozen proposition, but the composer unnecessarily declares authority insufficient by demanding a stronger guarantee than the question requires. Verdict: PARTIAL.
+Frozen semantic result:
 
-Frozen semantic counts:
+- A: **7 PASS / 1 CRITICAL_ERROR**;
+- D: **5 PASS / 2 PARTIAL / 1 CRITICAL_ERROR**;
+- D semantic improvements: **0**;
+- D semantic regressions: **2**;
+- D new critical errors: **0**.
 
-- auxiliary A: **3 PASS / 2 PARTIAL / 1 CRITICAL_ERROR**;
-- R1 B: **2 PASS / 2 PARTIAL / 1 FAIL_RETRIEVAL / 1 CRITICAL_ERROR**;
-- improvements: **0**;
-- regressions: **1**;
-- new critical errors: **0**.
+#### What G1d disproved
 
-## NEXT CORE — zero-model authority-preserving selection/budget analysis
+The posthoc AQ-slice RRF top-4 result did **not** generalize.
 
-**Pause paid semantic calls again. Do not run G1d or G2 yet.**
+- BQ002: same-name distractor B004 is repeatedly retrieved and RRF places it above the uniquely load-bearing B003 identity bridge; B003 falls to fifth and is dropped.
+- BQ007: unrelated same-name product B019 remains in final context.
+- BQ008: vendor local-admin capability B023 remains in final context even though it is not customer authorization policy.
 
-Use only the frozen G1c-R1 rankings/candidate pools for the next deliberate work.
+RRF consensus can therefore amplify **repeated lexical similarity**, not just repeated authoritative relevance.
 
-Immediate question:
+#### BQ006 — planner knew what was missing, lexical retrieval still missed it
 
-> **Can a simple, general, evaluator-independent selection/budget rule preserve recovered load-bearing authority and avoid destructive compression, without installing a product claim graph?**
+BQ006 is the most important G1d retrieval failure.
 
-Next steps:
+The planner explicitly identifies Cedar's governing EU-only policy as missing. But the authoritative policy anchor B013 ranks:
 
-1. analyze frozen initial/candidate/final contexts with **zero model calls**;
-2. compare simple non-destructive evidence-budget policies before inventing another semantic selector;
-3. explicitly test whether a rule can retain recovered AQ001 authority and avoid AQ004 regression without consulting evaluator clauses at runtime;
-4. keep evaluator structure evaluation-only;
-5. only if a concrete selection/budget policy earns itself in zero-model analysis, preregister a separate semantic comparison;
-6. treat `HUMAN_KNOWLEDGE` type preservation and overcautious sufficiency as separate composition-policy questions;
-7. keep G2 persistence and G3 identity/routing outside scope.
+- exact BM25: **6**;
+- first targeted follow-up: **4**;
+- second targeted follow-up: absent.
 
-Do **not** interpret candidate-pool 6/6 as product rollout approval. The final evidence policy remains NOT_EARNED.
+The frozen follow-up candidate cutoff is top-3, so B013 never reaches the candidate pool. Both A and D then give a definitive-looking Cedar compliance conclusion without the governing policy anchor. Both are frozen `CRITICAL_ERROR`.
+
+This is another truth-by-luck class, now for **policy/compliance authority**, not identity.
+
+## New zero-model finding — evidence budget before more retrieval complexity
+
+Posthoc analysis merged via PR #185; **0 model calls**; does not change G1d verdict.
+
+Exact BM25 authority frontier on the G1d slice:
+
+| budget | clean | risk | insufficient |
+| --- | ---: | ---: | ---: |
+| top-3 | 4 | 0 | 4 |
+| top-4 | 2 | 2 | 4 |
+| top-5 | 3 | 4 | 1 |
+| **top-6** | **4** | **4** | **0** |
+| top-7 | 4 | 4 | 0 |
+| top-8 | 4 | 4 | 0 |
+
+The sole A@5 positive-authority miss is BQ006; B013 sits exactly at rank 6. Therefore A@6 is positive-authority sufficient on **8/8** frozen G1d questions.
+
+The four A@5 risk cases — BQ001/BQ002/BQ007/BQ008 — are all frozen semantic `PASS`: the composer ignored the distractors when the load-bearing authority was present.
+
+This does **not** prove distractors are harmless and does **not** make top-6 a product constant. It does change research priority:
+
+> **On the current controlled evidence, omission of governing/load-bearing authority is more consequential than making every context perfectly clean. Test evidence budget before adding more retrieval/selector machinery.**
+
+The recurrence matters: earlier E023 work also found consequential authority immediately outside fixed top-5 cutoffs. G1d independently reproduces the rank-boundary problem on new material.
+
+## NEXT CORE — prospective evidence-budget comparison, not another selector trick
+
+**Paid calls are paused at this checkpoint. Do not semantically rerun AQxxx or BQxxx. Do not start G2.**
+
+Immediate research question:
+
+> **Can a modest, explicit query-time evidence budget recover load-bearing authority more reliably and cheaply than planner/selector complexity, without causing semantic conflation/noise failures?**
+
+Next deliberate work:
+
+1. treat `top-6` only as a **diagnostic signal**, not a product rule;
+2. define the next budget prospectively on **new separated material** before semantic answers exist;
+3. prefer an explicit **character/token evidence budget** over permanently hard-coding a source count when practical;
+4. compare a strong exact-BM25 budget baseline against any more complex planner/selector path using the same composer;
+5. score authority sufficiency, risk, semantic correctness, unsupported claims, model calls, and evidence size separately;
+6. keep evaluator clauses offline; no BQ/AQ-specific anchor rules may enter runtime selection;
+7. only if a stronger query-time path is earned may G2 persistence even be considered;
+8. keep natural Dogfood 0.1.16 running in parallel.
+
+Do not infer from this checkpoint that “six sources is enough.” The hypothesis is **evidence-budget-first**, not `k=6`.
 
 ## Natural product dogfood continues in parallel
 
-Observation log: Issue #141.
+Observation log: Issue #141. Do not manufacture workload.
 
-Watch naturally for:
+Watch naturally for cross-source questions, identity/alias/attribution uncertainty, user-owned decisions spanning sources, temporal correction/disagreement, load-bearing evidence follow-through, uncertainty when bridges are absent, popup/soft-guard friction, hidden maintenance usage, and long-horizon value.
 
-- cross-source semantic questions that source-note-v0 handles awkwardly;
-- identity/alias/attribution uncertainty;
-- decisions whose rationale spans sources;
-- temporal correction or disagreement;
-- whether Agent naturally follows load-bearing evidence;
-- whether it expresses uncertainty when an authoritative bridge is absent;
-- popup fatigue / soft-guard usefulness / causal error reporting;
-- hidden maintenance usage uncertainty;
-- long-horizon value days or weeks later.
+## Do not start merely because it is available
 
-Do not manufacture workload. A dedicated Tree/View remains evidence-gated.
+- another paid E023 run before a new prospective evidence-budget contract/slice exists;
+- same-slice AQ/BQ semantic reruns;
+- G2 persistent semantic dossiers;
+- graph DB / universal Entity/Relation/KnowledgeUnit schema;
+- automatic identity merge/split or concept routing;
+- vector retrieval defaults without an independent gate;
+- evaluator clauses as runtime canonical structure;
+- background semantic watching/maintenance;
+- broad automatic contradiction resolution;
+- permanent Tree View/activity UI without natural evidence;
+- federation/X2 without recurring natural evidence.
 
-## Retained 0.1.16 / maintenance boundaries
+## Retained operating boundaries / known edges
 
-- Copilot CLI compatibility uses runtime capability probing; version alone is not compatibility authority.
+- Copilot CLI compatibility uses runtime capability probing; version alone is not authority.
 - `compiled_provider=disabled` remains expected and unrelated to Agent Wiki maintenance.
-- positive daily maintenance setting is a **soft guard**, not a hard cap; `0` disables new model-backed maintenance generation.
-- <=40k chars preferred single pass; 40,001–80k allowed single pass; >80k preserves RAW and skips derived maintenance before model call; never silently truncate.
-- exact-current-byte remember is no-op reuse without a second source-admission modal.
+- daily maintenance limit is a soft guard; `0` disables new model-backed maintenance generation.
+- <=40k chars preferred single pass; 40,001–80k allowed; >80k preserves RAW and skips derived maintenance before model call; never silently truncate.
+- exact-current-byte remember is no-op reuse without a second admission modal.
 - multi-root remains fail-closed in 0.1.16.
+- Issue #132 remains the reliability follow-up for deletion detection and relation/pending crash windows.
+- Human Knowledge file deletion is not independently detectable without an index.
+- E013/E015 remain natural/data-gated; do not manufacture workload/divergence.
 
 ## 0.1.16 validated artifact
 
@@ -247,47 +268,24 @@ Do not manufacture workload. A dedicated Tree/View remains evidence-gated.
 - publisher `3366df98e33dabbe72d00d396c2ea1820e50d9a4`;
 - VSIX bytes `102811`;
 - SHA-256 `5fd7c76483b6bef16bff9d3e76fc7b05f05348ae04a2526237843a53891ffb08`;
-- current install path `dogfood/releases/llm-wiki-dogfood-latest.vsix`.
-
-## Do not start merely because it is available
-
-- another paid E023 semantic run before zero-model selection/budget analysis earns a concrete policy;
-- G2 persistent semantic dossier;
-- graph DB / universal Entity/Relation/KnowledgeUnit schema;
-- automatic identity merge/split or automatic concept routing;
-- vector retrieval default changes without a concrete gate;
-- chunk compiler unless natural >80k sources recur;
-- background source watching/semantic maintenance;
-- broad automatic contradiction resolution;
-- permanent Tree View/activity UI without observed need;
-- federation/X2 without recurring natural evidence;
-- paid reruns of frozen E017/E018/E019/E021/E022/E023 cases.
-
-## Known non-blocking edges
-
-- Issue #132: deletion detection for `agent-state.json` and relation/pending crash window.
-- Human Knowledge file deletion is not independently detectable without an index.
-- Relation append and pending-state resolution are not one cross-process transaction.
-- Copilot CLI optional flags can change independently of public docs; runtime capability probing remains authoritative.
-- 80k is a temporary product ceiling, not a claimed Luna technical limit.
-- E013/E015 evidence remains natural/data-gated; do not manufacture workload/divergence.
+- install path `dogfood/releases/llm-wiki-dogfood-latest.vsix`.
 
 ## Fast pointers
 
 - Core generality gate: Issue #160 / `docs/14-generality-and-semantic-projections.md`
-- E023: `experiments/E023-generality-retrieval-composition/`
-- G1a result: PR #165 / run `32215941344`
-- G1b result: PR #169 / run `32217824760`
-- prospective evaluator: PR #172 / `authority-sufficiency-preregistration-v0.md`
-- G1c prereg/execution: PRs #173/#174
-- G1c v0 invalid run: `32229563330`
-- G1c-R1 prereg/execution/result: PRs #177/#178/#179 / run `32232116273`
-- R1 result doc: `experiments/E023-generality-retrieval-composition/g1c-r1-results-v0.md`
-- R1 stage analysis: `analyze_g1c_r1_stage_transitions.py`
-- Installed/natural dogfood: Issue #141
-- Current validated VSIX: `dogfood/releases/llm-wiki-dogfood-latest.vsix`
-- User guide: `dogfood/vscode/README.md`
-- Autonomy philosophy: `docs/12-autonomy-ux-philosophy.md`
-- Reliability follow-up: Issue #132
+- E023 root: `experiments/E023-generality-retrieval-composition/`
+- G1a: PR #165 / run `32215941344`
+- G1b: PR #169 / run `32217824760`
+- prospective evaluator: PR #172
+- G1c-R1: PR #179 / run `32232116273`
+- G1c-R1 selector counterfactual: PR #181
+- G1d prereg/execution/result: PRs #182/#183/#184 / run `32322429563`
+- G1d budget frontier: PR #185 / `g1d-budget-frontier-v0.md`
+- G1d result: `g1d-results-v0.md`
+- natural installed dogfood: Issue #141
+- current VSIX: `dogfood/releases/llm-wiki-dogfood-latest.vsix`
+- user guide: `dogfood/vscode/README.md`
+- autonomy philosophy: `docs/12-autonomy-ux-philosophy.md`
+- reliability follow-up: Issue #132
 
 If this file conflicts with merged code or an accepted ADR, **code/ADR wins; fix this checkpoint immediately**.
