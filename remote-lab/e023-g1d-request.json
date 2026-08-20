@@ -1,0 +1,17 @@
+{
+  "request_id": "e023-g1d-deterministic-selection-v0",
+  "model": "gpt-5.6-luna",
+  "question_count": 8,
+  "initial_top_k": 5,
+  "max_followup_queries": 2,
+  "candidate_followup_top_k": 3,
+  "rrf_k": 60,
+  "final_top_k": 4,
+  "planner_snippet_chars": 320,
+  "a_composer_calls": 8,
+  "d_planner_calls": 8,
+  "d_composer_calls": 8,
+  "d_selector_calls": 0,
+  "max_model_call_attempts": 24,
+  "max_ai_credits_per_call": 30
+}
