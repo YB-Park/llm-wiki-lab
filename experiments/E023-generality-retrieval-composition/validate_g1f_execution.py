@@ -12,6 +12,7 @@ WORKFLOW = REPO / ".github" / "workflows" / "e023-generality-g1f.yml"
 PREREG = ROOT / "g1f-preregistration-v0.md"
 EVAL = ROOT / "g1f-evaluation-contract-v0.json"
 PREREG_MERGE_SHA = "1e5a3f991d0c3b76552725933149702ff6e53d15"
+EXECUTION_SOURCE_SHA = "eab8c9e4f5ebbe5f43b93a1558fd3f9cc295f772"
 
 
 def main() -> int:
@@ -109,7 +110,9 @@ def main() -> int:
 
     assert "github.event_name == 'pull_request'" in workflow
     assert "github.event_name == 'push'" in workflow
-    assert f"github.event.before == '{PREREG_MERGE_SHA}'" in workflow
+    prereg_one_shot = f"github.event.before == '{PREREG_MERGE_SHA}'" in workflow
+    completed_source_lock = f"github.sha == '{EXECUTION_SOURCE_SHA}'" in workflow
+    assert prereg_one_shot ^ completed_source_lock
     assert "workflow_dispatch" not in workflow
     assert "copilot-requests: write" in workflow
     assert "--execute-model" in workflow
@@ -133,7 +136,8 @@ def main() -> int:
         "counterbalanced_interleaving": True,
         "shared_context_per_pair_required": True,
         "semantic_calls_authorized_on_pr": False,
-        "semantic_calls_authorized_only_after_merge_from_exact_prereg_base": True,
+        "semantic_calls_authorized_only_after_merge_from_exact_prereg_base": prereg_one_shot,
+        "completed_execution_source_locked": completed_source_lock,
         "top6_product_default_authorized": False,
         "g2_persistence_authorized": False,
         "graph_entity_ku_authorized": False,
