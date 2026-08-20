@@ -1,0 +1,29 @@
+{
+  "request_id": "e023-g2-fixed-identity-persistence-v0",
+  "model": "gpt-5.6-luna",
+  "question_count": 12,
+  "Q_composer_calls": 12,
+  "P_composer_calls": 12,
+  "projection_build_rebuild_calls": 5,
+  "planner_calls": 0,
+  "selector_calls": 0,
+  "vector_calls": 0,
+  "max_model_call_attempts": 29,
+  "max_ai_credits_per_call": 30,
+  "rerolls": 0,
+  "question_order": ["PQ001", "PQ002", "PQ003", "PQ004", "PQ005", "PQ006", "PQ007", "PQ008", "PQ009", "PQ010", "PQ011", "PQ012"],
+  "arm_order_by_question": {
+    "PQ001": ["Q", "P"],
+    "PQ002": ["P", "Q"],
+    "PQ003": ["Q", "P"],
+    "PQ004": ["P", "Q"],
+    "PQ005": ["Q", "P"],
+    "PQ006": ["P", "Q"],
+    "PQ007": ["Q", "P"],
+    "PQ008": ["P", "Q"],
+    "PQ009": ["Q", "P"],
+    "PQ010": ["P", "Q"],
+    "PQ011": ["Q", "P"],
+    "PQ012": ["P", "Q"]
+  }
+}
