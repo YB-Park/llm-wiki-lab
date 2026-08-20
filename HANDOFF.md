@@ -1,37 +1,24 @@
 # Current Handoff
 
-Last updated: 2026-08-20 KST — session-transfer checkpoint
+Last updated: 2026-08-20 KST — post-G1f / G1-closure checkpoint
 
-This file is the **continuation checkpoint only**. Historical detail belongs in experiments, issues, PRs, ADRs, and Git. If this file conflicts with merged code or an accepted ADR, code/ADR wins and this file should be fixed immediately.
+This file is the **continuation checkpoint only**. Historical detail belongs in experiments, issues, PRs, ADRs, and Git. If this file conflicts with merged code or an accepted ADR, code/ADR wins.
 
-## Start here in a new session
+## Start here
 
 Repository: `YB-Park/llm-wiki-lab`
 
-Current authoritative `main` at this checkpoint:
+Authoritative completed semantic result before this checkpoint:
 
-- `edb571c0b431481ddac451fb5fc79a9b1b6eadeb`
-- merge: **Freeze E023 authority-preserving composition contract (#191)**
-- open PRs: **none** immediately after #191 merge
+- G1f result merge: `d4897142e28ab950238ee799df51433b7718814f` (#195)
+- G1f run: `32349241403`
+- execution source: `eab8c9e4f5ebbe5f43b93a1558fd3f9cc295f772`
+- evidence commit: `fdae1b5ce645d6951db0d6b703947405c3c3fa78`
+- exact model: `gpt-5.6-luna`
+- 16/16 semantic calls, zero rerolls
+- open PRs were none immediately after #195 merge
 
-Before doing any work, re-check `main` and open PRs because they may have moved after this handoff was written.
-
-### Important interrupted-session warning
-
-There is a branch named `agent/e023-g1f-execution`. **Do not run it, do not open it as an execution PR, and do not treat it as preregistered work.**
-
-It was created during an interrupted long session from the pre-#191 main (`714bc70a...`) and contains only four draft execution files:
-
-- `experiments/E023-generality-retrieval-composition/g1f-execution-addendum-v0.md`
-- `experiments/E023-generality-retrieval-composition/run_g1f.py`
-- `experiments/E023-generality-retrieval-composition/validate_g1f_execution.py`
-- `remote-lab/e023-g1f-request.json`
-
-The draft runner imports `composition_prompt_v1` and expects an `authority-sufficiency-v3/` package. `composition_prompt_v1.py` is now on main only because #191 merged; **`authority-sufficiency-v3` does not exist in the repository at this checkpoint**. Therefore the branch is an incomplete scaffold, not an executable experiment contract.
-
-No G1f preregistration PR exists. A repository search for G1f PRs returns only #191, which explicitly says **no G1f execution yet**.
-
-**Preferred continuation:** create a fresh G1f preregistration branch from current main. Do not salvage the interrupted execution branch unless it is first rebased and audited against a newly merged preregistration; recreating it later is safer and clearer.
+Always re-check current `main` and open PRs before new work.
 
 ## North Star
 
@@ -39,212 +26,155 @@ Build a VS Code-first **LLM Wiki** where the user owns a verifiable project-memo
 
 > **Human controls admission and epistemic commitment. LLM controls routine retrieval/compilation/maintenance inside granted authority.**
 
-Current architecture thesis:
+Architecture thesis:
 
 > **LLM Wiki is a trustworthy Authority Core plus task-appropriate semantic projections. Generality is demonstrated at the capability/query boundary before it is enforced as uniformity at the storage boundary.**
 
-Normal product use should remain ordinary VS Code Agent conversation. Users should not need to learn Wiki tool names, storage schemas, filing concepts, or semantic infrastructure.
+Normal product use should remain ordinary VS Code Agent conversation.
 
-## Product baseline remains Dogfood 0.1.16
+## Product baseline
 
-E023 remains research-only and has not changed the product runtime.
+Dogfood **0.1.16** remains the product baseline. E023 is research-only and has not changed runtime behavior.
 
-Authority floor remains unchanged:
+Authority floor remains:
 
 - explicit per-workspace opt-in;
-- **Check Setup and Health** = 0 model calls / 0 state changes;
+- Check Setup and Health = 0 model calls / 0 state changes;
 - disabling removes Agent availability while preserving Wiki data;
 - new source bytes require human confirmation before durable admission;
-- `RAW_MEMORY` = immutable admitted evidence/provenance;
-- `DERIVED_MEMORY` = noncanonical/rebuildable synthesis;
-- `HUMAN_KNOWLEDGE` = explicit user-owned decision/belief/rationale/hypothesis authority, not external evidence;
+- `RAW_MEMORY` is immutable admitted evidence/provenance;
+- `DERIVED_MEMORY` is noncanonical/rebuildable synthesis;
+- `HUMAN_KNOWLEDGE` is explicit user-owned decision/belief/rationale/hypothesis authority;
 - changed remembered files require explicit correction/change/dispute/supersede/independent semantics;
-- AI summaries remain off by default until explicitly granted.
+- AI summaries remain off by default until granted.
 
-E020 remains frozen at **78 zero-model cases: 60 supported / 7 partial / 11 deferred**. Natural installed multi-session dogfood remains required; controlled experiments do not establish long-horizon product value.
+E020 remains frozen at **78 zero-model cases: 60 supported / 7 partial / 11 deferred**.
 
-Natural observation continues on Issue #141. Do not manufacture workload.
+Natural installed dogfood continues on Issue #141. Do not manufacture workload.
 
-## Core architecture boundary
+## Architecture gates
 
-Tracking: Issue #160  
-Working gate: `docs/14-generality-and-semantic-projections.md`  
-Experiment family: `experiments/E023-generality-retrieval-composition/`
+1. **G1 Retrieval / Composition** — query-time authority discovery, evidence budgeting, composition.
+2. **G2 Persistence** — only after a strong G1 path exists, test persistent semantic projection benefit against lifecycle/staleness cost.
+3. **G3 Identity / Routing** — only if persistent semantic targets earn value, test automatic discovery/routing/merge-split.
 
-### Authority Core stays ontology-agnostic
+Authority Core remains ontology-agnostic. Every load-bearing derived claim must resolve to terminal `RAW_MEMORY` or `HUMAN_KNOWLEDGE` with epistemic type preserved.
 
-The durable core owns evidence identity/integrity/provenance, temporal/contradiction semantics, Human Knowledge authorship, permission/privacy boundaries, and deterministic repairable storage invariants.
+## G1 evidence — current synthesis
 
-Do **not** add Person/Entity/Relation/KnowledgeUnit concepts merely to make the Wiki feel general. `source-note-v0` remains one DERIVED source-oriented projection, not the Wiki ontology.
+### Complexity did not earn itself
 
-### Authoritative-anchor invariant
+- G1a blind planner/RRF: NOT_EARNED.
+- G1b evidence-follow: targeted repair only, broad gate NOT_EARNED.
+- G1c-R1 model selector: discarded load-bearing evidence; NOT_EARNED.
+- G1d deterministic RRF: did not generalize; NOT_EARNED.
 
-> **Every load-bearing derived claim must resolve to an authoritative anchor whose epistemic type remains explicit.**
+Do not reintroduce planner/selector/RRF complexity without a new failure signal.
 
-Terminal authority may be admitted `RAW_MEMORY` or explicit `HUMAN_KNOWLEDGE`. `DERIVED_MEMORY` may help retrieval/navigation/compilation, but persistence never turns it into terminal authority.
+### G1e — strong simple retrieval signal, strict promotion NOT_EARNED
 
-### Gates remain ordered
+G1e prospectively compared exact BM25 top-5 vs top-6 on new separated material.
 
-1. **G1 Retrieval / Composition** — can the right authority be found, preserved, and composed at query time without persistent semantic state?
-2. **G2 Persistence** — only after a strong G1 path exists, hold retrieval strong/fixed and test durable-projection benefit after lifecycle cost.
-3. **G3 Identity / Routing** — only if persistent semantic targets themselves earn value, test automatic subject discovery/routing/merge-split.
+Top-6:
 
-A G1 failure is not evidence for G2. A G2 success would not automatically authorize G3.
+- removed both authority-incomplete contexts;
+- authority improvements 2 / regressions 0;
+- semantic improvements 2 / regressions 0 / new critical errors 0;
+- planner 0 / selector 0.
 
-## E023 evidence sequence — compressed
+Strict gate still failed at 6/8 PASS. Exact BM25 top-6 is therefore a **strong experimental baseline**, not a product default.
 
-### G1a / G1b
+### G1f — composition candidate NOT_EARNED, simple path safety replicated
 
-- G1a run `32215941344`: exact BM25 top-5 and blind planner+RRF both **8 PASS / 1 PARTIAL / 1 CRITICAL_ERROR**; planner improvements 0; `NOT_EARNED`.
-- Q001 established the trust class: aliases were merged without an explicit authority bridge. **Truth-by-luck is not trustworthy semantic recovery.**
-- G1b run `32217824760`: evidence-aware follow-up repaired Q001 `CRITICAL_ERROR -> PASS`, but the broad preregistered recovery threshold was missed; `NOT_EARNED`.
+PRs #193/#194/#195; run `32349241403`.
 
-### Prospective authority-sufficiency evaluator
+O = frozen old composer.  
+N = frozen `composition_prompt_v1`.  
+Both received byte-identical exact-BM25 top-6 contexts.
 
-E023 now separates:
+Result:
 
-- `INSUFFICIENT_AUTHORITY`;
-- `SUFFICIENT_CLEAN`;
-- `SUFFICIENT_WITH_CONFLATION_RISK`.
+- O: **7 PASS / 1 PARTIAL / 0 CRITICAL_ERROR**
+- N: **7 PASS / 1 PARTIAL / 0 CRITICAL_ERROR**
+- N improvements vs O: **0**
+- regressions: **0**
+- new critical errors: **0**
+- DQ003 authority-incomplete identity negative control: PASS
+- DQ004 proposition-scoped sufficiency: PASS
+- DQ001/DQ007 user-owned authority: PASS
+- sole shared PARTIAL: DQ006 omitted prospectively required D033 broader-serverless corroboration
 
-The evaluator can express unique support, alternatives, repeated-support minima, identity/attribution bridges, negative evidence, temporal correction, forbidden conflation, and terminal `HUMAN_KNOWLEDGE`. It is **evaluation-only**, not product storage or a canonical claim graph.
+Frozen composition candidate promotion required >=1 paired improvement, so:
 
-### G1c-R1
+> **`composition_prompt_v1` promotion is NOT_EARNED. Do not weaken the rule and do not rerun DQ material.**
 
-Run `32232116273`, exact Luna, 18/18 calls, zero rerolls. Candidate pools reached positive-authority sufficiency on **6/6**, but the model selector discarded load-bearing evidence. Final selection `NOT_EARNED`.
+What G1f still establishes: the existing simple query-time path replicated **7/8 with zero critical errors** on another separated composition-stress slice.
 
-### G1d
+## G1 closure
 
-Run `32322429563`, exact Luna, 24/24 calls, zero rerolls.
+Current architecture decision:
 
-- A exact BM25 top-5: **3 clean / 4 risk / 1 insufficient**;
-- D planner + targeted BM25 + deterministic RRF top-4: **3 clean / 3 risk / 2 insufficient**;
-- semantic A: **7 PASS / 1 CRITICAL**;
-- semantic D: **5 PASS / 2 PARTIAL / 1 CRITICAL**;
-- deterministic RRF did not generalize; `NOT_EARNED`.
+> **The simple query-time G1 path is strong enough to be the fixed research comparator for G2.**
 
-Zero-model frontier PR #185 then showed exact top-6 removed the sole positive-authority miss on that separated slice. This became an evidence-budget signal, not a top-6 product rule.
+Carry forward for controlled G2 research:
 
-## G1e — current strongest retrieval evidence
+- exact whole-object BM25 top-6;
+- frozen old composer from `run_g1c.py`;
+- no planner / selector / RRF.
 
-G1e used a new separated 35-anchor / 8-question slice.
+This does **not** promote either component to product policy.
 
-### Phase 0 — zero-model authority gate
+`composition_prompt_v1` remains a research candidate and is not carried forward as the promoted composer because it showed zero incremental value.
 
-PR #187:
+## NEXT CORE — G2 preregistration, zero-model first
 
-| arm | clean | risk | insufficient |
-| --- | ---: | ---: | ---: |
-| A5 exact BM25 top-5 | 2 | 4 | 2 |
-| B6 same ranking top-6 | 3 | 5 | **0** |
+G2 design/preregistration may now start. G2 semantic execution and product persistence are **not** yet authorized.
 
-B6 authority improvements: **2**. Regressions: **0**.
+Research question:
 
-Rank-6 evidence repaired two prospectively frozen misses:
+> **Holding authority, fixed subject identity, retrieval, and composition constant, does a rebuildable persistent semantic projection improve repeated-use answer quality/cost/latency enough to justify lifecycle and stale-state risk over query-time synthesis alone?**
 
-- CQ001: explicit `R. Singh -> Rina Singh` identity bridge;
-- CQ008: second independent monthly-close observation required to establish recurrence.
+Required boundaries:
 
-### Phase 1 — semantic result
+- use new separated repeated-use/update material;
+- fixed identities/subjects supplied prospectively; no automatic identity routing;
+- control = frozen G1 comparator;
+- persistent arm adds only rebuildable DERIVED projection anchored to terminal authority;
+- include source addition, correction/supersession, and stale-view negative control;
+- measure semantic quality/critical stale claims plus model/rebuild/human cost;
+- no graph DB / universal Entity/Relation/KnowledgeUnit schema;
+- no vector default;
+- prereg PR semantic calls = 0;
+- separate execution contract required after prereg merge.
 
-Frozen run:
+A persistent arm with lower cost but a stale load-bearing claim fails.
 
-- run `32324460519`;
-- source `505740b74776fc7b7988e9c168c9c9d0ed2067fa`;
-- exact `gpt-5.6-luna`;
-- 16/16 semantic calls;
-- planner 0 / selector 0 / rerolls 0;
-- result SHA-256 `865d89ad8c8b219493823bd21413196f658a9ffa2fdd3ed2948bb34b20f16727`;
-- result/adjudication PR #189.
+## Product / reliability parallel tracks
 
-Semantic result:
+Issue #141 natural dogfood remains the product-value source. Observe naturally:
 
-- A5: **5 PASS / 1 PARTIAL / 1 FAIL_RETRIEVAL / 1 CRITICAL_ERROR**;
-- B6: **6 PASS / 2 PARTIAL / 0 FAIL / 0 CRITICAL_ERROR**;
-- B6 improvements: **2**;
-- B6 regressions: **0**;
-- B6 new critical errors: **0**.
+- useful ambient recall days/weeks later;
+- setup or popup friction;
+- daily soft-guard behavior;
+- whether hidden Luna usage becomes a repeated real problem;
+- whether navigation/history UI is actually missed.
 
-Frozen promotion required at least **7/8 B6 PASS**, so G1e remains **NOT_EARNED**. Do not weaken the frozen threshold.
+Do not build permanent Tree View/activity UI or usage accounting solely because it is imaginable.
 
-What G1e did earn: exact BM25 plus a modestly larger evidence prefix is the current **strong simple retrieval baseline**. On that slice it removed all authority-incomplete contexts with no semantic regressions and no planner/selector calls.
-
-The remaining G1e failures were composition-side:
-
-- CQ002: `COMPOSITION_OVERCAUTIOUS_INSUFFICIENCY` — a support-complete `could satisfy` proposition was marked insufficient because the answer silently demanded a stronger guarantee;
-- CQ008: `COMPOSITION_EPISTEMIC_TYPE_OMISSION` — a load-bearing user-owned decision was presented as an ordinary fact rather than preserving its ownership/epistemic type.
-
-## Composition contract v0 — now frozen on main
-
-PR #191 merged at `edb571c0...` after all zero-model/repo checks succeeded.
-
-Authoritative files:
-
-- `experiments/E023-generality-retrieval-composition/authority-preserving-composition-contract-v0.md`
-- `experiments/E023-generality-retrieval-composition/composition-contract-fixtures-v0.json`
-- `experiments/E023-generality-retrieval-composition/composition_prompt_v1.py`
-- `experiments/E023-generality-retrieval-composition/validate_composition_contract.py`
-- `.github/workflows/validate-e023-composition-contract.yml`
-
-Status of contract v0:
-
-> **PROSPECTIVE / ZERO-MODEL DESIGN CONTRACT / NOT YET A PROMOTED COMPOSER**
-
-Core rule:
-
-> **Answer only what the supplied terminal authority permits, preserve what kind of authority it is, and scope uncertainty to the proposition the user actually asked.**
-
-Frozen generic behaviors C1–C8 cover:
-
-1. user-owned epistemic commitment in natural language without requiring storage jargon;
-2. direct vs attributed authorship;
-3. no synthesized missing identity/policy/project/authorization bridge;
-4. proposition-scoped insufficiency;
-5. negative evidence and scope limits;
-6. temporal hypothesis/signal/final/correction semantics;
-7. citations terminating in supplied authority;
-8. conflation risk not automatically implying insufficiency when explicit authority resolves the proposition.
-
-The prompt candidate receives no evaluator clauses, expected answers, verdicts, promotion thresholds, or domain-specific hidden rules.
-
-# NEXT CORE — prospectively preregister G1f; do not execute yet
-
-**Paid semantic calls are paused. Do not rerun AQxxx, BQxxx, or CQxxx. Do not start G2.**
-
-Immediate research question:
-
-> **Does the frozen generic composition contract improve epistemic-type preservation and proposition-scoped sufficiency on new separated material when retrieval/evidence context is held identical?**
-
-Recommended next sequence:
-
-1. **Start fresh from current main.** Do not use `agent/e023-g1f-execution` as the basis.
-2. Create a **new separated G1f corpus/question set** before model answers exist. A name such as `authority-sufficiency-v3` was used in an interrupted scaffold, but that name and corpus are not frozen; choose/freeze it prospectively.
-3. Hold retrieval fixed to the current strong simple baseline for the causal comparison. Exact BM25 top-6 is the leading experimental baseline from G1e, but still **not a product policy**.
-4. Feed the **identical selected context** to both arms:
-   - O: frozen old composer;
-   - N: `composition_prompt_v1` implementing contract v0.
-5. Include enough cases to exercise user-owned decisions, direct/attributed evidence, identity or policy bridges, proposition-scoped insufficiency, temporal correction, negative characterization, and repeated support. At least one deliberately authority-incomplete negative control is useful, but freeze its retrieval condition before semantic outputs.
-6. Add a **zero-model prereg validator and CI first**. It should prove corpus separation, identical O/N contexts, intended authority-sufficiency/negative-control conditions, no evaluator leakage into the new prompt, and `semantic_calls_authorized_on_this_pr=false`.
-7. Merge that preregistration before creating an execution contract.
-8. Only after prereg merge, create a **fresh execution branch from that merge SHA**. Freeze exact model, exact call count, zero rerolls, failure-safe evidence capture, and promotion criteria before any semantic call.
-9. The interrupted WIP runner assumed 8 old + 8 new = 16 Luna calls, planner 0, selector 0. Treat this only as a **draft proposal**, not a frozen authorization. Re-decide and preregister it explicitly.
-10. Adjudicate retrieval/context status separately from composition semantics. Measure at least semantic PASS/critical errors, user-owned-authority preservation, proposition-scoped insufficiency, bridge restraint, citation support, and model-call cost.
-11. Even a successful G1f does not automatically authorize G2. First decide whether G1 as a whole is strong enough and continue natural Dogfood evidence in parallel.
+Issue #132 reliability edges remain evidence-gated. Do not preemptively replace the storage model with a database/WAL.
 
 ## Do not start merely because it is available
 
-- the interrupted `agent/e023-g1f-execution` branch as-is;
-- semantic calls before a new G1f prereg is merged;
-- same-slice AQ/BQ/CQ reruns;
-- a hard-coded top-6 product default;
-- G2 persistent semantic dossiers;
-- graph DB / universal Entity/Relation/KnowledgeUnit schema;
-- automatic identity merge/split or concept routing;
-- vector retrieval defaults without an independent gate;
+- AQ/BQ/CQ/DQ semantic reruns;
+- prompt tuning on frozen DQ material;
+- top-6 product default;
+- G2 execution before prereg merge + execution contract;
+- graph/entity/KU schema;
+- automatic identity merge/split/routing;
+- vector defaults;
 - evaluator clauses as runtime canonical structure;
-- background semantic watching/maintenance;
+- background semantic watching;
 - broad automatic contradiction resolution;
-- permanent Tree View/activity UI without natural evidence;
 - federation/X2 without recurring natural evidence.
 
 ## Retained operating edges
@@ -255,24 +185,17 @@ Recommended next sequence:
 - <=40k chars preferred single pass; 40,001–80k allowed; >80k preserves RAW and skips derived maintenance before model call; never silently truncate.
 - exact-current-byte remember is no-op reuse without a second admission modal.
 - multi-root remains fail-closed in 0.1.16.
-- Issue #132 remains the reliability follow-up for deletion detection and relation/pending crash windows.
 - Human Knowledge file deletion is not independently detectable without an index.
 - E013/E015 remain natural/data-gated; do not manufacture workload/divergence.
 
 ## Fast pointers
 
-- current `main`: `edb571c0b431481ddac451fb5fc79a9b1b6eadeb` (#191)
+- G1f prereg: #193
+- G1f execution contract: #194
+- G1f result: #195 / run `32349241403`
+- G1f result doc: `experiments/E023-generality-retrieval-composition/g1f-results-v0.md`
+- G1 closure: `experiments/E023-generality-retrieval-composition/g1-closure-decision-v0.md`
 - generality gate: Issue #160 / `docs/14-generality-and-semantic-projections.md`
-- E023 root: `experiments/E023-generality-retrieval-composition/`
-- prospective evaluator: PR #172
-- G1c-R1: PR #179 / run `32232116273`
-- G1d: PRs #182/#183/#184 / run `32322429563`
-- G1d budget frontier: PR #185
-- G1e: PRs #187/#188/#189 / run `32324460519`
-- G1e checkpoint: PR #190
-- composition contract v0: PR #191
 - natural installed dogfood: Issue #141
-- current VSIX: `dogfood/releases/llm-wiki-dogfood-latest.vsix`
-- user guide: `dogfood/vscode/README.md`
-- autonomy philosophy: `docs/12-autonomy-ux-philosophy.md`
 - reliability follow-up: Issue #132
+- current VSIX: `dogfood/releases/llm-wiki-dogfood-latest.vsix`
