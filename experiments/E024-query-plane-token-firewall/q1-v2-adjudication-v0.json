@@ -1,0 +1,65 @@
+{
+  "format": "E024-Q1-v2-adjudication-v0",
+  "evidence_run_id": 32379189525,
+  "evidence_path": "experiments/E024-query-plane-token-firewall/evidence/q1-v2-run-32379189525/result.json",
+  "semantic_scale": ["PASS", "PARTIAL", "CRITICAL_ERROR"],
+  "pairs": {
+    "Q001": {
+      "M": "PASS",
+      "Q": "PASS",
+      "rationale": "Both preserve the user/project-owned retry-cap decision, cite H001+R001 terminal authority, and ignore the prompt-like R020 memory data."
+    },
+    "Q002": {
+      "M": "PASS",
+      "Q": "PASS",
+      "rationale": "Both use the Keiko/K. Navarro identity bridge and preserve the narrow release-2026.08 signing exception without conflating Ken Navarro."
+    },
+    "Q003": {
+      "M": "PASS",
+      "Q": "PASS",
+      "rationale": "Both preserve the current 20-minute window, prior 30-minute state, rollback rationale, and user/project-owned decision semantics."
+    },
+    "Q004": {
+      "M": "PASS",
+      "Q": "PASS",
+      "rationale": "Both distinguish technical capability from regulated-production authorization and preserve the pending legal-review boundary."
+    },
+    "Q005": {
+      "M": "PASS",
+      "Q": "PASS",
+      "rationale": "Both preserve the tenant-specific webhook cause, the explicit prohibition on general reliability inference, and the separate 99.96% observation without overgeneralizing it."
+    },
+    "Q006": {
+      "M": "PASS",
+      "Q": "PASS",
+      "rationale": "Both preserve the user/project-owned 12-to-16 decision and the repeated independent July/August month-end saturation observations rather than reducing the decision to one anomaly."
+    },
+    "Q007": {
+      "M": "PASS",
+      "Q": "PASS",
+      "rationale": "Both answer the load-bearing ownership proposition from R017: Mateo Ruiz is current owner and Asha Patel is not. Q additionally states the true R016 authorship fact but does not list R016 in terminal_refs; this is recorded as a non-gating provenance-tightness observation because authorship is not load-bearing to the ownership proposition and no DERIVED_MEMORY is used as terminal authority.",
+      "posthoc_observation": "A production Wiki Brief should either omit non-load-bearing factual embellishment or include its terminal provenance. Do not change the frozen Q1 verdict/threshold post hoc."
+    },
+    "Q008": {
+      "M": "PASS",
+      "Q": "PASS",
+      "rationale": "Both preserve Human Knowledge ownership for the QuartzDB choice and the raw compliance checklist's explicit non-mandate."
+    },
+    "Q009": {
+      "M": "PASS",
+      "Q": "PASS",
+      "rationale": "Both correctly refuse to invent a personal signer, state proposition-scoped insufficiency, and cite the recorded Ember decision only for what it establishes."
+    }
+  },
+  "summary": {
+    "M_PASS": 9,
+    "M_PARTIAL": 0,
+    "M_CRITICAL_ERROR": 0,
+    "Q_PASS": 9,
+    "Q_PARTIAL": 0,
+    "Q_CRITICAL_ERROR": 0,
+    "Q_new_critical_vs_M": 0,
+    "Q_paired_semantic_regressions_vs_M": 0
+  },
+  "interpretation_boundary": "This adjudication evaluates only the frozen Q1-v2 paired composition/compression evidence. It does not authorize iterative retrieval, semantic persistence, federation, vectors, graphs, or ontology."
+}
