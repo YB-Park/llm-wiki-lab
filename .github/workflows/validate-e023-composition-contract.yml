@@ -1,0 +1,46 @@
+name: Validate E023 composition contract
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/authority-preserving-composition-contract-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/composition-contract-fixtures-v0.json'
+      - 'experiments/E023-generality-retrieval-composition/composition_prompt_v1.py'
+      - 'experiments/E023-generality-retrieval-composition/validate_composition_contract.py'
+      - '.github/workflows/validate-e023-composition-contract.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/authority-preserving-composition-contract-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/composition-contract-fixtures-v0.json'
+      - 'experiments/E023-generality-retrieval-composition/composition_prompt_v1.py'
+      - 'experiments/E023-generality-retrieval-composition/validate_composition_contract.py'
+      - '.github/workflows/validate-e023-composition-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-composition-contract-zero-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile composition contract assets
+        run: |
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/composition_prompt_v1.py
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_composition_contract.py
+      - name: Validate generic authority-preserving composition contract
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/validate_composition_contract.py \
+            | tee /tmp/e023-composition-contract.txt
+          grep -q '^E023 authority-preserving composition contract validation: PASS$' /tmp/e023-composition-contract.txt
+          grep -q '"model_calls": 0' /tmp/e023-composition-contract.txt
+          grep -q '"fixture_count": 10' /tmp/e023-composition-contract.txt
+          grep -q '"prompt_output_shape_unchanged": true' /tmp/e023-composition-contract.txt
+          grep -q '"evaluation_clauses_available_to_prompt": false' /tmp/e023-composition-contract.txt
+          grep -q '"semantic_calls_authorized": false' /tmp/e023-composition-contract.txt
+          grep -q '"g1f_execution_authorized": false' /tmp/e023-composition-contract.txt
