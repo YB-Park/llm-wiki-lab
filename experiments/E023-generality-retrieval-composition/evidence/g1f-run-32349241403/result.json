@@ -1,0 +1,653 @@
+{
+  "call_schedule": [
+    {
+      "arm": "O",
+      "call_index": 1,
+      "question_id": "DQ001"
+    },
+    {
+      "arm": "N",
+      "call_index": 2,
+      "question_id": "DQ001"
+    },
+    {
+      "arm": "N",
+      "call_index": 3,
+      "question_id": "DQ002"
+    },
+    {
+      "arm": "O",
+      "call_index": 4,
+      "question_id": "DQ002"
+    },
+    {
+      "arm": "O",
+      "call_index": 5,
+      "question_id": "DQ003"
+    },
+    {
+      "arm": "N",
+      "call_index": 6,
+      "question_id": "DQ003"
+    },
+    {
+      "arm": "N",
+      "call_index": 7,
+      "question_id": "DQ004"
+    },
+    {
+      "arm": "O",
+      "call_index": 8,
+      "question_id": "DQ004"
+    },
+    {
+      "arm": "O",
+      "call_index": 9,
+      "question_id": "DQ005"
+    },
+    {
+      "arm": "N",
+      "call_index": 10,
+      "question_id": "DQ005"
+    },
+    {
+      "arm": "N",
+      "call_index": 11,
+      "question_id": "DQ006"
+    },
+    {
+      "arm": "O",
+      "call_index": 12,
+      "question_id": "DQ006"
+    },
+    {
+      "arm": "O",
+      "call_index": 13,
+      "question_id": "DQ007"
+    },
+    {
+      "arm": "N",
+      "call_index": 14,
+      "question_id": "DQ007"
+    },
+    {
+      "arm": "N",
+      "call_index": 15,
+      "question_id": "DQ008"
+    },
+    {
+      "arm": "O",
+      "call_index": 16,
+      "question_id": "DQ008"
+    }
+  ],
+  "context_identity_contract": true,
+  "execute_model": true,
+  "execution_complete": true,
+  "execution_source_sha": "eab8c9e4f5ebbe5f43b93a1558fd3f9cc295f772",
+  "format": "E023-G1f-v0",
+  "interpretation_boundary": "G1f compares composition only on one preregistered shared exact-BM25 top-6 context per question. No result makes top-6 a product default or authorizes G2 persistence, graph/entity/KU storage, vector defaults, or automatic identity routing.",
+  "model": "gpt-5.6-luna",
+  "model_call_attempts": 16,
+  "pairs": {
+    "DQ001": {
+      "arms": {
+        "N": {
+          "call_index": 2,
+          "composer": {
+            "answer": "We chose the staged rollout because reversibility and a narrow blast radius mattered more than launch speed; the recorded governing rationale was rollback confidence (D001). A rollback drill supported that choice by restoring service within the target window while keeping the affected cohort narrow (D002).",
+            "cited_anchor_ids": [
+              "D001",
+              "D002"
+            ],
+            "insufficient_authority": false
+          },
+          "contract_ok": true,
+          "input_context_sha256": "85a072af4d780d434e3f24930b43711f411a191cc4f022364bd238e747db0c40",
+          "input_question_sha256": "1e69534df55d7eb08bc417310ae0022a14a30a5e8395f8b06e6a75dcb7d7db20",
+          "model_receipt": {
+            "elapsed_seconds": 4.777,
+            "model": "gpt-5.6-luna"
+          },
+          "prompt_sha256": "6d9a465f0d098867f21bb859f0126ca12580670e4cb60b10b33b10dfd3405b0d",
+          "raw_model_text": "{\"answer\":\"We chose the staged rollout because reversibility and a narrow blast radius mattered more than launch speed; the recorded governing rationale was rollback confidence (D001). A rollback drill supported that choice by restoring service within the target window while keeping the affected cohort narrow (D002).\",\"cited_anchor_ids\":[\"D001\",\"D002\"],\"insufficient_authority\":false}"
+        },
+        "O": {
+          "call_index": 1,
+          "composer": {
+            "answer": "The project team chose the staged rollout because reversibility and a narrow blast radius mattered more than launch speed; rollback confidence was the governing rationale (D001). Supporting evidence came from a rollback drill showing that service was restored within the target window while keeping the affected cohort narrow (D002). A benchmark compared rollout speed but did not establish the project’s rationale (D004).",
+            "cited_anchor_ids": [
+              "D001",
+              "D002",
+              "D004"
+            ],
+            "insufficient_authority": false
+          },
+          "contract_ok": true,
+          "input_context_sha256": "85a072af4d780d434e3f24930b43711f411a191cc4f022364bd238e747db0c40",
+          "input_question_sha256": "1e69534df55d7eb08bc417310ae0022a14a30a5e8395f8b06e6a75dcb7d7db20",
+          "model_receipt": {
+            "elapsed_seconds": 5.54,
+            "model": "gpt-5.6-luna"
+          },
+          "prompt_sha256": "1bb22e2762cf05a72f846369d350b9e870fce41cdb9988f8b70fdde2f9e4c568",
+          "raw_model_text": "{\"answer\":\"The project team chose the staged rollout because reversibility and a narrow blast radius mattered more than launch speed; rollback confidence was the governing rationale (D001). Supporting evidence came from a rollback drill showing that service was restored within the target window while keeping the affected cohort narrow (D002). A benchmark compared rollout speed but did not establish the project’s rationale (D004).\",\"cited_anchor_ids\":[\"D001\",\"D002\",\"D004\"],\"insufficient_authority\":false}"
+        }
+      },
+      "context_chars": 2296,
+      "context_sha256": "85a072af4d780d434e3f24930b43711f411a191cc4f022364bd238e747db0c40",
+      "frozen_authority_status": "SUFFICIENT_CLEAN",
+      "negative_control": false,
+      "question": "For Project Alder, why did we choose the staged rollout, and what evidence supported that choice?",
+      "question_id": "DQ001",
+      "question_sha256": "1e69534df55d7eb08bc417310ae0022a14a30a5e8395f8b06e6a75dcb7d7db20",
+      "selected_anchor_ids": [
+        "D002",
+        "D004",
+        "D006",
+        "D005",
+        "D001",
+        "D003"
+      ]
+    },
+    "DQ002": {
+      "arms": {
+        "N": {
+          "call_index": 3,
+          "composer": {
+            "answer": "Nia Patel directly authored: “Ship the schema change only after the replay check passes” (D007). Meeting notes only attributed to Nia: “keep the migration reversible through Friday” (D008).",
+            "cited_anchor_ids": [
+              "D007",
+              "D008"
+            ],
+            "insufficient_authority": false
+          },
+          "contract_ok": true,
+          "input_context_sha256": "f48e9b60789e0d7df429fc26d4d5e3a4e818f4ccf19ee7ae11515759a1510304",
+          "input_question_sha256": "0ef3201cafd792680706784fb759cf1c842b310e1578a5e68b85392c9ab9d7c9",
+          "model_receipt": {
+            "elapsed_seconds": 4.06,
+            "model": "gpt-5.6-luna"
+          },
+          "prompt_sha256": "f499ae3d915ea74f5d0ea3d13689501a477b87886a83bee4bdb54466c7c7d876",
+          "raw_model_text": "{\"answer\":\"Nia Patel directly authored: “Ship the schema change only after the replay check passes” (D007). Meeting notes only attributed to Nia: “keep the migration reversible through Friday” (D008).\",\"cited_anchor_ids\":[\"D007\",\"D008\"],\"insufficient_authority\":false}"
+        },
+        "O": {
+          "call_index": 4,
+          "composer": {
+            "answer": "Nia Patel directly authored: “Ship the schema change only after the replay check passes” in a direct email (D007). Meeting notes only attributed to Nia: “keep the migration reversible through Friday”; the notes were authored by the meeting scribe (D008).",
+            "cited_anchor_ids": [
+              "D007",
+              "D008"
+            ],
+            "insufficient_authority": false
+          },
+          "contract_ok": true,
+          "input_context_sha256": "f48e9b60789e0d7df429fc26d4d5e3a4e818f4ccf19ee7ae11515759a1510304",
+          "input_question_sha256": "0ef3201cafd792680706784fb759cf1c842b310e1578a5e68b85392c9ab9d7c9",
+          "model_receipt": {
+            "elapsed_seconds": 5.945,
+            "model": "gpt-5.6-luna"
+          },
+          "prompt_sha256": "ea5805756ec541b143fee319796faa6d7af9a9ae9f855c747cc28599bddec25e",
+          "raw_model_text": "{\"answer\":\"Nia Patel directly authored: “Ship the schema change only after the replay check passes” in a direct email (D007). Meeting notes only attributed to Nia: “keep the migration reversible through Friday”; the notes were authored by the meeting scribe (D008).\",\"cited_anchor_ids\":[\"D007\",\"D008\"],\"insufficient_authority\":false}"
+        }
+      },
+      "context_chars": 2195,
+      "context_sha256": "f48e9b60789e0d7df429fc26d4d5e3a4e818f4ccf19ee7ae11515759a1510304",
+      "frozen_authority_status": "SUFFICIENT_WITH_CONFLATION_RISK",
+      "negative_control": false,
+      "question": "For Project Borealis, what did Nia Patel directly author, and what was only attributed to Nia in meeting notes?",
+      "question_id": "DQ002",
+      "question_sha256": "0ef3201cafd792680706784fb759cf1c842b310e1578a5e68b85392c9ab9d7c9",
+      "selected_anchor_ids": [
+        "D008",
+        "D007",
+        "D012",
+        "D010",
+        "D011",
+        "D009"
+      ]
+    },
+    "DQ003": {
+      "arms": {
+        "N": {
+          "call_index": 6,
+          "composer": {
+            "answer": "Yes. D013 states that J. Moreno approved Project Cinder’s temporary export exception. The evidence does not establish that J. Moreno is Julia Moreno: D014 says the profile does not make that connection, and D018 records ambiguity with Julian Moreno also listed.",
+            "cited_anchor_ids": [
+              "D013",
+              "D014",
+              "D018"
+            ],
+            "insufficient_authority": true
+          },
+          "contract_ok": true,
+          "input_context_sha256": "854be57655eb1ffe3a871d513342310af00bafea937801b82c2b43f1e5cce5e6",
+          "input_question_sha256": "08798185f8ab25e7352067889d27d5ecedbf7940b368945ac1d27c8bd1bee0f7",
+          "model_receipt": {
+            "elapsed_seconds": 4.496,
+            "model": "gpt-5.6-luna"
+          },
+          "prompt_sha256": "7594e0b4267274e91e147c54507f6a5cd97be8556022ca4b0110b6cb85e57a18",
+          "raw_model_text": "{\"answer\":\"Yes. D013 states that J. Moreno approved Project Cinder’s temporary export exception. The evidence does not establish that J. Moreno is Julia Moreno: D014 says the profile does not make that connection, and D018 records ambiguity with Julian Moreno also listed.\",\"cited_anchor_ids\":[\"D013\",\"D014\",\"D018\"],\"insufficient_authority\":true}"
+        },
+        "O": {
+          "call_index": 5,
+          "composer": {
+            "answer": "Yes. J. Moreno approved the temporary export exception for the Project Cinder migration window (D013). The supplied authority does not establish that J. Moreno is Julia Moreno: Julia’s directory profile does not make that connection (D014), and the roster includes both Julia Moreno and Julian Moreno, creating ambiguity (D018).",
+            "cited_anchor_ids": [
+              "D013",
+              "D014",
+              "D018"
+            ],
+            "insufficient_authority": true
+          },
+          "contract_ok": true,
+          "input_context_sha256": "854be57655eb1ffe3a871d513342310af00bafea937801b82c2b43f1e5cce5e6",
+          "input_question_sha256": "08798185f8ab25e7352067889d27d5ecedbf7940b368945ac1d27c8bd1bee0f7",
+          "model_receipt": {
+            "elapsed_seconds": 5.141,
+            "model": "gpt-5.6-luna"
+          },
+          "prompt_sha256": "e326a62b72c711da3da562e0333d6dbe20702b69a0bde40aad9d331139a8b544",
+          "raw_model_text": "{\"answer\":\"Yes. J. Moreno approved the temporary export exception for the Project Cinder migration window (D013). The supplied authority does not establish that J. Moreno is Julia Moreno: Julia’s directory profile does not make that connection (D014), and the roster includes both Julia Moreno and Julian Moreno, creating ambiguity (D018).\",\"cited_anchor_ids\":[\"D013\",\"D014\",\"D018\"],\"insufficient_authority\":true}"
+        }
+      },
+      "context_chars": 2295,
+      "context_sha256": "854be57655eb1ffe3a871d513342310af00bafea937801b82c2b43f1e5cce5e6",
+      "frozen_authority_status": "INSUFFICIENT_AUTHORITY",
+      "negative_control": true,
+      "question": "For Project Cinder, did J. Moreno approve the temporary export exception, and is J. Moreno the same person as Julia Moreno?",
+      "question_id": "DQ003",
+      "question_sha256": "08798185f8ab25e7352067889d27d5ecedbf7940b368945ac1d27c8bd1bee0f7",
+      "selected_anchor_ids": [
+        "D013",
+        "D014",
+        "D018",
+        "D016",
+        "D017",
+        "D015"
+      ]
+    },
+    "DQ004": {
+      "arms": {
+        "N": {
+          "call_index": 7,
+          "composer": {
+            "answer": "Yes. The EU-only archive option could satisfy Project Delta’s residency rule because it keeps archived records within the EU region (D020, D021). No: vendor capability alone does not authorize emergency access; authorization requires a declared identity-provider outage, incident commander approval, and a post-event audit (D023, D022).",
+            "cited_anchor_ids": [
+              "D020",
+              "D021",
+              "D023",
+              "D022"
+            ],
+            "insufficient_authority": false
+          },
+          "contract_ok": true,
+          "input_context_sha256": "79dca46bd75e9b44f825faffb0a3a16d5a22f3cda7216bd90bc91c2dba503bd0",
+          "input_question_sha256": "ce6d3dbdd8c135055166a92644a5990bd31268a27558569eb65b06042501de7b",
+          "model_receipt": {
+            "elapsed_seconds": 5.35,
+            "model": "gpt-5.6-luna"
+          },
+          "prompt_sha256": "cd3f45d14b8ac39473cda4ffd082aaafc2153f3f3f11628d93e3cd1a95bd85d2",
+          "raw_model_text": "{\"answer\":\"Yes. The EU-only archive option could satisfy Project Delta’s residency rule because it keeps archived records within the EU region (D020, D021). No: vendor capability alone does not authorize emergency access; authorization requires a declared identity-provider outage, incident commander approval, and a post-event audit (D023, D022).\",\"cited_anchor_ids\":[\"D020\",\"D021\",\"D023\",\"D022\"],\"insufficient_authority\":false}"
+        },
+        "O": {
+          "call_index": 8,
+          "composer": {
+            "answer": "Yes. The EU-only archive option could satisfy Project Delta’s residency rule because it keeps archived records within the EU, and the rule does not require proof of a currently deployed configuration for that question (D020, D021). No. Vendor capability alone does not authorize emergency access; local emergency login is authorized only during a declared identity-provider outage, with incident commander approval and a post-event audit (D022, D023).",
+            "cited_anchor_ids": [
+              "D020",
+              "D021",
+              "D022",
+              "D023"
+            ],
+            "insufficient_authority": false
+          },
+          "contract_ok": true,
+          "input_context_sha256": "79dca46bd75e9b44f825faffb0a3a16d5a22f3cda7216bd90bc91c2dba503bd0",
+          "input_question_sha256": "ce6d3dbdd8c135055166a92644a5990bd31268a27558569eb65b06042501de7b",
+          "model_receipt": {
+            "elapsed_seconds": 4.612,
+            "model": "gpt-5.6-luna"
+          },
+          "prompt_sha256": "1ff7f7c01dce3413f8a6824cd87655e3fc9942e924de92eadcb0fc42cf5e8c7d",
+          "raw_model_text": "{\"answer\":\"Yes. The EU-only archive option could satisfy Project Delta’s residency rule because it keeps archived records within the EU, and the rule does not require proof of a currently deployed configuration for that question (D020, D021). No. Vendor capability alone does not authorize emergency access; local emergency login is authorized only during a declared identity-provider outage, with incident commander approval and a post-event audit (D022, D023).\",\"cited_anchor_ids\":[\"D020\",\"D021\",\"D022\",\"D023\"],\"insufficient_authority\":false}"
+        }
+      },
+      "context_chars": 2354,
+      "context_sha256": "79dca46bd75e9b44f825faffb0a3a16d5a22f3cda7216bd90bc91c2dba503bd0",
+      "frozen_authority_status": "SUFFICIENT_WITH_CONFLATION_RISK",
+      "negative_control": false,
+      "question": "For Project Delta, could the EU-only archive option satisfy the customer's residency rule, and does vendor capability by itself authorize emergency access?",
+      "question_id": "DQ004",
+      "question_sha256": "ce6d3dbdd8c135055166a92644a5990bd31268a27558569eb65b06042501de7b",
+      "selected_anchor_ids": [
+        "D020",
+        "D025",
+        "D021",
+        "D023",
+        "D022",
+        "D006"
+      ]
+    },
+    "DQ005": {
+      "arms": {
+        "N": {
+          "call_index": 10,
+          "composer": {
+            "answer": "Project Ember was caused by a retry storm; disabling the retry loop reduced request amplification and checkout latency, supporting the retry path as the cause (D027, D028). The initial cache-eviction hypothesis should be treated as unconfirmed and was later rejected as the root cause after trace review (D026, D028). The later correction changed the affected-region count from three to two but explicitly did not reverse the retry-storm root-cause assessment (D029).",
+            "cited_anchor_ids": [
+              "D027",
+              "D028",
+              "D026",
+              "D029"
+            ],
+            "insufficient_authority": false
+          },
+          "contract_ok": true,
+          "input_context_sha256": "72a2e6da8f4e6e6d58800015d33e785a96e21ce858e96408b2de117a595ce706",
+          "input_question_sha256": "f8b2851a2166127295bf0d9a09ab4b4272b27697336ef1f12e80c55918f0c522",
+          "model_receipt": {
+            "elapsed_seconds": 4.615,
+            "model": "gpt-5.6-luna"
+          },
+          "prompt_sha256": "c71d740333143aff7a0083a90ff2f942e67724d7e318b0b0bfbdd7bd4a94fe57",
+          "raw_model_text": "{\"answer\":\"Project Ember was caused by a retry storm; disabling the retry loop reduced request amplification and checkout latency, supporting the retry path as the cause (D027, D028). The initial cache-eviction hypothesis should be treated as unconfirmed and was later rejected as the root cause after trace review (D026, D028). The later correction changed the affected-region count from three to two but explicitly did not reverse the retry-storm root-cause assessment (D029).\",\"cited_anchor_ids\":[\"D027\",\"D028\",\"D026\",\"D029\"],\"insufficient_authority\":false}"
+        },
+        "O": {
+          "call_index": 9,
+          "composer": {
+            "answer": "The incident was caused by a retry storm; disabling the retry loop reduced request amplification and checkout latency, supporting that assessment (D027, D028). The initial cache-eviction hypothesis was explicitly unconfirmed and was later rejected as the root cause despite correlated eviction activity (D026, D030). The later correction changed the affected-region count from three to two, but explicitly did not reverse the retry-storm root-cause assessment (D029).",
+            "cited_anchor_ids": [
+              "D027",
+              "D028",
+              "D026",
+              "D030",
+              "D029"
+            ],
+            "insufficient_authority": false
+          },
+          "contract_ok": true,
+          "input_context_sha256": "72a2e6da8f4e6e6d58800015d33e785a96e21ce858e96408b2de117a595ce706",
+          "input_question_sha256": "f8b2851a2166127295bf0d9a09ab4b4272b27697336ef1f12e80c55918f0c522",
+          "model_receipt": {
+            "elapsed_seconds": 5.146,
+            "model": "gpt-5.6-luna"
+          },
+          "prompt_sha256": "ee8d0c38cba0c4a28f0bac4c325431bbdbb862a9ad263cf730cb1bd4047a188d",
+          "raw_model_text": "{\"answer\":\"The incident was caused by a retry storm; disabling the retry loop reduced request amplification and checkout latency, supporting that assessment (D027, D028). The initial cache-eviction hypothesis was explicitly unconfirmed and was later rejected as the root cause despite correlated eviction activity (D026, D030). The later correction changed the affected-region count from three to two, but explicitly did not reverse the retry-storm root-cause assessment (D029).\",\"cited_anchor_ids\":[\"D027\",\"D028\",\"D026\",\"D030\",\"D029\"],\"insufficient_authority\":false}"
+        }
+      },
+      "context_chars": 2323,
+      "context_sha256": "72a2e6da8f4e6e6d58800015d33e785a96e21ce858e96408b2de117a595ce706",
+      "frozen_authority_status": "SUFFICIENT_WITH_CONFLATION_RISK",
+      "negative_control": false,
+      "question": "For Project Ember, what caused the incident, how should the initial cache hypothesis be treated, and did the later correction reverse the root-cause assessment?",
+      "question_id": "DQ005",
+      "question_sha256": "f8b2851a2166127295bf0d9a09ab4b4272b27697336ef1f12e80c55918f0c522",
+      "selected_anchor_ids": [
+        "D027",
+        "D028",
+        "D029",
+        "D026",
+        "D031",
+        "D030"
+      ]
+    },
+    "DQ006": {
+      "arms": {
+        "N": {
+          "call_index": 11,
+          "composer": {
+            "answer": "Rhea Kim was not generally opposed to serverless. Her signing requirement was narrower: for Project Fjord’s regulated release, the signing step had to remain off serverless because the approved key module was unavailable there; she explicitly said this was not a general objection to serverless (D032). The meeting paraphrase supports the same narrow interpretation (D034), and the compliance matrix confirms the module was mandatory (D035).",
+            "cited_anchor_ids": [
+              "D032",
+              "D034",
+              "D035"
+            ],
+            "insufficient_authority": false
+          },
+          "contract_ok": true,
+          "input_context_sha256": "c0435f2a5f3543aa6a7e05bd0f7491eb5127a8cad3835ec28d2f321a05bd40e7",
+          "input_question_sha256": "ed009c5d987d4640e89c3cfa12c7e60b571a88e9a6aec1b223cdffb07d22e9d4",
+          "model_receipt": {
+            "elapsed_seconds": 4.886,
+            "model": "gpt-5.6-luna"
+          },
+          "prompt_sha256": "56b4357cc27751b8feb47916c2695101b55d97b6d3cc1712bf8b00dd31f9f3b0",
+          "raw_model_text": "{\"answer\":\"Rhea Kim was not generally opposed to serverless. Her signing requirement was narrower: for Project Fjord’s regulated release, the signing step had to remain off serverless because the approved key module was unavailable there; she explicitly said this was not a general objection to serverless (D032). The meeting paraphrase supports the same narrow interpretation (D034), and the compliance matrix confirms the module was mandatory (D035).\",\"cited_anchor_ids\":[\"D032\",\"D034\",\"D035\"],\"insufficient_authority\":false}"
+        },
+        "O": {
+          "call_index": 12,
+          "composer": {
+            "answer": "Rhea Kim’s requirement was narrower: for the regulated release, she wanted only the signing step kept off serverless because the approved key module was unavailable there, and she explicitly said this was not a general objection to serverless (D032). The compliance matrix also made that key module mandatory for the release (D035), while meeting notes characterized her position as a conservative signing path rather than general opposition (D034).",
+            "cited_anchor_ids": [
+              "D032",
+              "D035",
+              "D034"
+            ],
+            "insufficient_authority": false
+          },
+          "contract_ok": true,
+          "input_context_sha256": "c0435f2a5f3543aa6a7e05bd0f7491eb5127a8cad3835ec28d2f321a05bd40e7",
+          "input_question_sha256": "ed009c5d987d4640e89c3cfa12c7e60b571a88e9a6aec1b223cdffb07d22e9d4",
+          "model_receipt": {
+            "elapsed_seconds": 5.118,
+            "model": "gpt-5.6-luna"
+          },
+          "prompt_sha256": "e78945ca37f8633fb9315f1dd9c6cc9a7190164f89a459deef1bfe2b0e56695a",
+          "raw_model_text": "{\"answer\":\"Rhea Kim’s requirement was narrower: for the regulated release, she wanted only the signing step kept off serverless because the approved key module was unavailable there, and she explicitly said this was not a general objection to serverless (D032). The compliance matrix also made that key module mandatory for the release (D035), while meeting notes characterized her position as a conservative signing path rather than general opposition (D034).\",\"cited_anchor_ids\":[\"D032\",\"D035\",\"D034\"],\"insufficient_authority\":false}"
+        }
+      },
+      "context_chars": 2268,
+      "context_sha256": "c0435f2a5f3543aa6a7e05bd0f7491eb5127a8cad3835ec28d2f321a05bd40e7",
+      "frozen_authority_status": "SUFFICIENT_CLEAN",
+      "negative_control": false,
+      "question": "For Project Fjord, was Rhea Kim generally opposed to serverless, or was her signing requirement narrower?",
+      "question_id": "DQ006",
+      "question_sha256": "ed009c5d987d4640e89c3cfa12c7e60b571a88e9a6aec1b223cdffb07d22e9d4",
+      "selected_anchor_ids": [
+        "D034",
+        "D032",
+        "D036",
+        "D033",
+        "D035",
+        "D038"
+      ]
+    },
+    "DQ007": {
+      "arms": {
+        "N": {
+          "call_index": 14,
+          "composer": {
+            "answer": "We raised Project Grove’s queue capacity from 12k to 20k because the project team recorded that repeated month-close backlog was disrupting reconciliation [D038]. The issue was shown to be repeated by two independent month-close observations: June backlog exceeded 12k and drained only after the close window [D039], and July backlog again exceeded 12k during reconciliation [D040]. The separate daily spike was explicitly not a second month-close observation [D042].",
+            "cited_anchor_ids": [
+              "D038",
+              "D039",
+              "D040",
+              "D042"
+            ],
+            "insufficient_authority": false
+          },
+          "contract_ok": true,
+          "input_context_sha256": "b39999df5e529fc1e8212d9f853c80419a35a6e7273b936874a827430b6fda52",
+          "input_question_sha256": "4c80622613b09fa78ae732f5d9dcc32d4b5b2d3f0457b94b1a2259d31984c378",
+          "model_receipt": {
+            "elapsed_seconds": 5.239,
+            "model": "gpt-5.6-luna"
+          },
+          "prompt_sha256": "d2e8207ff6fe35dec48232aecb76adfd19438274f95a5c906b9b4ff5925f6440",
+          "raw_model_text": "{\"answer\":\"We raised Project Grove’s queue capacity from 12k to 20k because the project team recorded that repeated month-close backlog was disrupting reconciliation [D038]. The issue was shown to be repeated by two independent month-close observations: June backlog exceeded 12k and drained only after the close window [D039], and July backlog again exceeded 12k during reconciliation [D040]. The separate daily spike was explicitly not a second month-close observation [D042].\",\"cited_anchor_ids\":[\"D038\",\"D039\",\"D040\",\"D042\"],\"insufficient_authority\":false}"
+        },
+        "O": {
+          "call_index": 13,
+          "composer": {
+            "answer": "We raised queue capacity from 12k to 20k because repeated month-close backlog was disrupting reconciliation, according to the project team's recorded decision (D038). The evidence that the issue was repeated was two independent month-close observations: the backlog exceeded 12k and drained only after the close window in June (D039), then again exceeded 12k during July reconciliation (D040). The unrelated daily spike was not a second month-close observation (D042).",
+            "cited_anchor_ids": [
+              "D038",
+              "D039",
+              "D040",
+              "D042"
+            ],
+            "insufficient_authority": false
+          },
+          "contract_ok": true,
+          "input_context_sha256": "b39999df5e529fc1e8212d9f853c80419a35a6e7273b936874a827430b6fda52",
+          "input_question_sha256": "4c80622613b09fa78ae732f5d9dcc32d4b5b2d3f0457b94b1a2259d31984c378",
+          "model_receipt": {
+            "elapsed_seconds": 5.906,
+            "model": "gpt-5.6-luna"
+          },
+          "prompt_sha256": "7b56984849a4f636474d5a6d0a2d7bef5169d0f179c26da18fa872a18c2cf3db",
+          "raw_model_text": "{\"answer\":\"We raised queue capacity from 12k to 20k because repeated month-close backlog was disrupting reconciliation, according to the project team's recorded decision (D038). The evidence that the issue was repeated was two independent month-close observations: the backlog exceeded 12k and drained only after the close window in June (D039), then again exceeded 12k during July reconciliation (D040). The unrelated daily spike was not a second month-close observation (D042).\",\"cited_anchor_ids\":[\"D038\",\"D039\",\"D040\",\"D042\"],\"insufficient_authority\":false}"
+        }
+      },
+      "context_chars": 2193,
+      "context_sha256": "b39999df5e529fc1e8212d9f853c80419a35a6e7273b936874a827430b6fda52",
+      "frozen_authority_status": "SUFFICIENT_WITH_CONFLATION_RISK",
+      "negative_control": false,
+      "question": "For Project Grove, why did we raise queue capacity, and what evidence made the month-close issue repeated?",
+      "question_id": "DQ007",
+      "question_sha256": "4c80622613b09fa78ae732f5d9dcc32d4b5b2d3f0457b94b1a2259d31984c378",
+      "selected_anchor_ids": [
+        "D038",
+        "D039",
+        "D040",
+        "D042",
+        "D041",
+        "D043"
+      ]
+    },
+    "DQ008": {
+      "arms": {
+        "N": {
+          "call_index": 15,
+          "composer": {
+            "answer": "Yes. Harbor Next is the same project as Harbor Classic: the rename used project key HBR-7 and did not create a new project [D044]. Harbor Analytics is a separate project with key HBA-2 and does not belong to Harbor Next merely because its name is similar [D047].",
+            "cited_anchor_ids": [
+              "D044",
+              "D047"
+            ],
+            "insufficient_authority": false
+          },
+          "contract_ok": true,
+          "input_context_sha256": "4af61675f44ee79781e0b888ca6513cb6baf3faf8075eb15c609e1cecce48638",
+          "input_question_sha256": "c342da88a445e546c54aee2da362e237eb94be8b72b3eed0fe82de2b05ab6aa4",
+          "model_receipt": {
+            "elapsed_seconds": 4.789,
+            "model": "gpt-5.6-luna"
+          },
+          "prompt_sha256": "c5d377cb1ffed4d9facb5f9adcba4dd69d3c46af447d7c7b24e474d16aca25fe",
+          "raw_model_text": "{\"answer\":\"Yes. Harbor Next is the same project as Harbor Classic: the rename used project key HBR-7 and did not create a new project [D044]. Harbor Analytics is a separate project with key HBA-2 and does not belong to Harbor Next merely because its name is similar [D047].\",\"cited_anchor_ids\":[\"D044\",\"D047\"],\"insufficient_authority\":false}"
+        },
+        "O": {
+          "call_index": 16,
+          "composer": {
+            "answer": "Yes. Harbor Next is the same project as Harbor Classic: it was renamed under project key HBR-7, and the rename did not create a new project (D044); the archive also says former-name documents remain searchable (D049). Harbor Analytics does not belong to it: it is a separate project with key HBA-2, and similar naming does not make it part of Harbor Next (D047).",
+            "cited_anchor_ids": [
+              "D044",
+              "D049",
+              "D047"
+            ],
+            "insufficient_authority": false
+          },
+          "contract_ok": true,
+          "input_context_sha256": "4af61675f44ee79781e0b888ca6513cb6baf3faf8075eb15c609e1cecce48638",
+          "input_question_sha256": "c342da88a445e546c54aee2da362e237eb94be8b72b3eed0fe82de2b05ab6aa4",
+          "model_receipt": {
+            "elapsed_seconds": 4.158,
+            "model": "gpt-5.6-luna"
+          },
+          "prompt_sha256": "3ae3ca664fb8ad14555e2e14bcace70b352a3d163a635fbb15e2f6e004e80bfc",
+          "raw_model_text": "{\"answer\":\"Yes. Harbor Next is the same project as Harbor Classic: it was renamed under project key HBR-7, and the rename did not create a new project (D044); the archive also says former-name documents remain searchable (D049). Harbor Analytics does not belong to it: it is a separate project with key HBA-2, and similar naming does not make it part of Harbor Next (D047).\",\"cited_anchor_ids\":[\"D044\",\"D049\",\"D047\"],\"insufficient_authority\":false}"
+        }
+      },
+      "context_chars": 2006,
+      "context_sha256": "4af61675f44ee79781e0b888ca6513cb6baf3faf8075eb15c609e1cecce48638",
+      "frozen_authority_status": "SUFFICIENT_CLEAN",
+      "negative_control": false,
+      "question": "For Project Harbor, is Harbor Next the same project as Harbor Classic after the rename, and does the similarly named Harbor Analytics belong to it?",
+      "question_id": "DQ008",
+      "question_sha256": "c342da88a445e546c54aee2da362e237eb94be8b72b3eed0fe82de2b05ab6aa4",
+      "selected_anchor_ids": [
+        "D049",
+        "D044",
+        "D047",
+        "D048",
+        "D046",
+        "D045"
+      ]
+    }
+  },
+  "prereg_merge_sha": "1e5a3f991d0c3b76552725933149702ff6e53d15",
+  "request": {
+    "arm_order_by_question": {
+      "DQ001": [
+        "O",
+        "N"
+      ],
+      "DQ002": [
+        "N",
+        "O"
+      ],
+      "DQ003": [
+        "O",
+        "N"
+      ],
+      "DQ004": [
+        "N",
+        "O"
+      ],
+      "DQ005": [
+        "O",
+        "N"
+      ],
+      "DQ006": [
+        "N",
+        "O"
+      ],
+      "DQ007": [
+        "O",
+        "N"
+      ],
+      "DQ008": [
+        "N",
+        "O"
+      ]
+    },
+    "arms": [
+      "O",
+      "N"
+    ],
+    "max_ai_credits_per_call": 30,
+    "max_model_call_attempts": 16,
+    "model": "gpt-5.6-luna",
+    "new_composer_calls": 8,
+    "old_composer_calls": 8,
+    "planner_calls": 0,
+    "question_count": 8,
+    "question_order": [
+      "DQ001",
+      "DQ002",
+      "DQ003",
+      "DQ004",
+      "DQ005",
+      "DQ006",
+      "DQ007",
+      "DQ008"
+    ],
+    "request_id": "e023-g1f-composition-comparison-v0",
+    "rerolls": 0,
+    "retrieval_model_calls": 0,
+    "selector_calls": 0
+  },
+  "semantic_promotion": "PENDING_FROZEN_ADJUDICATION",
+  "usage": {
+    "ai_credits_or_premium_requests": "unavailable_do_not_infer",
+    "model_calls": 16,
+    "tokens": "unavailable_unless_transport_exposes_machine_readable_usage"
+  }
+}
