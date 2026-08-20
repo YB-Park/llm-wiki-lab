@@ -1,0 +1,47 @@
+name: Validate E023 G1e prereg
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/g1e-preregistration-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1e_prereg.py'
+      - 'experiments/E023-generality-retrieval-composition/authority-sufficiency-v2/**'
+      - '.github/workflows/validate-e023-g1e-prereg.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/g1e-preregistration-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1e_prereg.py'
+      - 'experiments/E023-generality-retrieval-composition/authority-sufficiency-v2/**'
+      - '.github/workflows/validate-e023-g1e-prereg.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-g1e-prereg-zero-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile G1e Phase 0 validator
+        run: python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_g1e_prereg.py
+      - name: Run prospective zero-model authority gate
+        env:
+          PYTHONPATH: experiments/E023-generality-retrieval-composition
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/validate_g1e_prereg.py \
+            | tee /tmp/e023-g1e-prereg.txt
+          grep -q '^E023 G1e prereg Phase 0 validation: PASS$' /tmp/e023-g1e-prereg.txt
+          grep -q '"model_calls": 0' /tmp/e023-g1e-prereg.txt
+          grep -q '"anchor_count": 35' /tmp/e023-g1e-prereg.txt
+          grep -q '"question_count": 8' /tmp/e023-g1e-prereg.txt
+          grep -q '"phase0_authority_gate": "PASS"' /tmp/e023-g1e-prereg.txt
+          grep -q '"B6_authority_improvements": 2' /tmp/e023-g1e-prereg.txt
+          grep -q '"B6_authority_regressions": 0' /tmp/e023-g1e-prereg.txt
+          grep -q '"planned_semantic_calls_if_separately_executed": 16' /tmp/e023-g1e-prereg.txt
+          grep -q '"semantic_calls_authorized_on_this_pr": false' /tmp/e023-g1e-prereg.txt
+          grep -q '"top6_product_policy_authorized": false' /tmp/e023-g1e-prereg.txt
