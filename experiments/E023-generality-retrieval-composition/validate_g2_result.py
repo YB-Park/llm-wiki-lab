@@ -58,7 +58,6 @@ def main() -> int:
     assert len(result["projection_builds"]) == 5
     assert all(row["contract_ok"] for row in result["projection_builds"])
 
-    # Stale guards must reproduce exact Q terminal contexts.
     for qid in ["PQ007", "PQ011"]:
         pair = result["pairs"][qid]
         assert pair["P"]["selection_mode"] == "STALE_PROJECTION_BYPASS"
@@ -89,8 +88,10 @@ def main() -> int:
 
     q_sem = counts(adjudication["Q_semantic_verdicts"])
     p_sem = counts(adjudication["P_semantic_verdicts"])
-    assert q_sem == {"PASS": 10, "PARTIAL": 0, "FAIL_RETRIEVAL": 0, "FAIL_COMPOSITION": 0, "CRITICAL_ERROR": 2}
+    assert q_sem == {"PASS": 9, "PARTIAL": 0, "FAIL_RETRIEVAL": 1, "FAIL_COMPOSITION": 0, "CRITICAL_ERROR": 2}
     assert p_sem == {"PASS": 8, "PARTIAL": 0, "FAIL_RETRIEVAL": 1, "FAIL_COMPOSITION": 0, "CRITICAL_ERROR": 3}
+    assert adjudication["semantic_summary"]["Q"] == q_sem
+    assert adjudication["semantic_summary"]["P"] == p_sem
     summary = adjudication["semantic_summary"]
     assert summary["P_paired_semantic_improvements_vs_Q"] == 2
     assert summary["P_paired_semantic_regressions_vs_Q"] == 3
