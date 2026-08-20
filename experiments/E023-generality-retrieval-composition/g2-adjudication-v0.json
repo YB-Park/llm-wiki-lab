@@ -1,0 +1,133 @@
+{
+  "adjudication_version": 1,
+  "experiment": "E023-G2",
+  "run": {
+    "run_id": 32353304896,
+    "execution_source_sha": "3cf65d7255b8edc73a9d8cb3d13338e019cc92f8",
+    "prereg_merge_sha": "080ac3d91d011be3ec16111bdc24eda9905f3d9c",
+    "evidence_commit_sha": "c0a1cb01fbff29910c270283106217a111d00057",
+    "exact_model": "gpt-5.6-luna",
+    "model_call_attempts": 29,
+    "semantic_rerolls": 0,
+    "planner_calls": 0,
+    "selector_calls": 0,
+    "vector_calls": 0,
+    "projection_build_rebuild_calls": 5,
+    "result_sha256": "f241d3059bb174aacff84f2e54ad30ed390fc575c8141a2965558fe93dd9adfa",
+    "execution_complete": true,
+    "workflow_conclusion": "success"
+  },
+  "Q_semantic_verdicts": {
+    "PQ001": {"verdict":"PASS","root_cause":"NONE","reason":"The answer preserves P001 as the project-owned rollout decision and P002 as supporting drill evidence."},
+    "PQ002": {"verdict":"PASS","root_cause":"NONE","reason":"The answer distinguishes Dana Cho direct authorship P003/P006 from meeting-note attribution P005 and does not rely on role proximity."},
+    "PQ003": {"verdict":"PASS","root_cause":"NONE","reason":"The answer correctly separates could-satisfy residency from proof of deployed compliance using P008/P009/P010."},
+    "PQ004": {"verdict":"CRITICAL_ERROR","root_cause":"RETRIEVAL_INSUFFICIENT_UNSAFE_COMPOSITION","reason":"Q omits prospectively required broader portfolio authority P004 but still gives the full general-characterization answer with insufficient_authority=false."},
+    "PQ005": {"verdict":"PASS","root_cause":"NONE","reason":"The answer preserves customer authorization P015, vendor capability P016, audit obligation P017, and rejects sales-language override."},
+    "PQ006": {"verdict":"PASS","root_cause":"NONE","reason":"The answer preserves P013 as the team-owned capacity decision and uses P014 as the single June supporting observation without inventing a second close."},
+    "PQ007": {"verdict":"PASS","root_cause":"NONE","reason":"On the authority-incomplete stale-gap control context, Q correctly refuses to claim repeated month-close evidence and sets insufficient_authority=true."},
+    "PQ008": {"verdict":"CRITICAL_ERROR","root_cause":"RETRIEVAL_INSUFFICIENT_UNSAFE_COMPOSITION","reason":"Q lacks required P021 second independent close observation but claims repetition from P014 plus P022 and marks authority sufficient."},
+    "PQ009": {"verdict":"PASS","root_cause":"NONE","reason":"The answer distinguishes P025 project-owned decision from governing external customer policy P026."},
+    "PQ010": {"verdict":"PASS","root_cause":"NONE","reason":"The answer correctly states that P027 vendor 90-day capability does not authorize changing retention under P026 current policy."},
+    "PQ011": {"verdict":"PASS","root_cause":"NONE","reason":"The current 90-day policy P033, superseding user-owned decision P034, implementation P035, and historical 30-day decision are handled correctly."},
+    "PQ012": {"verdict":"PASS","root_cause":"NONE","reason":"After rebuild, Q preserves P033 current policy and P034 user-owned superseding decision and keeps the old 30-day decision historical."}
+  },
+  "P_semantic_verdicts": {
+    "PQ001": {"verdict":"PASS","root_cause":"NONE","reason":"The persistent arm preserves the project-owned decision and supporting drill evidence with a smaller terminal context."},
+    "PQ002": {"verdict":"PASS","root_cause":"NONE","reason":"Direct versus attributed authorship is preserved and role-proximity distractor P011 is excluded."},
+    "PQ003": {"verdict":"PASS","root_cause":"NONE","reason":"Could-satisfy residency and deployed-compliance uncertainty remain correctly separated."},
+    "PQ004": {"verdict":"PASS","root_cause":"NONE","reason":"Fresh projection retrieval recovers P004 and the answer safely combines P003 narrow exception with broader portfolio evidence."},
+    "PQ005": {"verdict":"PASS","root_cause":"NONE","reason":"Policy, capability, audit obligation, and non-authoritative sales language remain correctly separated."},
+    "PQ006": {"verdict":"PASS","root_cause":"NONE","reason":"The answer preserves the team-owned decision and the June observation without inventing repeated evidence."},
+    "PQ007": {"verdict":"CRITICAL_ERROR","root_cause":"IDENTICAL_BYPASS_CONTEXT_UNSUPPORTED_REPETITION","reason":"The stale guard correctly bypasses to the exact Q context, but this separate Luna call nevertheless treats P022 as evidence completing repetition and sets insufficient_authority=false despite the frozen context missing required P021. The input/prompt is identical to Q, so this regression is model-call variance rather than stale-projection selection."},
+    "PQ008": {"verdict":"FAIL_RETRIEVAL","root_cause":"PERSISTENT_RETRIEVAL_MISSES_SECOND_CLOSE_AUTHORITY","reason":"The rebuilt projection contains P021, but query-time projection retrieval does not select it. P safely reports insufficient authority rather than inventing repetition."},
+    "PQ009": {"verdict":"CRITICAL_ERROR","root_cause":"PERSISTENT_RETRIEVAL_GOVERNING_POLICY_OMISSION","reason":"P omits governing external policy P026 and presents the project-owned decision/meeting record as the governing customer requirement while marking authority sufficient."},
+    "PQ010": {"verdict":"PASS","root_cause":"NONE","reason":"Vendor capability is correctly kept separate from customer authorization and P026/P027 are both present."},
+    "PQ011": {"verdict":"PASS","root_cause":"NONE","reason":"The stale S0 projection is bypassed exactly; the current 90-day policy and superseding decision are answered without stale/current inversion."},
+    "PQ012": {"verdict":"CRITICAL_ERROR","root_cause":"PERSISTENT_RETRIEVAL_SUPERSEDING_DECISION_OMISSION","reason":"The rebuilt projection contains P034 but top-2 retrieval omits it. P answers the current project decision and supersession as sufficient using policy/implementation/history anchors without the required user-owned superseding decision authority."}
+  },
+  "authority_summary": {
+    "fresh_query_ids": ["PQ001","PQ002","PQ003","PQ004","PQ005","PQ006","PQ008","PQ009","PQ010","PQ012"],
+    "P_authority_improvements_vs_Q": ["PQ002","PQ003","PQ004","PQ006","PQ010"],
+    "P_authority_regressions_vs_Q": ["PQ009","PQ012"],
+    "required_opportunity_PQ004_improved": true,
+    "required_opportunity_PQ008_improved": false,
+    "PQ007_exact_stale_bypass": true,
+    "PQ011_exact_stale_bypass": true
+  },
+  "semantic_summary": {
+    "Q": {"PASS":10,"PARTIAL":0,"FAIL_RETRIEVAL":0,"FAIL_COMPOSITION":0,"CRITICAL_ERROR":2},
+    "P": {"PASS":8,"PARTIAL":0,"FAIL_RETRIEVAL":1,"FAIL_COMPOSITION":0,"CRITICAL_ERROR":3},
+    "P_paired_semantic_improvements_vs_Q": 2,
+    "P_paired_semantic_improvement_ids": ["PQ004","PQ008"],
+    "P_paired_semantic_regressions_vs_Q": 3,
+    "P_paired_semantic_regression_ids": ["PQ007","PQ009","PQ012"],
+    "P_new_critical_errors_vs_Q": 3,
+    "P_new_critical_error_ids": ["PQ007","PQ009","PQ012"],
+    "P_stale_or_unsupported_load_bearing_claims": 3,
+    "P_terminal_citation_shape_valid": true,
+    "P_load_bearing_citation_support_passed": false,
+    "PQ011_primary_stale_negative_control": "PASS",
+    "PQ012_post_rebuild_correction_verdict": "CRITICAL_ERROR",
+    "frozen_final_promotion": "NOT_EARNED"
+  },
+  "evidence_efficiency": {
+    "fresh_query_count": 10,
+    "P_selected_raw_terminal_evidence_chars": 7019,
+    "Q_selected_raw_terminal_evidence_chars": 10282,
+    "P_over_Q_ratio": 0.6826492900213966,
+    "maximum_allowed_ratio": 0.85,
+    "criterion_passed": true
+  },
+  "projection_lifecycle": {
+    "build_rebuild_calls": 5,
+    "all_projection_contracts_ok": true,
+    "query_time_projection_compiler_calls": 0,
+    "stale_bypass_guard_passed": true,
+    "projection_text_entered_composer_context": false
+  },
+  "promotion_arithmetic": {
+    "execution_integrity_passed": true,
+    "both_required_fresh_authority_opportunities_improved": false,
+    "zero_other_fresh_authority_regressions": false,
+    "stale_guards_exact": true,
+    "PQ011_stale_negative_control_passed": true,
+    "PQ012_post_rebuild_passed": false,
+    "P_PASS_count": 8,
+    "required_P_PASS_count": 10,
+    "paired_semantic_improvements": 2,
+    "required_paired_semantic_improvements": 2,
+    "paired_semantic_regressions": 3,
+    "allowed_semantic_regressions": 0,
+    "new_critical_errors": 3,
+    "allowed_new_critical_errors": 0,
+    "unsupported_load_bearing_claims": 3,
+    "allowed_unsupported_load_bearing_claims": 0,
+    "fresh_evidence_efficiency_passed": true,
+    "projection_call_budget_passed": true,
+    "promotion": "NOT_EARNED",
+    "binding_failures": [
+      "PQ008_REQUIRED_AUTHORITY_OPPORTUNITY_NOT_IMPROVED",
+      "FRESH_AUTHORITY_REGRESSIONS_2_GT_ALLOWED_0",
+      "PQ012_POST_REBUILD_VERDICT_CRITICAL_ERROR",
+      "P_PASS_COUNT_8_LT_REQUIRED_10",
+      "P_SEMANTIC_REGRESSIONS_3_GT_ALLOWED_0",
+      "P_NEW_CRITICAL_ERRORS_3_GT_ALLOWED_0",
+      "P_UNSUPPORTED_LOAD_BEARING_CLAIMS_3_GT_ALLOWED_0"
+    ]
+  },
+  "causal_interpretation": {
+    "earned_signals": [
+      "stale snapshot detection and exact-Q bypass worked on PQ007 and PQ011",
+      "all five query-blind projection builds/rebuilds preserved every terminal anchor in projection state",
+      "PQ004 fresh persistence retrieval repaired one prospectively frozen Q authority miss",
+      "fresh-query selected terminal evidence characters fell to 68.3 percent of Q"
+    ],
+    "mechanism_failures": [
+      "PQ008 required P021 existed in rebuilt projection but projection-statement retrieval did not select it",
+      "PQ009 governing policy P026 existed in projection but top-2 entry selection omitted it and caused an authority/semantic regression",
+      "PQ012 superseding user-owned decision P034 existed in projection but top-2 entry selection omitted it and caused an authority/semantic regression"
+    ],
+    "noncausal_variance_note": "PQ007 P and Q used the exact same selected anchors, rendered context, question, and prompt after stale bypass; their semantic difference is model-call variance, not a persistence-selection difference. The frozen paired-regression rule still counts the observed P regression and is not weakened.",
+    "decision": "Fixed-identity persistence candidate NOT_EARNED. Do not tune top-k or rerun PQ material semantically. Do not authorize product persistence or G3 identity/routing."
+  }
+}
