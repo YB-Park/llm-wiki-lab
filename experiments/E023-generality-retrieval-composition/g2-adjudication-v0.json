@@ -24,7 +24,7 @@
     "PQ004": {"verdict":"CRITICAL_ERROR","root_cause":"RETRIEVAL_INSUFFICIENT_UNSAFE_COMPOSITION","reason":"Q omits prospectively required broader portfolio authority P004 but still gives the full general-characterization answer with insufficient_authority=false."},
     "PQ005": {"verdict":"PASS","root_cause":"NONE","reason":"The answer preserves customer authorization P015, vendor capability P016, audit obligation P017, and rejects sales-language override."},
     "PQ006": {"verdict":"PASS","root_cause":"NONE","reason":"The answer preserves P013 as the team-owned capacity decision and uses P014 as the single June supporting observation without inventing a second close."},
-    "PQ007": {"verdict":"PASS","root_cause":"NONE","reason":"On the authority-incomplete stale-gap control context, Q correctly refuses to claim repeated month-close evidence and sets insufficient_authority=true."},
+    "PQ007": {"verdict":"FAIL_RETRIEVAL","root_cause":"CONTROL_RETRIEVAL_MISSES_SECOND_CLOSE_AUTHORITY","reason":"Q is authority-incomplete because P021 is outside top-6. The composer behaves safely by refusing to claim repetition and setting insufficient_authority=true, so this is a retrieval failure rather than an unsafe composition failure."},
     "PQ008": {"verdict":"CRITICAL_ERROR","root_cause":"RETRIEVAL_INSUFFICIENT_UNSAFE_COMPOSITION","reason":"Q lacks required P021 second independent close observation but claims repetition from P014 plus P022 and marks authority sufficient."},
     "PQ009": {"verdict":"PASS","root_cause":"NONE","reason":"The answer distinguishes P025 project-owned decision from governing external customer policy P026."},
     "PQ010": {"verdict":"PASS","root_cause":"NONE","reason":"The answer correctly states that P027 vendor 90-day capability does not authorize changing retention under P026 current policy."},
@@ -55,7 +55,7 @@
     "PQ011_exact_stale_bypass": true
   },
   "semantic_summary": {
-    "Q": {"PASS":10,"PARTIAL":0,"FAIL_RETRIEVAL":0,"FAIL_COMPOSITION":0,"CRITICAL_ERROR":2},
+    "Q": {"PASS":9,"PARTIAL":0,"FAIL_RETRIEVAL":1,"FAIL_COMPOSITION":0,"CRITICAL_ERROR":2},
     "P": {"PASS":8,"PARTIAL":0,"FAIL_RETRIEVAL":1,"FAIL_COMPOSITION":0,"CRITICAL_ERROR":3},
     "P_paired_semantic_improvements_vs_Q": 2,
     "P_paired_semantic_improvement_ids": ["PQ004","PQ008"],
