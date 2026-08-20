@@ -1,9 +1,24 @@
 # E024 — Wiki Query Plane / Main-LLM Token Firewall Gate
 
-Status: **ACTIVE / Q0+Q1 PROSPECTIVE GATE / NO PRODUCT RUNTIME CHANGE YET**
+Status: **Q1 L0 PROMOTION EARNED / Q2 ITERATIVE RETRIEVAL NOT YET EARNED / NO PRODUCT RUNTIME CHANGE IN E024**
 
 Tracking: Issue #204  
-Advisory precursor: `research/advisory-reviews/2026-08-20-luna-wiki-query-plane-review.md`
+Advisory precursor: `research/advisory-reviews/2026-08-20-luna-wiki-query-plane-review.md`  
+Frozen result: `q1-v2-results-v0.md`
+
+## Current result
+
+Valid semantic run **32379189525** completed 18/18 exact `gpt-5.6-luna` calls with zero rerolls. The Query Plane arm passed all 9 semantic cases with no critical errors or paired regressions.
+
+Main-Agent-visible context reduction was materially stronger than the preregistered gate:
+
+- median external-character ratio: **0.051865** vs frozen maximum 0.35;
+- maximum external-character ratio: **0.076169** vs frozen maximum 0.50;
+- largest serialized Wiki Brief: **583 characters** vs frozen maximum 2200.
+
+Therefore **Q1 earns the L0 Query Plane / token-firewall architecture candidate**.
+
+This does not earn iterative Luna retrieval. Q2 remains conditional on independent evidence that one-shot deterministic retrieval misses load-bearing authority.
 
 ## Question
 
@@ -51,7 +66,7 @@ Freeze what counts as success before any E024 semantic call:
 
 Q0 explicitly separates local model calls, token usage, and provider billing. Exact token/credit numbers are recorded only when the transport exposes them.
 
-### Q1 — L0 token-firewall comparison
+### Q1 — L0 token-firewall comparison — EARNED
 
 Hold **the exact retrieved authority context identical** across paired arms on new separated material.
 
@@ -60,9 +75,15 @@ Hold **the exact retrieved authority context identical** across paired arms on n
 
 Q1 asks whether compression/delegation itself is safe and valuable. It intentionally does **not** change retrieval.
 
-Primary hypothesis:
+Observed outcome: semantic parity was preserved on the frozen sample while Main-Agent-visible Wiki context fell to roughly 5% at the median.
 
-> Q can reduce Main-Agent-visible Wiki context by a large margin with no semantic regression, no new critical authority error, and terminal provenance preserved.
+See:
+
+- `q1-freeze-correction-v2.md` for the presemantic freeze correction history;
+- `evidence/q1-v2-run-32379189525/` for immutable raw evidence;
+- `q1-v2-adjudication-v0.json` for semantic adjudication;
+- `q1-v2-results-v0.md` for the gate result;
+- `validate_q1_v2_result.py` for zero-model gate arithmetic.
 
 ### Q2 — iterative evidence-follow, conditional
 
@@ -97,28 +118,36 @@ It deliberately includes:
 - a raw prompt-injection fixture explicitly stored as quoted data;
 - a true insufficient-authority case.
 
-The exact top-6 current mixed-authority context is prospectively frozen per question. Q1 does not tune retrieval after seeing model outputs.
+The exact top-6 current mixed-authority selected IDs were prospectively frozen per question. Q1 did not tune retrieval after seeing model outputs.
 
-## Promotion is strict
+## Freeze correction history
 
-Q1 earns the L0 Query Plane hypothesis only if all primary thresholds in `q1-evaluation-contract-v0.json` pass.
+The first execution contract contained bookkeeping defects in manually generated file/context hashes. CI caught both before Copilot installation or any semantic call. Those attempts are explicitly invalid/no-run history.
 
-A failure does not authorize prompt tuning on Q1 material.
+Q1-v2 simplified the source lock: the Git frozen-parent commit is the authority, the semantic execution commit changes only its signal file, and actual rendered context hashes/lengths are derived from the frozen sources + renderer and captured in immutable evidence.
 
-Interpret failures by root cause:
+No semantic threshold, question, selected ID, prompt, or model was weakened after outputs existed.
 
-- **retrieval/context insufficiency in both arms** -> candidate new Q2 retrieval question;
-- **Q-only semantic regression** -> Query Plane/brief contract not earned;
-- **provenance/authority violation** -> stop; trust boundary failure;
-- **token reduction weak but semantics good** -> token-firewall value not earned;
-- **transport/runtime failure** -> execution invalid, not a semantic verdict.
+## Q007 posthoc product observation
+
+The Q007 brief correctly answered Nimbus ownership from terminal RAW authority and did not cite DERIVED memory. It also included a true but non-load-bearing authorship fact without carrying that fact's R016 provenance in `terminal_refs`.
+
+This did not change the frozen semantic verdict because the load-bearing ownership proposition was fully grounded. It does suggest a product-contract tightening:
+
+> **A Wiki Brief should either omit non-load-bearing factual embellishment or include terminal provenance for it.**
+
+Do not use this observation to rewrite Q1 after the fact.
+
+## Competing hypotheses still open
+
+Q1 establishes that Luna-backed composition can provide a strong token firewall. It does not establish that Luna is necessary for every query. A deterministic bounded evidence packet remains a competing low-cost hypothesis and should be tested separately.
+
+Likewise, Q1 does not establish that iterative Luna retrieval is valuable. Agentic evidence-follow must earn itself on separated miss cases.
 
 ## Explicit non-authorizations
 
-E024 does not authorize:
+E024 Q1 does not authorize:
 
-- product runtime changes before the gate result is reviewed;
-- replacing `wikiMemory`/`wikiRead` diagnostics;
 - semantic persistence;
 - graph/entity/KU storage;
 - vector defaults;
@@ -128,6 +157,8 @@ E024 does not authorize:
 - silent fallback that dumps raw Wiki context into the Main Agent;
 - provider/model fallback away from exact Luna;
 - using DERIVED_MEMORY as terminal authority.
+
+A minimal L0 product prototype is now evidence-backed, but runtime mutation should live in its own implementation slice with explicit privacy/grant semantics and installed tests rather than being mixed into the experiment evidence PR.
 
 ## Why this is separate from E023
 
