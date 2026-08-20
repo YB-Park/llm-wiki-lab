@@ -1,0 +1,39 @@
+name: Validate E023 G1c-R1 selection counterfactual
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/analyze_g1c_r1_selection_counterfactual.py'
+      - 'experiments/E023-generality-retrieval-composition/g1c-r1-selection-counterfactual-v0.md'
+      - '.github/workflows/validate-e023-g1c-r1-selection-counterfactual.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/analyze_g1c_r1_selection_counterfactual.py'
+      - 'experiments/E023-generality-retrieval-composition/g1c-r1-selection-counterfactual-v0.md'
+      - '.github/workflows/validate-e023-g1c-r1-selection-counterfactual.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-zero-model-selection-counterfactual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile counterfactual analyzer
+        run: python3 -m py_compile experiments/E023-generality-retrieval-composition/analyze_g1c_r1_selection_counterfactual.py
+      - name: Validate frozen selection counterfactual
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/analyze_g1c_r1_selection_counterfactual.py \
+            | tee /tmp/e023-g1c-r1-selection-counterfactual.txt
+          grep -q '^E023 G1c-R1 zero-model selection counterfactual: PASS$' /tmp/e023-g1c-r1-selection-counterfactual.txt
+          grep -q '"model_calls": 0' /tmp/e023-g1c-r1-selection-counterfactual.txt
+          grep -q '"evaluator_used_for_selection": false' /tmp/e023-g1c-r1-selection-counterfactual.txt
+          grep -q '"SUFFICIENT_CLEAN": 6' /tmp/e023-g1c-r1-selection-counterfactual.txt
+          grep -q '"promotion_authorized": false' /tmp/e023-g1c-r1-selection-counterfactual.txt
+          grep -q '"semantic_calls_authorized": false' /tmp/e023-g1c-r1-selection-counterfactual.txt
