@@ -1,0 +1,94 @@
+{
+  "contexts": [
+    {
+      "context_chars": 7828,
+      "context_sha256": "a79ff121c201e64fa90bcc5e75a7664ca63323a63dd68f38c08c77541cff096c",
+      "question_id": "Q001",
+      "ranking": [
+        {"id": "H001", "rank": 1, "score": 6.749364087}, {"id": "R002", "rank": 2, "score": 5.399961379}, {"id": "R020", "rank": 3, "score": 4.962522864}, {"id": "R001", "rank": 4, "score": 4.784109526}, {"id": "H004", "rank": 5, "score": 2.881020528}, {"id": "R021", "rank": 6, "score": 2.705819115}, {"id": "R018", "rank": 7, "score": 2.671070252}, {"id": "R024", "rank": 8, "score": 2.550561952}, {"id": "H003", "rank": 9, "score": 2.496942973}, {"id": "R016", "rank": 10, "score": 2.496942973}, {"id": "R017", "rank": 11, "score": 2.496942973}, {"id": "H002", "rank": 12, "score": 2.435786676}, {"id": "R004", "rank": 13, "score": 2.435786676}, {"id": "R008", "rank": 14, "score": 2.435786676}, {"id": "R012", "rank": 15, "score": 2.435786676}, {"id": "R019", "rank": 16, "score": 2.435786676}, {"id": "R023", "rank": 17, "score": 2.435786676}, {"id": "R009", "rank": 18, "score": 2.369443811}, {"id": "R010", "rank": 19, "score": 2.369443811}, {"id": "R011", "rank": 20, "score": 2.369443811}, {"id": "R013", "rank": 21, "score": 2.369443811}, {"id": "R022", "rank": 22, "score": 2.369443811}, {"id": "R003", "rank": 23, "score": 2.297359422}, {"id": "R005", "rank": 24, "score": 2.297359422}, {"id": "R006", "rank": 25, "score": 2.297359422}, {"id": "R014", "rank": 26, "score": 2.297359422}, {"id": "R015", "rank": 27, "score": 2.297359422}, {"id": "D001", "rank": 28, "score": 2.068029933}
+      ],
+      "retrieval": "EXACT_BM25_TOP6_CURRENT_MIXED_AUTHORITY",
+      "selected_ids": ["H001", "R002", "R020", "R001", "H004", "R021"]
+    },
+    {
+      "context_chars": 7590,
+      "context_sha256": "bbf1f1e271422650d006c368ca57afab3ddbb31cd6abae4d1722405ef7b19c56",
+      "question_id": "Q002",
+      "ranking": [
+        {"id": "R003", "rank": 1, "score": 12.954975512}, {"id": "R004", "rank": 2, "score": 9.257855061}, {"id": "R005", "rank": 3, "score": 7.157149661}, {"id": "R010", "rank": 4, "score": 4.198842378}, {"id": "R022", "rank": 5, "score": 4.012264248}, {"id": "R012", "rank": 6, "score": 2.881020528}, {"id": "H001", "rank": 7, "score": 2.671070252}, {"id": "H004", "rank": 8, "score": 2.671070252}, {"id": "H002", "rank": 9, "score": 2.550561952}, {"id": "H003", "rank": 10, "score": 2.550561952}, {"id": "R002", "rank": 11, "score": 2.550561952}, {"id": "R008", "rank": 12, "score": 2.550561952}, {"id": "R016", "rank": 13, "score": 2.550561952}, {"id": "R017", "rank": 14, "score": 2.550561952}, {"id": "R018", "rank": 15, "score": 2.550561952}, {"id": "R019", "rank": 16, "score": 2.550561952}, {"id": "R020", "rank": 17, "score": 2.550561952}, {"id": "R021", "rank": 18, "score": 2.550561952}, {"id": "R023", "rank": 19, "score": 2.550561952}, {"id": "R024", "rank": 20, "score": 2.550561952}, {"id": "R009", "rank": 21, "score": 2.435786676}, {"id": "R011", "rank": 22, "score": 2.435786676}, {"id": "R013", "rank": 23, "score": 2.435786676}, {"id": "R001", "rank": 24, "score": 2.369443811}, {"id": "R006", "rank": 25, "score": 2.369443811}, {"id": "R014", "rank": 26, "score": 2.369443811}, {"id": "R015", "rank": 27, "score": 2.369443811}, {"id": "D001", "rank": 28, "score": 2.146134947}
+      ],
+      "retrieval": "EXACT_BM25_TOP6_CURRENT_MIXED_AUTHORITY",
+      "selected_ids": ["R003", "R004", "R005", "R010", "R022", "R012"]
+    },
+    {
+      "context_chars": 7761,
+      "context_sha256": "75a00777e26351cf709d36d16c33d582513c9dd6f6bf33a24d0be285f7df8c5b",
+      "question_id": "Q003",
+      "ranking": [
+        {"id": "H002", "rank": 1, "score": 10.039636009}, {"id": "R008", "rank": 2, "score": 5.640816993}, {"id": "R006", "rank": 3, "score": 5.014742004}, {"id": "H004", "rank": 4, "score": 2.881020528}, {"id": "H001", "rank": 5, "score": 2.671070252}, {"id": "R023", "rank": 6, "score": 2.671070252}, {"id": "H003", "rank": 7, "score": 2.550561952}, {"id": "R001", "rank": 8, "score": 2.550561952}, {"id": "R002", "rank": 9, "score": 2.550561952}, {"id": "R004", "rank": 10, "score": 2.550561952}, {"id": "R010", "rank": 11, "score": 2.550561952}, {"id": "R011", "rank": 12, "score": 2.550561952}, {"id": "R012", "rank": 13, "score": 2.550561952}, {"id": "R013", "rank": 14, "score": 2.550561952}, {"id": "R014", "rank": 15, "score": 2.550561952}, {"id": "R015", "rank": 16, "score": 2.550561952}, {"id": "R016", "rank": 17, "score": 2.550561952}, {"id": "R017", "rank": 18, "score": 2.550561952}, {"id": "R018", "rank": 19, "score": 2.550561952}, {"id": "R019", "rank": 20, "score": 2.550561952}, {"id": "R020", "rank": 21, "score": 2.550561952}, {"id": "R021", "rank": 22, "score": 2.550561952}, {"id": "R022", "rank": 23, "score": 2.550561952}, {"id": "R024", "rank": 24, "score": 2.550561952}, {"id": "R009", "rank": 25, "score": 2.435786676}, {"id": "R003", "rank": 26, "score": 2.369443811}, {"id": "R005", "rank": 27, "score": 2.369443811}, {"id": "D001", "rank": 28, "score": 2.146134947}
+      ],
+      "retrieval": "EXACT_BM25_TOP6_CURRENT_MIXED_AUTHORITY",
+      "selected_ids": ["H002", "R008", "R006", "H004", "H001", "R023"]
+    },
+    {
+      "context_chars": 7579,
+      "context_sha256": "d9dab62407ac2c99d69798f56dd098ef6cc312982b6c2fae95946276efc8b2c1",
+      "question_id": "Q004",
+      "ranking": [
+        {"id": "R010", "rank": 1, "score": 12.839591289}, {"id": "R009", "rank": 2, "score": 9.315469349}, {"id": "R023", "rank": 3, "score": 6.441327826}, {"id": "R011", "rank": 4, "score": 5.635875143}, {"id": "H002", "rank": 5, "score": 3.014912217}, {"id": "R005", "rank": 6, "score": 2.881020528}, {"id": "H001", "rank": 7, "score": 2.671070252}, {"id": "H003", "rank": 8, "score": 2.671070252}, {"id": "H004", "rank": 9, "score": 2.671070252}, {"id": "R002", "rank": 10, "score": 2.671070252}, {"id": "R004", "rank": 11, "score": 2.671070252}, {"id": "R008", "rank": 12, "score": 2.671070252}, {"id": "R012", "rank": 13, "score": 2.671070252}, {"id": "R013", "rank": 14, "score": 2.671070252}, {"id": "R016", "rank": 15, "score": 2.671070252}, {"id": "R017", "rank": 16, "score": 2.671070252}, {"id": "R018", "rank": 17, "score": 2.671070252}, {"id": "R019", "rank": 18, "score": 2.671070252}, {"id": "R020", "rank": 19, "score": 2.671070252}, {"id": "R021", "rank": 20, "score": 2.671070252}, {"id": "R022", "rank": 21, "score": 2.671070252}, {"id": "R024", "rank": 22, "score": 2.671070252}, {"id": "R003", "rank": 23, "score": 2.550561952}, {"id": "R006", "rank": 24, "score": 2.550561952}, {"id": "R014", "rank": 25, "score": 2.550561952}, {"id": "R015", "rank": 26, "score": 2.550561952}, {"id": "D001", "rank": 27, "score": 2.297359422}
+      ],
+      "retrieval": "EXACT_BM25_TOP6_CURRENT_MIXED_AUTHORITY",
+      "selected_ids": ["R010", "R009", "R023", "R011", "H002", "R005"]
+    },
+    {
+      "context_chars": 7836,
+      "context_sha256": "8b3198d32c907269356630f8014dc572d84b452ccfb7e76ff7e807ce30fd9790",
+      "question_id": "Q005",
+      "ranking": [
+        {"id": "R012", "rank": 1, "score": 12.969595477}, {"id": "R013", "rank": 2, "score": 6.451474771}, {"id": "H004", "rank": 3, "score": 2.881020528}, {"id": "R020", "rank": 4, "score": 2.881020528}, {"id": "R004", "rank": 5, "score": 2.671070252}, {"id": "R017", "rank": 6, "score": 2.671070252}, {"id": "H001", "rank": 7, "score": 2.550561952}, {"id": "H002", "rank": 8, "score": 2.550561952}, {"id": "H003", "rank": 9, "score": 2.550561952}, {"id": "R002", "rank": 10, "score": 2.550561952}, {"id": "R003", "rank": 11, "score": 2.550561952}, {"id": "R005", "rank": 12, "score": 2.550561952}, {"id": "R006", "rank": 13, "score": 2.550561952}, {"id": "R008", "rank": 14, "score": 2.550561952}, {"id": "R009", "rank": 15, "score": 2.550561952}, {"id": "R010", "rank": 16, "score": 2.550561952}, {"id": "R011", "rank": 17, "score": 2.550561952}, {"id": "R014", "rank": 18, "score": 2.550561952}, {"id": "R015", "rank": 19, "score": 2.550561952}, {"id": "R016", "rank": 20, "score": 2.550561952}, {"id": "R018", "rank": 21, "score": 2.550561952}, {"id": "R019", "rank": 22, "score": 2.550561952}, {"id": "R021", "rank": 23, "score": 2.550561952}, {"id": "R022", "rank": 24, "score": 2.550561952}, {"id": "R023", "rank": 25, "score": 2.550561952}, {"id": "R024", "rank": 26, "score": 2.550561952}, {"id": "D001", "rank": 27, "score": 2.297359422}, {"id": "R001", "rank": 28, "score": 2.273607158}
+      ],
+      "retrieval": "EXACT_BM25_TOP6_CURRENT_MIXED_AUTHORITY",
+      "selected_ids": ["R012", "R013", "H004", "R020", "R004", "R017"]
+    },
+    {
+      "context_chars": 7654,
+      "context_sha256": "734750420f65868c4d9c2b1dc10aa5a0e3e09c5f80d5b37252359f18ec770e91",
+      "question_id": "Q006",
+      "ranking": [
+        {"id": "H003", "rank": 1, "score": 10.718936081}, {"id": "R014", "rank": 2, "score": 9.93214062}, {"id": "R015", "rank": 3, "score": 9.783450846}, {"id": "R024", "rank": 4, "score": 4.478395474}, {"id": "H004", "rank": 5, "score": 2.881020528}, {"id": "H002", "rank": 6, "score": 2.671070252}, {"id": "H001", "rank": 7, "score": 2.550561952}, {"id": "R002", "rank": 8, "score": 2.550561952}, {"id": "R003", "rank": 9, "score": 2.550561952}, {"id": "R004", "rank": 10, "score": 2.550561952}, {"id": "R005", "rank": 11, "score": 2.550561952}, {"id": "R006", "rank": 12, "score": 2.550561952}, {"id": "R008", "rank": 13, "score": 2.550561952}, {"id": "R009", "rank": 14, "score": 2.550561952}, {"id": "R010", "rank": 15, "score": 2.550561952}, {"id": "R011", "rank": 16, "score": 2.550561952}, {"id": "R012", "rank": 17, "score": 2.550561952}, {"id": "R013", "rank": 18, "score": 2.550561952}, {"id": "R016", "rank": 19, "score": 2.550561952}, {"id": "R017", "rank": 20, "score": 2.550561952}, {"id": "R018", "rank": 21, "score": 2.550561952}, {"id": "R019", "rank": 22, "score": 2.550561952}, {"id": "R020", "rank": 23, "score": 2.550561952}, {"id": "R021", "rank": 24, "score": 2.550561952}, {"id": "R022", "rank": 25, "score": 2.550561952}, {"id": "R023", "rank": 26, "score": 2.550561952}, {"id": "D001", "rank": 27, "score": 2.297359422}, {"id": "R001", "rank": 28, "score": 2.273607158}
+      ],
+      "retrieval": "EXACT_BM25_TOP6_CURRENT_MIXED_AUTHORITY",
+      "selected_ids": ["H003", "R014", "R015", "R024", "H004", "H002"]
+    },
+    {
+      "context_chars": 7084,
+      "context_sha256": "cc6bba98a175fcb9e804918b2c064d1edbe01389de4f9b27793740633f5d0cef",
+      "question_id": "Q007",
+      "ranking": [
+        {"id": "D001", "rank": 1, "score": 18.899106968}, {"id": "R016", "rank": 2, "score": 17.046309079}, {"id": "R017", "rank": 3, "score": 10.049248365}, {"id": "R019", "rank": 4, "score": 3.014912217}, {"id": "R005", "rank": 5, "score": 2.881020528}, {"id": "R023", "rank": 6, "score": 2.881020528}, {"id": "H001", "rank": 7, "score": 2.671070252}, {"id": "H002", "rank": 8, "score": 2.671070252}, {"id": "H003", "rank": 9, "score": 2.671070252}, {"id": "H004", "rank": 10, "score": 2.671070252}, {"id": "R002", "rank": 11, "score": 2.671070252}, {"id": "R003", "rank": 12, "score": 2.671070252}, {"id": "R004", "rank": 13, "score": 2.671070252}, {"id": "R006", "rank": 14, "score": 2.671070252}, {"id": "R008", "rank": 15, "score": 2.671070252}, {"id": "R009", "rank": 16, "score": 2.671070252}, {"id": "R010", "rank": 17, "score": 2.671070252}, {"id": "R011", "rank": 18, "score": 2.671070252}, {"id": "R012", "rank": 19, "score": 2.671070252}, {"id": "R013", "rank": 20, "score": 2.671070252}, {"id": "R014", "rank": 21, "score": 2.671070252}, {"id": "R015", "rank": 22, "score": 2.671070252}, {"id": "R018", "rank": 23, "score": 2.671070252}, {"id": "R020", "rank": 24, "score": 2.671070252}, {"id": "R021", "rank": 25, "score": 2.671070252}, {"id": "R022", "rank": 26, "score": 2.671070252}, {"id": "R024", "rank": 27, "score": 2.671070252}, {"id": "R001", "rank": 28, "score": 2.496942973}
+      ],
+      "retrieval": "EXACT_BM25_TOP6_CURRENT_MIXED_AUTHORITY",
+      "selected_ids": ["D001", "R016", "R017", "R019", "R005", "R023"]
+    },
+    {
+      "context_chars": 7693,
+      "context_sha256": "91444843806f281b1bbac4d601541509031220619eb771ece60480fa87eadc48",
+      "question_id": "Q008",
+      "ranking": [
+        {"id": "H004", "rank": 1, "score": 14.713821627}, {"id": "R019", "rank": 2, "score": 8.291559323}, {"id": "H001", "rank": 3, "score": 3.014912217}, {"id": "R018", "rank": 4, "score": 2.881020528}, {"id": "H003", "rank": 5, "score": 2.671070252}, {"id": "R023", "rank": 6, "score": 2.671070252}, {"id": "H002", "rank": 7, "score": 2.550561952}, {"id": "R001", "rank": 8, "score": 2.550561952}, {"id": "R002", "rank": 9, "score": 2.550561952}, {"id": "R003", "rank": 10, "score": 2.550561952}, {"id": "R004", "rank": 11, "score": 2.550561952}, {"id": "R005", "rank": 12, "score": 2.550561952}, {"id": "R006", "rank": 13, "score": 2.550561952}, {"id": "R008", "rank": 14, "score": 2.550561952}, {"id": "R009", "rank": 15, "score": 2.550561952}, {"id": "R010", "rank": 16, "score": 2.550561952}, {"id": "R011", "rank": 17, "score": 2.550561952}, {"id": "R012", "rank": 18, "score": 2.550561952}, {"id": "R013", "rank": 19, "score": 2.550561952}, {"id": "R014", "rank": 20, "score": 2.550561952}, {"id": "R015", "rank": 21, "score": 2.550561952}, {"id": "R016", "rank": 22, "score": 2.550561952}, {"id": "R017", "rank": 23, "score": 2.550561952}, {"id": "R020", "rank": 24, "score": 2.550561952}, {"id": "R021", "rank": 25, "score": 2.550561952}, {"id": "R022", "rank": 26, "score": 2.550561952}, {"id": "R024", "rank": 27, "score": 2.550561952}, {"id": "D001", "rank": 28, "score": 2.297359422}
+      ],
+      "retrieval": "EXACT_BM25_TOP6_CURRENT_MIXED_AUTHORITY",
+      "selected_ids": ["H004", "R019", "H001", "R018", "H003", "R023"]
+    },
+    {
+      "context_chars": 7658,
+      "context_sha256": "49138aa66782c321947d630564140466e44b36fd72f54f26f79250428d6f3080",
+      "question_id": "Q009",
+      "ranking": [
+        {"id": "H003", "rank": 1, "score": 9.380812394}, {"id": "R014", "rank": 2, "score": 5.956018235}, {"id": "R015", "rank": 3, "score": 5.880738537}, {"id": "R024", "rank": 4, "score": 4.478395474}, {"id": "H002", "rank": 5, "score": 3.014912217}, {"id": "R008", "rank": 6, "score": 2.881020528}, {"id": "H001", "rank": 7, "score": 2.671070252}, {"id": "H004", "rank": 8, "score": 2.671070252}, {"id": "R002", "rank": 9, "score": 2.671070252}, {"id": "R003", "rank": 10, "score": 2.671070252}, {"id": "R004", "rank": 11, "score": 2.671070252}, {"id": "R005", "rank": 12, "score": 2.671070252}, {"id": "R006", "rank": 13, "score": 2.671070252}, {"id": "R009", "rank": 14, "score": 2.671070252}, {"id": "R010", "rank": 15, "score": 2.671070252}, {"id": "R011", "rank": 16, "score": 2.671070252}, {"id": "R012", "rank": 17, "score": 2.671070252}, {"id": "R013", "rank": 18, "score": 2.671070252}, {"id": "R016", "rank": 19, "score": 2.671070252}, {"id": "R017", "rank": 20, "score": 2.671070252}, {"id": "R018", "rank": 21, "score": 2.671070252}, {"id": "R019", "rank": 22, "score": 2.671070252}, {"id": "R020", "rank": 23, "score": 2.671070252}, {"id": "R021", "rank": 24, "score": 2.671070252}, {"id": "R022", "rank": 25, "score": 2.671070252}, {"id": "R023", "rank": 26, "score": 2.671070252}, {"id": "R001", "rank": 27, "score": 2.550561952}, {"id": "D001", "rank": 28, "score": 2.297359422}
+      ],
+      "retrieval": "EXACT_BM25_TOP6_CURRENT_MIXED_AUTHORITY",
+      "selected_ids": ["H003", "R014", "R015", "R024", "H002", "R008"]
+    }
+  ]
+}
