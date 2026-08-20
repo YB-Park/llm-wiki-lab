@@ -1,0 +1,62 @@
+name: Validate E024 Query Plane v2
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E024-query-plane-token-firewall/**'
+      - 'remote-lab/e024-q1-request.json'
+      - '.github/workflows/validate-e024-query-plane-v2.yml'
+      - '.github/workflows/e024-query-plane-q1-v2.yml'
+  push:
+    branches:
+      - experiment/e024-query-plane-gate
+    paths:
+      - 'experiments/E024-query-plane-token-firewall/**'
+      - 'remote-lab/e024-q1-request.json'
+      - '.github/workflows/validate-e024-query-plane-v2.yml'
+      - '.github/workflows/e024-query-plane-q1-v2.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  q1-v2-zero-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile v2 runner
+        run: python3 -m py_compile experiments/E024-query-plane-token-firewall/run_q1_v2.py
+      - name: Run v2 zero-model preflight
+        env:
+          PYTHONPATH: .
+        run: |
+          rm -rf remote-lab/out/e024-q1-v2
+          python3 experiments/E024-query-plane-token-firewall/run_q1_v2.py | tee /tmp/e024-q1-v2.txt
+          grep -q '^E024 Q1 v2 zero-model preflight: PASS$' /tmp/e024-q1-v2.txt
+          grep -q '"model_call_attempts": 0' /tmp/e024-q1-v2.txt
+          grep -q '"question_count": 9' /tmp/e024-q1-v2.txt
+          grep -q '"scheduled_calls": 18' /tmp/e024-q1-v2.txt
+          grep -q '"paired_context_identity": true' /tmp/e024-q1-v2.txt
+          grep -q '"planner_calls": 0' /tmp/e024-q1-v2.txt
+          grep -q '"selector_calls": 0' /tmp/e024-q1-v2.txt
+          grep -q '"retrieval_model_calls": 0' /tmp/e024-q1-v2.txt
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          row=json.loads(Path('remote-lab/out/e024-q1-v2/result.json').read_text())
+          assert row['format']=='E024-Q1-v2', row
+          assert row['execute_model'] is False, row
+          assert row['model_call_attempts']==0, row
+          assert row['paired_context_identity'] is True, row
+          assert len(row['pairs'])==9, row
+          assert len(row['call_schedule'])==18, row
+          assert row['request']['model']=='gpt-5.6-luna', row
+          assert row['request']['rerolls']==0, row
+          assert all(pair['context_chars'] > 0 for pair in row['pairs'].values()), row
+          assert all(pair['context_sha256'] for pair in row['pairs'].values()), row
+          print('E024 Q1 v2 zero-model contract: PASS')
+          PY
