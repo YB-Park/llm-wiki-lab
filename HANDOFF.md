@@ -7,14 +7,13 @@ Keep only what a new continuation needs to decide and act **now**.
 Historical experiments, rationale, PR-by-PR detail, and frozen results belong in their source docs, issues, PRs, ADRs, and Git.
 
 If this file conflicts with merged code or an accepted ADR, code/ADR wins.
+Before any new repo work, re-check current `main` and open PRs; volatile repository state does not belong in this handoff.
 
 ## NOW
 
 Repository: `YB-Park/llm-wiki-lab`
 
-Checkpoint:
-- current `main`: `0aef5d002abb37b8a9ac253977baea73e2dd45c3`
-- open PRs at checkpoint: none
+Current state:
 - product baseline: **Dogfood 0.1.16**
 - current product decision: **GO for installed self-dogfood / Alpha use**
 - public Beta / broad Marketplace readiness: **not declared by this checkpoint**
