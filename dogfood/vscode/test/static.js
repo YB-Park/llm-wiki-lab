@@ -107,7 +107,7 @@ must('hk-supersedes-schema', Boolean(hkSchema.supersedesKnowledgeId));
 const consultSchema = tools.find((row) => row.name === 'llmWiki_consultMemory').inputSchema.properties;
 assert.equal(consultSchema.query.maxLength, 2000, 'STATIC-BOUNDARY query-question-bound');
 
-assert.equal(manifest.version, '0.1.16', 'STATIC-BOUNDARY version');
+assert.equal(manifest.version, '0.1.17', 'STATIC-BOUNDARY version');
 assert.equal(manifest.engines.vscode, '^1.95.0', 'STATIC-BOUNDARY vscode-engine');
 assert.equal(manifest.main, './entry.js', 'STATIC-BOUNDARY main-entry');
 assert.equal(manifest.private, true, 'STATIC-BOUNDARY private-package');
@@ -321,4 +321,4 @@ mustNot('git-safety-no-write', gitSafety.includes('writeFile'));
 must('bundle-core-source', bundler.includes("path.join(dogfoodRoot, 'llm_wiki')"));
 must('bundle-core-destination', bundler.includes("path.join(bundleRoot, 'dogfood')"));
 
-console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.16 agentTools=6 explicitWorkspaceOptIn=yes queryPlaneL0=optin-local-grant+daily-cap+no-raw-fallback relevantRegionRead=yes scopeQualifiedRefs=yes doctorPureDiagnostic=yes memoryV4=yes verifiedReadV2=yes durableAuthorityState=yes humanKnowledgeV1=yes maintenanceSoftGuard=yes singleFolderFailClosed=yes');
+console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.17 agentTools=6 explicitWorkspaceOptIn=yes queryPlaneL0=optin-local-grant+daily-cap+no-raw-fallback relevantRegionRead=yes scopeQualifiedRefs=yes doctorPureDiagnostic=yes memoryV4=yes verifiedReadV2=yes durableAuthorityState=yes humanKnowledgeV1=yes maintenanceSoftGuard=yes singleFolderFailClosed=yes');
