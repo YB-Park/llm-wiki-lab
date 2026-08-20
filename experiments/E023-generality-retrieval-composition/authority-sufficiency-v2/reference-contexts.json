@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "contexts": [
+    {"context_id":"CQ001-clean-min","question_id":"CQ001","selected_anchor_ids":["C003","C001","C005"],"expected_status":"SUFFICIENT_CLEAN"},
+    {"context_id":"CQ001-missing-bridge","question_id":"CQ001","selected_anchor_ids":["C001","C002","C005"],"expected_status":"INSUFFICIENT_AUTHORITY"},
+    {"context_id":"CQ001-risk","question_id":"CQ001","selected_anchor_ids":["C003","C001","C005","C004"],"expected_status":"SUFFICIENT_WITH_CONFLATION_RISK"},
+    {"context_id":"CQ002-clean-min","question_id":"CQ002","selected_anchor_ids":["C009","C007"],"expected_status":"SUFFICIENT_CLEAN"},
+    {"context_id":"CQ002-missing-policy","question_id":"CQ002","selected_anchor_ids":["C007","C008","C011"],"expected_status":"INSUFFICIENT_AUTHORITY"},
+    {"context_id":"CQ002-risk","question_id":"CQ002","selected_anchor_ids":["C009","C007","C010"],"expected_status":"SUFFICIENT_WITH_CONFLATION_RISK"},
+    {"context_id":"CQ003-clean-min","question_id":"CQ003","selected_anchor_ids":["C013","C014"],"expected_status":"SUFFICIENT_CLEAN"},
+    {"context_id":"CQ003-missing-human","question_id":"CQ003","selected_anchor_ids":["C012","C014"],"expected_status":"INSUFFICIENT_AUTHORITY"},
+    {"context_id":"CQ004-clean-min","question_id":"CQ004","selected_anchor_ids":["C015","C016","C017"],"expected_status":"SUFFICIENT_CLEAN"},
+    {"context_id":"CQ004-missing-signal","question_id":"CQ004","selected_anchor_ids":["C015","C017","C018"],"expected_status":"INSUFFICIENT_AUTHORITY"},
+    {"context_id":"CQ005-clean-min","question_id":"CQ005","selected_anchor_ids":["C020","C021"],"expected_status":"SUFFICIENT_CLEAN"},
+    {"context_id":"CQ005-risk","question_id":"CQ005","selected_anchor_ids":["C020","C021","C022"],"expected_status":"SUFFICIENT_WITH_CONFLATION_RISK"},
+    {"context_id":"CQ006-clean-min","question_id":"CQ006","selected_anchor_ids":["C023","C024","C025"],"expected_status":"SUFFICIENT_CLEAN"},
+    {"context_id":"CQ006-risk","question_id":"CQ006","selected_anchor_ids":["C023","C024","C025","C026"],"expected_status":"SUFFICIENT_WITH_CONFLATION_RISK"},
+    {"context_id":"CQ007-clean-min","question_id":"CQ007","selected_anchor_ids":["C027","C030"],"expected_status":"SUFFICIENT_CLEAN"},
+    {"context_id":"CQ007-risk","question_id":"CQ007","selected_anchor_ids":["C027","C030","C031"],"expected_status":"SUFFICIENT_WITH_CONFLATION_RISK"},
+    {"context_id":"CQ008-clean-min","question_id":"CQ008","selected_anchor_ids":["C034","C032","C033"],"expected_status":"SUFFICIENT_CLEAN"},
+    {"context_id":"CQ008-one-observation","question_id":"CQ008","selected_anchor_ids":["C034","C032"],"expected_status":"INSUFFICIENT_AUTHORITY"},
+    {"context_id":"CQ008-risk","question_id":"CQ008","selected_anchor_ids":["C034","C032","C033","C035"],"expected_status":"SUFFICIENT_WITH_CONFLATION_RISK"}
+  ]
+}
