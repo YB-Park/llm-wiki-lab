@@ -1,0 +1,42 @@
+name: Validate E023 G1d budget frontier
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/analyze_g1d_budget_frontier.py'
+      - 'experiments/E023-generality-retrieval-composition/g1d-budget-frontier-v0.md'
+      - '.github/workflows/validate-e023-g1d-budget-frontier.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/analyze_g1d_budget_frontier.py'
+      - 'experiments/E023-generality-retrieval-composition/g1d-budget-frontier-v0.md'
+      - '.github/workflows/validate-e023-g1d-budget-frontier.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-zero-model-budget-frontier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile analyzer
+        run: python3 -m py_compile experiments/E023-generality-retrieval-composition/analyze_g1d_budget_frontier.py
+      - name: Validate frozen evidence-budget frontier
+        env:
+          PYTHONPATH: experiments/E023-generality-retrieval-composition
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/analyze_g1d_budget_frontier.py \
+            | tee /tmp/e023-g1d-budget-frontier.txt
+          grep -q '^E023 G1d zero-model evidence-budget frontier: PASS$' /tmp/e023-g1d-budget-frontier.txt
+          grep -q '"model_calls": 0' /tmp/e023-g1d-budget-frontier.txt
+          grep -q '"BQ006_B013_exact_rank": 6' /tmp/e023-g1d-budget-frontier.txt
+          grep -q '"BQ006_present_in_D_candidate_pool": false' /tmp/e023-g1d-budget-frontier.txt
+          grep -q '"D_authority_improvements": 0' /tmp/e023-g1d-budget-frontier.txt
+          grep -q '"next_paid_run_authorized": false' /tmp/e023-g1d-budget-frontier.txt
+          grep -q '"same_slice_semantic_rerun_authorized": false' /tmp/e023-g1d-budget-frontier.txt
