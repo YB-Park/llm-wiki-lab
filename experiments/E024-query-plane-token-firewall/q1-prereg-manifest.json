@@ -1,0 +1,18 @@
+{
+  "format": "E024-Q1-prereg-manifest-v1",
+  "sha256": {
+    ".github/workflows/e024-query-plane-q1.yml": "f5ec459c47da1f9b32a2e8fe5878a235210a344794ce6fab98cf682ec0349718",
+    "experiments/E024-query-plane-token-firewall/q0-measurement-contract-v0.md": "2ebcd59dbf5db2509833152cb3295ce3d024ed982d3ec697893c31436410ae04",
+    "experiments/E024-query-plane-token-firewall/q1-corpus/context-freeze.json": "05c664292714363061615d7853912ba396704ba1b69de1cd07c21b52ee9429b6",
+    "experiments/E024-query-plane-token-firewall/q1-corpus/questions.json": "04ed143ecf4e2f0f87457e42f843c78b4c6ec78901627bc99c9b5a54003d539a",
+    "experiments/E024-query-plane-token-firewall/q1-corpus/sources.jsonl": "e3006650ae44a1fecc5d997dc80695e79d95f39ce388452e528212bd9d3bd71d",
+    "experiments/E024-query-plane-token-firewall/q1-evaluation-contract-v0.json": "6d756501f0cf37b3cd94fa5fe31f4b835835a63afaaaeabf324f6eec1d00e661",
+    "experiments/E024-query-plane-token-firewall/q1-execution-lock-v1.md": "bd68ea698683d34ffb2e4deb01e1977f90fb4ac08505d682c4791258722535db",
+    "experiments/E024-query-plane-token-firewall/q1-preregistration-v0.md": "907e29fa030cbaf02681fac4d944eb208860649401962def704896902406c2e9",
+    "experiments/E024-query-plane-token-firewall/q1-source-lock-v1.json": "c0d3f60227613ad42e7349d96fe8683943349929720a49724c03b1cc980eb774",
+    "experiments/E024-query-plane-token-firewall/run_q1.py": "68f4542045198cc6f520f26fc022872e7679437ee7e0077708b8c4b42b0b8c5",
+    "experiments/E024-query-plane-token-firewall/validate_q1.py": "2568142de91e47d8ae2ad44032d5975c019acb6b641cf7c5c9c346f06978af0e",
+    "experiments/E024-query-plane-token-firewall/verify_q1_execution_lock.py": "8f58f9e1d10c71a5d456f71ed279a6bed18cc686f1dd8a5ff62de8a520d16780",
+    "remote-lab/e024-q1-request.json": "3325274754da877c6144258719aed49287719cf544e99a1a14897d04528a505f"
+  }
+}

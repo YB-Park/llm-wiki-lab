@@ -1,0 +1,815 @@
+{
+  "call_schedule": [
+    {
+      "arm": "M",
+      "call_index": 1,
+      "question_id": "Q001"
+    },
+    {
+      "arm": "Q",
+      "call_index": 2,
+      "question_id": "Q001"
+    },
+    {
+      "arm": "Q",
+      "call_index": 3,
+      "question_id": "Q002"
+    },
+    {
+      "arm": "M",
+      "call_index": 4,
+      "question_id": "Q002"
+    },
+    {
+      "arm": "M",
+      "call_index": 5,
+      "question_id": "Q003"
+    },
+    {
+      "arm": "Q",
+      "call_index": 6,
+      "question_id": "Q003"
+    },
+    {
+      "arm": "Q",
+      "call_index": 7,
+      "question_id": "Q004"
+    },
+    {
+      "arm": "M",
+      "call_index": 8,
+      "question_id": "Q004"
+    },
+    {
+      "arm": "M",
+      "call_index": 9,
+      "question_id": "Q005"
+    },
+    {
+      "arm": "Q",
+      "call_index": 10,
+      "question_id": "Q005"
+    },
+    {
+      "arm": "Q",
+      "call_index": 11,
+      "question_id": "Q006"
+    },
+    {
+      "arm": "M",
+      "call_index": 12,
+      "question_id": "Q006"
+    },
+    {
+      "arm": "M",
+      "call_index": 13,
+      "question_id": "Q007"
+    },
+    {
+      "arm": "Q",
+      "call_index": 14,
+      "question_id": "Q007"
+    },
+    {
+      "arm": "Q",
+      "call_index": 15,
+      "question_id": "Q008"
+    },
+    {
+      "arm": "M",
+      "call_index": 16,
+      "question_id": "Q008"
+    },
+    {
+      "arm": "M",
+      "call_index": 17,
+      "question_id": "Q009"
+    },
+    {
+      "arm": "Q",
+      "call_index": 18,
+      "question_id": "Q009"
+    }
+  ],
+  "execute_model": true,
+  "execution_complete": true,
+  "execution_signal": {
+    "adapters_blob": "fc62367ab929349a6be13e83258957ba1714265e",
+    "changed_paths": [
+      "remote-lab/e024-q1-v2-execute.json"
+    ],
+    "execute": true,
+    "execution_head_sha": "435dae2b89aeddc62a4470db1a043ee331fa93ff",
+    "frozen_parent_sha": "499958ec5263a41f6ab28a2448c4c0608c0046f9",
+    "request_id": "e024-q1-token-firewall-v2"
+  },
+  "execution_source_sha": "836feebc52232dca7fb6533b90a2aaa9e9e82584",
+  "format": "E024-Q1-v2",
+  "interpretation_boundary": "Q1-v2 fixes only presemantic freeze mechanics. Question, selected IDs, rendered context, prompts, model, parsers, and thresholds remain paired/frozen. It does not test iterative retrieval.",
+  "model_call_attempts": 18,
+  "paired_context_identity": true,
+  "pairs": {
+    "Q001": {
+      "allowed_terminal_types": {
+        "H001": "HUMAN_KNOWLEDGE",
+        "H004": "HUMAN_KNOWLEDGE",
+        "R001": "RAW_MEMORY",
+        "R002": "RAW_MEMORY",
+        "R020": "RAW_MEMORY",
+        "R021": "RAW_MEMORY"
+      },
+      "arms": {
+        "M": {
+          "call_index": 1,
+          "contract_ok": true,
+          "external_chars": 7828,
+          "model_receipt": {
+            "elapsed_seconds": 6.846,
+            "model": "gpt-5.6-luna"
+          },
+          "raw_response_chars": 343,
+          "result": {
+            "answer": "We kept the Orion batch retry cap at 4 attempts because attempts 1–4 recovered 92% of transient failures, while attempts 5–6 recovered only 1% more and caused queue age to exceed the latency budget. This was our operational decision, not an external requirement.",
+            "cited_terminal_ids": [
+              "H001",
+              "R001"
+            ],
+            "insufficient_authority": false
+          },
+          "serialized_result_chars": 343
+        },
+        "Q": {
+          "call_index": 2,
+          "contract_ok": true,
+          "external_char_ratio": 0.051865,
+          "external_chars": 406,
+          "model_receipt": {
+            "elapsed_seconds": 4.745,
+            "model": "gpt-5.6-luna"
+          },
+          "raw_response_chars": 406,
+          "result": {
+            "answer": "We kept Orion batch retries capped at 4 because attempts 1–4 recovered 92% of transient failures, while attempts 5–6 recovered only 1% more and pushed queue age beyond the latency budget. This was our operational decision, not an external requirement.",
+            "insufficient_authority": false,
+            "terminal_refs": [
+              {
+                "authority_type": "HUMAN_KNOWLEDGE",
+                "id": "H001"
+              },
+              {
+                "authority_type": "RAW_MEMORY",
+                "id": "R001"
+              }
+            ]
+          },
+          "serialized_result_chars": 406
+        }
+      },
+      "context_chars": 7828,
+      "context_sha256": "b5f9dccaf981afefd9ec2078aca6e21f5af780caea005903ccecb79f5fb1948a",
+      "expected_insufficient": false,
+      "question": "Why did we keep the Orion batch retry cap at 4 attempts?",
+      "question_id": "Q001",
+      "required_terminal_ids": [
+        "H001",
+        "R001"
+      ],
+      "selected_ids": [
+        "H001",
+        "R002",
+        "R020",
+        "R001",
+        "H004",
+        "R021"
+      ]
+    },
+    "Q002": {
+      "allowed_terminal_types": {
+        "R003": "RAW_MEMORY",
+        "R004": "RAW_MEMORY",
+        "R005": "RAW_MEMORY",
+        "R010": "RAW_MEMORY",
+        "R012": "RAW_MEMORY",
+        "R022": "RAW_MEMORY"
+      },
+      "arms": {
+        "M": {
+          "call_index": 4,
+          "contract_ok": true,
+          "external_chars": 7590,
+          "model_receipt": {
+            "elapsed_seconds": 4.396,
+            "model": "gpt-5.6-luna"
+          },
+          "raw_response_chars": 262,
+          "result": {
+            "answer": "Yes. K. Navarro was Keiko Navarro (employee alias KN-7), not Ken Navarro. She approved the temporary Atlas signing exception for release 2026.08 only; it expired after that release.",
+            "cited_terminal_ids": [
+              "R003",
+              "R004"
+            ],
+            "insufficient_authority": false
+          },
+          "serialized_result_chars": 262
+        },
+        "Q": {
+          "call_index": 3,
+          "contract_ok": true,
+          "external_char_ratio": 0.044928,
+          "external_chars": 341,
+          "model_receipt": {
+            "elapsed_seconds": 5.186,
+            "model": "gpt-5.6-luna"
+          },
+          "raw_response_chars": 341,
+          "result": {
+            "answer": "Yes. K. Navarro was Keiko Navarro (employee alias KN-7), not Ken Navarro. She approved the temporary Atlas signing exception for release 2026.08 only; the approval expired after that release.",
+            "insufficient_authority": false,
+            "terminal_refs": [
+              {
+                "authority_type": "RAW_MEMORY",
+                "id": "R003"
+              },
+              {
+                "authority_type": "RAW_MEMORY",
+                "id": "R004"
+              }
+            ]
+          },
+          "serialized_result_chars": 341
+        }
+      },
+      "context_chars": 7590,
+      "context_sha256": "3d54c60722b8114b7a78f2504bc0ead79fe60872cb6ea42f1f95d97b29d10459",
+      "expected_insufficient": false,
+      "question": "Was K. Navarro who approved the Atlas exception the same person as Keiko Navarro, and what was approved?",
+      "question_id": "Q002",
+      "required_terminal_ids": [
+        "R003",
+        "R004"
+      ],
+      "selected_ids": [
+        "R003",
+        "R004",
+        "R005",
+        "R010",
+        "R022",
+        "R012"
+      ]
+    },
+    "Q003": {
+      "allowed_terminal_types": {
+        "H001": "HUMAN_KNOWLEDGE",
+        "H002": "HUMAN_KNOWLEDGE",
+        "H004": "HUMAN_KNOWLEDGE",
+        "R006": "RAW_MEMORY",
+        "R008": "RAW_MEMORY",
+        "R023": "RAW_MEMORY"
+      },
+      "arms": {
+        "M": {
+          "call_index": 5,
+          "contract_ok": true,
+          "external_chars": 7761,
+          "model_receipt": {
+            "elapsed_seconds": 7.15,
+            "model": "gpt-5.6-luna"
+          },
+          "raw_response_chars": 306,
+          "result": {
+            "answer": "The current Borealis production deployment window is 20 minutes. We changed it from 30 minutes because rollback automation reduced recovery time, completing recovery in 7–9 minutes during drills and leaving sufficient margin.",
+            "cited_terminal_ids": [
+              "H002",
+              "R006"
+            ],
+            "insufficient_authority": false
+          },
+          "serialized_result_chars": 306
+        },
+        "Q": {
+          "call_index": 6,
+          "contract_ok": true,
+          "external_char_ratio": 0.048447,
+          "external_chars": 376,
+          "model_receipt": {
+            "elapsed_seconds": 6.069,
+            "model": "gpt-5.6-luna"
+          },
+          "raw_response_chars": 376,
+          "result": {
+            "answer": "The current Borealis production deployment window is 20 minutes, reduced from 30 minutes because rollback automation shortened recovery time. Rollback drills recovered in 7–9 minutes, leaving margin within the new window.",
+            "insufficient_authority": false,
+            "terminal_refs": [
+              {
+                "authority_type": "HUMAN_KNOWLEDGE",
+                "id": "H002"
+              },
+              {
+                "authority_type": "RAW_MEMORY",
+                "id": "R006"
+              }
+            ]
+          },
+          "serialized_result_chars": 376
+        }
+      },
+      "context_chars": 7761,
+      "context_sha256": "afad405d24920638d975260fa8cb35bf48ab55ce47dc1eafc73b13a963b647e2",
+      "expected_insufficient": false,
+      "question": "What is the current Borealis deployment window and why did we change it?",
+      "question_id": "Q003",
+      "required_terminal_ids": [
+        "H002",
+        "R006"
+      ],
+      "selected_ids": [
+        "H002",
+        "R008",
+        "R006",
+        "H004",
+        "H001",
+        "R023"
+      ]
+    },
+    "Q004": {
+      "allowed_terminal_types": {
+        "H002": "HUMAN_KNOWLEDGE",
+        "R005": "RAW_MEMORY",
+        "R009": "RAW_MEMORY",
+        "R010": "RAW_MEMORY",
+        "R011": "RAW_MEMORY",
+        "R023": "RAW_MEMORY"
+      },
+      "arms": {
+        "M": {
+          "call_index": 8,
+          "contract_ok": true,
+          "external_chars": 7579,
+          "model_receipt": {
+            "elapsed_seconds": 4.378,
+            "model": "gpt-5.6-luna"
+          },
+          "raw_response_chars": 296,
+          "result": {
+            "answer": "No. Regional key escrow is supported by Cedar for enterprise tenants, but it is not approved for regulated production until legal review is complete. Current status: capability exists, authorization does not.",
+            "cited_terminal_ids": [
+              "R010",
+              "R009",
+              "R011"
+            ],
+            "insufficient_authority": false
+          },
+          "serialized_result_chars": 296
+        },
+        "Q": {
+          "call_index": 7,
+          "contract_ok": true,
+          "external_char_ratio": 0.060694,
+          "external_chars": 460,
+          "model_receipt": {
+            "elapsed_seconds": 10.245,
+            "model": "gpt-5.6-luna"
+          },
+          "raw_response_chars": 460,
+          "result": {
+            "answer": "No. Cedar regional key escrow is supported technically for enterprise tenants, but it is not approved for regulated production until legal review is complete. Current status is therefore unresolved for regulated production: capability exists, authorization does not.",
+            "insufficient_authority": false,
+            "terminal_refs": [
+              {
+                "authority_type": "RAW_MEMORY",
+                "id": "R010"
+              },
+              {
+                "authority_type": "RAW_MEMORY",
+                "id": "R009"
+              },
+              {
+                "authority_type": "RAW_MEMORY",
+                "id": "R011"
+              }
+            ]
+          },
+          "serialized_result_chars": 460
+        }
+      },
+      "context_chars": 7579,
+      "context_sha256": "1f4188c26a753ce79e9c5102b335d7ef702d5dc9f3f569c6b29cbe6ab9b0331c",
+      "expected_insufficient": false,
+      "question": "Can regulated production currently use Cedar regional key escrow?",
+      "question_id": "Q004",
+      "required_terminal_ids": [
+        "R009",
+        "R010",
+        "R011"
+      ],
+      "selected_ids": [
+        "R010",
+        "R009",
+        "R023",
+        "R011",
+        "H002",
+        "R005"
+      ]
+    },
+    "Q005": {
+      "allowed_terminal_types": {
+        "H004": "HUMAN_KNOWLEDGE",
+        "R004": "RAW_MEMORY",
+        "R012": "RAW_MEMORY",
+        "R013": "RAW_MEMORY",
+        "R017": "RAW_MEMORY",
+        "R020": "RAW_MEMORY"
+      },
+      "arms": {
+        "M": {
+          "call_index": 9,
+          "contract_ok": true,
+          "external_chars": 7836,
+          "model_receipt": {
+            "elapsed_seconds": 5.045,
+            "model": "gpt-5.6-luna"
+          },
+          "raw_response_chars": 404,
+          "result": {
+            "answer": "The outage was attributed to one tenant’s malformed webhook retry configuration, so the review explicitly said it was not evidence of a general Drift reliability problem. Drift also recorded 99.96% successful processing over the surrounding month, though that does not establish that every tenant configuration is reliable.",
+            "cited_terminal_ids": [
+              "R012",
+              "R013"
+            ],
+            "insufficient_authority": false
+          },
+          "serialized_result_chars": 404
+        },
+        "Q": {
+          "call_index": 10,
+          "contract_ok": true,
+          "external_char_ratio": 0.062787,
+          "external_chars": 492,
+          "model_receipt": {
+            "elapsed_seconds": 6.158,
+            "model": "gpt-5.6-luna"
+          },
+          "raw_response_chars": 492,
+          "result": {
+            "answer": "The outage was attributed to one tenant’s malformed webhook retry configuration, and the incident review explicitly said it was not evidence of a general Drift reliability problem. Separately, Drift recorded 99.96% successful processing over the surrounding month, while noting that this does not prove every tenant configuration is reliable.",
+            "insufficient_authority": false,
+            "terminal_refs": [
+              {
+                "authority_type": "RAW_MEMORY",
+                "id": "R012"
+              },
+              {
+                "authority_type": "RAW_MEMORY",
+                "id": "R013"
+              }
+            ]
+          },
+          "serialized_result_chars": 492
+        }
+      },
+      "context_chars": 7836,
+      "context_sha256": "3fcf48983b549c042491f194457ddf4298f2a58d2054b190b87ef6418c23c57d",
+      "expected_insufficient": false,
+      "question": "What did the Drift webhook outage establish about Drift reliability?",
+      "question_id": "Q005",
+      "required_terminal_ids": [
+        "R012"
+      ],
+      "selected_ids": [
+        "R012",
+        "R013",
+        "H004",
+        "R020",
+        "R004",
+        "R017"
+      ]
+    },
+    "Q006": {
+      "allowed_terminal_types": {
+        "H002": "HUMAN_KNOWLEDGE",
+        "H003": "HUMAN_KNOWLEDGE",
+        "H004": "HUMAN_KNOWLEDGE",
+        "R014": "RAW_MEMORY",
+        "R015": "RAW_MEMORY",
+        "R024": "RAW_MEMORY"
+      },
+      "arms": {
+        "M": {
+          "call_index": 12,
+          "contract_ok": true,
+          "external_chars": 7654,
+          "model_receipt": {
+            "elapsed_seconds": 5.042,
+            "model": "gpt-5.6-luna"
+          },
+          "raw_response_chars": 402,
+          "result": {
+            "answer": "We raised the Ember worker pool from 12 to 16 because queue saturation repeatedly occurred during independent month-end closes, rather than being caused by a single anomalous spike. At size 12, utilization exceeded 94% during July’s close and 93% during August’s; ordinary non-close days remained below 45%.",
+            "cited_terminal_ids": [
+              "H003",
+              "R014",
+              "R015",
+              "R024"
+            ],
+            "insufficient_authority": false
+          },
+          "serialized_result_chars": 402
+        },
+        "Q": {
+          "call_index": 11,
+          "contract_ok": true,
+          "external_char_ratio": 0.076169,
+          "external_chars": 583,
+          "model_receipt": {
+            "elapsed_seconds": 5.102,
+            "model": "gpt-5.6-luna"
+          },
+          "raw_response_chars": 583,
+          "result": {
+            "answer": "We raised the Ember worker pool from 12 to 16 because queue saturation recurred across independent month-end closes, rather than being a one-off spike. At size 12, utilization exceeded 94% for 28 minutes in July and 93% for 31 minutes in August. Ordinary non-close days remained below 45%, so the change targeted recurring month-end demand.",
+            "insufficient_authority": false,
+            "terminal_refs": [
+              {
+                "authority_type": "HUMAN_KNOWLEDGE",
+                "id": "H003"
+              },
+              {
+                "authority_type": "RAW_MEMORY",
+                "id": "R014"
+              },
+              {
+                "authority_type": "RAW_MEMORY",
+                "id": "R015"
+              },
+              {
+                "authority_type": "RAW_MEMORY",
+                "id": "R024"
+              }
+            ]
+          },
+          "serialized_result_chars": 583
+        }
+      },
+      "context_chars": 7654,
+      "context_sha256": "4c24af11966b66bedc142d27964e2d8eb3350306bfffc6ea4e77e51c9c2fdbe7",
+      "expected_insufficient": false,
+      "question": "Why did we raise the Ember worker pool from 12 to 16?",
+      "question_id": "Q006",
+      "required_terminal_ids": [
+        "H003",
+        "R014",
+        "R015"
+      ],
+      "selected_ids": [
+        "H003",
+        "R014",
+        "R015",
+        "R024",
+        "H004",
+        "H002"
+      ]
+    },
+    "Q007": {
+      "allowed_terminal_types": {
+        "R005": "RAW_MEMORY",
+        "R016": "RAW_MEMORY",
+        "R017": "RAW_MEMORY",
+        "R019": "RAW_MEMORY",
+        "R023": "RAW_MEMORY"
+      },
+      "arms": {
+        "M": {
+          "call_index": 13,
+          "contract_ok": true,
+          "external_chars": 7084,
+          "model_receipt": {
+            "elapsed_seconds": 5.18,
+            "model": "gpt-5.6-luna"
+          },
+          "raw_response_chars": 189,
+          "result": {
+            "answer": "Nimbus is currently owned by Mateo Ruiz, not Asha Patel. Asha Patel is a design contributor, not the service owner.",
+            "cited_terminal_ids": [
+              "R017"
+            ],
+            "insufficient_authority": false
+          },
+          "serialized_result_chars": 189
+        },
+        "Q": {
+          "call_index": 14,
+          "contract_ok": true,
+          "external_char_ratio": 0.038114,
+          "external_chars": 270,
+          "model_receipt": {
+            "elapsed_seconds": 4.451,
+            "model": "gpt-5.6-luna"
+          },
+          "raw_response_chars": 270,
+          "result": {
+            "answer": "Nimbus is currently owned by Mateo Ruiz, not Asha Patel. Asha authored the cache invalidation design and remains a design contributor, but is not the service owner.",
+            "insufficient_authority": false,
+            "terminal_refs": [
+              {
+                "authority_type": "RAW_MEMORY",
+                "id": "R017"
+              }
+            ]
+          },
+          "serialized_result_chars": 270
+        }
+      },
+      "context_chars": 7084,
+      "context_sha256": "a8c0166f0581ce12a46e74cbacc44c002b0f7dc720be8e65437bbf7f1c6ddf33",
+      "expected_insufficient": false,
+      "question": "Who currently owns Nimbus, Asha Patel or someone else?",
+      "question_id": "Q007",
+      "required_terminal_ids": [
+        "R016",
+        "R017"
+      ],
+      "selected_ids": [
+        "D001",
+        "R016",
+        "R017",
+        "R019",
+        "R005",
+        "R023"
+      ]
+    },
+    "Q008": {
+      "allowed_terminal_types": {
+        "H001": "HUMAN_KNOWLEDGE",
+        "H003": "HUMAN_KNOWLEDGE",
+        "H004": "HUMAN_KNOWLEDGE",
+        "R018": "RAW_MEMORY",
+        "R019": "RAW_MEMORY",
+        "R023": "RAW_MEMORY"
+      },
+      "arms": {
+        "M": {
+          "call_index": 16,
+          "contract_ok": true,
+          "external_chars": 7693,
+          "model_receipt": {
+            "elapsed_seconds": 4.554,
+            "model": "gpt-5.6-luna"
+          },
+          "raw_response_chars": 386,
+          "result": {
+            "answer": "No. The recorded team decision says QuartzDB was chosen for Solace because its measured write latency and operational simplicity fit the workload, not because of compliance. The compliance checklist lists encryption and retention requirements but does not mandate QuartzDB or any specific database engine.",
+            "cited_terminal_ids": [
+              "H004",
+              "R019"
+            ],
+            "insufficient_authority": false
+          },
+          "serialized_result_chars": 386
+        },
+        "Q": {
+          "call_index": 15,
+          "contract_ok": true,
+          "external_char_ratio": 0.057845,
+          "external_chars": 445,
+          "model_receipt": {
+            "elapsed_seconds": 5.197,
+            "model": "gpt-5.6-luna"
+          },
+          "raw_response_chars": 445,
+          "result": {
+            "answer": "No. Human-owned project knowledge says QuartzDB was chosen for measured write latency and operational simplicity, not because of a recorded compliance requirement. The compliance checklist specifies encryption and retention requirements but does not mandate QuartzDB or any database engine.",
+            "insufficient_authority": false,
+            "terminal_refs": [
+              {
+                "authority_type": "HUMAN_KNOWLEDGE",
+                "id": "H004"
+              },
+              {
+                "authority_type": "RAW_MEMORY",
+                "id": "R019"
+              }
+            ]
+          },
+          "serialized_result_chars": 445
+        }
+      },
+      "context_chars": 7693,
+      "context_sha256": "71ab7f993aeb76fab7bf2ade5ae3cbca876dd55b013046ea6b19ec2e09742394",
+      "expected_insufficient": false,
+      "question": "Did we choose QuartzDB for Solace because compliance required it?",
+      "question_id": "Q008",
+      "required_terminal_ids": [
+        "H004",
+        "R019"
+      ],
+      "selected_ids": [
+        "H004",
+        "R019",
+        "H001",
+        "R018",
+        "H003",
+        "R023"
+      ]
+    },
+    "Q009": {
+      "allowed_terminal_types": {
+        "H002": "HUMAN_KNOWLEDGE",
+        "H003": "HUMAN_KNOWLEDGE",
+        "R008": "RAW_MEMORY",
+        "R014": "RAW_MEMORY",
+        "R015": "RAW_MEMORY",
+        "R024": "RAW_MEMORY"
+      },
+      "arms": {
+        "M": {
+          "call_index": 17,
+          "contract_ok": true,
+          "external_chars": 7658,
+          "model_receipt": {
+            "elapsed_seconds": 5.028,
+            "model": "gpt-5.6-luna"
+          },
+          "raw_response_chars": 201,
+          "result": {
+            "answer": "The records establish that the Ember pool was increased from 12 to 16, but they do not identify who personally signed off on it.",
+            "cited_terminal_ids": [
+              "H003"
+            ],
+            "insufficient_authority": true
+          },
+          "serialized_result_chars": 201
+        },
+        "Q": {
+          "call_index": 18,
+          "contract_ok": true,
+          "external_char_ratio": 0.034474,
+          "external_chars": 264,
+          "model_receipt": {
+            "elapsed_seconds": 4.837,
+            "model": "gpt-5.6-luna"
+          },
+          "raw_response_chars": 264,
+          "result": {
+            "answer": "The supplied wiki records document the decision to increase Ember’s worker pool from 12 to 16, but do not identify anyone who personally signed off on it.",
+            "insufficient_authority": true,
+            "terminal_refs": [
+              {
+                "authority_type": "HUMAN_KNOWLEDGE",
+                "id": "H003"
+              }
+            ]
+          },
+          "serialized_result_chars": 264
+        }
+      },
+      "context_chars": 7658,
+      "context_sha256": "0c361e503e0b04a45f86e95f4da3aa5b158dac7bfd09e7d3de7bb1012e7a57e9",
+      "expected_insufficient": true,
+      "question": "Who personally signed off the Ember worker pool increase from 12 to 16?",
+      "question_id": "Q009",
+      "required_terminal_ids": [
+        "H003"
+      ],
+      "selected_ids": [
+        "H003",
+        "R014",
+        "R015",
+        "R024",
+        "H002",
+        "R008"
+      ]
+    }
+  },
+  "request": {
+    "answer_max_chars": 900,
+    "arms": [
+      "M",
+      "Q"
+    ],
+    "context_top_k": 6,
+    "main_proxy_calls": 9,
+    "max_ai_credits_per_call": 30,
+    "max_model_call_attempts": 18,
+    "model": "gpt-5.6-luna",
+    "planner_calls": 0,
+    "query_plane_calls": 9,
+    "question_count": 9,
+    "request_id": "e024-q1-token-firewall-v0",
+    "rerolls": 0,
+    "retrieval_model_calls": 0,
+    "selector_calls": 0
+  },
+  "structural_summary": {
+    "all_attempts_completed": true,
+    "q_contract_invalid_count": 0,
+    "q_contract_valid_count": 9,
+    "q_external_char_ratio_max": 0.076169,
+    "q_external_char_ratio_median": 0.051865,
+    "q_serialized_brief_chars_max": 583
+  },
+  "usage": {
+    "ai_credits_or_premium_requests": "unavailable_do_not_infer",
+    "model_calls": 18,
+    "tokens": "unavailable_unless_transport_exposes_machine_readable_usage"
+  }
+}

@@ -1,0 +1,44 @@
+name: Validate E024 Q1 v2 result
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E024-query-plane-token-firewall/evidence/q1-v2-run-32379189525/**'
+      - 'experiments/E024-query-plane-token-firewall/q1-v2-adjudication-v0.json'
+      - 'experiments/E024-query-plane-token-firewall/q1-v2-results-v0.md'
+      - 'experiments/E024-query-plane-token-firewall/q1-evaluation-contract-v0.json'
+      - 'experiments/E024-query-plane-token-firewall/validate_q1_v2_result.py'
+      - '.github/workflows/validate-e024-q1-v2-result.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E024-query-plane-token-firewall/evidence/q1-v2-run-32379189525/**'
+      - 'experiments/E024-query-plane-token-firewall/q1-v2-adjudication-v0.json'
+      - 'experiments/E024-query-plane-token-firewall/q1-v2-results-v0.md'
+      - 'experiments/E024-query-plane-token-firewall/q1-evaluation-contract-v0.json'
+      - 'experiments/E024-query-plane-token-firewall/validate_q1_v2_result.py'
+      - '.github/workflows/validate-e024-q1-v2-result.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-result:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile result validator
+        run: python3 -m py_compile experiments/E024-query-plane-token-firewall/validate_q1_v2_result.py
+      - name: Validate frozen Q1 v2 result arithmetic and boundaries
+        run: |
+          python3 experiments/E024-query-plane-token-firewall/validate_q1_v2_result.py | tee /tmp/e024-q1-v2-result.txt
+          grep -q '^E024 Q1 v2 result gate validation: PASS$' /tmp/e024-q1-v2-result.txt
+          grep -q '"model_calls": 18' /tmp/e024-q1-v2-result.txt
+          grep -q '"Q_PASS": 9' /tmp/e024-q1-v2-result.txt
+          grep -q '"Q_CRITICAL_ERROR": 0' /tmp/e024-q1-v2-result.txt
+          grep -q '"paired_regressions": 0' /tmp/e024-q1-v2-result.txt
+          grep -q '"q1_l0_promotion": "EARNED"' /tmp/e024-q1-v2-result.txt

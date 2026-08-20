@@ -1,0 +1,19 @@
+{
+  "answer_max_chars": 900,
+  "arms": [
+    "M",
+    "Q"
+  ],
+  "context_top_k": 6,
+  "main_proxy_calls": 9,
+  "max_ai_credits_per_call": 30,
+  "max_model_call_attempts": 18,
+  "model": "gpt-5.6-luna",
+  "planner_calls": 0,
+  "query_plane_calls": 9,
+  "question_count": 9,
+  "rerolls": 0,
+  "request_id": "e024-q1-token-firewall-v0",
+  "retrieval_model_calls": 0,
+  "selector_calls": 0
+}
