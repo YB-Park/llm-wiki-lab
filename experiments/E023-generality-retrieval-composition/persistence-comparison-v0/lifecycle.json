@@ -1,0 +1,38 @@
+{
+  "automatic_identity_routing": false,
+  "events": [
+    {"event":"BUILD_PROJECTION","event_index":1,"state":"S0","subject_id":"iris"},
+    {"event":"QUERY_PAIR","event_index":2,"question_id":"PQ001"},
+    {"event":"QUERY_PAIR","event_index":3,"question_id":"PQ002"},
+    {"event":"QUERY_PAIR","event_index":4,"question_id":"PQ003"},
+    {"event":"QUERY_PAIR","event_index":5,"question_id":"PQ004"},
+    {"event":"BUILD_PROJECTION","event_index":6,"state":"S0","subject_id":"juniper"},
+    {"event":"QUERY_PAIR","event_index":7,"question_id":"PQ005"},
+    {"event":"QUERY_PAIR","event_index":8,"question_id":"PQ006"},
+    {"event":"MUTATE_AUTHORITY","event_index":9,"from_state":"S0","subject_id":"juniper","to_state":"S1"},
+    {"event":"QUERY_PAIR","event_index":10,"persistent_requirement":"STALE_PROJECTION_BYPASS","question_id":"PQ007"},
+    {"event":"REBUILD_PROJECTION","event_index":11,"state":"S1","subject_id":"juniper"},
+    {"event":"QUERY_PAIR","event_index":12,"question_id":"PQ008"},
+    {"event":"BUILD_PROJECTION","event_index":13,"state":"S0","subject_id":"keystone"},
+    {"event":"QUERY_PAIR","event_index":14,"question_id":"PQ009"},
+    {"event":"QUERY_PAIR","event_index":15,"question_id":"PQ010"},
+    {"event":"MUTATE_AUTHORITY","event_index":16,"from_state":"S0","subject_id":"keystone","to_state":"S1"},
+    {"event":"QUERY_PAIR","event_index":17,"persistent_requirement":"STALE_PROJECTION_BYPASS","primary_stale_negative_control":true,"question_id":"PQ011"},
+    {"event":"REBUILD_PROJECTION","event_index":18,"state":"S1","subject_id":"keystone"},
+    {"event":"QUERY_PAIR","event_index":19,"question_id":"PQ012"}
+  ],
+  "fixed_subject_scope": true,
+  "format": "E023-G2-LIFECYCLE-V0",
+  "projection_builds_planned": 5,
+  "subjects": {
+    "iris": {"states":{"S0":{"active_anchor_ids":["P001","P002","P003","P004","P005","P006","P007","P008","P009","P010","P011","P012"],"snapshot_sha256":"d7c787a43175f247f4af64df875f40c53d1283c49495d1279728c152d0012ab0"}}},
+    "juniper": {"states":{
+      "S0":{"active_anchor_ids":["P013","P014","P015","P016","P017","P018","P019","P020"],"snapshot_sha256":"ca6af536c41b443765362c27a6ec4314cc1a04aa9b328c3c05002e0624b4efd5"},
+      "S1":{"active_anchor_ids":["P013","P014","P015","P016","P017","P018","P019","P020","P021","P022","P023","P024"],"change":"ADD_NEW_AUTHORITY","new_anchor_ids":["P021","P022","P023","P024"],"snapshot_sha256":"16b5388508165af2dbbf779eabecd9d1c3c1ab27a0f010e8374a49542d9bf416"}
+    }},
+    "keystone": {"states":{
+      "S0":{"active_anchor_ids":["P025","P026","P027","P028","P029","P030","P031","P032"],"snapshot_sha256":"11de723c107771e57a698c396f1e1ebbef169c0a4d0fbea614f058197c234244"},
+      "S1":{"active_anchor_ids":["P025","P026","P027","P028","P029","P030","P031","P032","P033","P034","P035","P036"],"change":"CORRECTION_AND_SUPERSESSION","new_anchor_ids":["P033","P034","P035","P036"],"snapshot_sha256":"b9442746f2d0b431231de1e357a3a78b6a06a3592c2c14c9fdfe4da49e4167d6","supersession_semantics":{"current_policy_anchor_id":"P033","current_project_decision_anchor_id":"P034","historical_project_decision_anchor_id":"P025"}}
+    }}
+  }
+}
