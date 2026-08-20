@@ -47,7 +47,7 @@ jobs:
           grep -q '"g2_product_persistence_authorized": false' /tmp/e023-g2-execution.txt
       - name: Run zero-model G2 preflight
         env:
-          PYTHONPATH: experiments/E023-generality-retrieval-composition
+          PYTHONPATH: .
         run: |
           rm -rf remote-lab/out/e023-g2
           python3 experiments/E023-generality-retrieval-composition/run_g2.py \
@@ -100,7 +100,7 @@ jobs:
       - name: Execute frozen G2 fixed-identity persistence comparison
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          PYTHONPATH: experiments/E023-generality-retrieval-composition
+          PYTHONPATH: .
         run: python3 experiments/E023-generality-retrieval-composition/run_g2.py --execute-model
       - name: Upload raw G2 artifact
         if: always()
