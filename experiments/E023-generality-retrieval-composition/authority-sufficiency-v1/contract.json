@@ -1,0 +1,258 @@
+{
+  "contract_version": 1,
+  "experiment": "E023",
+  "gate": "G1D_AUTHORITY_PRESERVING_SELECTION",
+  "status": "PROSPECTIVE_ZERO_MODEL_EVALUATION_CONTRACT",
+  "purpose": "Prospectively score whether G1d selected contexts contain sufficient typed terminal authority for every load-bearing proposition, separately from semantic answer quality and forbidden-conflation risk.",
+  "terminal_authority_types": ["RAW_MEMORY", "HUMAN_KNOWLEDGE"],
+  "context_statuses": ["INSUFFICIENT_AUTHORITY", "SUFFICIENT_CLEAN", "SUFFICIENT_WITH_CONFLATION_RISK"],
+  "questions": {
+    "BQ001": {
+      "clauses": [
+        {
+          "clause_id": "identity_bridge",
+          "proposition_id": "target_identity",
+          "semantic_role": "identity_bridge",
+          "type": "all_of",
+          "anchor_ids": ["B003"],
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "description": "The Kestrel registry must explicitly bridge D. Ortiz to Dana Ortiz."
+        },
+        {
+          "clause_id": "repeated_hsm_requirement",
+          "proposition_id": "repeated_requirement",
+          "semantic_role": "repeated_support",
+          "type": "min_count",
+          "min_count": 2,
+          "anchor_ids": ["B001", "B002", "B005"],
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "description": "At least two admitted records must establish that the HSM signing-key requirement recurred."
+        }
+      ],
+      "corroborating_optional_anchor_ids": [],
+      "forbidden_conflation_anchor_ids": ["B004"]
+    },
+    "BQ002": {
+      "clauses": [
+        {
+          "clause_id": "direct_authorship",
+          "proposition_id": "direct_authored_wording",
+          "semantic_role": "direct_attribution",
+          "type": "all_of",
+          "anchor_ids": ["B002"],
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "description": "Direct-authored wording requires Dana Ortiz's direct email."
+        },
+        {
+          "clause_id": "meeting_attribution",
+          "proposition_id": "meeting_attributed_wording",
+          "semantic_role": "alternative_support",
+          "type": "any_of",
+          "anchor_ids": ["B001", "B005"],
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "description": "At least one meeting record must establish attributed rather than direct-authored wording."
+        },
+        {
+          "clause_id": "identity_bridge",
+          "proposition_id": "meeting_identity",
+          "semantic_role": "identity_bridge",
+          "type": "all_of",
+          "anchor_ids": ["B003"],
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "description": "The project registry must bridge D. Ortiz to Dana Ortiz."
+        }
+      ],
+      "corroborating_optional_anchor_ids": [],
+      "forbidden_conflation_anchor_ids": ["B004"]
+    },
+    "BQ003": {
+      "clauses": [
+        {
+          "clause_id": "user_owned_decision_and_rationale",
+          "proposition_id": "first_release_decision",
+          "semantic_role": "human_knowledge_decision",
+          "type": "all_of",
+          "anchor_ids": ["B007"],
+          "terminal_authority_types": ["HUMAN_KNOWLEDGE"],
+          "description": "The first-release no-NATS decision and rationale must terminate in explicit user-owned Human Knowledge."
+        },
+        {
+          "clause_id": "later_burst_non_reversal",
+          "proposition_id": "later_event_scope",
+          "semantic_role": "temporal_non_reversal",
+          "type": "all_of",
+          "anchor_ids": ["B008"],
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "description": "The later synthetic burst must establish that it was unrealistic and did not itself record reversal."
+        }
+      ],
+      "corroborating_optional_anchor_ids": ["B006"],
+      "forbidden_conflation_anchor_ids": []
+    },
+    "BQ004": {
+      "clauses": [
+        {
+          "clause_id": "early_hypothesis",
+          "proposition_id": "initial_hypothesis_status",
+          "semantic_role": "hypothesis_status",
+          "type": "all_of",
+          "anchor_ids": ["B009"],
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "description": "The connection-leak explanation must be shown as an unconfirmed early hypothesis."
+        },
+        {
+          "clause_id": "causal_retry_signal",
+          "proposition_id": "causal_signal",
+          "semantic_role": "causal_support",
+          "type": "all_of",
+          "anchor_ids": ["B010"],
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "description": "The retry increase and response to disabling retries must be present."
+        },
+        {
+          "clause_id": "final_root_cause_and_rejection",
+          "proposition_id": "root_cause_and_negative_evidence",
+          "semantic_role": "negative_evidence",
+          "type": "all_of",
+          "anchor_ids": ["B011"],
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "description": "The postmortem must establish retry amplification as root cause and reject the connection-leak hypothesis."
+        }
+      ],
+      "corroborating_optional_anchor_ids": [],
+      "forbidden_conflation_anchor_ids": []
+    },
+    "BQ005": {
+      "clauses": [
+        {
+          "clause_id": "corrected_start_time",
+          "proposition_id": "start_time",
+          "semantic_role": "alternative_support",
+          "type": "any_of",
+          "anchor_ids": ["B009", "B011", "B012"],
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "description": "The corrected 14:06 start time may be established by any admitted record that explicitly records it."
+        },
+        {
+          "clause_id": "retry_signal_and_rollback",
+          "proposition_id": "mid_incident_signal",
+          "semantic_role": "temporal_event",
+          "type": "all_of",
+          "anchor_ids": ["B010"],
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "description": "The 14:21 retry signal and rollback action are required."
+        },
+        {
+          "clause_id": "final_root_cause",
+          "proposition_id": "root_cause",
+          "semantic_role": "causal_support",
+          "type": "all_of",
+          "anchor_ids": ["B011"],
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "description": "The final retry-amplification root cause is required."
+        },
+        {
+          "clause_id": "addendum_scope",
+          "proposition_id": "correction_scope",
+          "semantic_role": "temporal_correction",
+          "type": "all_of",
+          "anchor_ids": ["B012"],
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "description": "The addendum must establish that only the start time changed and root cause did not."
+        }
+      ],
+      "corroborating_optional_anchor_ids": [],
+      "forbidden_conflation_anchor_ids": []
+    },
+    "BQ006": {
+      "clauses": [
+        {
+          "clause_id": "eu_residency_scope",
+          "proposition_id": "customer_constraint",
+          "semantic_role": "unique_support",
+          "type": "all_of",
+          "anchor_ids": ["B013"],
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "description": "The Cedar rule must establish that production data, backups, and replicas remain in the EU."
+        },
+        {
+          "clause_id": "encryption_not_waiver",
+          "proposition_id": "negative_constraint",
+          "semantic_role": "negative_evidence",
+          "type": "all_of",
+          "anchor_ids": ["B013"],
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "description": "Explicit negative evidence must establish that encryption does not waive the geographic requirement."
+        },
+        {
+          "clause_id": "standard_and_eu_only_option",
+          "proposition_id": "vendor_configuration",
+          "semantic_role": "vendor_capability",
+          "type": "all_of",
+          "anchor_ids": ["B014"],
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "description": "The vendor response must establish standard US-backup behavior and the non-default EU-only option."
+        }
+      ],
+      "corroborating_optional_anchor_ids": ["B015"],
+      "forbidden_conflation_anchor_ids": []
+    },
+    "BQ007": {
+      "clauses": [
+        {
+          "clause_id": "project_identity_bridge",
+          "proposition_id": "project_identity",
+          "semantic_role": "identity_bridge",
+          "type": "all_of",
+          "anchor_ids": ["B017"],
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "description": "The project registry must bridge former name Lark to current name Harbor and stable project ID PRJ-482."
+        },
+        {
+          "clause_id": "user_owned_deprecation_decision",
+          "proposition_id": "webhook_deprecation",
+          "semantic_role": "human_knowledge_decision",
+          "type": "all_of",
+          "anchor_ids": ["B018"],
+          "terminal_authority_types": ["HUMAN_KNOWLEDGE"],
+          "description": "The v1 webhook deprecation decision must terminate in explicit user-owned Human Knowledge for Harbor / PRJ-482."
+        }
+      ],
+      "corroborating_optional_anchor_ids": ["B016"],
+      "forbidden_conflation_anchor_ids": ["B019"]
+    },
+    "BQ008": {
+      "clauses": [
+        {
+          "clause_id": "normal_sso_requirement",
+          "proposition_id": "normal_admin_policy",
+          "semantic_role": "policy_requirement",
+          "type": "all_of",
+          "anchor_ids": ["B020"],
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "description": "Normal privileged administrator access must be grounded in the corporate SSO policy."
+        },
+        {
+          "clause_id": "break_glass_scope",
+          "proposition_id": "exception_scope",
+          "semantic_role": "narrow_exception",
+          "type": "all_of",
+          "anchor_ids": ["B021"],
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "description": "The break-glass bypass must be limited to a declared incident with identity-provider unavailability."
+        },
+        {
+          "clause_id": "audit_not_waived",
+          "proposition_id": "audit_requirement",
+          "semantic_role": "negative_evidence",
+          "type": "all_of",
+          "anchor_ids": ["B022"],
+          "terminal_authority_types": ["RAW_MEMORY"],
+          "description": "Audit logging and post-incident review must remain required despite the SSO exception."
+        }
+      ],
+      "corroborating_optional_anchor_ids": [],
+      "forbidden_conflation_anchor_ids": ["B023"]
+    }
+  }
+}

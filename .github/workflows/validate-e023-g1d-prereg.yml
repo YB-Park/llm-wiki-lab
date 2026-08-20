@@ -1,0 +1,46 @@
+name: Validate E023 G1d prereg
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/g1d-preregistration-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/g1d_common.py'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1d_prereg.py'
+      - 'experiments/E023-generality-retrieval-composition/authority-sufficiency-v1/**'
+      - '.github/workflows/validate-e023-g1d-prereg.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/g1d-preregistration-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/g1d_common.py'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1d_prereg.py'
+      - 'experiments/E023-generality-retrieval-composition/authority-sufficiency-v1/**'
+      - '.github/workflows/validate-e023-g1d-prereg.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-g1d-prereg-zero-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile G1d prereg assets
+        run: |
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/g1d_common.py
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_g1d_prereg.py
+      - name: Validate prospective G1d contract
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/validate_g1d_prereg.py \
+            | tee /tmp/e023-g1d-prereg.txt
+          grep -q '^E023 G1d prereg validation: PASS$' /tmp/e023-g1d-prereg.txt
+          grep -q '"model_calls": 0' /tmp/e023-g1d-prereg.txt
+          grep -q '"anchor_count": 23' /tmp/e023-g1d-prereg.txt
+          grep -q '"question_count": 8' /tmp/e023-g1d-prereg.txt
+          grep -q '"planned_semantic_calls": 24' /tmp/e023-g1d-prereg.txt
+          grep -q '"model_selector_calls": 0' /tmp/e023-g1d-prereg.txt
+          grep -q '"semantic_calls_authorized_on_this_pr": false' /tmp/e023-g1d-prereg.txt

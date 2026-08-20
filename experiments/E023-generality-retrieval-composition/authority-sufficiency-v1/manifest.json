@@ -1,0 +1,30 @@
+{
+  "experiment": "E023",
+  "slice": "authority_sufficiency_v1",
+  "version": 1,
+  "status": "PROSPECTIVELY_FROZEN_BEFORE_SEMANTIC_EXECUTION",
+  "anchor_count": 23,
+  "question_count": 8,
+  "authority_type_counts": {
+    "RAW_MEMORY": 21,
+    "HUMAN_KNOWLEDGE": 2
+  },
+  "families": [
+    "identity_attribution",
+    "decision_rationale",
+    "incident_temporal",
+    "vendor_constraint",
+    "project_identity",
+    "policy_exception"
+  ],
+  "separation": {
+    "shares_anchor_ids_with_authority_sufficiency_v0": false,
+    "shares_exact_anchor_text_with_authority_sufficiency_v0": false,
+    "contains_model_answers": false,
+    "contains_semantic_verdicts": false
+  },
+  "intended_gate": "G1d deterministic authority-preserving selection",
+  "product_schema_authorized": false,
+  "g2_persistence_authorized": false,
+  "g3_identity_routing_authorized": false
+}
