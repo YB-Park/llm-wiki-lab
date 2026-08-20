@@ -1,0 +1,45 @@
+name: Validate E023 G2 closure
+
+on:
+  pull_request:
+    paths:
+      - 'HANDOFF.md'
+      - 'docs/14-generality-and-semantic-projections.md'
+      - 'experiments/E023-generality-retrieval-composition/README.md'
+      - 'experiments/E023-generality-retrieval-composition/g2-closure-decision-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/validate_g2_closure.py'
+      - '.github/workflows/validate-e023-g2-closure.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'HANDOFF.md'
+      - 'docs/14-generality-and-semantic-projections.md'
+      - 'experiments/E023-generality-retrieval-composition/README.md'
+      - 'experiments/E023-generality-retrieval-composition/g2-closure-decision-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/validate_g2_closure.py'
+      - '.github/workflows/validate-e023-g2-closure.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-g2-closure-zero-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile G2 closure validator
+        run: python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_g2_closure.py
+      - name: Validate G2 closure
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/validate_g2_closure.py \
+            | tee /tmp/e023-g2-closure.txt
+          grep -q '^E023 G2 closure validation: PASS$' /tmp/e023-g2-closure.txt
+          grep -q '"model_calls": 0' /tmp/e023-g2-closure.txt
+          grep -q '"g2_persistence": "NOT_EARNED_PARKED"' /tmp/e023-g2-closure.txt
+          grep -q '"g3_identity_routing": "NOT_OPENED"' /tmp/e023-g2-closure.txt
+          grep -q '"paid_e023_semantic_calls_authorized": false' /tmp/e023-g2-closure.txt
+          grep -q '"next_primary_track": "ISSUE_141_NATURAL_DOGFOOD"' /tmp/e023-g2-closure.txt
