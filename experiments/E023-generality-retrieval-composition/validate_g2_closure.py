@@ -51,9 +51,22 @@ def main() -> int:
     assert "G2 fixed-identity persistence promotion is NOT_EARNED" in result_doc
     assert "G2 FIXED-IDENTITY PERSISTENCE NOT EARNED AND PARKED" in readme
     assert "G3 NOT OPENED" in readme
-    assert "NEXT CORE — natural installed product evidence" in handoff
-    assert "G2 Persistence — first fixed-identity candidate NOT_EARNED; PARKED" in handoff
-    assert "G3 Identity / Routing — NOT_OPENED" in handoff
+
+    # HANDOFF.md is a living continuation checkpoint. Validate current decision
+    # boundaries, not historical section titles or experiment narration.
+    for phrase in [
+        "## NOW",
+        "current product decision: **GO for installed self-dogfood / Alpha use**",
+        "primary product-evidence track: **Issue #141 natural installed dogfood**",
+        "paid E023 semantic calls: **paused**",
+        "**G2 Persistence: NOT_EARNED; parked.**",
+        "**G3 Identity / Routing: NOT_OPENED.**",
+        "same-slice AQ/BQ/CQ/DQ/PQ semantic reruns or tuning",
+        "## NEXT ACTION",
+        "Run the Day-0 installed smoke on the exact 0.1.16 VSIX",
+    ]:
+        assert phrase in handoff, phrase
+
     assert "G2 PERSISTENCE NOT EARNED AND PARKED" in design
     assert "Query-time reconstruction is the default architecture posture" in design
     assert "paid E023 semantic calls pause" in design
