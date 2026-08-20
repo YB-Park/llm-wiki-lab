@@ -10,6 +10,7 @@ RUNNER = ROOT / "run_g1e.py"
 ADDENDUM = ROOT / "g1e-execution-addendum-v0.md"
 WORKFLOW = REPO / ".github" / "workflows" / "e023-generality-g1e.yml"
 PHASE0_SHA = "c674f93728db7d4fe0d8b84328feca34b87fd655"
+EXECUTION_SOURCE_SHA = "505740b74776fc7b7988e9c168c9c9d0ed2067fa"
 
 
 def main() -> int:
@@ -58,7 +59,7 @@ def main() -> int:
     assert "github.event_name == 'pull_request'" in workflow
     assert "copilot-requests: write" in workflow
     assert "github.event_name == 'push'" in workflow
-    assert f"github.event.before == '{PHASE0_SHA}'" in workflow
+    assert f"github.sha == '{EXECUTION_SOURCE_SHA}'" in workflow
     assert "--execute-model" in workflow
     assert "actions/upload-artifact@v4" in workflow
     assert "result.sha256" in workflow
@@ -66,6 +67,7 @@ def main() -> int:
     output = {
         "model_calls": 0,
         "phase0_sha": PHASE0_SHA,
+        "execution_source_sha_locked": EXECUTION_SOURCE_SHA,
         "model": request["model"],
         "question_count": request["question_count"],
         "A5_top_k": request["a5_top_k"],
