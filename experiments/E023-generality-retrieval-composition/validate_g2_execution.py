@@ -13,6 +13,7 @@ PROMPT = ROOT / "projection_prompt_v0.py"
 REQUEST = REPO / "remote-lab" / "e023-g2-request.json"
 WORKFLOW = REPO / ".github" / "workflows" / "e023-generality-g2.yml"
 PREREG_MERGE_SHA = "080ac3d91d011be3ec16111bdc24eda9905f3d9c"
+EXECUTION_SOURCE_SHA = "3cf65d7255b8edc73a9d8cb3d13338e019cc92f8"
 
 
 def main() -> int:
@@ -48,6 +49,7 @@ def main() -> int:
     evaluation = json.loads(EVAL.read_text(encoding="utf-8"))
     prompt_source = PROMPT.read_text(encoding="utf-8")
     workflow = WORKFLOW.read_text(encoding="utf-8")
+    completed = (ROOT / "g2-adjudication-v0.json").exists() and (ROOT / "g2-results-v0.md").exists()
 
     assert "PREREGISTRATION / ZERO-MODEL FIRST" in prereg
     assert evaluation["status"] == "PROSPECTIVE_G2_EVALUATION_ONLY_NOT_RUNTIME"
@@ -57,7 +59,7 @@ def main() -> int:
 
     for phrase in [
         'PKG = HERE / "persistence-comparison-v0"',
-        'PREREG_MERGE_SHA = "080ac3d91d011be3ec16111bdc24eda9905f3d9c"',
+        f'PREREG_MERGE_SHA = "{PREREG_MERGE_SHA}"',
         'PROJECTION.projection_prompt_v0(subject_id, context)',
         'G1C.composer_prompt(question, context).replace("Axxx", "Pxxx")',
         '"selection_mode": "STALE_PROJECTION_BYPASS"',
@@ -72,7 +74,6 @@ def main() -> int:
     ]:
         assert phrase in runner, phrase
 
-    # Runtime may score selected terminal contexts for evidence capture but must not load evaluator artifacts or frozen outcomes.
     for forbidden in [
         "g2-evaluation-contract-v0.json",
         "g2-adjudication-v0.json",
@@ -87,14 +88,11 @@ def main() -> int:
     assert "USER QUESTION" not in prompt_source
     assert "question:" not in prompt_source
 
-    # Projection is retrieval-only: statement text is ranked but final context comes from terminal anchor map.
     assert 'docs = [{"anchor_id": row["entry_id"], "text": row["statement"]}' in runner
     assert 'evidence_context(anchor_map, p_selected)' in runner
     assert 'parse_composer(receipt["text"], set(arm_row["selected_anchor_ids"]))' in runner
-    assert 'PROJECTION.projection_prompt_v0(subject_id, context)' in runner
     assert 'old_composer_prompt(question["question"], contexts[arm])' in runner
 
-    # Frozen lifecycle and semantic attempt arithmetic.
     assert request["projection_build_rebuild_calls"] == 5
     assert request["Q_composer_calls"] + request["P_composer_calls"] == 24
     assert 5 + 24 == request["max_model_call_attempts"] == 29
@@ -123,10 +121,8 @@ def main() -> int:
     ]:
         assert phrase in addendum, phrase
 
-    # One-shot CI: PR preflight is zero-model; push execution only from exact prereg base.
     assert "github.event_name == 'pull_request'" in workflow
     assert "github.event_name == 'push'" in workflow
-    assert f"github.event.before == '{PREREG_MERGE_SHA}'" in workflow
     assert "workflow_dispatch" not in workflow
     assert "copilot-requests: write" in workflow
     assert "run_g2.py --execute-model" in workflow
@@ -134,13 +130,18 @@ def main() -> int:
     assert "Capture frozen E023 G2 run" in workflow
     assert "e023-g2-evidence" in workflow
 
-    # No result/adjudication artifact exists before execution.
-    assert not (ROOT / "g2-adjudication-v0.json").exists()
-    assert not (ROOT / "g2-results-v0.md").exists()
+    if completed:
+        assert f"github.sha == '{EXECUTION_SOURCE_SHA}'" in workflow
+        assert f"github.event.before == '{PREREG_MERGE_SHA}'" not in workflow
+    else:
+        assert f"github.event.before == '{PREREG_MERGE_SHA}'" in workflow
+        assert not (ROOT / "g2-adjudication-v0.json").exists()
+        assert not (ROOT / "g2-results-v0.md").exists()
 
     output = {
         "model_calls": 0,
         "prereg_merge_sha": PREREG_MERGE_SHA,
+        "execution_source_locked": completed,
         "model": request["model"],
         "question_count": request["question_count"],
         "Q_composer_calls": request["Q_composer_calls"],
@@ -152,7 +153,7 @@ def main() -> int:
         "stale_projection_bypass_frozen": True,
         "projection_text_to_composer": False,
         "semantic_calls_authorized_on_pr": False,
-        "semantic_calls_authorized_only_after_merge_from_exact_prereg_base": True,
+        "semantic_calls_authorized_only_after_merge_from_exact_prereg_base": not completed,
         "g2_product_persistence_authorized": False,
         "graph_entity_ku_authorized": False,
         "vector_default_authorized": False,
