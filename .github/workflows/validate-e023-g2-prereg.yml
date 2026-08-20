@@ -1,0 +1,56 @@
+name: Validate E023 G2 prereg
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/g2-preregistration-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/g2-evaluation-contract-v0.json'
+      - 'experiments/E023-generality-retrieval-composition/projection_prompt_v0.py'
+      - 'experiments/E023-generality-retrieval-composition/validate_g2_prereg.py'
+      - 'experiments/E023-generality-retrieval-composition/persistence-comparison-v0/**'
+      - '.github/workflows/validate-e023-g2-prereg.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/g2-preregistration-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/g2-evaluation-contract-v0.json'
+      - 'experiments/E023-generality-retrieval-composition/projection_prompt_v0.py'
+      - 'experiments/E023-generality-retrieval-composition/validate_g2_prereg.py'
+      - 'experiments/E023-generality-retrieval-composition/persistence-comparison-v0/**'
+      - '.github/workflows/validate-e023-g2-prereg.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-g2-prereg-zero-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile G2 prereg assets
+        run: |
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/projection_prompt_v0.py
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_g2_prereg.py
+      - name: Run G2 prospective zero-model gate
+        env:
+          PYTHONPATH: experiments/E023-generality-retrieval-composition
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/validate_g2_prereg.py \
+            | tee /tmp/e023-g2-prereg.txt
+          grep -q '^E023 G2 prereg zero-model validation: PASS$' /tmp/e023-g2-prereg.txt
+          grep -q '"model_calls": 0' /tmp/e023-g2-prereg.txt
+          grep -q '"anchor_count": 36' /tmp/e023-g2-prereg.txt
+          grep -q '"question_count": 12' /tmp/e023-g2-prereg.txt
+          grep -q '"subject_count": 3' /tmp/e023-g2-prereg.txt
+          grep -q '"PQ004_missing_anchor_rank": 12' /tmp/e023-g2-prereg.txt
+          grep -q '"PQ007_PQ008_missing_anchor_rank": 8' /tmp/e023-g2-prereg.txt
+          grep -q '"primary_stale_negative_control": "PQ011"' /tmp/e023-g2-prereg.txt
+          grep -q '"planned_projection_build_rebuild_calls": 5' /tmp/e023-g2-prereg.txt
+          grep -q '"planned_total_semantic_attempts_if_separately_executed": 29' /tmp/e023-g2-prereg.txt
+          grep -q '"semantic_calls_authorized_on_this_pr": false' /tmp/e023-g2-prereg.txt
+          grep -q '"g2_product_persistence_authorized": false' /tmp/e023-g2-prereg.txt
+          grep -q '"automatic_identity_routing_authorized": false' /tmp/e023-g2-prereg.txt

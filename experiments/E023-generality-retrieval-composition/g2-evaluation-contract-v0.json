@@ -1,0 +1,136 @@
+{
+  "arms": {
+    "P": "fresh persisted DERIVED retrieval projection -> deterministic projection retrieval of terminal anchors -> frozen old composer; stale projection deterministically bypassed to exact Q control",
+    "Q": "fixed-subject current terminal authority -> subject-scoped exact BM25 top-6 -> frozen old composer"
+  },
+  "cases": {
+    "PQ001": {
+      "coverage": ["user_owned_authority", "decision_rationale", "corroboration"],
+      "expected_control_authority_status": "SUFFICIENT_CLEAN",
+      "persistence_opportunity": false,
+      "required_checks": ["preserve P001 as user/project-owned decision authority", "treat P002 as supporting evidence rather than authorship of the decision"],
+      "stale_gap": false
+    },
+    "PQ002": {
+      "coverage": ["direct_vs_attributed", "role_proximity"],
+      "expected_control_authority_status": "SUFFICIENT_WITH_CONFLATION_RISK",
+      "persistence_opportunity": false,
+      "required_checks": ["distinguish P006 direct authorship from P005 meeting-note attribution", "do not infer authorship from P011 role proximity"],
+      "stale_gap": false
+    },
+    "PQ003": {
+      "coverage": ["proposition_scoped_sufficiency", "deployment_uncertainty"],
+      "expected_control_authority_status": "SUFFICIENT_WITH_CONFLATION_RISK",
+      "persistence_opportunity": false,
+      "required_checks": ["allow could-satisfy conclusion from P008+P009", "use P010 to keep actual deployed compliance as a separate stronger proposition"],
+      "stale_gap": false
+    },
+    "PQ004": {
+      "coverage": ["negative_characterization", "projection_retrieval_opportunity"],
+      "expected_control_authority_status": "INSUFFICIENT_AUTHORITY",
+      "persistence_opportunity": true,
+      "required_checks": ["preserve P003 narrow regulated-release requirement and explicit anti-generalization", "use P004 as broader portfolio evidence rather than claiming Dana is generally opposed to managed key services"],
+      "stale_gap": false
+    },
+    "PQ005": {
+      "coverage": ["policy_vs_capability", "authorization"],
+      "expected_control_authority_status": "SUFFICIENT_WITH_CONFLATION_RISK",
+      "persistence_opportunity": false,
+      "required_checks": ["P015 governs authorization", "P016 is capability only", "P017 audit obligation remains in force", "P019 sales language does not override policy"],
+      "stale_gap": false
+    },
+    "PQ006": {
+      "coverage": ["user_owned_authority", "single_observation_scope"],
+      "expected_control_authority_status": "SUFFICIENT_WITH_CONFLATION_RISK",
+      "persistence_opportunity": false,
+      "required_checks": ["preserve P013 as the team-owned capacity decision", "use P014 as June support without inventing a second month-close observation"],
+      "stale_gap": false
+    },
+    "PQ007": {
+      "coverage": ["stale_projection_guard", "control_retrieval_miss", "repeated_support"],
+      "expected_control_authority_status": "INSUFFICIENT_AUTHORITY",
+      "persistence_opportunity": false,
+      "required_checks": ["persistent arm must bypass the S0 projection because the Juniper S1 snapshot changed", "persistent selected terminal anchors must equal the Q control top-6 exactly", "do not use stale projection text or claim repetition from only P014"],
+      "stale_gap": true
+    },
+    "PQ008": {
+      "coverage": ["projection_retrieval_opportunity", "repeated_support", "user_owned_authority"],
+      "expected_control_authority_status": "INSUFFICIENT_AUTHORITY",
+      "persistence_opportunity": true,
+      "required_checks": ["fresh rebuilt projection should have opportunity to lift P021 second independent close observation", "preserve P013 as user/project-owned decision authority", "repetition requires independent P014+P021"],
+      "stale_gap": false
+    },
+    "PQ009": {
+      "coverage": ["user_owned_authority", "governing_policy"],
+      "expected_control_authority_status": "SUFFICIENT_WITH_CONFLATION_RISK",
+      "persistence_opportunity": false,
+      "required_checks": ["preserve P025 as project-owned retention decision", "P026 is the governing external 30-day requirement"],
+      "stale_gap": false
+    },
+    "PQ010": {
+      "coverage": ["policy_vs_capability", "authorization"],
+      "expected_control_authority_status": "SUFFICIENT_WITH_CONFLATION_RISK",
+      "persistence_opportunity": false,
+      "required_checks": ["P027 vendor 90-day capability does not itself authorize changing retention under P026 current policy"],
+      "stale_gap": false
+    },
+    "PQ011": {
+      "coverage": ["primary_stale_negative_control", "correction_supersession", "stale_projection_guard"],
+      "expected_control_authority_status": "SUFFICIENT_CLEAN",
+      "persistence_opportunity": false,
+      "required_checks": ["persistent arm must bypass the S0 projection after the Keystone S1 snapshot changes", "persistent selected terminal anchors must equal the Q control top-6 exactly", "state P033 90-day policy and P034 superseding decision as current", "keep P025 30-day decision historical rather than current"],
+      "stale_gap": true
+    },
+    "PQ012": {
+      "coverage": ["correction_supersession", "fresh_after_rebuild", "user_owned_authority"],
+      "expected_control_authority_status": "SUFFICIENT_CLEAN",
+      "persistence_opportunity": false,
+      "required_checks": ["fresh rebuilt projection must not revive the superseded P025 decision as current", "state P033 and P034 as current 90-day authority", "preserve P034 as user/project-owned decision authority"],
+      "stale_gap": false
+    }
+  },
+  "evaluation_contract_version": 1,
+  "planned_execution": {
+    "P_composer_calls": 12,
+    "P_projection_build_or_rebuild_calls": 5,
+    "Q_composer_calls": 12,
+    "candidate_model": "gpt-5.6-luna",
+    "max_semantic_call_attempts": 29,
+    "planner_calls": 0,
+    "rerolls": 0,
+    "same_exact_model_required": true,
+    "selector_calls": 0,
+    "vector_calls": 0
+  },
+  "projection_selection": {
+    "fresh_projection_entry_top_k": 2,
+    "maximum_terminal_anchor_count": 6,
+    "minimum_terminal_anchor_count": 4,
+    "no_projection_text_to_composer": true,
+    "raw_bm25_fill_to_minimum": true,
+    "stale_snapshot_behavior": "EXACT_Q_CONTROL_BYPASS"
+  },
+  "promotion": {
+    "all_required": [
+      "execution integrity: exact 29 semantic attempts, same exact model, zero rerolls",
+      "fresh P selected contexts improve authority status versus Q on both PQ004 and PQ008",
+      "fresh P selected contexts cause zero authority-status regressions on every other fresh-projection question",
+      "PQ007 and PQ011 stale guards bypass projection and reproduce the exact Q selected terminal anchors",
+      "PQ011 primary stale negative control has no stale/current inversion and no critical error",
+      "PQ012 post-rebuild correction/supersession semantic verdict == PASS",
+      "P semantic PASS count >= 10 of 12",
+      "P paired semantic improvements versus Q >= 2",
+      "P paired semantic regressions versus Q == 0",
+      "P new CRITICAL_ERROR versus Q == 0",
+      "P stale or unsupported load-bearing claims == 0",
+      "P terminal citations are all supported by supplied terminal authority",
+      "P selected raw terminal evidence characters across the 10 fresh-projection queries <= 85 percent of Q on the same queries",
+      "projection build/rebuild calls == 5 and no projection compiler call occurs inside a query event"
+    ],
+    "failure_policy": "Do not weaken thresholds after model projection or answer outputs exist.",
+    "name": "G2_PERSISTENCE_CANDIDATE_EARNED",
+    "scope_if_earned": "research signal that fixed-identity rebuildable persistence merits further G2/product translation; does not authorize G3 identity routing, graph/entity/KU storage, vector defaults, or a product persistence default"
+  },
+  "semantic_calls_authorized_on_this_pr": false,
+  "status": "PROSPECTIVE_G2_EVALUATION_ONLY_NOT_RUNTIME"
+}

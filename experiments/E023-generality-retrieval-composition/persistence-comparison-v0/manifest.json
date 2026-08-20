@@ -1,0 +1,19 @@
+{
+  "anchor_count": 36,
+  "authority_type_counts": {"HUMAN_KNOWLEDGE":4,"RAW_MEMORY":32},
+  "control_authority_status_counts": {"INSUFFICIENT_AUTHORITY":3,"SUFFICIENT_CLEAN":3,"SUFFICIENT_WITH_CONFLATION_RISK":6},
+  "control_insufficient_question_ids": ["PQ004","PQ007","PQ008"],
+  "fresh_projection_opportunity_question_ids": ["PQ004","PQ008"],
+  "notes": "Mechanism-stress repeated-use/update slice; not a natural-workload prevalence estimate.",
+  "package": "persistence-comparison-v0",
+  "planned_query_pairs": 12,
+  "primary_stale_negative_control": "PQ011",
+  "projection_build_or_rebuild_count_planned": 5,
+  "question_count": 12,
+  "semantic_calls_authorized_on_this_pr": false,
+  "stale_gap_question_ids": ["PQ007","PQ011"],
+  "state_anchor_counts": {"iris/S0":12,"juniper/S0":8,"juniper/S1":12,"keystone/S0":8,"keystone/S1":12},
+  "status": "PROSPECTIVE_G2_SEPARATED_MATERIAL_NO_MODEL_OUTPUTS",
+  "subject_anchor_counts": {"iris":12,"juniper":12,"keystone":12},
+  "subject_count": 3
+}

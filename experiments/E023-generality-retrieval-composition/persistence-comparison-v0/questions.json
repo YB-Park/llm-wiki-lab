@@ -1,0 +1,18 @@
+{
+  "question_version": 1,
+  "questions": [
+    {"phase":"fresh","question":"For Project Iris, why did we choose the canary rollout, and what evidence supported that choice?","question_id":"PQ001","state":"S0","subject_id":"iris"},
+    {"phase":"fresh","question":"For Project Iris, what did Dana Cho directly author, and what was only attributed to Dana in meeting notes?","question_id":"PQ002","state":"S0","subject_id":"iris"},
+    {"phase":"fresh","question":"For Project Iris, could the EU-only archive option satisfy the customer residency rule, and does the unchecked deployment item prove production is already compliant?","question_id":"PQ003","state":"S0","subject_id":"iris"},
+    {"phase":"fresh","question":"For Project Iris, is Dana Cho generally opposed to managed key services, or was the customer-HSM requirement narrower?","question_id":"PQ004","state":"S0","subject_id":"iris"},
+    {"phase":"fresh","question":"For Project Juniper, when is local emergency login authorized, and does vendor support for the feature authorize routine use?","question_id":"PQ005","state":"S0","subject_id":"juniper"},
+    {"phase":"fresh","question":"For Project Juniper, why did we raise queue capacity to 20k, and what June evidence supported the decision?","question_id":"PQ006","state":"S0","subject_id":"juniper"},
+    {"phase":"stale_gap","question":"For Project Juniper, what evidence now makes the month-close backlog repeated, and why was capacity raised to 20k?","question_id":"PQ007","state":"S1","subject_id":"juniper"},
+    {"phase":"fresh_after_rebuild","question":"For Project Juniper, what evidence now makes the month-close backlog repeated, and why was capacity raised to 20k?","question_id":"PQ008","state":"S1","subject_id":"juniper"},
+    {"phase":"fresh","question":"For Project Keystone, why did we set audit-export retention to 30 days, and what customer requirement governed that choice?","question_id":"PQ009","state":"S0","subject_id":"keystone"},
+    {"phase":"fresh","question":"For Project Keystone, does vendor support for 90-day retention authorize us to use 90 days under the current customer policy?","question_id":"PQ010","state":"S0","subject_id":"keystone"},
+    {"phase":"stale_gap","question":"For Project Keystone, what is the current audit-export retention requirement and decision after the customer addendum, and is the old 30-day decision still current?","question_id":"PQ011","state":"S1","subject_id":"keystone"},
+    {"phase":"fresh_after_rebuild","question":"For Project Keystone, what is the current audit-export retention requirement and decision after the customer addendum, and is the old 30-day decision still current?","question_id":"PQ012","state":"S1","subject_id":"keystone"}
+  ],
+  "status": "PROSPECTIVE_G2_SEPARATED_QUESTIONS"
+}
