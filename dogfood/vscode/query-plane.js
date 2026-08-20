@@ -2,42 +2,29 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { execFile, spawn } = require('node:child_process');
-const { promisify } = require('node:util');
+const { spawn } = require('node:child_process');
 const vscode = require('vscode');
-const humanKnowledge = require('./human-knowledge');
+const memoryRead = require('./memory-read-service');
 const { boundedProcessFailure } = require('./process-errors');
 const { resolvePythonRuntime } = require('./python-runtime');
 
-const execFileAsync = promisify(execFile);
 const TOOL = 'llmWiki_consultMemory';
 const CONFIGURE_COMMAND = 'llmWiki.configureQueryPlane';
 const MODEL = 'gpt-5.6-luna';
+const GRANT_VERSION = 1;
 const MAX_BUFFER = 16 * 1024 * 1024;
-const RAW_DISCOVERY_LIMIT = 6;
-const RAW_INTERNAL_LIMIT = 8;
-const RAW_READ_CHARS = 6000;
-const DERIVED_LIMIT = 3;
-const HUMAN_LIMIT = 3;
+const GRANT_KEY_PREFIX = 'llmWiki.queryPlaneGrant.v1';
+const USAGE_KEY_PREFIX = 'llmWiki.queryPlaneUsage.v1';
 
 function firstWorkspaceFolder() {
   const folders = vscode.workspace.workspaceFolders || [];
   if (!folders.length) throw new Error('Open a trusted VS Code workspace/folder before using LLM Wiki tools.');
-  if (folders.length !== 1) throw new Error('LLM Wiki currently supports one workspace folder at a time.');
+  if (folders.length !== 1) throw new Error('LLM Wiki currently supports one workspace folder at a time. Open the project as a single-folder workspace before using project memory.');
   return folders[0];
 }
 
 function configuration() {
   return vscode.workspace.getConfiguration('llmWiki');
-}
-
-function queryPlaneEnabled() {
-  return configuration().get('queryPlaneEnabled', false) === true;
-}
-
-function wikiRoot(folder) {
-  const value = String(configuration().get('workspaceDirectory', '.wiki-lab') || '.wiki-lab');
-  return path.isAbsolute(value) ? value : path.resolve(folder.uri.fsPath, value);
 }
 
 function coreRoot(context, folder) {
@@ -48,41 +35,61 @@ function coreRoot(context, folder) {
   return path.resolve(context.extensionPath, '..', '..');
 }
 
-function isWikiInitialized(folder) {
-  const root = wikiRoot(folder);
-  return fs.existsSync(path.join(root, 'config.json')) && fs.existsSync(path.join(root, 'manifest.jsonl'));
-}
-
 function pythonEnv(context, folder) {
   const root = coreRoot(context, folder);
   const pythonPath = process.env.PYTHONPATH ? `${root}${path.delimiter}${process.env.PYTHONPATH}` : root;
   return { ...process.env, PYTHONPATH: pythonPath };
 }
 
-async function runPythonModule(context, folder, moduleName, args) {
-  const runtime = await resolvePythonRuntime(folder);
-  if (!runtime) throw new Error('python_runtime_not_found');
-  const fullArgs = ['-m', moduleName, '--root', wikiRoot(folder), ...args];
-  try {
-    const result = await execFileAsync(runtime.executable, fullArgs, {
-      cwd: folder.uri.fsPath,
-      env: pythonEnv(context, folder),
-      maxBuffer: MAX_BUFFER,
-      windowsHide: true,
-    });
-    return String(result.stdout || '');
-  } catch (error) {
-    const stderr = error && error.stderr ? String(error.stderr).trim() : '';
-    const stdout = error && error.stdout ? String(error.stdout).trim() : '';
-    const detail = stderr || stdout || (error && error.message) || String(error);
-    throw new Error(boundedProcessFailure(detail));
-  }
+function grantKey(folder) {
+  return `${GRANT_KEY_PREFIX}:${folder.uri.toString()}`;
 }
 
-async function runPythonModuleStdin(context, folder, moduleName, args, input) {
+function localDayKey() {
+  const now = new Date();
+  const yyyy = String(now.getFullYear()).padStart(4, '0');
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function usageKey(folder, day = localDayKey()) {
+  return `${USAGE_KEY_PREFIX}:${folder.uri.toString()}:${day}`;
+}
+
+function queryGrant(context, folder) {
+  const row = context.workspaceState.get(grantKey(folder));
+  if (!row || row.version !== GRANT_VERSION || row.enabled !== true) return undefined;
+  if (row.model !== MODEL || row.scope !== 'current_store' || row.provider !== 'github_copilot') return undefined;
+  const dailyCallLimit = Number(row.dailyCallLimit);
+  if (!Number.isInteger(dailyCallLimit) || dailyCallLimit < 1 || dailyCallLimit > 100) return undefined;
+  return { ...row, dailyCallLimit };
+}
+
+function queryPlaneEnabled(context, folder) {
+  return Boolean(queryGrant(context, folder));
+}
+
+function queryUsage(context, folder) {
+  const day = localDayKey();
+  const row = context.workspaceState.get(usageKey(folder, day), {});
+  return { day, reservedCalls: Math.max(0, Math.trunc(Number(row.reservedCalls || 0)) || 0) };
+}
+
+async function reserveQueryCall(context, folder, grant) {
+  const usage = queryUsage(context, folder);
+  if (usage.reservedCalls >= grant.dailyCallLimit) {
+    return { allowed: false, ...usage, dailyCallLimit: grant.dailyCallLimit };
+  }
+  const reservedCalls = usage.reservedCalls + 1;
+  await context.workspaceState.update(usageKey(folder, usage.day), { reservedCalls });
+  return { allowed: true, day: usage.day, reservedCalls, dailyCallLimit: grant.dailyCallLimit };
+}
+
+async function runComposerStdin(context, folder, args, input) {
   const runtime = await resolvePythonRuntime(folder);
   if (!runtime) throw new Error('python_runtime_not_found');
-  const fullArgs = ['-m', moduleName, '--root', wikiRoot(folder), ...args];
+  const fullArgs = ['-m', 'dogfood.llm_wiki.query_plane_cli', ...args];
   return new Promise((resolve, reject) => {
     const child = spawn(runtime.executable, fullArgs, {
       cwd: folder.uri.fsPath,
@@ -135,111 +142,63 @@ async function runPythonModuleStdin(context, folder, moduleName, args, input) {
   });
 }
 
-function parseJsonLines(stdout) {
-  return String(stdout || '')
-    .split(/\r?\n/)
-    .filter((line) => line.trim())
-    .map((line) => JSON.parse(line));
-}
-
-function firstSourceId(row) {
-  if (Array.isArray(row.source_ids) && row.source_ids.length) return String(row.source_ids[0] || '').trim();
-  return String(row.source_id || '').trim();
-}
-
-async function collectQueryPlanePayload(context, folder, question) {
-  const [rawStdout, derivedStdout] = await Promise.all([
-    runPythonModule(context, folder, 'dogfood.llm_wiki.cli', ['discover', question, '--top-k-per-topic', '3', '--json']),
-    runPythonModule(context, folder, 'dogfood.llm_wiki.agent_wiki_cli', ['search', question, '--top-k', String(DERIVED_LIMIT), '--json']),
-  ]);
-  const rawHits = parseJsonLines(rawStdout).slice(0, RAW_DISCOVERY_LIMIT);
-  const derivedRows = parseJsonLines(derivedStdout).slice(0, DERIVED_LIMIT);
-  const humanRows = humanKnowledge.search(wikiRoot(folder), question, HUMAN_LIMIT);
-
-  const targets = [];
-  const seen = new Set();
-  const addTarget = (sourceId, topicId) => {
-    if (!sourceId || seen.has(sourceId) || targets.length >= RAW_INTERNAL_LIMIT) return;
-    seen.add(sourceId);
-    targets.push({ sourceId, topicId: String(topicId || '').trim() });
-  };
-  rawHits.forEach((row) => addTarget(firstSourceId(row), row.topic_id));
-  derivedRows.forEach((row) => addTarget(String(row.source_id || '').trim(), row.topic_id));
-
-  const raw = [];
-  for (const target of targets) {
-    const args = ['read', target.sourceId, '--start-char', '0', '--max-chars', String(RAW_READ_CHARS)];
-    if (target.topicId) args.push('--topic', target.topicId);
-    try {
-      const row = JSON.parse((await runPythonModule(context, folder, 'dogfood.llm_wiki.agent_memory_cli', args)).trim());
-      raw.push({
-        source_id: row.source_id,
-        topic_id: row.topic_id || target.topicId || '',
-        status: row.status || 'unknown',
-        contested: row.contested === true,
-        name: row.name || '',
-        text: row.text || '',
-        has_more: row.has_more === true,
-      });
-    } catch (_) {
-      // A damaged/stale individual candidate must not silently become authority.
-      // Omit it; the internal worker can return insufficient authority if the
-      // remaining verified terminal objects do not establish the proposition.
-    }
-  }
-
-  const human = humanRows.map((row) => ({
-    id: row.id,
-    title: row.title || '',
-    statement: row.statement || '',
-    reasoning: row.reasoning || '',
-  }));
-  const derived = derivedRows.map((row) => ({
-    source_id: row.source_id,
-    topic_id: row.topic_id || '',
-    title: row.title || '',
-    snippet: row.snippet || '',
-  }));
-  return { question, raw, human, derived };
-}
-
-function formatBrief(row) {
+function formatBrief(row, usage) {
   const brief = row && row.brief ? row.brief : {};
   return [
-    'LLM_WIKI_BRIEF v1',
+    'LLM_WIKI_BRIEF v2',
     'authority=read_only_query_result',
     'canonical_mutation=none',
+    `scope=${row && row.scope && row.scope.kind ? row.scope.kind : 'current_store'}`,
+    `query_profile=${row.query_profile || memoryRead.QUERY_PROFILE_V1.id}`,
     `model=${row.model || MODEL}`,
     `model_calls=${Number(row.model_calls || 0)}`,
+    `query_reserved_today=${usage && Number(usage.reservedCalls || 0)}`,
+    `query_daily_call_limit=${usage && Number(usage.dailyCallLimit || 0)}`,
     `insufficient_authority=${brief.insufficient_authority === true ? 'true' : 'false'}`,
     `answer_json=${JSON.stringify(String(brief.answer || ''))}`,
     `terminal_refs_json=${JSON.stringify(Array.isArray(brief.terminal_refs) ? brief.terminal_refs : [])}`,
-    'policy=Terminal RAW_MEMORY/HUMAN_KNOWLEDGE provenance is retained. DERIVED_MEMORY is never terminal authority. The internal retrieval/composition trace is intentionally not returned.',
+    'policy=Terminal RAW_MEMORY/HUMAN_KNOWLEDGE provenance is retained with scope-qualified refs. DERIVED_MEMORY and pending-lineage state are nonterminal. The internal retrieval/composition trace is intentionally not returned.',
   ].join('\n');
 }
 
 function disabledResult() {
   return [
-    'LLM_WIKI_BRIEF v1',
+    'LLM_WIKI_BRIEF v2',
     'state=query_plane_disabled',
     'authority=read_only_query_result',
     'canonical_mutation=none',
     'model_calls=0',
     'fallback=none',
-    'policy=Do not automatically dump raw Wiki memory into the Main Agent. Query reasoning requires the separate workspace grant llmWiki.queryPlaneEnabled.',
+    'policy=Do not automatically dump raw Wiki memory into the Main Agent. Query reasoning requires a separate local, revocable workspace grant and an explicit daily model-call cap.',
   ].join('\n');
 }
 
-function unavailableResult(error) {
+function budgetBlockedResult(grant, usage) {
   return [
-    'LLM_WIKI_BRIEF v1',
+    'LLM_WIKI_BRIEF v2',
+    'state=query_plane_budget_paused',
+    'authority=read_only_query_result',
+    'canonical_mutation=none',
+    'model_calls=0',
+    'fallback=none',
+    `query_reserved_today=${usage.reservedCalls}`,
+    `query_daily_call_limit=${grant.dailyCallLimit}`,
+    'policy=The local query-reasoning call cap has been reached. Do not silently fall back to broad raw Wiki context.',
+  ].join('\n');
+}
+
+function unavailableResult(error, usage) {
+  return [
+    'LLM_WIKI_BRIEF v2',
     'state=query_plane_unavailable',
     'authority=read_only_query_result',
     'canonical_mutation=none',
     'model_calls=0_or_failed_attempt',
     'fallback=none',
+    `query_reserved_today=${usage && Number(usage.reservedCalls || 0)}`,
+    `query_daily_call_limit=${usage && Number(usage.dailyCallLimit || 0)}`,
     `failure_json=${JSON.stringify(boundedProcessFailure(error && error.message ? error.message : String(error)))}`,
-    'policy=Do not automatically fall back by loading broad raw Wiki context into the Main Agent. Continue without Wiki memory or ask the user before diagnostic/raw drill-down.',
+    'policy=Do not automatically fall back by loading broad raw Wiki context into the Main Agent. Continue without Wiki memory or use explicit diagnostic/raw drill-down.',
   ].join('\n');
 }
 
@@ -256,84 +215,126 @@ class WikiConsultTool {
     const question = String((options.input && options.input.query) || '').trim();
     if (!question) throw new Error('wikiConsult.query must be a non-empty self-contained question.');
     if (question.length > 2000) throw new Error('wikiConsult.query must be 2000 characters or fewer.');
-    if (!isWikiInitialized(folder)) {
+    if (!memoryRead.isWikiInitialized(folder)) {
       return new vscode.LanguageModelToolResult([
-        new vscode.LanguageModelTextPart('LLM_WIKI_BRIEF v1\nstate=not_initialized\nauthority=read_only_query_result\ncanonical_mutation=none\nmodel_calls=0'),
+        new vscode.LanguageModelTextPart('LLM_WIKI_BRIEF v2\nstate=not_initialized\nauthority=read_only_query_result\ncanonical_mutation=none\nmodel_calls=0'),
       ]);
     }
-    if (!queryPlaneEnabled()) {
+
+    const grant = queryGrant(this.context, folder);
+    if (!grant) {
       return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(disabledResult())]);
+    }
+    const usage = await reserveQueryCall(this.context, folder, grant);
+    if (!usage.allowed) {
+      return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(budgetBlockedResult(grant, usage))]);
     }
 
     try {
-      const payload = await collectQueryPlanePayload(this.context, folder, question);
-      const stdout = await runPythonModuleStdin(
+      const payload = await memoryRead.collectQueryEvidence(this.context, folder, question);
+      const stdout = await runComposerStdin(
         this.context,
         folder,
-        'dogfood.llm_wiki.query_plane_cli',
-        ['--model', MODEL, '--max-ai-credits', '30'],
+        ['--model', MODEL],
         JSON.stringify(payload)
       );
       const row = JSON.parse(stdout.trim());
-      if (row.format !== 'llm-wiki-query-plane-v0' || row.status !== 'OK') throw new Error('query_plane_result_contract_invalid');
-      return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(formatBrief(row))]);
+      if (row.format !== 'llm-wiki-query-plane-v1' || row.status !== 'OK') throw new Error('query_plane_result_contract_invalid');
+      return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(formatBrief(row, usage))]);
     } catch (error) {
-      return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(unavailableResult(error))]);
+      return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(unavailableResult(error, usage))]);
     }
   }
 }
 
 async function configureQueryPlane(context) {
-  const config = configuration();
-  const currentlyEnabled = queryPlaneEnabled();
-  if (context.extensionMode === vscode.ExtensionMode.Test) {
-    await config.update('queryPlaneEnabled', !currentlyEnabled, vscode.ConfigurationTarget.Workspace);
-    return;
-  }
-  if (currentlyEnabled) {
-    const choice = await vscode.window.showWarningMessage(
-      'Disable Luna-backed Wiki query reasoning for this workspace?',
-      { modal: true, detail: 'Disabling stops future wikiConsult model calls. Saved Wiki data is preserved.' },
-      'Disable Query Reasoning'
-    );
+  const folder = firstWorkspaceFolder();
+  const current = queryGrant(context, folder);
+  if (current) {
+    const choice = context.extensionMode === vscode.ExtensionMode.Test
+      ? 'Disable Query Reasoning'
+      : await vscode.window.showWarningMessage(
+        'Disable Luna-backed Wiki query reasoning for this workspace?',
+        { modal: true, detail: 'Disabling stops future wikiConsult model calls. Saved Wiki data and existing query usage records are preserved.' },
+        'Disable Query Reasoning'
+      );
     if (choice === 'Disable Query Reasoning') {
-      await config.update('queryPlaneEnabled', false, vscode.ConfigurationTarget.Workspace);
-      vscode.window.showInformationMessage('LLM Wiki query reasoning is disabled for this workspace.');
+      await context.workspaceState.update(grantKey(folder), undefined);
+      if (context.extensionMode !== vscode.ExtensionMode.Test) vscode.window.showInformationMessage('LLM Wiki query reasoning is disabled for this workspace.');
+      return false;
     }
-    return;
+    return undefined;
   }
 
-  const choice = await vscode.window.showWarningMessage(
-    'Enable Luna-backed Wiki query reasoning for this workspace?',
-    {
-      modal: true,
-      detail: 'When enabled, ordinary wikiConsult calls may send retrieved saved Wiki evidence to GitHub Copilot using exact gpt-5.6-luna for read-only query reasoning. This grant does not admit new memory, change Human Knowledge, or authorize canonical mutations.',
-    },
-    'Enable Query Reasoning'
-  );
-  if (choice === 'Enable Query Reasoning') {
-    await config.update('queryPlaneEnabled', true, vscode.ConfigurationTarget.Workspace);
-    vscode.window.showInformationMessage('LLM Wiki query reasoning is enabled for this workspace.');
+  const choice = context.extensionMode === vscode.ExtensionMode.Test
+    ? 'Continue'
+    : await vscode.window.showWarningMessage(
+      'Enable Luna-backed Wiki query reasoning for this workspace?',
+      {
+        modal: true,
+        detail: 'When enabled, a wikiConsult call may send a bounded set of already-admitted Wiki evidence to GitHub Copilot using exact gpt-5.6-luna for read-only query reasoning. This is separate from AI-summary permission, source admission, Human Knowledge authorship, and canonical history changes. You will choose a local daily model-call cap next.',
+      },
+      'Continue'
+    );
+  if (choice !== 'Continue') return undefined;
+
+  let dailyCallLimit = 1;
+  if (context.extensionMode !== vscode.ExtensionMode.Test) {
+    const raw = await vscode.window.showInputBox({
+      title: 'LLM Wiki: Query reasoning daily call cap',
+      prompt: 'Choose the maximum number of model-backed wikiConsult attempts allowed today in this workspace. This is a local safety cap, not a billing estimate.',
+      placeHolder: 'Enter an integer from 1 to 100',
+      ignoreFocusOut: true,
+      validateInput: (value) => {
+        const number = Number(value);
+        return Number.isInteger(number) && number >= 1 && number <= 100 ? undefined : 'Enter an integer from 1 to 100.';
+      },
+    });
+    if (raw === undefined) return undefined;
+    dailyCallLimit = Number(raw);
   }
+
+  const grant = {
+    version: GRANT_VERSION,
+    enabled: true,
+    provider: 'github_copilot',
+    model: MODEL,
+    scope: 'current_store',
+    evidenceExposure: 'retrieved_admitted_memory_only',
+    dailyCallLimit,
+  };
+  await context.workspaceState.update(grantKey(folder), grant);
+  if (context.extensionMode !== vscode.ExtensionMode.Test) vscode.window.showInformationMessage('LLM Wiki query reasoning is enabled locally for this workspace.');
+  return true;
 }
 
-function registerQueryPlane(context) {
+function registerQueryPlaneCommand(context) {
+  context.subscriptions.push(vscode.commands.registerCommand(CONFIGURE_COMMAND, () => configureQueryPlane(context)));
+}
+
+function registerQueryPlaneTool(context) {
   if (!vscode.lm || typeof vscode.lm.registerTool !== 'function') {
     throw new Error('LLM Wiki Query Plane requires the stable VS Code Language Model Tool API (VS Code 1.95+).');
   }
-  context.subscriptions.push(vscode.commands.registerCommand(CONFIGURE_COMMAND, () => configureQueryPlane(context)));
   context.subscriptions.push(vscode.lm.registerTool(TOOL, new WikiConsultTool(context)));
 }
 
 module.exports = {
   CONFIGURE_COMMAND,
+  GRANT_VERSION,
   MODEL,
   TOOL,
   WikiConsultTool,
-  collectQueryPlanePayload,
+  budgetBlockedResult,
+  configureQueryPlane,
   disabledResult,
   formatBrief,
+  grantKey,
+  queryGrant,
   queryPlaneEnabled,
-  registerQueryPlane,
+  queryUsage,
+  registerQueryPlaneCommand,
+  registerQueryPlaneTool,
+  reserveQueryCall,
   unavailableResult,
 };
