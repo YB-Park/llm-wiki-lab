@@ -42,7 +42,7 @@ def main() -> int:
         "Snapshot freshness guard is credible",
         "P/Q: 68.3%",
         "G2 is parked",
-        "PQ is diagnostic history, not a tuning set",
+        "diagnostic history, not a tuning set",
         "Paid E023 semantic calls pause",
         "Dogfood 0.1.16 natural installed use on Issue #141 returns to the primary product-evidence position",
     ]:
