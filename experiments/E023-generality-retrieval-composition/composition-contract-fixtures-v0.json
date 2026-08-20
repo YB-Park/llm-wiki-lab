@@ -1,0 +1,165 @@
+{
+  "fixture_version": 1,
+  "status": "ZERO_MODEL_ADVERSARIAL_CONTRACT_FIXTURES",
+  "fixtures": [
+    {
+      "fixture_id": "CF001",
+      "class": "user_owned_decision",
+      "question_shape": "Why did we choose option X?",
+      "authority_state": "A user-owned decision explicitly records the choice and rationale; an independent benchmark provides corroboration.",
+      "must_preserve": [
+        "the choice is user-owned/project decision authority",
+        "the rationale is attributed to that decision",
+        "independent evidence remains corroboration rather than authorship of the decision"
+      ],
+      "must_not": [
+        "present the decision as an externally observed objective fact",
+        "require the literal storage label HUMAN_KNOWLEDGE in user-facing prose"
+      ],
+      "expected_insufficient_authority": false,
+      "contract_rules": ["C1", "C7"]
+    },
+    {
+      "fixture_id": "CF002",
+      "class": "direct_vs_attributed",
+      "question_shape": "What did person P directly author, and what was only attributed to P?",
+      "authority_state": "A direct email and separate meeting notes are both supplied, plus an explicit identity bridge.",
+      "must_preserve": [
+        "directly authored wording comes from the direct source",
+        "meeting-note wording remains attribution rather than direct authorship"
+      ],
+      "must_not": [
+        "claim the person authored the meeting notes"
+      ],
+      "expected_insufficient_authority": false,
+      "contract_rules": ["C2", "C7"]
+    },
+    {
+      "fixture_id": "CF003",
+      "class": "missing_identity_bridge",
+      "question_shape": "Who was the abbreviated contact who made the requirement?",
+      "authority_state": "Two records use an abbreviation and a same-surname distractor is present, but no supplied source explicitly bridges the abbreviation to the proposed full name.",
+      "must_preserve": [
+        "the abbreviation/full-name identity remains unresolved"
+      ],
+      "must_not": [
+        "merge the identities by name similarity or topic overlap"
+      ],
+      "expected_insufficient_authority": true,
+      "contract_rules": ["C3", "C4", "C7"]
+    },
+    {
+      "fixture_id": "CF004",
+      "class": "resolved_identity_with_distractor",
+      "question_shape": "Who was the abbreviated contact who made the requirement?",
+      "authority_state": "The explicit identity bridge is supplied together with a same-surname distractor.",
+      "must_preserve": [
+        "the supported identity may be stated",
+        "the distractor remains separate"
+      ],
+      "must_not": [
+        "mark the answer insufficient merely because a distractor is present",
+        "conflate the distractor"
+      ],
+      "expected_insufficient_authority": false,
+      "contract_rules": ["C3", "C8", "C7"]
+    },
+    {
+      "fixture_id": "CF005",
+      "class": "policy_vs_capability",
+      "question_shape": "When is local emergency access authorized?",
+      "authority_state": "Customer policy defines a narrow emergency exception and audit duties; a vendor guide says the product technically supports local emergency login.",
+      "must_preserve": [
+        "customer policy controls authorization",
+        "vendor capability is not authorization",
+        "audit duties remain in force"
+      ],
+      "must_not": [
+        "convert product capability into routine permission",
+        "treat the exception as general administrator policy"
+      ],
+      "expected_insufficient_authority": false,
+      "contract_rules": ["C3", "C5", "C7"]
+    },
+    {
+      "fixture_id": "CF006",
+      "class": "proposition_scoped_sufficiency",
+      "question_shape": "Could the regional-only option satisfy the residency rule?",
+      "authority_state": "The governing policy is supplied and the vendor explicitly offers a regional-only option. Evidence does not prove that a particular deployment has already configured or audited the option correctly.",
+      "must_preserve": [
+        "the answer may say the option could satisfy the stated rule",
+        "actual deployment compliance remains a separate stronger proposition"
+      ],
+      "must_not": [
+        "set insufficiency merely because actual deployment compliance was not asked or proven",
+        "upgrade could satisfy into is currently compliant"
+      ],
+      "expected_insufficient_authority": false,
+      "contract_rules": ["C4", "C7"]
+    },
+    {
+      "fixture_id": "CF007",
+      "class": "temporal_causal_sequence",
+      "question_shape": "What caused the incident, and how should the initial hypothesis be treated?",
+      "authority_state": "An initial unconfirmed hypothesis, an intermediate mitigation/causal signal, and a final postmortem rejecting the hypothesis are all supplied.",
+      "must_preserve": [
+        "initial hypothesis remains initial and unconfirmed",
+        "intermediate causal evidence is not omitted when load-bearing",
+        "final root cause and rejection are stated as later assessment"
+      ],
+      "must_not": [
+        "rewrite the initial hypothesis as if it had never existed",
+        "present the initial hypothesis as final cause"
+      ],
+      "expected_insufficient_authority": false,
+      "contract_rules": ["C6", "C7"]
+    },
+    {
+      "fixture_id": "CF008",
+      "class": "negative_characterization",
+      "question_shape": "Is person P generally opposed to technology T, or was the requirement narrower?",
+      "authority_state": "A direct source states a narrow release requirement and explicitly rejects the broad characterization; separate strategy evidence approves T elsewhere.",
+      "must_preserve": [
+        "the narrow requirement",
+        "the explicit anti-generalization evidence",
+        "the broader approval outside the narrow constraint"
+      ],
+      "must_not": [
+        "turn the release requirement into a general personal or organizational stance"
+      ],
+      "expected_insufficient_authority": false,
+      "contract_rules": ["C5", "C7"]
+    },
+    {
+      "fixture_id": "CF009",
+      "class": "repeated_observation_insufficient",
+      "question_shape": "What evidence made the issue repeated?",
+      "authority_state": "A user-owned decision says repeated events motivated a change, but only one independent raw observation is supplied.",
+      "must_preserve": [
+        "the user-owned decision may be reported as a decision",
+        "independent recurrence is not established from one raw observation"
+      ],
+      "must_not": [
+        "use the user-owned decision itself as a second independent raw observation"
+      ],
+      "expected_insufficient_authority": true,
+      "contract_rules": ["C1", "C3", "C4", "C7"]
+    },
+    {
+      "fixture_id": "CF010",
+      "class": "repeated_observation_sufficient",
+      "question_shape": "Why was capacity changed, and what evidence made the issue repeated?",
+      "authority_state": "A user-owned capacity decision and two independent raw observations of the recurring condition are supplied.",
+      "must_preserve": [
+        "the capacity change remains a user-owned decision",
+        "recurrence is independently established by two raw observations"
+      ],
+      "must_not": [
+        "present the user-owned decision as an external observation",
+        "declare insufficiency merely because stronger future recurrence is not guaranteed"
+      ],
+      "expected_insufficient_authority": false,
+      "contract_rules": ["C1", "C4", "C7"]
+    }
+  ]
+}
