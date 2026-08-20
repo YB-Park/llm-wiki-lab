@@ -41,9 +41,9 @@ The one-shot run completed exactly as frozen:
 
 Q:
 
-- **10 PASS**;
+- **9 PASS**;
 - **0 PARTIAL**;
-- **0 FAIL_RETRIEVAL**;
+- **1 FAIL_RETRIEVAL**;
 - **0 FAIL_COMPOSITION**;
 - **2 CRITICAL_ERROR**.
 
@@ -93,13 +93,13 @@ P detected snapshot mismatch, did not use stale projection text, and reproduced 
 
 **PQ011: stale/current inversion avoided; PASS.**
 
-### PQ007 — guard correct, separate model-call variance unsafe
+### PQ007 — guard correct, Q retrieval failure, separate model-call variance unsafe
 
 Juniper also hit `STALE_PROJECTION_BYPASS`. P and Q used the exact same selected anchors, rendered context, question, and prompt hash.
 
-Q safely recognized that the selected context lacked required P021 and returned insufficiency. The independent P Luna call nevertheless treated P022 as completing repeated evidence and marked authority sufficient.
+Q safely recognized that the selected context lacked required P021 and returned insufficiency. Because the full current authority was sufficient but Q top-6 was not, Q is `FAIL_RETRIEVAL`, not semantic PASS. The independent P Luna call on the identical prompt nevertheless treated P022 as completing repeated evidence and marked authority sufficient.
 
-This is **not a persistence-selection failure** because stale projection selection was bypassed correctly. It is paired model-call variance on identical input. The frozen gate nevertheless counts the observed P semantic regression; we do not erase it post hoc.
+This is **not a persistence-selection failure** because stale projection selection was bypassed correctly. It is paired model-call variance on identical input. The frozen gate nevertheless counts the observed P semantic regression from Q `FAIL_RETRIEVAL` to P `CRITICAL_ERROR`; we do not erase it post hoc.
 
 ## Where the persistence retrieval mechanism regressed
 
@@ -193,7 +193,7 @@ The next work should be zero-model/project-level closure:
 
 1. freeze this G2 result and source-lock the completed workflow;
 2. record the diagnostic that compiler coverage was complete but projection retrieval discarded load-bearing authority;
-3. decide whether G2 should remain parked until natural dogfood demonstrates a repeated-use problem large enough to justify another separated persistence experiment;
+3. park G2 until natural dogfood demonstrates a repeated-use problem large enough to justify another separated persistence experiment;
 4. continue Dogfood 0.1.16 natural installed observation on Issue #141;
 5. keep Issue #132 reliability edges evidence-gated.
 
