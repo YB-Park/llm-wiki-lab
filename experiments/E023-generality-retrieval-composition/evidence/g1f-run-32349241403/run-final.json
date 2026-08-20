@@ -1,0 +1,16 @@
+{
+  "artifact": {
+    "digest": "sha256:902f4f0ee0dcba73ad9ffcb56146e489a10900539f0d4bc8c123de09859b11b2",
+    "id": 9399246019,
+    "name": "e023-g1f-32349241403"
+  },
+  "conclusion": "success",
+  "created_at": "2026-08-20T08:31:30Z",
+  "execution_source_sha": "eab8c9e4f5ebbe5f43b93a1558fd3f9cc295f772",
+  "prereg_merge_sha": "1e5a3f991d0c3b76552725933149702ff6e53d15",
+  "run_attempt": 1,
+  "run_id": 32349241403,
+  "status": "completed",
+  "updated_at": "2026-08-20T08:33:16Z",
+  "workflow": "E023 generality G1f"
+}

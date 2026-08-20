@@ -1,0 +1,49 @@
+name: Validate E023 G1f result
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/g1f-adjudication-v0.json'
+      - 'experiments/E023-generality-retrieval-composition/g1f-results-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1f_result.py'
+      - 'experiments/E023-generality-retrieval-composition/evidence/g1f-run-32349241403/run-final.json'
+      - '.github/workflows/validate-e023-g1f-result.yml'
+      - '.github/workflows/e023-generality-g1f.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/g1f-adjudication-v0.json'
+      - 'experiments/E023-generality-retrieval-composition/g1f-results-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1f_result.py'
+      - 'experiments/E023-generality-retrieval-composition/evidence/g1f-run-32349241403/run-final.json'
+      - '.github/workflows/validate-e023-g1f-result.yml'
+      - '.github/workflows/e023-generality-g1f.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-g1f-result-zero-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile G1f result validator
+        run: python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_g1f_result.py
+      - name: Validate frozen G1f result
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/validate_g1f_result.py \
+            | tee /tmp/e023-g1f-result.txt
+          grep -q '^E023 G1f frozen result validation: PASS$' /tmp/e023-g1f-result.txt
+          grep -q '"model_calls": 0' /tmp/e023-g1f-result.txt
+          grep -q '"frozen_semantic_calls": 16' /tmp/e023-g1f-result.txt
+          grep -q '"N_semantic_improvements": 0' /tmp/e023-g1f-result.txt
+          grep -q '"N_semantic_regressions": 0' /tmp/e023-g1f-result.txt
+          grep -q '"N_new_critical_errors": 0' /tmp/e023-g1f-result.txt
+          grep -q '"negative_control_passed": true' /tmp/e023-g1f-result.txt
+          grep -q '"composition_candidate_promotion": "NOT_EARNED"' /tmp/e023-g1f-result.txt
+          grep -q '"binding_failure": "N_PAIRED_IMPROVEMENTS_0_LT_REQUIRED_1"' /tmp/e023-g1f-result.txt
+          grep -q '"g2_persistence_authorized": false' /tmp/e023-g1f-result.txt

@@ -1,0 +1,79 @@
+{
+  "adjudication_version": 1,
+  "experiment": "E023-G1f",
+  "run": {
+    "run_id": 32349241403,
+    "execution_source_sha": "eab8c9e4f5ebbe5f43b93a1558fd3f9cc295f772",
+    "prereg_merge_sha": "1e5a3f991d0c3b76552725933149702ff6e53d15",
+    "evidence_commit_sha": "fdae1b5ce645d6951db0d6b703947405c3c3fa78",
+    "exact_model": "gpt-5.6-luna",
+    "model_call_attempts": 16,
+    "semantic_rerolls": 0,
+    "planner_calls": 0,
+    "selector_calls": 0,
+    "retrieval_model_calls": 0,
+    "result_sha256": "de65721f1e127f9dd2d24f1c1ef33dd1a42740fee6f755ef9cf411b476a0b45a",
+    "execution_complete": true,
+    "context_identity_contract": true,
+    "workflow_conclusion": "success"
+  },
+  "frozen_context_summary": {
+    "SUFFICIENT_CLEAN": 3,
+    "SUFFICIENT_WITH_CONFLATION_RISK": 4,
+    "INSUFFICIENT_AUTHORITY": 1,
+    "negative_control_question": "DQ003"
+  },
+  "O_semantic_verdicts": {
+    "DQ001": {"verdict":"PASS","root_cause":"NONE","reason":"The answer preserves the Project Alder choice as project-team/user-owned decision authority, gives the recorded rollback-confidence rationale from D001, and treats D002 as supporting evidence rather than authorship of the decision."},
+    "DQ002": {"verdict":"PASS","root_cause":"NONE","reason":"The answer cleanly distinguishes D007 direct authorship by Nia Patel from D008 meeting-note attribution and does not infer authorship from role proximity."},
+    "DQ003": {"verdict":"PASS","root_cause":"NONE","reason":"The answer reports the supported approval by J. Moreno from D013, refuses to synthesize the missing J. Moreno/Julia Moreno identity bridge, and correctly marks the paired question authority-incomplete."},
+    "DQ004": {"verdict":"PASS","root_cause":"NONE","reason":"The answer scopes sufficiency to the asked 'could satisfy' proposition using D020/D021 and correctly keeps D022 customer policy distinct from D023 vendor capability."},
+    "DQ005": {"verdict":"PASS","root_cause":"NONE","reason":"The answer preserves the initial unconfirmed hypothesis, mitigation/causal signal, final retry-storm assessment, and limited later correction without promoting mere cache correlation."},
+    "DQ006": {"verdict":"PARTIAL","root_cause":"COMPOSITION_CORROBORATION_OMISSION","reason":"The answer correctly preserves D032's narrow signing requirement and explicit anti-generalization, but omits D033, which the prospective evaluator explicitly required as evidence that broader serverless use remained approved."},
+    "DQ007": {"verdict":"PASS","root_cause":"NONE","reason":"The answer preserves D038 as the project team's recorded capacity decision and independently establishes repetition from D039 plus D040 without treating the decision or D042 daily spike as the second month-close observation."},
+    "DQ008": {"verdict":"PASS","root_cause":"NONE","reason":"The answer uses D044 to establish Harbor Classic -> Harbor Next continuity and keeps separate Harbor Analytics D047 distinct despite similar naming."}
+  },
+  "N_semantic_verdicts": {
+    "DQ001": {"verdict":"PASS","root_cause":"NONE","reason":"The answer preserves the Project Alder choice as project-team/user-owned decision authority, gives the recorded rollback-confidence rationale from D001, and treats D002 as supporting evidence rather than authorship of the decision."},
+    "DQ002": {"verdict":"PASS","root_cause":"NONE","reason":"The answer cleanly distinguishes D007 direct authorship by Nia Patel from D008 meeting-note attribution and does not infer authorship from role proximity."},
+    "DQ003": {"verdict":"PASS","root_cause":"NONE","reason":"The answer reports the supported approval by J. Moreno from D013, refuses to synthesize the missing J. Moreno/Julia Moreno identity bridge, and correctly marks the paired question authority-incomplete."},
+    "DQ004": {"verdict":"PASS","root_cause":"NONE","reason":"The answer scopes sufficiency to the asked 'could satisfy' proposition using D020/D021 and correctly keeps D022 customer policy distinct from D023 vendor capability."},
+    "DQ005": {"verdict":"PASS","root_cause":"NONE","reason":"The answer preserves the initial unconfirmed hypothesis, mitigation/causal signal, final retry-storm assessment, and limited later correction without promoting mere cache correlation."},
+    "DQ006": {"verdict":"PARTIAL","root_cause":"COMPOSITION_CORROBORATION_OMISSION","reason":"The answer correctly preserves D032's narrow signing requirement and explicit anti-generalization, but omits D033, which the prospective evaluator explicitly required as evidence that broader serverless use remained approved."},
+    "DQ007": {"verdict":"PASS","root_cause":"NONE","reason":"The answer preserves D038 as the project team's recorded capacity decision and independently establishes repetition from D039 plus D040 without treating the decision or D042 daily spike as the second month-close observation."},
+    "DQ008": {"verdict":"PASS","root_cause":"NONE","reason":"The answer uses D044 to establish Harbor Classic -> Harbor Next continuity and keeps separate Harbor Analytics D047 distinct despite similar naming."}
+  },
+  "semantic_summary": {
+    "O": {"PASS":7,"PARTIAL":1,"CRITICAL_ERROR":0},
+    "N": {"PASS":7,"PARTIAL":1,"CRITICAL_ERROR":0},
+    "N_semantic_improvements_vs_O": 0,
+    "N_semantic_regressions_vs_O": 0,
+    "N_new_critical_errors_vs_O": 0,
+    "DQ003_negative_control_N": "PASS",
+    "DQ004_proposition_scope_N": "PASS",
+    "DQ001_user_owned_authority_N": "PASS",
+    "DQ007_user_owned_authority_N": "PASS",
+    "N_all_load_bearing_citations_supported": true,
+    "frozen_final_promotion": "NOT_EARNED"
+  },
+  "promotion_arithmetic": {
+    "N_PASS_count": 7,
+    "required_N_PASS_count": 7,
+    "paired_semantic_improvements": 0,
+    "required_paired_semantic_improvements": 1,
+    "semantic_regressions": 0,
+    "allowed_semantic_regressions": 0,
+    "new_critical_errors": 0,
+    "allowed_new_critical_errors": 0,
+    "negative_control_passed": true,
+    "proposition_scope_hard_case_passed": true,
+    "user_owned_authority_hard_cases_passed": true,
+    "citation_support_passed": true,
+    "same_exact_model_and_context_proved": true,
+    "exact_semantic_calls_complete": true,
+    "zero_rerolls": true,
+    "promotion": "NOT_EARNED",
+    "binding_failure": "N_PAIRED_IMPROVEMENTS_0_LT_REQUIRED_1"
+  },
+  "core_interpretation": "The authority-preserving composition_prompt_v1 candidate did not earn promotion because it produced no paired semantic improvement over the frozen old composer on new separated material. Both arms were strong and identical at 7 PASS / 1 PARTIAL / 0 CRITICAL_ERROR, including safe handling of the intentionally authority-incomplete DQ003 negative control, proposition-scoped sufficiency on DQ004, and user-owned decision authority on DQ001/DQ007. The sole PARTIAL in both arms was DQ006: both correctly answered the narrow anti-generalization question from direct D032 authority but omitted D033 broader-serverless corroboration required by the prospective evaluator. Do not weaken that frozen check and do not tune prompts on the DQ slice. G1f therefore rejects incremental promotion of composition_prompt_v1 while providing a new separated 7/8, zero-critical safety replication for the existing simple query-time G1 path. The next core step is a zero-model G1 closure decision about whether accumulated G1 evidence is strong enough to preregister a G2 persistence comparison; G2 is not authorized by this result alone."
+}
