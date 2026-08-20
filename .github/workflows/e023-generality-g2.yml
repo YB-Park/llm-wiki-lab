@@ -1,0 +1,163 @@
+name: E023 generality G2
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/run_g2.py'
+      - 'experiments/E023-generality-retrieval-composition/validate_g2_execution.py'
+      - 'experiments/E023-generality-retrieval-composition/g2-execution-addendum-v0.md'
+      - 'remote-lab/e023-g2-request.json'
+      - '.github/workflows/e023-generality-g2.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/run_g2.py'
+      - 'experiments/E023-generality-retrieval-composition/validate_g2_execution.py'
+      - 'experiments/E023-generality-retrieval-composition/g2-execution-addendum-v0.md'
+      - 'remote-lab/e023-g2-request.json'
+      - '.github/workflows/e023-generality-g2.yml'
+
+jobs:
+  preflight:
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile G2 execution assets
+        run: |
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/run_g2.py
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_g2_execution.py
+      - name: Validate frozen G2 execution contract
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/validate_g2_execution.py \
+            | tee /tmp/e023-g2-execution.txt
+          grep -q '^E023 G2 execution contract validation: PASS$' /tmp/e023-g2-execution.txt
+          grep -q '"model_calls": 0' /tmp/e023-g2-execution.txt
+          grep -q '"max_semantic_calls": 29' /tmp/e023-g2-execution.txt
+          grep -q '"projection_build_rebuild_calls": 5' /tmp/e023-g2-execution.txt
+          grep -q '"stale_projection_bypass_frozen": true' /tmp/e023-g2-execution.txt
+          grep -q '"projection_text_to_composer": false' /tmp/e023-g2-execution.txt
+          grep -q '"semantic_calls_authorized_on_pr": false' /tmp/e023-g2-execution.txt
+          grep -q '"g2_product_persistence_authorized": false' /tmp/e023-g2-execution.txt
+      - name: Run zero-model G2 preflight
+        env:
+          PYTHONPATH: .
+        run: |
+          rm -rf remote-lab/out/e023-g2
+          python3 experiments/E023-generality-retrieval-composition/run_g2.py \
+            | tee /tmp/e023-g2-preflight.txt
+          grep -q '"execute_model": false' /tmp/e023-g2-preflight.txt
+          grep -q '"model_call_attempts": 0' /tmp/e023-g2-preflight.txt
+          grep -q '"semantic_promotion": "NOT_EXECUTED"' /tmp/e023-g2-preflight.txt
+          grep -q '"question_count": 12' /tmp/e023-g2-preflight.txt
+          grep -q '"planned_projection_build_rebuild_calls": 5' /tmp/e023-g2-preflight.txt
+          grep -q '"planned_semantic_attempts": 29' /tmp/e023-g2-preflight.txt
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          row=json.loads(Path('remote-lab/out/e023-g2/result.json').read_text())
+          assert row['format']=='E023-G2-v0', row
+          assert row['execute_model'] is False, row
+          assert row['prereg_merge_sha']=='080ac3d91d011be3ec16111bdc24eda9905f3d9c', row
+          assert row['model_call_attempts']==0, row
+          assert row['execution_complete'] is False, row
+          assert row['semantic_promotion']=='NOT_EXECUTED', row
+          assert row['question_count']==12, row
+          assert row['planned_projection_build_rebuild_calls']==5, row
+          assert row['planned_semantic_attempts']==29, row
+          assert row['Q']['PQ004']['authority_status']=='INSUFFICIENT_AUTHORITY', row
+          assert row['Q']['PQ007']['authority_status']=='INSUFFICIENT_AUTHORITY', row
+          assert row['Q']['PQ008']['authority_status']=='INSUFFICIENT_AUTHORITY', row
+          assert row['Q']['PQ011']['authority_status']=='SUFFICIENT_CLEAN', row
+          PY
+
+  execute:
+    if: github.event_name == 'push' && github.event.before == '080ac3d91d011be3ec16111bdc24eda9905f3d9c'
+    permissions:
+      actions: read
+      contents: write
+      copilot-requests: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - name: Install standalone GitHub Copilot CLI
+        run: npm install -g @github/copilot
+      - name: Execute frozen G2 fixed-identity persistence comparison
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PYTHONPATH: .
+        run: python3 experiments/E023-generality-retrieval-composition/run_g2.py --execute-model
+      - name: Upload raw G2 artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e023-g2-${{ github.run_id }}
+          path: remote-lab/out/e023-g2/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Commit immutable G2 result evidence
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          result=/tmp/e023-g2-result.json
+          cp remote-lab/out/e023-g2/result.json "$result"
+
+          git fetch origin main
+          git checkout -B e023-g2-evidence origin/main
+          evidence_dir="experiments/E023-generality-retrieval-composition/evidence/g2-run-$RUN_ID"
+          test ! -e "$evidence_dir"
+          mkdir -p "$evidence_dir"
+          cp "$result" "$evidence_dir/result.json"
+          sha256sum "$evidence_dir/result.json" > "$evidence_dir/result.sha256"
+          python3 - "$SOURCE_SHA" "$RUN_ID" > "$evidence_dir/source.json" <<'PY'
+          import json, sys
+          source_sha, run_id = sys.argv[1:]
+          print(json.dumps({
+              'run_id': int(run_id),
+              'execution_source_sha': source_sha,
+              'prereg_merge_sha': '080ac3d91d011be3ec16111bdc24eda9905f3d9c',
+              'workflow': 'E023 generality G2',
+              'request_id': 'e023-g2-fixed-identity-persistence-v0',
+          }, indent=2, sort_keys=True))
+          PY
+          python3 - "$SOURCE_SHA" "$evidence_dir/result.json" <<'PY'
+          import json, sys
+          source_sha, path = sys.argv[1:]
+          result=json.load(open(path,encoding='utf-8'))
+          assert result['format']=='E023-G2-v0', result
+          assert result['execute_model'] is True, result
+          assert result['execution_source_sha']==source_sha, result
+          assert result['prereg_merge_sha']=='080ac3d91d011be3ec16111bdc24eda9905f3d9c', result
+          assert result['request']['model']=='gpt-5.6-luna', result
+          assert result['request']['max_model_call_attempts']==29, result
+          assert result['request']['projection_build_rebuild_calls']==5, result
+          assert result['request']['rerolls']==0, result
+          assert result['request']['planner_calls']==0, result
+          assert result['request']['selector_calls']==0, result
+          assert result['request']['vector_calls']==0, result
+          PY
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$evidence_dir"
+          git commit -m "Capture frozen E023 G2 run $RUN_ID"
+          git push origin HEAD:main
