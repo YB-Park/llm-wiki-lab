@@ -1,0 +1,2424 @@
+{
+  "execute_model": true,
+  "execution_complete": true,
+  "execution_source_sha": "3cf65d7255b8edc73a9d8cb3d13338e019cc92f8",
+  "format": "E023-G2-v0",
+  "interpretation_boundary": "G2 tests fixed-identity rebuildable DERIVED retrieval persistence against the frozen G1 query-time control. Projection text is never terminal authority or composer context. No result directly authorizes product persistence or G3 identity/routing.",
+  "lifecycle_trace": [
+    {
+      "event": "BUILD_PROJECTION",
+      "event_index": 1,
+      "projection_call_index": 1,
+      "projection_contract_ok": true,
+      "state": "S0",
+      "subject_id": "iris"
+    },
+    {
+      "P_call_index": 3,
+      "P_selection_mode": "FRESH_PROJECTION_RETRIEVAL",
+      "Q_call_index": 2,
+      "event": "QUERY_PAIR",
+      "event_index": 2,
+      "question_id": "PQ001"
+    },
+    {
+      "P_call_index": 4,
+      "P_selection_mode": "FRESH_PROJECTION_RETRIEVAL",
+      "Q_call_index": 5,
+      "event": "QUERY_PAIR",
+      "event_index": 3,
+      "question_id": "PQ002"
+    },
+    {
+      "P_call_index": 7,
+      "P_selection_mode": "FRESH_PROJECTION_RETRIEVAL",
+      "Q_call_index": 6,
+      "event": "QUERY_PAIR",
+      "event_index": 4,
+      "question_id": "PQ003"
+    },
+    {
+      "P_call_index": 8,
+      "P_selection_mode": "FRESH_PROJECTION_RETRIEVAL",
+      "Q_call_index": 9,
+      "event": "QUERY_PAIR",
+      "event_index": 5,
+      "question_id": "PQ004"
+    },
+    {
+      "event": "BUILD_PROJECTION",
+      "event_index": 6,
+      "projection_call_index": 10,
+      "projection_contract_ok": true,
+      "state": "S0",
+      "subject_id": "juniper"
+    },
+    {
+      "P_call_index": 12,
+      "P_selection_mode": "FRESH_PROJECTION_RETRIEVAL",
+      "Q_call_index": 11,
+      "event": "QUERY_PAIR",
+      "event_index": 7,
+      "question_id": "PQ005"
+    },
+    {
+      "P_call_index": 13,
+      "P_selection_mode": "FRESH_PROJECTION_RETRIEVAL",
+      "Q_call_index": 14,
+      "event": "QUERY_PAIR",
+      "event_index": 8,
+      "question_id": "PQ006"
+    },
+    {
+      "event": "MUTATE_AUTHORITY",
+      "event_index": 9,
+      "from_state": "S0",
+      "model_calls": 0,
+      "subject_id": "juniper",
+      "to_state": "S1"
+    },
+    {
+      "P_call_index": 16,
+      "P_selection_mode": "STALE_PROJECTION_BYPASS",
+      "Q_call_index": 15,
+      "event": "QUERY_PAIR",
+      "event_index": 10,
+      "persistent_requirement": "STALE_PROJECTION_BYPASS",
+      "question_id": "PQ007"
+    },
+    {
+      "event": "REBUILD_PROJECTION",
+      "event_index": 11,
+      "projection_call_index": 17,
+      "projection_contract_ok": true,
+      "state": "S1",
+      "subject_id": "juniper"
+    },
+    {
+      "P_call_index": 18,
+      "P_selection_mode": "FRESH_PROJECTION_RETRIEVAL",
+      "Q_call_index": 19,
+      "event": "QUERY_PAIR",
+      "event_index": 12,
+      "question_id": "PQ008"
+    },
+    {
+      "event": "BUILD_PROJECTION",
+      "event_index": 13,
+      "projection_call_index": 20,
+      "projection_contract_ok": true,
+      "state": "S0",
+      "subject_id": "keystone"
+    },
+    {
+      "P_call_index": 22,
+      "P_selection_mode": "FRESH_PROJECTION_RETRIEVAL",
+      "Q_call_index": 21,
+      "event": "QUERY_PAIR",
+      "event_index": 14,
+      "question_id": "PQ009"
+    },
+    {
+      "P_call_index": 23,
+      "P_selection_mode": "FRESH_PROJECTION_RETRIEVAL",
+      "Q_call_index": 24,
+      "event": "QUERY_PAIR",
+      "event_index": 15,
+      "question_id": "PQ010"
+    },
+    {
+      "event": "MUTATE_AUTHORITY",
+      "event_index": 16,
+      "from_state": "S0",
+      "model_calls": 0,
+      "subject_id": "keystone",
+      "to_state": "S1"
+    },
+    {
+      "P_call_index": 26,
+      "P_selection_mode": "STALE_PROJECTION_BYPASS",
+      "Q_call_index": 25,
+      "event": "QUERY_PAIR",
+      "event_index": 17,
+      "persistent_requirement": "STALE_PROJECTION_BYPASS",
+      "primary_stale_negative_control": true,
+      "question_id": "PQ011"
+    },
+    {
+      "event": "REBUILD_PROJECTION",
+      "event_index": 18,
+      "projection_call_index": 27,
+      "projection_contract_ok": true,
+      "state": "S1",
+      "subject_id": "keystone"
+    },
+    {
+      "P_call_index": 28,
+      "P_selection_mode": "FRESH_PROJECTION_RETRIEVAL",
+      "Q_call_index": 29,
+      "event": "QUERY_PAIR",
+      "event_index": 19,
+      "question_id": "PQ012"
+    }
+  ],
+  "model": "gpt-5.6-luna",
+  "model_call_attempts": 29,
+  "pairs": {
+    "PQ001": {
+      "P": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ001-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ001-C2",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "call_index": 3,
+        "composer": {
+          "answer": "We chose the canary rollout because reversibility and a narrow blast radius were more important than launch speed; the recorded project rationale was rollback confidence (P001). Evidence supporting the choice came from an SRE rollback drill that restored service within the target window while limiting impact to the canary cohort (P002). The drill supported the decision but did not author it (P002).",
+          "cited_anchor_ids": [
+            "P001",
+            "P002"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "context_chars": 1668,
+        "context_sha256": "1a0633511ae90f751a268b165dcdd65767399c553794cf26d20c91c1e6546acb",
+        "current_snapshot_sha256": "d7c787a43175f247f4af64df875f40c53d1283c49495d1279728c152d0012ab0",
+        "input_context_sha256": "1a0633511ae90f751a268b165dcdd65767399c553794cf26d20c91c1e6546acb",
+        "input_question_sha256": "3317ef3b015aaea8a037a0b290e179516f0cb43777bb1ae77a22b39d92d6c6fe",
+        "model_receipt": {
+          "elapsed_seconds": 5.616,
+          "model": "gpt-5.6-luna"
+        },
+        "projection_entry_ranking": [
+          {
+            "entry_id": "E01",
+            "rank": 1,
+            "score": 6.874394994244637
+          },
+          {
+            "entry_id": "E07",
+            "rank": 2,
+            "score": 3.4408597524577123
+          },
+          {
+            "entry_id": "E06",
+            "rank": 3,
+            "score": 2.661120363887072
+          },
+          {
+            "entry_id": "E03",
+            "rank": 4,
+            "score": 1.443491662844397
+          },
+          {
+            "entry_id": "E02",
+            "rank": 5,
+            "score": 1.3932116614215317
+          },
+          {
+            "entry_id": "E05",
+            "rank": 6,
+            "score": 1.2093056007296368
+          },
+          {
+            "entry_id": "E04",
+            "rank": 7,
+            "score": 1.120257606776918
+          }
+        ],
+        "projection_used": true,
+        "prompt_sha256": "d9504d55f61afbca99a7e0d0d2e336c0aff7b19cb3c107638a6dd8554a79f1a9",
+        "raw_evidence_chars": 793,
+        "raw_model_text": "{\"answer\":\"We chose the canary rollout because reversibility and a narrow blast radius were more important than launch speed; the recorded project rationale was rollback confidence (P001). Evidence supporting the choice came from an SRE rollback drill that restored service within the target window while limiting impact to the canary cohort (P002). The drill supported the decision but did not author it (P002).\",\"cited_anchor_ids\":[\"P001\",\"P002\"],\"insufficient_authority\":false}",
+        "selected_anchor_ids": [
+          "P001",
+          "P002",
+          "P012",
+          "P004"
+        ],
+        "selected_projection_entry_ids": [
+          "E01",
+          "E07"
+        ],
+        "selection_mode": "FRESH_PROJECTION_RETRIEVAL",
+        "stored_snapshot_sha256": "d7c787a43175f247f4af64df875f40c53d1283c49495d1279728c152d0012ab0"
+      },
+      "Q": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ001-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ001-C2",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "call_index": 2,
+        "composer": {
+          "answer": "We chose the canary rollout because reversibility and a narrow blast radius mattered more than launch speed; the recorded project rationale was rollback confidence (P001). Evidence supporting the choice came from the rollback drill, which restored service within the target window while limiting impact to the canary cohort (P002). The drill supported the decision but did not author it (P002).",
+          "cited_anchor_ids": [
+            "P001",
+            "P002"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "context_chars": 2494,
+        "context_sha256": "4cf85844f03af7678af1b7f6e75d6c92a0477bdf93a6596de6a165a9694e6abe",
+        "input_context_sha256": "4cf85844f03af7678af1b7f6e75d6c92a0477bdf93a6596de6a165a9694e6abe",
+        "input_question_sha256": "3317ef3b015aaea8a037a0b290e179516f0cb43777bb1ae77a22b39d92d6c6fe",
+        "model_receipt": {
+          "elapsed_seconds": 5.298,
+          "model": "gpt-5.6-luna"
+        },
+        "prompt_sha256": "e91309a833aaa70885292d55a2b31286791b2fba14075ff75dcf465f1beb25ea",
+        "raw_evidence_chars": 1185,
+        "raw_model_text": "{\"answer\":\"We chose the canary rollout because reversibility and a narrow blast radius mattered more than launch speed; the recorded project rationale was rollback confidence (P001). Evidence supporting the choice came from the rollback drill, which restored service within the target window while limiting impact to the canary cohort (P002). The drill supported the decision but did not author it (P002).\",\"cited_anchor_ids\":[\"P001\",\"P002\"],\"insufficient_authority\":false}",
+        "selected_anchor_ids": [
+          "P002",
+          "P001",
+          "P004",
+          "P012",
+          "P003",
+          "P009"
+        ]
+      },
+      "phase": "fresh",
+      "question": "For Project Iris, why did we choose the canary rollout, and what evidence supported that choice?",
+      "question_id": "PQ001",
+      "question_sha256": "3317ef3b015aaea8a037a0b290e179516f0cb43777bb1ae77a22b39d92d6c6fe",
+      "snapshot_sha256": "d7c787a43175f247f4af64df875f40c53d1283c49495d1279728c152d0012ab0",
+      "state": "S0",
+      "subject_id": "iris"
+    },
+    "PQ002": {
+      "P": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ002-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ002-C2",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "call_index": 4,
+        "composer": {
+          "answer": "Dana Cho directly authored two Project Iris instructions: ship the schema change only after the replay check passes (P006), and, for the regulated release, keep the signing key on the customer HSM because the approved module was unavailable in managed KMS; Dana stated this was not a general objection to managed key services (P003). The meeting notes only attributed to Dana the direction to keep the migration reversible through Friday; they were authored by the meeting scribe, not Dana (P005).",
+          "cited_anchor_ids": [
+            "P006",
+            "P003",
+            "P005"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "context_chars": 1732,
+        "context_sha256": "904e6e2971efb584e3f933f1a6f212e81bb03997e8983488adc664648e987f07",
+        "current_snapshot_sha256": "d7c787a43175f247f4af64df875f40c53d1283c49495d1279728c152d0012ab0",
+        "input_context_sha256": "904e6e2971efb584e3f933f1a6f212e81bb03997e8983488adc664648e987f07",
+        "input_question_sha256": "832532aa6dd6daef2a7d5dffbba132a6cf179e3303dcc2d1f4e96c54b5770f61",
+        "model_receipt": {
+          "elapsed_seconds": 5.117,
+          "model": "gpt-5.6-luna"
+        },
+        "projection_entry_ranking": [
+          {
+            "entry_id": "E03",
+            "rank": 1,
+            "score": 8.789356456490985
+          },
+          {
+            "entry_id": "E02",
+            "rank": 2,
+            "score": 5.532364805517215
+          },
+          {
+            "entry_id": "E05",
+            "rank": 3,
+            "score": 5.164510167568012
+          },
+          {
+            "entry_id": "E06",
+            "rank": 4,
+            "score": 4.68964563655834
+          },
+          {
+            "entry_id": "E04",
+            "rank": 5,
+            "score": 2.6682838189706057
+          },
+          {
+            "entry_id": "E07",
+            "rank": 6,
+            "score": 1.86431472491108
+          },
+          {
+            "entry_id": "E01",
+            "rank": 7,
+            "score": 1.8347298816694182
+          }
+        ],
+        "projection_used": true,
+        "prompt_sha256": "f3d83d1224e263b4ac2115e3a1a9da059a863da6c3e9d1feac6dad73f66133cd",
+        "raw_evidence_chars": 838,
+        "raw_model_text": "{\"answer\":\"Dana Cho directly authored two Project Iris instructions: ship the schema change only after the replay check passes (P006), and, for the regulated release, keep the signing key on the customer HSM because the approved module was unavailable in managed KMS; Dana stated this was not a general objection to managed key services (P003). The meeting notes only attributed to Dana the direction to keep the migration reversible through Friday; they were authored by the meeting scribe, not Dana (P005).\",\"cited_anchor_ids\":[\"P006\",\"P003\",\"P005\"],\"insufficient_authority\":false}",
+        "selected_anchor_ids": [
+          "P005",
+          "P006",
+          "P003",
+          "P004"
+        ],
+        "selected_projection_entry_ids": [
+          "E03",
+          "E02"
+        ],
+        "selection_mode": "FRESH_PROJECTION_RETRIEVAL",
+        "stored_snapshot_sha256": "d7c787a43175f247f4af64df875f40c53d1283c49495d1279728c152d0012ab0"
+      },
+      "Q": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ002-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ002-C2",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "P011"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "call_index": 5,
+        "composer": {
+          "answer": "Dana Cho directly authored two Project Iris instructions: keep the signing key on the customer HSM for the regulated release because the approved managed-KMS module was unavailable, while clarifying this was not a general objection to managed key services (P003); and ship the schema change only after the replay check passes (P006). Meeting notes, authored by the scribe, only attributed to Dana the instruction to keep the migration reversible through Friday; they were not a direct message from Dana (P005).",
+          "cited_anchor_ids": [
+            "P003",
+            "P006",
+            "P005"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "context_chars": 2368,
+        "context_sha256": "189c8e00809b71c4cedbe16350025dcb35d4a3cbb6b2d7fbad807e59dd22b158",
+        "input_context_sha256": "189c8e00809b71c4cedbe16350025dcb35d4a3cbb6b2d7fbad807e59dd22b158",
+        "input_question_sha256": "832532aa6dd6daef2a7d5dffbba132a6cf179e3303dcc2d1f4e96c54b5770f61",
+        "model_receipt": {
+          "elapsed_seconds": 6.132,
+          "model": "gpt-5.6-luna"
+        },
+        "prompt_sha256": "b6001d0d1d23144a1cbd9ffb8b22f00425cebc7872ef84816bd748f1e5cfd29d",
+        "raw_evidence_chars": 1093,
+        "raw_model_text": "{\"answer\":\"Dana Cho directly authored two Project Iris instructions: keep the signing key on the customer HSM for the regulated release because the approved managed-KMS module was unavailable, while clarifying this was not a general objection to managed key services (P003); and ship the schema change only after the replay check passes (P006). Meeting notes, authored by the scribe, only attributed to Dana the instruction to keep the migration reversible through Friday; they were not a direct message from Dana (P005).\",\"cited_anchor_ids\":[\"P003\",\"P006\",\"P005\"],\"insufficient_authority\":false}",
+        "selected_anchor_ids": [
+          "P005",
+          "P003",
+          "P006",
+          "P011",
+          "P002",
+          "P007"
+        ]
+      },
+      "phase": "fresh",
+      "question": "For Project Iris, what did Dana Cho directly author, and what was only attributed to Dana in meeting notes?",
+      "question_id": "PQ002",
+      "question_sha256": "832532aa6dd6daef2a7d5dffbba132a6cf179e3303dcc2d1f4e96c54b5770f61",
+      "snapshot_sha256": "d7c787a43175f247f4af64df875f40c53d1283c49495d1279728c152d0012ab0",
+      "state": "S0",
+      "subject_id": "iris"
+    },
+    "PQ003": {
+      "P": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ003-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ003-C2",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ003-C3",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "call_index": 7,
+        "composer": {
+          "answer": "Yes. The EU-only archive option could satisfy Project Iris’s customer residency rule because it keeps archived records within the EU (P008, P009). No. The unchecked deployment item does not prove production is already compliant; it indicates the active archive region still needs verification (P010).",
+          "cited_anchor_ids": [
+            "P008",
+            "P009",
+            "P010"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "context_chars": 1568,
+        "context_sha256": "4126915972ac7a4ea9c1a33a199d7a09e9c5e40e452e93cc2b1572b92e0e69f5",
+        "current_snapshot_sha256": "d7c787a43175f247f4af64df875f40c53d1283c49495d1279728c152d0012ab0",
+        "input_context_sha256": "4126915972ac7a4ea9c1a33a199d7a09e9c5e40e452e93cc2b1572b92e0e69f5",
+        "input_question_sha256": "5018c6ae03c6f718999192a20dffbd72a3b57eed1eb7443b6b90abe15071f1a9",
+        "model_receipt": {
+          "elapsed_seconds": 4.606,
+          "model": "gpt-5.6-luna"
+        },
+        "projection_entry_ranking": [
+          {
+            "entry_id": "E05",
+            "rank": 1,
+            "score": 16.503300581445334
+          },
+          {
+            "entry_id": "E07",
+            "rank": 2,
+            "score": 3.704223380515882
+          },
+          {
+            "entry_id": "E04",
+            "rank": 3,
+            "score": 3.229181894808609
+          },
+          {
+            "entry_id": "E02",
+            "rank": 4,
+            "score": 2.7563686248052726
+          },
+          {
+            "entry_id": "E01",
+            "rank": 5,
+            "score": 2.5000126826717533
+          },
+          {
+            "entry_id": "E06",
+            "rank": 6,
+            "score": 2.293605214973748
+          },
+          {
+            "entry_id": "E03",
+            "rank": 7,
+            "score": 2.1565753171197897
+          }
+        ],
+        "projection_used": true,
+        "prompt_sha256": "67cca383862c4052d16ec0c81e7e31038dd8dac3c55d4067c1310b8553bd7f40",
+        "raw_evidence_chars": 706,
+        "raw_model_text": "{\"answer\":\"Yes. The EU-only archive option could satisfy Project Iris’s customer residency rule because it keeps archived records within the EU (P008, P009). No. The unchecked deployment item does not prove production is already compliant; it indicates the active archive region still needs verification (P010).\",\"cited_anchor_ids\":[\"P008\",\"P009\",\"P010\"],\"insufficient_authority\":false}",
+        "selected_anchor_ids": [
+          "P008",
+          "P009",
+          "P010",
+          "P012"
+        ],
+        "selected_projection_entry_ids": [
+          "E05",
+          "E07"
+        ],
+        "selection_mode": "FRESH_PROJECTION_RETRIEVAL",
+        "stored_snapshot_sha256": "d7c787a43175f247f4af64df875f40c53d1283c49495d1279728c152d0012ab0"
+      },
+      "Q": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ003-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ003-C2",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ003-C3",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "P007"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "call_index": 6,
+        "composer": {
+          "answer": "Yes. The EU-only archive option could satisfy Project Iris’s customer residency rule because it keeps archived records within the EU (P008, P009). No: the unchecked deployment item does not prove that production is already compliant; it indicates that the active archive region still needs verification (P010).",
+          "cited_anchor_ids": [
+            "P008",
+            "P009",
+            "P010"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "context_chars": 2410,
+        "context_sha256": "e2c1b5272a77ff2cfdc40d00b4ba3cdb97e02e5c2d750cc63129e4e2334e0ba6",
+        "input_context_sha256": "e2c1b5272a77ff2cfdc40d00b4ba3cdb97e02e5c2d750cc63129e4e2334e0ba6",
+        "input_question_sha256": "5018c6ae03c6f718999192a20dffbd72a3b57eed1eb7443b6b90abe15071f1a9",
+        "model_receipt": {
+          "elapsed_seconds": 5.716,
+          "model": "gpt-5.6-luna"
+        },
+        "prompt_sha256": "220f34128b48d42962755ab8f07c7103b40f8339a784a7a35eb4b74e30cd0f4f",
+        "raw_evidence_chars": 1124,
+        "raw_model_text": "{\"answer\":\"Yes. The EU-only archive option could satisfy Project Iris’s customer residency rule because it keeps archived records within the EU (P008, P009). No: the unchecked deployment item does not prove that production is already compliant; it indicates that the active archive region still needs verification (P010).\",\"cited_anchor_ids\":[\"P008\",\"P009\",\"P010\"],\"insufficient_authority\":false}",
+        "selected_anchor_ids": [
+          "P008",
+          "P010",
+          "P009",
+          "P003",
+          "P007",
+          "P006"
+        ]
+      },
+      "phase": "fresh",
+      "question": "For Project Iris, could the EU-only archive option satisfy the customer residency rule, and does the unchecked deployment item prove production is already compliant?",
+      "question_id": "PQ003",
+      "question_sha256": "5018c6ae03c6f718999192a20dffbd72a3b57eed1eb7443b6b90abe15071f1a9",
+      "snapshot_sha256": "d7c787a43175f247f4af64df875f40c53d1283c49495d1279728c152d0012ab0",
+      "state": "S0",
+      "subject_id": "iris"
+    },
+    "PQ004": {
+      "P": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ004-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ004-C2",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "P007"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "call_index": 8,
+        "composer": {
+          "answer": "No. The customer-HSM requirement was narrower: Dana Cho stated that, for the regulated release, the signing key had to remain on the customer HSM because the approved module was unavailable in managed KMS, and explicitly said this was not a general objection to managed key services (P003). The broader Iris strategy kept standard and planned non-regulated workloads on the centrally operated cryptographic service (P004).",
+          "cited_anchor_ids": [
+            "P003",
+            "P004"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "context_chars": 1824,
+        "context_sha256": "8cc2251a34a9a5212c60a3f020e673d6e14439412142910cd3321e4bec8fd9f8",
+        "current_snapshot_sha256": "d7c787a43175f247f4af64df875f40c53d1283c49495d1279728c152d0012ab0",
+        "input_context_sha256": "8cc2251a34a9a5212c60a3f020e673d6e14439412142910cd3321e4bec8fd9f8",
+        "input_question_sha256": "500295c59bfc74ca7358b06c78c36f4f8c0ce5f16fea349309d7df20474db074",
+        "model_receipt": {
+          "elapsed_seconds": 5.588,
+          "model": "gpt-5.6-luna"
+        },
+        "projection_entry_ranking": [
+          {
+            "entry_id": "E02",
+            "rank": 1,
+            "score": 10.841900224794179
+          },
+          {
+            "entry_id": "E04",
+            "rank": 2,
+            "score": 8.378220296700809
+          },
+          {
+            "entry_id": "E06",
+            "rank": 3,
+            "score": 4.18007866990483
+          },
+          {
+            "entry_id": "E03",
+            "rank": 4,
+            "score": 3.990600676984013
+          },
+          {
+            "entry_id": "E05",
+            "rank": 5,
+            "score": 3.2378885735303657
+          },
+          {
+            "entry_id": "E07",
+            "rank": 6,
+            "score": 2.5437220124264495
+          },
+          {
+            "entry_id": "E01",
+            "rank": 7,
+            "score": 1.173589769920706
+          }
+        ],
+        "projection_used": true,
+        "prompt_sha256": "80236a5a5fc962b129ff953bcec4a97ffd4e69871ad36056a26e1b1534de4bb5",
+        "raw_evidence_chars": 933,
+        "raw_model_text": "{\"answer\":\"No. The customer-HSM requirement was narrower: Dana Cho stated that, for the regulated release, the signing key had to remain on the customer HSM because the approved module was unavailable in managed KMS, and explicitly said this was not a general objection to managed key services (P003). The broader Iris strategy kept standard and planned non-regulated workloads on the centrally operated cryptographic service (P004).\",\"cited_anchor_ids\":[\"P003\",\"P004\"],\"insufficient_authority\":false}",
+        "selected_anchor_ids": [
+          "P003",
+          "P004",
+          "P007",
+          "P008"
+        ],
+        "selected_projection_entry_ids": [
+          "E02",
+          "E04"
+        ],
+        "selection_mode": "FRESH_PROJECTION_RETRIEVAL",
+        "stored_snapshot_sha256": "d7c787a43175f247f4af64df875f40c53d1283c49495d1279728c152d0012ab0"
+      },
+      "Q": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ004-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ004-C2",
+              "satisfied": false
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "P007"
+          ],
+          "missing_clause_ids": [
+            "PQ004-C2"
+          ],
+          "status": "INSUFFICIENT_AUTHORITY"
+        },
+        "call_index": 9,
+        "composer": {
+          "answer": "Dana Cho was not generally opposed to managed key services. For Project Iris, the customer-HSM requirement was narrower: it applied to the regulated release because the approved module was unavailable in managed KMS, and Dana explicitly said this was not a general objection (P003). The platform could support either a customer HSM or managed key service, though that capability alone does not establish Dana’s policy (P007).",
+          "cited_anchor_ids": [
+            "P003",
+            "P007"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "context_chars": 2470,
+        "context_sha256": "e9d384f1adc7ccd7006fd13cf0eb9193f7af83ea9691edc7f791b8cd77ba67c9",
+        "input_context_sha256": "e9d384f1adc7ccd7006fd13cf0eb9193f7af83ea9691edc7f791b8cd77ba67c9",
+        "input_question_sha256": "500295c59bfc74ca7358b06c78c36f4f8c0ce5f16fea349309d7df20474db074",
+        "model_receipt": {
+          "elapsed_seconds": 4.782,
+          "model": "gpt-5.6-luna"
+        },
+        "prompt_sha256": "500aebab21e1a76a2fe50a0233149d783cea482dc3bd3bc39f0d656ab22f4110",
+        "raw_evidence_chars": 1168,
+        "raw_model_text": "{\"answer\":\"Dana Cho was not generally opposed to managed key services. For Project Iris, the customer-HSM requirement was narrower: it applied to the regulated release because the approved module was unavailable in managed KMS, and Dana explicitly said this was not a general objection (P003). The platform could support either a customer HSM or managed key service, though that capability alone does not establish Dana’s policy (P007).\",\"cited_anchor_ids\":[\"P003\",\"P007\"],\"insufficient_authority\":false}",
+        "selected_anchor_ids": [
+          "P003",
+          "P007",
+          "P008",
+          "P005",
+          "P010",
+          "P006"
+        ]
+      },
+      "phase": "fresh",
+      "question": "For Project Iris, is Dana Cho generally opposed to managed key services, or was the customer-HSM requirement narrower?",
+      "question_id": "PQ004",
+      "question_sha256": "500295c59bfc74ca7358b06c78c36f4f8c0ce5f16fea349309d7df20474db074",
+      "snapshot_sha256": "d7c787a43175f247f4af64df875f40c53d1283c49495d1279728c152d0012ab0",
+      "state": "S0",
+      "subject_id": "iris"
+    },
+    "PQ005": {
+      "P": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ005-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ005-C2",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ005-C3",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "P019"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "call_index": 12,
+        "composer": {
+          "answer": "Local emergency login is authorized only during a declared identity-provider outage, with incident commander approval, and each use must undergo a post-event audit, including review in the next business-day access audit (P015, P017). Vendor support or sales language describes technical capability and flexibility but does not authorize routine use or override the customer’s emergency-access policy (P016, P019).",
+          "cited_anchor_ids": [
+            "P015",
+            "P017",
+            "P016",
+            "P019"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "context_chars": 1548,
+        "context_sha256": "7ae54a24fb07f79301eb24127f213c9c18d0ce2890f8d3a99e357121b157526f",
+        "current_snapshot_sha256": "ca6af536c41b443765362c27a6ec4314cc1a04aa9b328c3c05002e0624b4efd5",
+        "input_context_sha256": "7ae54a24fb07f79301eb24127f213c9c18d0ce2890f8d3a99e357121b157526f",
+        "input_question_sha256": "c8ac50a5b462e3369e5f3dfb15c7a957c1ef811361052c1088cfee7cb859c553",
+        "model_receipt": {
+          "elapsed_seconds": 4.699,
+          "model": "gpt-5.6-luna"
+        },
+        "projection_entry_ranking": [
+          {
+            "entry_id": "E04",
+            "rank": 1,
+            "score": 7.135305004855344
+          },
+          {
+            "entry_id": "E03",
+            "rank": 2,
+            "score": 5.833964743300981
+          },
+          {
+            "entry_id": "E01",
+            "rank": 3,
+            "score": 2.566304102989003
+          },
+          {
+            "entry_id": "E02",
+            "rank": 4,
+            "score": 1.3770021233791334
+          },
+          {
+            "entry_id": "E05",
+            "rank": 5,
+            "score": 0.9606665359830541
+          }
+        ],
+        "projection_used": true,
+        "prompt_sha256": "e28f6d6dfc492c3e3ea54506c6cd92907603e13380c1bcea8e5cb22cc30c3bb0",
+        "raw_evidence_chars": 631,
+        "raw_model_text": "{\"answer\":\"Local emergency login is authorized only during a declared identity-provider outage, with incident commander approval, and each use must undergo a post-event audit, including review in the next business-day access audit (P015, P017). Vendor support or sales language describes technical capability and flexibility but does not authorize routine use or override the customer’s emergency-access policy (P016, P019).\",\"cited_anchor_ids\":[\"P015\",\"P017\",\"P016\",\"P019\"],\"insufficient_authority\":false}",
+        "selected_anchor_ids": [
+          "P016",
+          "P019",
+          "P015",
+          "P017"
+        ],
+        "selected_projection_entry_ids": [
+          "E04",
+          "E03"
+        ],
+        "selection_mode": "FRESH_PROJECTION_RETRIEVAL",
+        "stored_snapshot_sha256": "ca6af536c41b443765362c27a6ec4314cc1a04aa9b328c3c05002e0624b4efd5"
+      },
+      "Q": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ005-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ005-C2",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ005-C3",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "P019"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "call_index": 11,
+        "composer": {
+          "answer": "Local emergency login is authorized only during a declared identity-provider outage, with incident commander approval and a post-event audit; each use must also be reviewed in the next business-day access audit (P015, P017). Vendor support or sales statements describe capability and flexibility but do not authorize routine use or override the customer policy (P016, P019).",
+          "cited_anchor_ids": [
+            "P015",
+            "P017",
+            "P016",
+            "P019"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "context_chars": 2268,
+        "context_sha256": "9fbf3a9f5eaaeccfdf412c76b266282b08545d809b05a854e7be63bee829f946",
+        "input_context_sha256": "9fbf3a9f5eaaeccfdf412c76b266282b08545d809b05a854e7be63bee829f946",
+        "input_question_sha256": "c8ac50a5b462e3369e5f3dfb15c7a957c1ef811361052c1088cfee7cb859c553",
+        "model_receipt": {
+          "elapsed_seconds": 4.586,
+          "model": "gpt-5.6-luna"
+        },
+        "prompt_sha256": "c5e973d723482064c449f3b37e3a42787260432aabe58b1b26666d353360cc66",
+        "raw_evidence_chars": 914,
+        "raw_model_text": "{\"answer\":\"Local emergency login is authorized only during a declared identity-provider outage, with incident commander approval and a post-event audit; each use must also be reviewed in the next business-day access audit (P015, P017). Vendor support or sales statements describe capability and flexibility but do not authorize routine use or override the customer policy (P016, P019).\",\"cited_anchor_ids\":[\"P015\",\"P017\",\"P016\",\"P019\"],\"insufficient_authority\":false}",
+        "selected_anchor_ids": [
+          "P016",
+          "P019",
+          "P017",
+          "P015",
+          "P018",
+          "P014"
+        ]
+      },
+      "phase": "fresh",
+      "question": "For Project Juniper, when is local emergency login authorized, and does vendor support for the feature authorize routine use?",
+      "question_id": "PQ005",
+      "question_sha256": "c8ac50a5b462e3369e5f3dfb15c7a957c1ef811361052c1088cfee7cb859c553",
+      "snapshot_sha256": "ca6af536c41b443765362c27a6ec4314cc1a04aa9b328c3c05002e0624b4efd5",
+      "state": "S0",
+      "subject_id": "juniper"
+    },
+    "PQ006": {
+      "P": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ006-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ006-C2",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "call_index": 13,
+        "composer": {
+          "answer": "We raised queue capacity from 12k to 20k because month-close backlog was disrupting reconciliation (P013). June evidence showed that the queue exceeded 12k during reconciliation and drained only after the close window (P014). The implementation ticket confirms the 20k change after approval but is not independent evidence of a repeated condition (P020).",
+          "cited_anchor_ids": [
+            "P013",
+            "P014",
+            "P020"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "context_chars": 1559,
+        "context_sha256": "0882c305c3bf355457b0885e3bfbc3fd0383a4de6a0f5573fdd3c96233acede3",
+        "current_snapshot_sha256": "ca6af536c41b443765362c27a6ec4314cc1a04aa9b328c3c05002e0624b4efd5",
+        "input_context_sha256": "0882c305c3bf355457b0885e3bfbc3fd0383a4de6a0f5573fdd3c96233acede3",
+        "input_question_sha256": "d5cc44d28a1c18cbb346575c096cb157f5f832d41593db1b26f113bb54a4d930",
+        "model_receipt": {
+          "elapsed_seconds": 7.553,
+          "model": "gpt-5.6-luna"
+        },
+        "projection_entry_ranking": [
+          {
+            "entry_id": "E01",
+            "rank": 1,
+            "score": 8.435929323739018
+          },
+          {
+            "entry_id": "E02",
+            "rank": 2,
+            "score": 4.989847982713997
+          },
+          {
+            "entry_id": "E03",
+            "rank": 3,
+            "score": 2.2665411318416826
+          },
+          {
+            "entry_id": "E05",
+            "rank": 4,
+            "score": 1.182899809377303
+          },
+          {
+            "entry_id": "E04",
+            "rank": 5,
+            "score": 0.9157339525668341
+          }
+        ],
+        "projection_used": true,
+        "prompt_sha256": "dc7d2677c65282ba352bad0907c8b55c09eacd0975e68e9095a10101f25dcc46",
+        "raw_evidence_chars": 652,
+        "raw_model_text": "{\"answer\":\"We raised queue capacity from 12k to 20k because month-close backlog was disrupting reconciliation (P013). June evidence showed that the queue exceeded 12k during reconciliation and drained only after the close window (P014). The implementation ticket confirms the 20k change after approval but is not independent evidence of a repeated condition (P020).\",\"cited_anchor_ids\":[\"P013\",\"P014\",\"P020\"],\"insufficient_authority\":false}",
+        "selected_anchor_ids": [
+          "P013",
+          "P014",
+          "P020",
+          "P019"
+        ],
+        "selected_projection_entry_ids": [
+          "E01",
+          "E02"
+        ],
+        "selection_mode": "FRESH_PROJECTION_RETRIEVAL",
+        "stored_snapshot_sha256": "ca6af536c41b443765362c27a6ec4314cc1a04aa9b328c3c05002e0624b4efd5"
+      },
+      "Q": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ006-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ006-C2",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "P018"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "call_index": 14,
+        "composer": {
+          "answer": "We raised Project Juniper’s queue capacity from 12k to 20k because the month-close backlog was disrupting reconciliation (P013). June operations evidence showed that the queue exceeded 12k during reconciliation and drained only after the close window (P014); a separate midday spike was unrelated to month close and was not a second month-close observation (P018).",
+          "cited_anchor_ids": [
+            "P013",
+            "P014",
+            "P018"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "context_chars": 2276,
+        "context_sha256": "cdd5d701a236311f04b482118920790837dbeebabdf3671474f33a54fd20c1c9",
+        "input_context_sha256": "cdd5d701a236311f04b482118920790837dbeebabdf3671474f33a54fd20c1c9",
+        "input_question_sha256": "d5cc44d28a1c18cbb346575c096cb157f5f832d41593db1b26f113bb54a4d930",
+        "model_receipt": {
+          "elapsed_seconds": 5.564,
+          "model": "gpt-5.6-luna"
+        },
+        "prompt_sha256": "391bc613c202554ae8e13bbf947565fefa4295245c87d6a8d067d3607e478e9e",
+        "raw_evidence_chars": 927,
+        "raw_model_text": "{\"answer\":\"We raised Project Juniper’s queue capacity from 12k to 20k because the month-close backlog was disrupting reconciliation (P013). June operations evidence showed that the queue exceeded 12k during reconciliation and drained only after the close window (P014); a separate midday spike was unrelated to month close and was not a second month-close observation (P018).\",\"cited_anchor_ids\":[\"P013\",\"P014\",\"P018\"],\"insufficient_authority\":false}",
+        "selected_anchor_ids": [
+          "P013",
+          "P020",
+          "P014",
+          "P019",
+          "P018",
+          "P017"
+        ]
+      },
+      "phase": "fresh",
+      "question": "For Project Juniper, why did we raise queue capacity to 20k, and what June evidence supported the decision?",
+      "question_id": "PQ006",
+      "question_sha256": "d5cc44d28a1c18cbb346575c096cb157f5f832d41593db1b26f113bb54a4d930",
+      "snapshot_sha256": "ca6af536c41b443765362c27a6ec4314cc1a04aa9b328c3c05002e0624b4efd5",
+      "state": "S0",
+      "subject_id": "juniper"
+    },
+    "PQ007": {
+      "P": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ007-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ007-C2",
+              "satisfied": false
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "P018"
+          ],
+          "missing_clause_ids": [
+            "PQ007-C2"
+          ],
+          "status": "INSUFFICIENT_AUTHORITY"
+        },
+        "call_index": 16,
+        "composer": {
+          "answer": "The evidence is a June month-close backlog that exceeded 12k and drained only after the close window (P014), followed by reconciliation backlog during the next close, when the 20k limit prevented it from reaching the new ceiling (P022). The capacity was raised from 12k to 20k because the month-close backlog was disrupting reconciliation; this was the team-owned rationale for the decision (P013), later implemented after approval (P020).",
+          "cited_anchor_ids": [
+            "P014",
+            "P022",
+            "P013",
+            "P020"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "context_chars": 2323,
+        "context_sha256": "b7023cd1f4da30f34469f428265558c167197546f3a139634b63052d7ff6966a",
+        "current_snapshot_sha256": "16b5388508165af2dbbf779eabecd9d1c3c1ab27a0f010e8374a49542d9bf416",
+        "input_context_sha256": "b7023cd1f4da30f34469f428265558c167197546f3a139634b63052d7ff6966a",
+        "input_question_sha256": "3e3c20dd7a6f3960da6717126c2c9a2f11f71ec60bba58f745b00f355a252b9f",
+        "model_receipt": {
+          "elapsed_seconds": 6.096,
+          "model": "gpt-5.6-luna"
+        },
+        "projection_entry_ranking": [],
+        "projection_used": false,
+        "prompt_sha256": "2a8a81f7da99d2f25aeb364f368f045273b22f6482337d8eba9adc3c40de59a2",
+        "raw_evidence_chars": 989,
+        "raw_model_text": "{\"answer\":\"The evidence is a June month-close backlog that exceeded 12k and drained only after the close window (P014), followed by reconciliation backlog during the next close, when the 20k limit prevented it from reaching the new ceiling (P022). The capacity was raised from 12k to 20k because the month-close backlog was disrupting reconciliation; this was the team-owned rationale for the decision (P013), later implemented after approval (P020).\",\"cited_anchor_ids\":[\"P014\",\"P022\",\"P013\",\"P020\"],\"insufficient_authority\":false}",
+        "selected_anchor_ids": [
+          "P013",
+          "P020",
+          "P018",
+          "P022",
+          "P014",
+          "P023"
+        ],
+        "selected_projection_entry_ids": [],
+        "selection_mode": "STALE_PROJECTION_BYPASS",
+        "stored_snapshot_sha256": "ca6af536c41b443765362c27a6ec4314cc1a04aa9b328c3c05002e0624b4efd5"
+      },
+      "Q": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ007-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ007-C2",
+              "satisfied": false
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "P018"
+          ],
+          "missing_clause_ids": [
+            "PQ007-C2"
+          ],
+          "status": "INSUFFICIENT_AUTHORITY"
+        },
+        "call_index": 15,
+        "composer": {
+          "answer": "The supplied evidence does not independently establish that the month-close backlog was repeated: P014 records one June month-close exceedance, while P022 reports a later close where the 20k limit prevented the reconciliation backlog from reaching the new ceiling, but does not explicitly document a second month-close exceedance. Capacity was raised from 12k to 20k as a team-owned decision because the backlog was disrupting reconciliation, with P014 providing the recorded evidence that the queue exceeded 12k during June close; P020 confirms implementation, not the decision’s rationale.",
+          "cited_anchor_ids": [
+            "P014",
+            "P022",
+            "P013",
+            "P020"
+          ],
+          "insufficient_authority": true
+        },
+        "composer_contract_ok": true,
+        "context_chars": 2323,
+        "context_sha256": "b7023cd1f4da30f34469f428265558c167197546f3a139634b63052d7ff6966a",
+        "input_context_sha256": "b7023cd1f4da30f34469f428265558c167197546f3a139634b63052d7ff6966a",
+        "input_question_sha256": "3e3c20dd7a6f3960da6717126c2c9a2f11f71ec60bba58f745b00f355a252b9f",
+        "model_receipt": {
+          "elapsed_seconds": 9.122,
+          "model": "gpt-5.6-luna"
+        },
+        "prompt_sha256": "2a8a81f7da99d2f25aeb364f368f045273b22f6482337d8eba9adc3c40de59a2",
+        "raw_evidence_chars": 989,
+        "raw_model_text": "{\"answer\":\"The supplied evidence does not independently establish that the month-close backlog was repeated: P014 records one June month-close exceedance, while P022 reports a later close where the 20k limit prevented the reconciliation backlog from reaching the new ceiling, but does not explicitly document a second month-close exceedance. Capacity was raised from 12k to 20k as a team-owned decision because the backlog was disrupting reconciliation, with P014 providing the recorded evidence that the queue exceeded 12k during June close; P020 confirms implementation, not the decision’s rationale.\",\"cited_anchor_ids\":[\"P014\",\"P022\",\"P013\",\"P020\"],\"insufficient_authority\":true}",
+        "selected_anchor_ids": [
+          "P013",
+          "P020",
+          "P018",
+          "P022",
+          "P014",
+          "P023"
+        ]
+      },
+      "phase": "stale_gap",
+      "question": "For Project Juniper, what evidence now makes the month-close backlog repeated, and why was capacity raised to 20k?",
+      "question_id": "PQ007",
+      "question_sha256": "3e3c20dd7a6f3960da6717126c2c9a2f11f71ec60bba58f745b00f355a252b9f",
+      "snapshot_sha256": "16b5388508165af2dbbf779eabecd9d1c3c1ab27a0f010e8374a49542d9bf416",
+      "state": "S1",
+      "subject_id": "juniper"
+    },
+    "PQ008": {
+      "P": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ008-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ008-C2",
+              "satisfied": false
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "P018"
+          ],
+          "missing_clause_ids": [
+            "PQ008-C2"
+          ],
+          "status": "INSUFFICIENT_AUTHORITY"
+        },
+        "call_index": 18,
+        "composer": {
+          "answer": "The supplied evidence does not establish that the month-close backlog was repeated: the daily spike was unrelated to month close (P018), the implementation ticket is not independent evidence of repetition (P020), and the post-change report is later outcome evidence rather than a second original observation (P022). Capacity was raised from 12k to 20k because the team recorded that month-close backlog was disrupting reconciliation (P013).",
+          "cited_anchor_ids": [
+            "P018",
+            "P020",
+            "P022",
+            "P013"
+          ],
+          "insufficient_authority": true
+        },
+        "composer_contract_ok": true,
+        "context_chars": 1623,
+        "context_sha256": "d4f4e7ce78744fb4cd1f173ccb3013fef2f228f10b7b01d5b27430400ea27424",
+        "current_snapshot_sha256": "16b5388508165af2dbbf779eabecd9d1c3c1ab27a0f010e8374a49542d9bf416",
+        "input_context_sha256": "d4f4e7ce78744fb4cd1f173ccb3013fef2f228f10b7b01d5b27430400ea27424",
+        "input_question_sha256": "3e3c20dd7a6f3960da6717126c2c9a2f11f71ec60bba58f745b00f355a252b9f",
+        "model_receipt": {
+          "elapsed_seconds": 6.213,
+          "model": "gpt-5.6-luna"
+        },
+        "projection_entry_ranking": [
+          {
+            "entry_id": "E01",
+            "rank": 1,
+            "score": 10.60211606917879
+          },
+          {
+            "entry_id": "E04",
+            "rank": 2,
+            "score": 7.473028674336004
+          },
+          {
+            "entry_id": "E09",
+            "rank": 3,
+            "score": 5.701167262008284
+          },
+          {
+            "entry_id": "E05",
+            "rank": 4,
+            "score": 4.542057992145138
+          },
+          {
+            "entry_id": "E02",
+            "rank": 5,
+            "score": 3.927365909771238
+          },
+          {
+            "entry_id": "E10",
+            "rank": 6,
+            "score": 2.7327484671102313
+          },
+          {
+            "entry_id": "E08",
+            "rank": 7,
+            "score": 2.2823684306554117
+          },
+          {
+            "entry_id": "E06",
+            "rank": 8,
+            "score": 1.8051978056196913
+          },
+          {
+            "entry_id": "E03",
+            "rank": 9,
+            "score": 1.6113539424963415
+          },
+          {
+            "entry_id": "E07",
+            "rank": 10,
+            "score": 0.2482258033359358
+          }
+        ],
+        "projection_used": true,
+        "prompt_sha256": "72d842fb92aa89d3c9d9442c00a74300cf976a70b550a2478584131d8396b652",
+        "raw_evidence_chars": 726,
+        "raw_model_text": "{\"answer\":\"The supplied evidence does not establish that the month-close backlog was repeated: the daily spike was unrelated to month close (P018), the implementation ticket is not independent evidence of repetition (P020), and the post-change report is later outcome evidence rather than a second original observation (P022). Capacity was raised from 12k to 20k because the team recorded that month-close backlog was disrupting reconciliation (P013).\",\"cited_anchor_ids\":[\"P018\",\"P020\",\"P022\",\"P013\"],\"insufficient_authority\":true}",
+        "selected_anchor_ids": [
+          "P013",
+          "P020",
+          "P018",
+          "P022"
+        ],
+        "selected_projection_entry_ids": [
+          "E01",
+          "E04"
+        ],
+        "selection_mode": "FRESH_PROJECTION_RETRIEVAL",
+        "stored_snapshot_sha256": "16b5388508165af2dbbf779eabecd9d1c3c1ab27a0f010e8374a49542d9bf416"
+      },
+      "Q": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ008-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ008-C2",
+              "satisfied": false
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "P018"
+          ],
+          "missing_clause_ids": [
+            "PQ008-C2"
+          ],
+          "status": "INSUFFICIENT_AUTHORITY"
+        },
+        "call_index": 19,
+        "composer": {
+          "answer": "The repeated pattern is supported by the June observation that reconciliation backlog exceeded 12k and drained only after close (P014), plus the later-close report documenting reconciliation backlog during the next close, even though it stayed below the new 20k ceiling (P022). The team raised capacity from 12k to 20k because that month-close backlog was disrupting reconciliation; this rationale is recorded as a team-owned project decision (P013).",
+          "cited_anchor_ids": [
+            "P014",
+            "P022",
+            "P013"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "context_chars": 2323,
+        "context_sha256": "b7023cd1f4da30f34469f428265558c167197546f3a139634b63052d7ff6966a",
+        "input_context_sha256": "b7023cd1f4da30f34469f428265558c167197546f3a139634b63052d7ff6966a",
+        "input_question_sha256": "3e3c20dd7a6f3960da6717126c2c9a2f11f71ec60bba58f745b00f355a252b9f",
+        "model_receipt": {
+          "elapsed_seconds": 8.282,
+          "model": "gpt-5.6-luna"
+        },
+        "prompt_sha256": "2a8a81f7da99d2f25aeb364f368f045273b22f6482337d8eba9adc3c40de59a2",
+        "raw_evidence_chars": 989,
+        "raw_model_text": "{\"answer\":\"The repeated pattern is supported by the June observation that reconciliation backlog exceeded 12k and drained only after close (P014), plus the later-close report documenting reconciliation backlog during the next close, even though it stayed below the new 20k ceiling (P022). The team raised capacity from 12k to 20k because that month-close backlog was disrupting reconciliation; this rationale is recorded as a team-owned project decision (P013).\",\"cited_anchor_ids\":[\"P014\",\"P022\",\"P013\"],\"insufficient_authority\":false}",
+        "selected_anchor_ids": [
+          "P013",
+          "P020",
+          "P018",
+          "P022",
+          "P014",
+          "P023"
+        ]
+      },
+      "phase": "fresh_after_rebuild",
+      "question": "For Project Juniper, what evidence now makes the month-close backlog repeated, and why was capacity raised to 20k?",
+      "question_id": "PQ008",
+      "question_sha256": "3e3c20dd7a6f3960da6717126c2c9a2f11f71ec60bba58f745b00f355a252b9f",
+      "snapshot_sha256": "16b5388508165af2dbbf779eabecd9d1c3c1ab27a0f010e8374a49542d9bf416",
+      "state": "S1",
+      "subject_id": "juniper"
+    },
+    "PQ009": {
+      "P": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ009-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ009-C2",
+              "satisfied": false
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [
+            "PQ009-C2"
+          ],
+          "status": "INSUFFICIENT_AUTHORITY"
+        },
+        "call_index": 22,
+        "composer": {
+          "answer": "Project Keystone set audit-export retention to 30 days because the partner SLA required a 30-day evidence window, and the project chose the smallest sufficient retention period (P025). The governing customer requirement was that partner SLA’s 30-day evidence window (P025); meeting notes also record that it matched the then-current SLA (P029).",
+          "cited_anchor_ids": [
+            "P025",
+            "P029"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "context_chars": 1493,
+        "context_sha256": "f80d0fcc01a35ffde6789d7d7d14b2f3d16fb78aa813a3b51ee59a5e30c37d54",
+        "current_snapshot_sha256": "11de723c107771e57a698c396f1e1ebbef169c0a4d0fbea614f058197c234244",
+        "input_context_sha256": "f80d0fcc01a35ffde6789d7d7d14b2f3d16fb78aa813a3b51ee59a5e30c37d54",
+        "input_question_sha256": "7855b2457a82e5a874ad62d81cb5540285258e58ea31b8589208935feae28b22",
+        "model_receipt": {
+          "elapsed_seconds": 4.587,
+          "model": "gpt-5.6-luna"
+        },
+        "projection_entry_ranking": [
+          {
+            "entry_id": "E01",
+            "rank": 1,
+            "score": 6.183583586701492
+          },
+          {
+            "entry_id": "E04",
+            "rank": 2,
+            "score": 5.911744467310622
+          },
+          {
+            "entry_id": "E02",
+            "rank": 3,
+            "score": 4.487221678360843
+          },
+          {
+            "entry_id": "E03",
+            "rank": 4,
+            "score": 3.3319495555646594
+          },
+          {
+            "entry_id": "E06",
+            "rank": 5,
+            "score": 3.1092005468134847
+          },
+          {
+            "entry_id": "E05",
+            "rank": 6,
+            "score": 0.6360871738550098
+          }
+        ],
+        "projection_used": true,
+        "prompt_sha256": "0fe6504e253bb2ed464fd413806b4444c127d1e53eccbf1bfbac36656154d5d4",
+        "raw_evidence_chars": 579,
+        "raw_model_text": "{\"answer\":\"Project Keystone set audit-export retention to 30 days because the partner SLA required a 30-day evidence window, and the project chose the smallest sufficient retention period (P025). The governing customer requirement was that partner SLA’s 30-day evidence window (P025); meeting notes also record that it matched the then-current SLA (P029).\",\"cited_anchor_ids\":[\"P025\",\"P029\"],\"insufficient_authority\":false}",
+        "selected_anchor_ids": [
+          "P025",
+          "P029",
+          "P028",
+          "P031"
+        ],
+        "selected_projection_entry_ids": [
+          "E01",
+          "E04"
+        ],
+        "selection_mode": "FRESH_PROJECTION_RETRIEVAL",
+        "stored_snapshot_sha256": "11de723c107771e57a698c396f1e1ebbef169c0a4d0fbea614f058197c234244"
+      },
+      "Q": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ009-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ009-C2",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "P030"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "call_index": 21,
+        "composer": {
+          "answer": "We set audit-export retention to 30 days because the project wanted the smallest period sufficient to satisfy the partner SLA’s 30-day evidence window (P025). The governing customer requirement was the customer compliance policy requiring audit exports to be retained for at least 30 days (P026).",
+          "cited_anchor_ids": [
+            "P025",
+            "P026"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "context_chars": 2282,
+        "context_sha256": "0cec01618cb0e83f73817d3637331174ce4bf1f304f9edd7eaafe4b4a2072ca5",
+        "input_context_sha256": "0cec01618cb0e83f73817d3637331174ce4bf1f304f9edd7eaafe4b4a2072ca5",
+        "input_question_sha256": "7855b2457a82e5a874ad62d81cb5540285258e58ea31b8589208935feae28b22",
+        "model_receipt": {
+          "elapsed_seconds": 4.737,
+          "model": "gpt-5.6-luna"
+        },
+        "prompt_sha256": "a7c4f9dfc602f9d7e0dcf62eef3fb94022bb0faf8c6df6cff3de7120f0e12e00",
+        "raw_evidence_chars": 910,
+        "raw_model_text": "{\"answer\":\"We set audit-export retention to 30 days because the project wanted the smallest period sufficient to satisfy the partner SLA’s 30-day evidence window (P025). The governing customer requirement was the customer compliance policy requiring audit exports to be retained for at least 30 days (P026).\",\"cited_anchor_ids\":[\"P025\",\"P026\"],\"insufficient_authority\":false}",
+        "selected_anchor_ids": [
+          "P025",
+          "P031",
+          "P026",
+          "P028",
+          "P030",
+          "P027"
+        ]
+      },
+      "phase": "fresh",
+      "question": "For Project Keystone, why did we set audit-export retention to 30 days, and what customer requirement governed that choice?",
+      "question_id": "PQ009",
+      "question_sha256": "7855b2457a82e5a874ad62d81cb5540285258e58ea31b8589208935feae28b22",
+      "snapshot_sha256": "11de723c107771e57a698c396f1e1ebbef169c0a4d0fbea614f058197c234244",
+      "state": "S0",
+      "subject_id": "keystone"
+    },
+    "PQ010": {
+      "P": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ010-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ010-C2",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "call_index": 23,
+        "composer": {
+          "answer": "No. Vendor support for 90-day retention does not itself authorize using 90 days under the customer policy (P027). The supplied policy requires at least 30 days (P026), and the configured 30-day retention was audited as compliant (P028, P031). The anchors do not establish whether a later current customer policy authorizes 90 days.",
+          "cited_anchor_ids": [
+            "P027",
+            "P026",
+            "P028",
+            "P031"
+          ],
+          "insufficient_authority": true
+        },
+        "composer_contract_ok": true,
+        "context_chars": 1493,
+        "context_sha256": "aadbd0b3a59d4a567eeaf14bb10b1341f94de5b5197187fc7edfbf7a770394aa",
+        "current_snapshot_sha256": "11de723c107771e57a698c396f1e1ebbef169c0a4d0fbea614f058197c234244",
+        "input_context_sha256": "aadbd0b3a59d4a567eeaf14bb10b1341f94de5b5197187fc7edfbf7a770394aa",
+        "input_question_sha256": "094bdab0a537e2dd50b9cfc11f9e39f921a7388e86e5e8aee29932392480648f",
+        "model_receipt": {
+          "elapsed_seconds": 6.077,
+          "model": "gpt-5.6-luna"
+        },
+        "projection_entry_ranking": [
+          {
+            "entry_id": "E03",
+            "rank": 1,
+            "score": 8.356677106896706
+          },
+          {
+            "entry_id": "E04",
+            "rank": 2,
+            "score": 6.264178250085923
+          },
+          {
+            "entry_id": "E05",
+            "rank": 3,
+            "score": 5.989890462985693
+          },
+          {
+            "entry_id": "E01",
+            "rank": 4,
+            "score": 3.8070758722501803
+          },
+          {
+            "entry_id": "E02",
+            "rank": 5,
+            "score": 3.378180716217952
+          },
+          {
+            "entry_id": "E06",
+            "rank": 6,
+            "score": 1.6802804508639344
+          }
+        ],
+        "projection_used": true,
+        "prompt_sha256": "9eeba7f17c629e44e57a368ffeec3ebd1b95bde0705352d8cb73e3ca0db2e6d3",
+        "raw_evidence_chars": 585,
+        "raw_model_text": "{\"answer\":\"No. Vendor support for 90-day retention does not itself authorize using 90 days under the customer policy (P027). The supplied policy requires at least 30 days (P026), and the configured 30-day retention was audited as compliant (P028, P031). The anchors do not establish whether a later current customer policy authorizes 90 days.\",\"cited_anchor_ids\":[\"P027\",\"P026\",\"P028\",\"P031\"],\"insufficient_authority\":true}",
+        "selected_anchor_ids": [
+          "P027",
+          "P028",
+          "P031",
+          "P026"
+        ],
+        "selected_projection_entry_ids": [
+          "E03",
+          "E04"
+        ],
+        "selection_mode": "FRESH_PROJECTION_RETRIEVAL",
+        "stored_snapshot_sha256": "11de723c107771e57a698c396f1e1ebbef169c0a4d0fbea614f058197c234244"
+      },
+      "Q": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ010-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ010-C2",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "P032"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "call_index": 24,
+        "composer": {
+          "answer": "No—not based on vendor support alone. The vendor guide says 90-day retention is technically supported but does not change the customer’s governing requirement (P027). The current customer policy requires audit exports to be retained for at least 30 days, but the supplied authority does not specifically authorize adopting 90 days (P026).",
+          "cited_anchor_ids": [
+            "P027",
+            "P026"
+          ],
+          "insufficient_authority": true
+        },
+        "composer_contract_ok": true,
+        "context_chars": 2317,
+        "context_sha256": "a25c4f1f55234ce5985ad5ebed83737ceeda061071636eee9b7485a914fbb9e8",
+        "input_context_sha256": "a25c4f1f55234ce5985ad5ebed83737ceeda061071636eee9b7485a914fbb9e8",
+        "input_question_sha256": "094bdab0a537e2dd50b9cfc11f9e39f921a7388e86e5e8aee29932392480648f",
+        "model_receipt": {
+          "elapsed_seconds": 5.394,
+          "model": "gpt-5.6-luna"
+        },
+        "prompt_sha256": "344fafa9051fe9557e694b0544bda1ef4e04962815478e660ce58ab8c00c1c9f",
+        "raw_evidence_chars": 958,
+        "raw_model_text": "{\"answer\":\"No—not based on vendor support alone. The vendor guide says 90-day retention is technically supported but does not change the customer’s governing requirement (P027). The current customer policy requires audit exports to be retained for at least 30 days, but the supplied authority does not specifically authorize adopting 90 days (P026).\",\"cited_anchor_ids\":[\"P027\",\"P026\"],\"insufficient_authority\":true}",
+        "selected_anchor_ids": [
+          "P027",
+          "P026",
+          "P032",
+          "P030",
+          "P029",
+          "P025"
+        ]
+      },
+      "phase": "fresh",
+      "question": "For Project Keystone, does vendor support for 90-day retention authorize us to use 90 days under the current customer policy?",
+      "question_id": "PQ010",
+      "question_sha256": "094bdab0a537e2dd50b9cfc11f9e39f921a7388e86e5e8aee29932392480648f",
+      "snapshot_sha256": "11de723c107771e57a698c396f1e1ebbef169c0a4d0fbea614f058197c234244",
+      "state": "S0",
+      "subject_id": "keystone"
+    },
+    "PQ011": {
+      "P": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ011-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ011-C2",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ011-C3",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "call_index": 26,
+        "composer": {
+          "answer": "Project Keystone must retain audit exports for at least 90 days, effective immediately, under the customer compliance addendum (P033). The project decision changed retention from 30 to 90 days to comply with that addendum and explicitly superseded the prior decision; implementation was updated accordingly (P034, P035). The old 30-day decision is no longer current (P033, P034).",
+          "cited_anchor_ids": [
+            "P033",
+            "P034",
+            "P035"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "context_chars": 2442,
+        "context_sha256": "55373b0eb67e341e2fb832294e085c10a953a9c48c9b840ad5abe35c9fea34d9",
+        "current_snapshot_sha256": "b9442746f2d0b431231de1e357a3a78b6a06a3592c2c14c9fdfe4da49e4167d6",
+        "input_context_sha256": "55373b0eb67e341e2fb832294e085c10a953a9c48c9b840ad5abe35c9fea34d9",
+        "input_question_sha256": "ae2c949018ace5b8f5017c8ce1687b53f76a6daee01c44c00a0d9eb97270fd89",
+        "model_receipt": {
+          "elapsed_seconds": 4.777,
+          "model": "gpt-5.6-luna"
+        },
+        "projection_entry_ranking": [],
+        "projection_used": false,
+        "prompt_sha256": "d09dad679f2c2d916d719bc9f9f735bd23220da8614b26dc0f132cb39576624f",
+        "raw_evidence_chars": 1014,
+        "raw_model_text": "{\"answer\":\"Project Keystone must retain audit exports for at least 90 days, effective immediately, under the customer compliance addendum (P033). The project decision changed retention from 30 to 90 days to comply with that addendum and explicitly superseded the prior decision; implementation was updated accordingly (P034, P035). The old 30-day decision is no longer current (P033, P034).\",\"cited_anchor_ids\":[\"P033\",\"P034\",\"P035\"],\"insufficient_authority\":false}",
+        "selected_anchor_ids": [
+          "P033",
+          "P035",
+          "P034",
+          "P025",
+          "P026",
+          "P028"
+        ],
+        "selected_projection_entry_ids": [],
+        "selection_mode": "STALE_PROJECTION_BYPASS",
+        "stored_snapshot_sha256": "11de723c107771e57a698c396f1e1ebbef169c0a4d0fbea614f058197c234244"
+      },
+      "Q": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ011-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ011-C2",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ011-C3",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "call_index": 25,
+        "composer": {
+          "answer": "Project Keystone must retain audit exports for at least 90 days, effective immediately, under the customer addendum (P033). The project decision changed retention from 30 days to 90 days to comply with that addendum, explicitly superseding the prior decision (P034), and the implementation ticket reflects the 90-day setting (P035). The old 30-day decision is no longer current (P033, P034).",
+          "cited_anchor_ids": [
+            "P033",
+            "P034",
+            "P035"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "context_chars": 2442,
+        "context_sha256": "55373b0eb67e341e2fb832294e085c10a953a9c48c9b840ad5abe35c9fea34d9",
+        "input_context_sha256": "55373b0eb67e341e2fb832294e085c10a953a9c48c9b840ad5abe35c9fea34d9",
+        "input_question_sha256": "ae2c949018ace5b8f5017c8ce1687b53f76a6daee01c44c00a0d9eb97270fd89",
+        "model_receipt": {
+          "elapsed_seconds": 7.255,
+          "model": "gpt-5.6-luna"
+        },
+        "prompt_sha256": "d09dad679f2c2d916d719bc9f9f735bd23220da8614b26dc0f132cb39576624f",
+        "raw_evidence_chars": 1014,
+        "raw_model_text": "{\"answer\":\"Project Keystone must retain audit exports for at least 90 days, effective immediately, under the customer addendum (P033). The project decision changed retention from 30 days to 90 days to comply with that addendum, explicitly superseding the prior decision (P034), and the implementation ticket reflects the 90-day setting (P035). The old 30-day decision is no longer current (P033, P034).\",\"cited_anchor_ids\":[\"P033\",\"P034\",\"P035\"],\"insufficient_authority\":false}",
+        "selected_anchor_ids": [
+          "P033",
+          "P035",
+          "P034",
+          "P025",
+          "P026",
+          "P028"
+        ]
+      },
+      "phase": "stale_gap",
+      "question": "For Project Keystone, what is the current audit-export retention requirement and decision after the customer addendum, and is the old 30-day decision still current?",
+      "question_id": "PQ011",
+      "question_sha256": "ae2c949018ace5b8f5017c8ce1687b53f76a6daee01c44c00a0d9eb97270fd89",
+      "snapshot_sha256": "b9442746f2d0b431231de1e357a3a78b6a06a3592c2c14c9fdfe4da49e4167d6",
+      "state": "S1",
+      "subject_id": "keystone"
+    },
+    "PQ012": {
+      "P": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ012-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ012-C2",
+              "satisfied": false
+            },
+            {
+              "clause_id": "PQ012-C3",
+              "satisfied": false
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [
+            "PQ012-C2",
+            "PQ012-C3"
+          ],
+          "status": "INSUFFICIENT_AUTHORITY"
+        },
+        "call_index": 28,
+        "composer": {
+          "answer": "Project Keystone must retain audit exports for at least 90 days, effective immediately, following the customer compliance addendum (P033). The decision was implemented by updating retention to 90 days (P035). The old 30-day decision is no longer current; it reflected the earlier requirement (P028, P031, P033).",
+          "cited_anchor_ids": [
+            "P033",
+            "P035",
+            "P028",
+            "P031"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "context_chars": 1488,
+        "context_sha256": "1932ce2f965b4591f14384bdfe2aff487cd90a80da7868ee115e09b5eea09f1a",
+        "current_snapshot_sha256": "b9442746f2d0b431231de1e357a3a78b6a06a3592c2c14c9fdfe4da49e4167d6",
+        "input_context_sha256": "1932ce2f965b4591f14384bdfe2aff487cd90a80da7868ee115e09b5eea09f1a",
+        "input_question_sha256": "ae2c949018ace5b8f5017c8ce1687b53f76a6daee01c44c00a0d9eb97270fd89",
+        "model_receipt": {
+          "elapsed_seconds": 4.589,
+          "model": "gpt-5.6-luna"
+        },
+        "projection_entry_ranking": [
+          {
+            "entry_id": "E03",
+            "rank": 1,
+            "score": 15.70162288077315
+          },
+          {
+            "entry_id": "E07",
+            "rank": 2,
+            "score": 10.940059220054067
+          },
+          {
+            "entry_id": "E08",
+            "rank": 3,
+            "score": 7.070569004567247
+          },
+          {
+            "entry_id": "E01",
+            "rank": 4,
+            "score": 6.300801951699218
+          },
+          {
+            "entry_id": "E05",
+            "rank": 5,
+            "score": 5.424893770842782
+          },
+          {
+            "entry_id": "E04",
+            "rank": 6,
+            "score": 5.121344758575888
+          },
+          {
+            "entry_id": "E02",
+            "rank": 7,
+            "score": 3.5620423477596
+          },
+          {
+            "entry_id": "E06",
+            "rank": 8,
+            "score": 2.6651434353207044
+          }
+        ],
+        "projection_used": true,
+        "prompt_sha256": "2cbbdb29c5f6bd8e3e0c8363f544cd83e3eae6c324fbfcd6825f2a221164a5dc",
+        "raw_evidence_chars": 576,
+        "raw_model_text": "{\"answer\":\"Project Keystone must retain audit exports for at least 90 days, effective immediately, following the customer compliance addendum (P033). The decision was implemented by updating retention to 90 days (P035). The old 30-day decision is no longer current; it reflected the earlier requirement (P028, P031, P033).\",\"cited_anchor_ids\":[\"P033\",\"P035\",\"P028\",\"P031\"],\"insufficient_authority\":false}",
+        "selected_anchor_ids": [
+          "P028",
+          "P031",
+          "P033",
+          "P035"
+        ],
+        "selected_projection_entry_ids": [
+          "E03",
+          "E07"
+        ],
+        "selection_mode": "FRESH_PROJECTION_RETRIEVAL",
+        "stored_snapshot_sha256": "b9442746f2d0b431231de1e357a3a78b6a06a3592c2c14c9fdfe4da49e4167d6"
+      },
+      "Q": {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "PQ012-C1",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ012-C2",
+              "satisfied": true
+            },
+            {
+              "clause_id": "PQ012-C3",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "call_index": 29,
+        "composer": {
+          "answer": "Project Keystone must retain audit exports for at least 90 days, effective immediately, following the customer compliance addendum (P033). The project decision changed retention from 30 to 90 days to comply with that addendum, and the implementation was updated accordingly (P034, P035). The old 30-day decision is no longer current because it was explicitly superseded (P033, P034).",
+          "cited_anchor_ids": [
+            "P033",
+            "P034",
+            "P035"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "context_chars": 2442,
+        "context_sha256": "55373b0eb67e341e2fb832294e085c10a953a9c48c9b840ad5abe35c9fea34d9",
+        "input_context_sha256": "55373b0eb67e341e2fb832294e085c10a953a9c48c9b840ad5abe35c9fea34d9",
+        "input_question_sha256": "ae2c949018ace5b8f5017c8ce1687b53f76a6daee01c44c00a0d9eb97270fd89",
+        "model_receipt": {
+          "elapsed_seconds": 4.78,
+          "model": "gpt-5.6-luna"
+        },
+        "prompt_sha256": "d09dad679f2c2d916d719bc9f9f735bd23220da8614b26dc0f132cb39576624f",
+        "raw_evidence_chars": 1014,
+        "raw_model_text": "{\"answer\":\"Project Keystone must retain audit exports for at least 90 days, effective immediately, following the customer compliance addendum (P033). The project decision changed retention from 30 to 90 days to comply with that addendum, and the implementation was updated accordingly (P034, P035). The old 30-day decision is no longer current because it was explicitly superseded (P033, P034).\",\"cited_anchor_ids\":[\"P033\",\"P034\",\"P035\"],\"insufficient_authority\":false}",
+        "selected_anchor_ids": [
+          "P033",
+          "P035",
+          "P034",
+          "P025",
+          "P026",
+          "P028"
+        ]
+      },
+      "phase": "fresh_after_rebuild",
+      "question": "For Project Keystone, what is the current audit-export retention requirement and decision after the customer addendum, and is the old 30-day decision still current?",
+      "question_id": "PQ012",
+      "question_sha256": "ae2c949018ace5b8f5017c8ce1687b53f76a6daee01c44c00a0d9eb97270fd89",
+      "snapshot_sha256": "b9442746f2d0b431231de1e357a3a78b6a06a3592c2c14c9fdfe4da49e4167d6",
+      "state": "S1",
+      "subject_id": "keystone"
+    }
+  },
+  "prereg_merge_sha": "080ac3d91d011be3ec16111bdc24eda9905f3d9c",
+  "projection_builds": [
+    {
+      "call_index": 1,
+      "contract_ok": true,
+      "event": "BUILD_PROJECTION",
+      "event_index": 1,
+      "model_receipt": {
+        "elapsed_seconds": 7.788,
+        "model": "gpt-5.6-luna"
+      },
+      "projection": {
+        "entries": [
+          {
+            "anchor_ids": [
+              "P001",
+              "P002"
+            ],
+            "entry_id": "E01",
+            "statement": "Project Iris chose a canary rollout because rollback confidence, reversibility, and narrow blast radius outweighed launch speed; an SRE drill supported the decision without authoring it."
+          },
+          {
+            "anchor_ids": [
+              "P003",
+              "P004"
+            ],
+            "entry_id": "E02",
+            "statement": "For Iris's regulated release, Dana Cho directly required keeping the signing key on the customer HSM because the approved managed-KMS module was unavailable; this was not a general objection to managed key services, whose standard use remained approved."
+          },
+          {
+            "anchor_ids": [
+              "P005",
+              "P006"
+            ],
+            "entry_id": "E03",
+            "statement": "Iris meeting notes attribute to Dana Cho a request to keep migration reversible through Friday, but the scribe authored the notes; Dana directly authored the separate instruction to wait for a passing replay check before shipping the schema change."
+          },
+          {
+            "anchor_ids": [
+              "P007"
+            ],
+            "entry_id": "E04",
+            "statement": "The Iris platform can integrate with either a customer HSM or a managed key service; this product capability does not establish project policy or Dana Cho's general position."
+          },
+          {
+            "anchor_ids": [
+              "P008",
+              "P009",
+              "P010"
+            ],
+            "entry_id": "E05",
+            "statement": "Iris customer policy requires archived records to remain in the EU, and the vendor offers an EU-only archive option; an unchecked deployment item means current compliance is unverified."
+          },
+          {
+            "anchor_ids": [
+              "P011"
+            ],
+            "entry_id": "E06",
+            "statement": "Dana Cho is listed as Iris security lead, but that staffing role does not establish that every Iris statement was directly authored by Dana."
+          },
+          {
+            "anchor_ids": [
+              "P012"
+            ],
+            "entry_id": "E07",
+            "statement": "The Iris release calendar records rollout dates, migration windows, and regulated-signing milestones, but it does not provide the reasons behind policy or project decisions."
+          }
+        ]
+      },
+      "raw_model_text": "{\"entries\":[{\"entry_id\":\"E01\",\"statement\":\"Project Iris chose a canary rollout because rollback confidence, reversibility, and narrow blast radius outweighed launch speed; an SRE drill supported the decision without authoring it.\",\"anchor_ids\":[\"P001\",\"P002\"]},{\"entry_id\":\"E02\",\"statement\":\"For Iris's regulated release, Dana Cho directly required keeping the signing key on the customer HSM because the approved managed-KMS module was unavailable; this was not a general objection to managed key services, whose standard use remained approved.\",\"anchor_ids\":[\"P003\",\"P004\"]},{\"entry_id\":\"E03\",\"statement\":\"Iris meeting notes attribute to Dana Cho a request to keep migration reversible through Friday, but the scribe authored the notes; Dana directly authored the separate instruction to wait for a passing replay check before shipping the schema change.\",\"anchor_ids\":[\"P005\",\"P006\"]},{\"entry_id\":\"E04\",\"statement\":\"The Iris platform can integrate with either a customer HSM or a managed key service; this product capability does not establish project policy or Dana Cho's general position.\",\"anchor_ids\":[\"P007\"]},{\"entry_id\":\"E05\",\"statement\":\"Iris customer policy requires archived records to remain in the EU, and the vendor offers an EU-only archive option; an unchecked deployment item means current compliance is unverified.\",\"anchor_ids\":[\"P008\",\"P009\",\"P010\"]},{\"entry_id\":\"E06\",\"statement\":\"Dana Cho is listed as Iris security lead, but that staffing role does not establish that every Iris statement was directly authored by Dana.\",\"anchor_ids\":[\"P011\"]},{\"entry_id\":\"E07\",\"statement\":\"The Iris release calendar records rollout dates, migration windows, and regulated-signing milestones, but it does not provide the reasons behind policy or project decisions.\",\"anchor_ids\":[\"P012\"]}]}",
+      "source_snapshot_sha256": "d7c787a43175f247f4af64df875f40c53d1283c49495d1279728c152d0012ab0",
+      "state": "S0",
+      "subject_id": "iris",
+      "terminal_anchor_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004",
+        "P005",
+        "P006",
+        "P007",
+        "P008",
+        "P009",
+        "P010",
+        "P011",
+        "P012"
+      ],
+      "terminal_context_sha256": "4a23e1aa4c05af2229aca9c719240714877ec6fac48f07222aa2c1150ec96130"
+    },
+    {
+      "call_index": 10,
+      "contract_ok": true,
+      "event": "BUILD_PROJECTION",
+      "event_index": 6,
+      "model_receipt": {
+        "elapsed_seconds": 7.006,
+        "model": "gpt-5.6-luna"
+      },
+      "projection": {
+        "entries": [
+          {
+            "anchor_ids": [
+              "P013",
+              "P014"
+            ],
+            "entry_id": "E01",
+            "statement": "The project team decided to raise Juniper queue capacity from 12k to 20k because month-close backlog disrupted reconciliation; operations observed backlog exceeding 12k during June close."
+          },
+          {
+            "anchor_ids": [
+              "P020"
+            ],
+            "entry_id": "E02",
+            "statement": "A platform change ticket implemented the approved 20k queue capacity; it is implementation evidence, not independent evidence that the month-close condition repeated."
+          },
+          {
+            "anchor_ids": [
+              "P015",
+              "P017"
+            ],
+            "entry_id": "E03",
+            "statement": "Juniper customer policy permits local emergency login only during a declared identity-provider outage, with incident commander approval and a post-event audit; every use must be reviewed in the next business-day access audit."
+          },
+          {
+            "anchor_ids": [
+              "P016",
+              "P019"
+            ],
+            "entry_id": "E04",
+            "statement": "The vendor guide attributes local emergency login to product capability but does not grant authorization; vendor sales language calling access flexible does not override the customer's emergency-access policy."
+          },
+          {
+            "anchor_ids": [
+              "P018"
+            ],
+            "entry_id": "E05",
+            "statement": "Operations recorded a midday queue backlog unrelated to month close; this daily spike is explicitly not an independent second month-close observation."
+          }
+        ]
+      },
+      "raw_model_text": "{\"entries\":[{\"entry_id\":\"E01\",\"statement\":\"The project team decided to raise Juniper queue capacity from 12k to 20k because month-close backlog disrupted reconciliation; operations observed backlog exceeding 12k during June close.\",\"anchor_ids\":[\"P013\",\"P014\"]},{\"entry_id\":\"E02\",\"statement\":\"A platform change ticket implemented the approved 20k queue capacity; it is implementation evidence, not independent evidence that the month-close condition repeated.\",\"anchor_ids\":[\"P020\"]},{\"entry_id\":\"E03\",\"statement\":\"Juniper customer policy permits local emergency login only during a declared identity-provider outage, with incident commander approval and a post-event audit; every use must be reviewed in the next business-day access audit.\",\"anchor_ids\":[\"P015\",\"P017\"]},{\"entry_id\":\"E04\",\"statement\":\"The vendor guide attributes local emergency login to product capability but does not grant authorization; vendor sales language calling access flexible does not override the customer's emergency-access policy.\",\"anchor_ids\":[\"P016\",\"P019\"]},{\"entry_id\":\"E05\",\"statement\":\"Operations recorded a midday queue backlog unrelated to month close; this daily spike is explicitly not an independent second month-close observation.\",\"anchor_ids\":[\"P018\"]}]}",
+      "source_snapshot_sha256": "ca6af536c41b443765362c27a6ec4314cc1a04aa9b328c3c05002e0624b4efd5",
+      "state": "S0",
+      "subject_id": "juniper",
+      "terminal_anchor_ids": [
+        "P013",
+        "P014",
+        "P015",
+        "P016",
+        "P017",
+        "P018",
+        "P019",
+        "P020"
+      ],
+      "terminal_context_sha256": "66f9089d84d5fe221e8b0d27919f6d5c9b277a4fff5d3f7a748229d056a39e23"
+    },
+    {
+      "call_index": 17,
+      "contract_ok": true,
+      "event": "REBUILD_PROJECTION",
+      "event_index": 11,
+      "model_receipt": {
+        "elapsed_seconds": 6.793,
+        "model": "gpt-5.6-luna"
+      },
+      "projection": {
+        "entries": [
+          {
+            "anchor_ids": [
+              "P013"
+            ],
+            "entry_id": "E01",
+            "statement": "The project team chose to raise Juniper queue capacity from 12k to 20k because month-close backlog disrupted reconciliation."
+          },
+          {
+            "anchor_ids": [
+              "P014"
+            ],
+            "entry_id": "E02",
+            "statement": "A June month-close observation recorded reconciliation backlog exceeding 12k and draining only after the close window."
+          },
+          {
+            "anchor_ids": [
+              "P021"
+            ],
+            "entry_id": "E03",
+            "statement": "A separate July close archive independently recorded the work queue crossing the prior 12k ceiling and remaining elevated until accounting close finished."
+          },
+          {
+            "anchor_ids": [
+              "P020"
+            ],
+            "entry_id": "E04",
+            "statement": "The 20k capacity change was implemented after approval; the change ticket documents implementation, not an independent repeated month-close condition."
+          },
+          {
+            "anchor_ids": [
+              "P022"
+            ],
+            "entry_id": "E05",
+            "statement": "Later outcome evidence reported that the 20k limit kept reconciliation backlog below the new ceiling during the next close; this does not author the original decision."
+          },
+          {
+            "anchor_ids": [
+              "P015"
+            ],
+            "entry_id": "E06",
+            "statement": "Juniper customer policy permits local emergency login only during a declared identity-provider outage, with incident commander approval and a post-event audit."
+          },
+          {
+            "anchor_ids": [
+              "P016",
+              "P019"
+            ],
+            "entry_id": "E07",
+            "statement": "The product technically supports local emergency login, but vendor capability documentation does not grant customer authorization; sales claims of flexibility do not override policy."
+          },
+          {
+            "anchor_ids": [
+              "P017",
+              "P023"
+            ],
+            "entry_id": "E08",
+            "statement": "Every use of Juniper's emergency login path must be reviewed in the next business-day access audit. The close runbook covers July reconciliation owners, dashboards, and escalation steps."
+          },
+          {
+            "anchor_ids": [
+              "P018"
+            ],
+            "entry_id": "E09",
+            "statement": "A midday queue spike was reported as unrelated to month close and is not an independent second month-close observation."
+          },
+          {
+            "anchor_ids": [
+              "P024",
+              "P013"
+            ],
+            "entry_id": "E10",
+            "statement": "Vendor documentation supports queue capacities above 20k, but that product capability does not itself justify the team's selected 20k capacity."
+          }
+        ]
+      },
+      "raw_model_text": "{\"entries\":[{\"entry_id\":\"E01\",\"statement\":\"The project team chose to raise Juniper queue capacity from 12k to 20k because month-close backlog disrupted reconciliation.\",\"anchor_ids\":[\"P013\"]},{\"entry_id\":\"E02\",\"statement\":\"A June month-close observation recorded reconciliation backlog exceeding 12k and draining only after the close window.\",\"anchor_ids\":[\"P014\"]},{\"entry_id\":\"E03\",\"statement\":\"A separate July close archive independently recorded the work queue crossing the prior 12k ceiling and remaining elevated until accounting close finished.\",\"anchor_ids\":[\"P021\"]},{\"entry_id\":\"E04\",\"statement\":\"The 20k capacity change was implemented after approval; the change ticket documents implementation, not an independent repeated month-close condition.\",\"anchor_ids\":[\"P020\"]},{\"entry_id\":\"E05\",\"statement\":\"Later outcome evidence reported that the 20k limit kept reconciliation backlog below the new ceiling during the next close; this does not author the original decision.\",\"anchor_ids\":[\"P022\"]},{\"entry_id\":\"E06\",\"statement\":\"Juniper customer policy permits local emergency login only during a declared identity-provider outage, with incident commander approval and a post-event audit.\",\"anchor_ids\":[\"P015\"]},{\"entry_id\":\"E07\",\"statement\":\"The product technically supports local emergency login, but vendor capability documentation does not grant customer authorization; sales claims of flexibility do not override policy.\",\"anchor_ids\":[\"P016\",\"P019\"]},{\"entry_id\":\"E08\",\"statement\":\"Every use of Juniper's emergency login path must be reviewed in the next business-day access audit. The close runbook covers July reconciliation owners, dashboards, and escalation steps.\",\"anchor_ids\":[\"P017\",\"P023\"]},{\"entry_id\":\"E09\",\"statement\":\"A midday queue spike was reported as unrelated to month close and is not an independent second month-close observation.\",\"anchor_ids\":[\"P018\"]},{\"entry_id\":\"E10\",\"statement\":\"Vendor documentation supports queue capacities above 20k, but that product capability does not itself justify the team's selected 20k capacity.\",\"anchor_ids\":[\"P024\",\"P013\"]}]}",
+      "source_snapshot_sha256": "16b5388508165af2dbbf779eabecd9d1c3c1ab27a0f010e8374a49542d9bf416",
+      "state": "S1",
+      "subject_id": "juniper",
+      "terminal_anchor_ids": [
+        "P013",
+        "P014",
+        "P015",
+        "P016",
+        "P017",
+        "P018",
+        "P019",
+        "P020",
+        "P021",
+        "P022",
+        "P023",
+        "P024"
+      ],
+      "terminal_context_sha256": "2c99b003caedd9926dbe4f2cf8dfff9677f9f94735089bc65c8834401bb72aa1"
+    },
+    {
+      "call_index": 20,
+      "contract_ok": true,
+      "event": "BUILD_PROJECTION",
+      "event_index": 13,
+      "model_receipt": {
+        "elapsed_seconds": 8.09,
+        "model": "gpt-5.6-luna"
+      },
+      "projection": {
+        "entries": [
+          {
+            "anchor_ids": [
+              "P025",
+              "P029"
+            ],
+            "entry_id": "E01",
+            "statement": "Project Keystone’s project team set audit-export retention to 30 days because the partner SLA required a 30-day evidence window and the team chose the smallest sufficient period."
+          },
+          {
+            "anchor_ids": [
+              "P026",
+              "P029"
+            ],
+            "entry_id": "E02",
+            "statement": "Customer compliance policy governs Keystone audit-export retention and requires at least 30 days; the partner meeting notes do not supersede that policy."
+          },
+          {
+            "anchor_ids": [
+              "P027"
+            ],
+            "entry_id": "E03",
+            "statement": "The vendor guide attributes a 90-day archive capability to the vendor, but that capability does not change Keystone’s governing customer retention requirement."
+          },
+          {
+            "anchor_ids": [
+              "P028",
+              "P031"
+            ],
+            "entry_id": "E04",
+            "statement": "Keystone storage was configured for 30-day audit-export retention after the project decision, and an audit report verified it met the then-current customer requirement."
+          },
+          {
+            "anchor_ids": [
+              "P032",
+              "P026"
+            ],
+            "entry_id": "E05",
+            "statement": "The Keystone roadmap discusses future archive changes but does not authorize a retention period different from the current customer policy."
+          },
+          {
+            "anchor_ids": [
+              "P030"
+            ],
+            "entry_id": "E06",
+            "statement": "Keystone’s 30-day analytics TTL applies to temporary cache reporting data and is explicitly unrelated to audit-export retention."
+          }
+        ]
+      },
+      "raw_model_text": "{\"entries\":[{\"entry_id\":\"E01\",\"statement\":\"Project Keystone’s project team set audit-export retention to 30 days because the partner SLA required a 30-day evidence window and the team chose the smallest sufficient period.\",\"anchor_ids\":[\"P025\",\"P029\"]},{\"entry_id\":\"E02\",\"statement\":\"Customer compliance policy governs Keystone audit-export retention and requires at least 30 days; the partner meeting notes do not supersede that policy.\",\"anchor_ids\":[\"P026\",\"P029\"]},{\"entry_id\":\"E03\",\"statement\":\"The vendor guide attributes a 90-day archive capability to the vendor, but that capability does not change Keystone’s governing customer retention requirement.\",\"anchor_ids\":[\"P027\"]},{\"entry_id\":\"E04\",\"statement\":\"Keystone storage was configured for 30-day audit-export retention after the project decision, and an audit report verified it met the then-current customer requirement.\",\"anchor_ids\":[\"P028\",\"P031\"]},{\"entry_id\":\"E05\",\"statement\":\"The Keystone roadmap discusses future archive changes but does not authorize a retention period different from the current customer policy.\",\"anchor_ids\":[\"P032\",\"P026\"]},{\"entry_id\":\"E06\",\"statement\":\"Keystone’s 30-day analytics TTL applies to temporary cache reporting data and is explicitly unrelated to audit-export retention.\",\"anchor_ids\":[\"P030\"]}]}",
+      "source_snapshot_sha256": "11de723c107771e57a698c396f1e1ebbef169c0a4d0fbea614f058197c234244",
+      "state": "S0",
+      "subject_id": "keystone",
+      "terminal_anchor_ids": [
+        "P025",
+        "P026",
+        "P027",
+        "P028",
+        "P029",
+        "P030",
+        "P031",
+        "P032"
+      ],
+      "terminal_context_sha256": "bba7b8dc41a99ff9cd03eaae1f3cb9df41469897dc8d7cf9a4dd4193c2d055b1"
+    },
+    {
+      "call_index": 27,
+      "contract_ok": true,
+      "event": "REBUILD_PROJECTION",
+      "event_index": 18,
+      "model_receipt": {
+        "elapsed_seconds": 7.612,
+        "model": "gpt-5.6-luna"
+      },
+      "projection": {
+        "entries": [
+          {
+            "anchor_ids": [
+              "P025",
+              "P026"
+            ],
+            "entry_id": "E01",
+            "statement": "Keystone initially set audit-export retention to 30 days because the partner SLA required a 30-day evidence window and the project sought the smallest sufficient period; customer policy required at least 30 days."
+          },
+          {
+            "anchor_ids": [
+              "P027"
+            ],
+            "entry_id": "E02",
+            "statement": "The vendor archive technically supports 90-day retention, but that capability does not itself change Keystone’s governing customer retention requirement."
+          },
+          {
+            "anchor_ids": [
+              "P028",
+              "P031"
+            ],
+            "entry_id": "E03",
+            "statement": "Keystone storage was configured for 30-day audit-export retention after the project decision, and the audit verified it met the then-current customer requirement."
+          },
+          {
+            "anchor_ids": [
+              "P029"
+            ],
+            "entry_id": "E04",
+            "statement": "Partner notes recorded that 30 days matched the then-current SLA and did not supersede customer policy."
+          },
+          {
+            "anchor_ids": [
+              "P030",
+              "P036"
+            ],
+            "entry_id": "E05",
+            "statement": "Keystone’s 30-day analytics cache TTL is unrelated to audit-export retention; later retention corrections do not apply to that separate cache setting."
+          },
+          {
+            "anchor_ids": [
+              "P032"
+            ],
+            "entry_id": "E06",
+            "statement": "Keystone’s roadmap discusses future archive changes but does not authorize a retention period different from current customer policy."
+          },
+          {
+            "anchor_ids": [
+              "P033"
+            ],
+            "entry_id": "E07",
+            "statement": "Effective immediately, the customer compliance addendum superseded the earlier policy and requires at least 90 days of audit-export retention; the earlier 30-day requirement is no longer current."
+          },
+          {
+            "anchor_ids": [
+              "P034",
+              "P035"
+            ],
+            "entry_id": "E08",
+            "statement": "The project explicitly changed retention from 30 to 90 days to comply with the new addendum, superseding its prior 30-day decision; the change ticket updated the configuration accordingly."
+          }
+        ]
+      },
+      "raw_model_text": "{\"entries\":[{\"entry_id\":\"E01\",\"statement\":\"Keystone initially set audit-export retention to 30 days because the partner SLA required a 30-day evidence window and the project sought the smallest sufficient period; customer policy required at least 30 days.\",\"anchor_ids\":[\"P025\",\"P026\"]},{\"entry_id\":\"E02\",\"statement\":\"The vendor archive technically supports 90-day retention, but that capability does not itself change Keystone’s governing customer retention requirement.\",\"anchor_ids\":[\"P027\"]},{\"entry_id\":\"E03\",\"statement\":\"Keystone storage was configured for 30-day audit-export retention after the project decision, and the audit verified it met the then-current customer requirement.\",\"anchor_ids\":[\"P028\",\"P031\"]},{\"entry_id\":\"E04\",\"statement\":\"Partner notes recorded that 30 days matched the then-current SLA and did not supersede customer policy.\",\"anchor_ids\":[\"P029\"]},{\"entry_id\":\"E05\",\"statement\":\"Keystone’s 30-day analytics cache TTL is unrelated to audit-export retention; later retention corrections do not apply to that separate cache setting.\",\"anchor_ids\":[\"P030\",\"P036\"]},{\"entry_id\":\"E06\",\"statement\":\"Keystone’s roadmap discusses future archive changes but does not authorize a retention period different from current customer policy.\",\"anchor_ids\":[\"P032\"]},{\"entry_id\":\"E07\",\"statement\":\"Effective immediately, the customer compliance addendum superseded the earlier policy and requires at least 90 days of audit-export retention; the earlier 30-day requirement is no longer current.\",\"anchor_ids\":[\"P033\"]},{\"entry_id\":\"E08\",\"statement\":\"The project explicitly changed retention from 30 to 90 days to comply with the new addendum, superseding its prior 30-day decision; the change ticket updated the configuration accordingly.\",\"anchor_ids\":[\"P034\",\"P035\"]}]}",
+      "source_snapshot_sha256": "b9442746f2d0b431231de1e357a3a78b6a06a3592c2c14c9fdfe4da49e4167d6",
+      "state": "S1",
+      "subject_id": "keystone",
+      "terminal_anchor_ids": [
+        "P025",
+        "P026",
+        "P027",
+        "P028",
+        "P029",
+        "P030",
+        "P031",
+        "P032",
+        "P033",
+        "P034",
+        "P035",
+        "P036"
+      ],
+      "terminal_context_sha256": "4592d92a62b5a71763366a10f2ee4c6cfccdddff7531a6bf5bcad4f43d13933a"
+    }
+  ],
+  "request": {
+    "P_composer_calls": 12,
+    "Q_composer_calls": 12,
+    "arm_order_by_question": {
+      "PQ001": [
+        "Q",
+        "P"
+      ],
+      "PQ002": [
+        "P",
+        "Q"
+      ],
+      "PQ003": [
+        "Q",
+        "P"
+      ],
+      "PQ004": [
+        "P",
+        "Q"
+      ],
+      "PQ005": [
+        "Q",
+        "P"
+      ],
+      "PQ006": [
+        "P",
+        "Q"
+      ],
+      "PQ007": [
+        "Q",
+        "P"
+      ],
+      "PQ008": [
+        "P",
+        "Q"
+      ],
+      "PQ009": [
+        "Q",
+        "P"
+      ],
+      "PQ010": [
+        "P",
+        "Q"
+      ],
+      "PQ011": [
+        "Q",
+        "P"
+      ],
+      "PQ012": [
+        "P",
+        "Q"
+      ]
+    },
+    "max_ai_credits_per_call": 30,
+    "max_model_call_attempts": 29,
+    "model": "gpt-5.6-luna",
+    "planner_calls": 0,
+    "projection_build_rebuild_calls": 5,
+    "question_count": 12,
+    "question_order": [
+      "PQ001",
+      "PQ002",
+      "PQ003",
+      "PQ004",
+      "PQ005",
+      "PQ006",
+      "PQ007",
+      "PQ008",
+      "PQ009",
+      "PQ010",
+      "PQ011",
+      "PQ012"
+    ],
+    "request_id": "e023-g2-fixed-identity-persistence-v0",
+    "rerolls": 0,
+    "selector_calls": 0,
+    "vector_calls": 0
+  },
+  "semantic_promotion": "PENDING_FROZEN_ADJUDICATION",
+  "usage": {
+    "ai_credits_or_premium_requests": "unavailable_do_not_infer",
+    "model_calls": 29,
+    "tokens": "unavailable_unless_transport_exposes_machine_readable_usage"
+  }
+}
