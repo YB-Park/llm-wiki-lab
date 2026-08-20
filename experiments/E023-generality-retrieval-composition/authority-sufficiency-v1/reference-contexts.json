@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "contexts": [
+    {"context_id":"BQ001-clean-min","question_id":"BQ001","selected_anchor_ids":["B003","B001","B005"],"expected_status":"SUFFICIENT_CLEAN"},
+    {"context_id":"BQ001-missing-bridge","question_id":"BQ001","selected_anchor_ids":["B001","B002","B005"],"expected_status":"INSUFFICIENT_AUTHORITY"},
+    {"context_id":"BQ001-risk","question_id":"BQ001","selected_anchor_ids":["B003","B001","B005","B004"],"expected_status":"SUFFICIENT_WITH_CONFLATION_RISK"},
+    {"context_id":"BQ002-clean-min","question_id":"BQ002","selected_anchor_ids":["B002","B001","B003"],"expected_status":"SUFFICIENT_CLEAN"},
+    {"context_id":"BQ002-missing-bridge","question_id":"BQ002","selected_anchor_ids":["B002","B001"],"expected_status":"INSUFFICIENT_AUTHORITY"},
+    {"context_id":"BQ002-risk","question_id":"BQ002","selected_anchor_ids":["B002","B001","B003","B004"],"expected_status":"SUFFICIENT_WITH_CONFLATION_RISK"},
+    {"context_id":"BQ003-clean-min","question_id":"BQ003","selected_anchor_ids":["B007","B008"],"expected_status":"SUFFICIENT_CLEAN"},
+    {"context_id":"BQ003-missing-human-knowledge","question_id":"BQ003","selected_anchor_ids":["B006","B008"],"expected_status":"INSUFFICIENT_AUTHORITY"},
+    {"context_id":"BQ004-clean-min","question_id":"BQ004","selected_anchor_ids":["B009","B010","B011"],"expected_status":"SUFFICIENT_CLEAN"},
+    {"context_id":"BQ004-overcompressed","question_id":"BQ004","selected_anchor_ids":["B011"],"expected_status":"INSUFFICIENT_AUTHORITY"},
+    {"context_id":"BQ005-clean-min","question_id":"BQ005","selected_anchor_ids":["B010","B011","B012"],"expected_status":"SUFFICIENT_CLEAN"},
+    {"context_id":"BQ005-missing-retry-signal","question_id":"BQ005","selected_anchor_ids":["B009","B011","B012"],"expected_status":"INSUFFICIENT_AUTHORITY"},
+    {"context_id":"BQ006-clean-min","question_id":"BQ006","selected_anchor_ids":["B013","B014"],"expected_status":"SUFFICIENT_CLEAN"},
+    {"context_id":"BQ006-missing-customer-rule","question_id":"BQ006","selected_anchor_ids":["B014","B015"],"expected_status":"INSUFFICIENT_AUTHORITY"},
+    {"context_id":"BQ007-clean-min","question_id":"BQ007","selected_anchor_ids":["B017","B018"],"expected_status":"SUFFICIENT_CLEAN"},
+    {"context_id":"BQ007-missing-rename-bridge","question_id":"BQ007","selected_anchor_ids":["B016","B018"],"expected_status":"INSUFFICIENT_AUTHORITY"},
+    {"context_id":"BQ007-risk","question_id":"BQ007","selected_anchor_ids":["B017","B018","B019"],"expected_status":"SUFFICIENT_WITH_CONFLATION_RISK"},
+    {"context_id":"BQ008-clean-min","question_id":"BQ008","selected_anchor_ids":["B020","B021","B022"],"expected_status":"SUFFICIENT_CLEAN"},
+    {"context_id":"BQ008-missing-audit","question_id":"BQ008","selected_anchor_ids":["B020","B021"],"expected_status":"INSUFFICIENT_AUTHORITY"},
+    {"context_id":"BQ008-risk","question_id":"BQ008","selected_anchor_ids":["B020","B021","B022","B023"],"expected_status":"SUFFICIENT_WITH_CONFLATION_RISK"}
+  ]
+}
