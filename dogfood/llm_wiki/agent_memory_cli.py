@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 
 from .calibration import resolve_topic
+from .retrieval import tokenize
 from .store import ensure_workspace, find_source, read_text
 from .temporal import temporal_source_status
 
@@ -40,6 +42,79 @@ def _source_row(root: Path, source_id: str, *, topic_id: str | None) -> tuple[ob
     except (ValueError, RuntimeError) as exc:
         raise SystemExit(f"AGENT-MEMORY-STOP {exc}") from None
     return source, text, status
+
+
+def _paragraph_spans(text: str) -> list[tuple[int, int, str]]:
+    spans: list[tuple[int, int, str]] = []
+    cursor = 0
+    for match in re.finditer(r"\n\s*\n", text):
+        start, end = cursor, match.start()
+        block = text[start:end].strip()
+        if block:
+            left = start
+            while left < end and text[left].isspace():
+                left += 1
+            right = end
+            while right > left and text[right - 1].isspace():
+                right -= 1
+            spans.append((left, right, text[left:right]))
+        cursor = match.end()
+    if cursor <= len(text):
+        start, end = cursor, len(text)
+        block = text[start:end].strip()
+        if block:
+            left = start
+            while left < end and text[left].isspace():
+                left += 1
+            right = end
+            while right > left and text[right - 1].isspace():
+                right -= 1
+            spans.append((left, right, text[left:right]))
+    return spans
+
+
+def _first_query_offset(block: str, query_tokens: set[str]) -> int:
+    folded = block.casefold()
+    offsets = [folded.find(token.casefold()) for token in query_tokens]
+    valid = [offset for offset in offsets if offset >= 0]
+    return min(valid) if valid else 0
+
+
+def _relevant_region(text: str, query: str, *, max_chars: int) -> tuple[int, int, str, bool, bool]:
+    if not text:
+        return 0, 0, "", False, False
+    query_tokens = set(tokenize(query))
+    spans = _paragraph_spans(text)
+    if not spans:
+        end = min(len(text), max_chars)
+        return 0, end, text[:end], False, end < len(text)
+
+    ranked: list[tuple[int, int, int, str]] = []
+    for index, (start, end, block) in enumerate(spans):
+        block_tokens = tokenize(block)
+        overlap = sum(1 for token in block_tokens if token in query_tokens)
+        ranked.append((-overlap, index, start, block))
+    _, best_index, block_start, block = sorted(ranked)[0]
+    block_end = spans[best_index][1]
+
+    if len(block) >= max_chars:
+        anchor = block_start + _first_query_offset(block, query_tokens)
+        start = max(block_start, anchor - max_chars // 3)
+        end = min(block_end, start + max_chars)
+        start = max(block_start, end - max_chars)
+    else:
+        remaining = max_chars - len(block)
+        before = remaining // 2
+        after = remaining - before
+        start = max(0, block_start - before)
+        end = min(len(text), block_end + after)
+        if end - start < max_chars:
+            if start == 0:
+                end = min(len(text), max_chars)
+            elif end == len(text):
+                start = max(0, len(text) - max_chars)
+
+    return start, end, text[start:end], start > 0, end < len(text)
 
 
 def _bounded_change_excerpt(text: str, start: int, end: int, *, context_chars: int, max_change_chars: int) -> tuple[str, bool]:
@@ -115,6 +190,12 @@ def parser() -> argparse.ArgumentParser:
     read.add_argument("--start-char", type=int, default=0)
     read.add_argument("--max-chars", type=int, default=DEFAULT_MAX_CHARS)
 
+    relevant = sub.add_parser("relevant")
+    relevant.add_argument("source_id")
+    relevant.add_argument("--topic")
+    relevant.add_argument("--query", required=True)
+    relevant.add_argument("--max-chars", type=int, default=DEFAULT_MAX_CHARS)
+
     compare = sub.add_parser("compare")
     compare.add_argument("older_source_id")
     compare.add_argument("newer_source_id")
@@ -153,6 +234,39 @@ def main(argv: list[str] | None = None) -> int:
             "total_chars": len(text),
             "has_more": end < len(text),
             "text": text[start:end],
+        }
+        if status.get("superseded_by"):
+            row["superseded_by"] = status["superseded_by"]
+        print(json.dumps(row, ensure_ascii=False, sort_keys=True))
+        return 0
+
+    if args.command == "relevant":
+        if args.max_chars < 1 or args.max_chars > HARD_MAX_CHARS:
+            raise SystemExit(f"AGENT-MEMORY-STOP max_chars_must_be_1_to_{HARD_MAX_CHARS}")
+        if not str(args.query).strip():
+            raise SystemExit("AGENT-MEMORY-STOP query_required")
+        topic_id = _resolved_topic_id(root, args.topic)
+        source, text, status = _source_row(root, args.source_id, topic_id=topic_id)
+        start, end, excerpt, has_more_before, has_more_after = _relevant_region(
+            text,
+            args.query,
+            max_chars=args.max_chars,
+        )
+        row = {
+            "format": "llm-wiki-agent-relevant-read-v0",
+            "source_id": source.source_id,
+            "object_id": source.object_id,
+            "sha256": source.sha256,
+            "name": source.name,
+            "topic_id": topic_id,
+            "status": status.get("status", "unknown"),
+            "contested": bool(status.get("contested", False)),
+            "start_char": start,
+            "end_char": end,
+            "total_chars": len(text),
+            "has_more_before": has_more_before,
+            "has_more_after": has_more_after,
+            "text": excerpt,
         }
         if status.get("superseded_by"):
             row["superseded_by"] = status["superseded_by"]
