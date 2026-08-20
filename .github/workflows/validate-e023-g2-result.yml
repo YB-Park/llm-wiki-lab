@@ -1,0 +1,58 @@
+name: Validate E023 G2 result
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/g2-adjudication-v0.json'
+      - 'experiments/E023-generality-retrieval-composition/g2-results-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/validate_g2_result.py'
+      - 'experiments/E023-generality-retrieval-composition/validate_g2_execution.py'
+      - 'experiments/E023-generality-retrieval-composition/evidence/g2-run-32353304896/run-final.json'
+      - '.github/workflows/validate-e023-g2-result.yml'
+      - '.github/workflows/e023-generality-g2.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/g2-adjudication-v0.json'
+      - 'experiments/E023-generality-retrieval-composition/g2-results-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/validate_g2_result.py'
+      - 'experiments/E023-generality-retrieval-composition/validate_g2_execution.py'
+      - 'experiments/E023-generality-retrieval-composition/evidence/g2-run-32353304896/run-final.json'
+      - '.github/workflows/validate-e023-g2-result.yml'
+      - '.github/workflows/e023-generality-g2.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-g2-result-zero-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile G2 result validators
+        run: |
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_g2_result.py
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_g2_execution.py
+      - name: Validate frozen G2 result
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/validate_g2_result.py \
+            | tee /tmp/e023-g2-result.txt
+          grep -q '^E023 G2 frozen result validation: PASS$' /tmp/e023-g2-result.txt
+          grep -q '"model_calls": 0' /tmp/e023-g2-result.txt
+          grep -q '"frozen_semantic_calls": 29' /tmp/e023-g2-result.txt
+          grep -q '"P_semantic_improvements": 2' /tmp/e023-g2-result.txt
+          grep -q '"P_semantic_regressions": 3' /tmp/e023-g2-result.txt
+          grep -q '"P_new_critical_errors": 3' /tmp/e023-g2-result.txt
+          grep -q '"stale_guard_passed": true' /tmp/e023-g2-result.txt
+          grep -q '"strict_promotion": "NOT_EARNED"' /tmp/e023-g2-result.txt
+          grep -q '"g2_product_persistence_authorized": false' /tmp/e023-g2-result.txt
+      - name: Validate completed G2 execution source lock
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/validate_g2_execution.py \
+            | tee /tmp/e023-g2-execution-completed.txt
+          grep -q '"execution_source_locked": true' /tmp/e023-g2-execution-completed.txt
+          grep -q '"semantic_calls_authorized_on_pr": false' /tmp/e023-g2-execution-completed.txt
