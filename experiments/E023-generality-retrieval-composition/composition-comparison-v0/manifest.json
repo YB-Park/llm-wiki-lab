@@ -1,0 +1,41 @@
+{
+  "anchor_count": 49,
+  "anchor_id_range": [
+    "D001",
+    "D049"
+  ],
+  "authority_type_counts": {
+    "HUMAN_KNOWLEDGE": 2,
+    "RAW_MEMORY": 47
+  },
+  "composition_contract": {
+    "git_blob_sha": "fd5cff41d13e5f608b7c6059b12a3f68242c2092",
+    "source_path": "experiments/E023-generality-retrieval-composition/authority-preserving-composition-contract-v0.md"
+  },
+  "manifest_version": 1,
+  "new_composer": {
+    "function": "composer_prompt_v1",
+    "function_source_sha256": "cedc9d19829d66624d4858a76ad387ee79a1c51b613eba72118b614ee2f64544",
+    "source_path": "experiments/E023-generality-retrieval-composition/composition_prompt_v1.py"
+  },
+  "old_composer": {
+    "function": "composer_prompt",
+    "function_source_sha256": "9387e2b7a0b8f72579162a906333135d5f0cb24c91689235330a59bf85e8cafd",
+    "only_allowed_execution_adapter": "replace output-ID wording Axxx -> Dxxx; no semantic instruction changes",
+    "source_path": "experiments/E023-generality-retrieval-composition/run_g1c.py"
+  },
+  "prior_semantic_slices_forbidden": [
+    "AQ",
+    "BQ",
+    "CQ"
+  ],
+  "question_count": 8,
+  "question_id_range": [
+    "DQ001",
+    "DQ008"
+  ],
+  "retrieval_baseline": "EXACT_BM25_TOP6_STRONG_SIMPLE_EXPERIMENTAL_BASELINE_NOT_PRODUCT_DEFAULT",
+  "semantic_calls_authorized_on_this_pr": false,
+  "semantic_outputs_present": false,
+  "status": "PROSPECTIVE_G1F_SEPARATED_COMPOSITION_MATERIAL"
+}

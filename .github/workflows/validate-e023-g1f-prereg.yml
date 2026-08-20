@@ -1,0 +1,55 @@
+name: Validate E023 G1f prereg
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/g1f-preregistration-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/g1f-evaluation-contract-v0.json'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1f_prereg.py'
+      - 'experiments/E023-generality-retrieval-composition/composition-comparison-v0/**'
+      - 'experiments/E023-generality-retrieval-composition/authority-preserving-composition-contract-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/composition_prompt_v1.py'
+      - 'experiments/E023-generality-retrieval-composition/run_g1c.py'
+      - '.github/workflows/validate-e023-g1f-prereg.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/g1f-preregistration-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/g1f-evaluation-contract-v0.json'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1f_prereg.py'
+      - 'experiments/E023-generality-retrieval-composition/composition-comparison-v0/**'
+      - 'experiments/E023-generality-retrieval-composition/authority-preserving-composition-contract-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/composition_prompt_v1.py'
+      - 'experiments/E023-generality-retrieval-composition/run_g1c.py'
+      - '.github/workflows/validate-e023-g1f-prereg.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-g1f-prereg-zero-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile G1f prereg validator
+        run: python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_g1f_prereg.py
+      - name: Run G1f prospective zero-model gate
+        env:
+          PYTHONPATH: experiments/E023-generality-retrieval-composition
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/validate_g1f_prereg.py \
+            | tee /tmp/e023-g1f-prereg.txt
+          grep -q '^E023 G1f prereg zero-model validation: PASS$' /tmp/e023-g1f-prereg.txt
+          grep -q '"model_calls": 0' /tmp/e023-g1f-prereg.txt
+          grep -q '"semantic_calls_authorized_on_this_pr": false' /tmp/e023-g1f-prereg.txt
+          grep -q '"anchor_count": 49' /tmp/e023-g1f-prereg.txt
+          grep -q '"question_count": 8' /tmp/e023-g1f-prereg.txt
+          grep -q '"DQ003_rank7_bridge": "D019"' /tmp/e023-g1f-prereg.txt
+          grep -q '"identical_context_contract": true' /tmp/e023-g1f-prereg.txt
+          grep -q '"prompt_evaluator_leakage_detected": false' /tmp/e023-g1f-prereg.txt
+          grep -q '"top6_product_default_authorized": false' /tmp/e023-g1f-prereg.txt
+          grep -q '"execution_contract_authorized_on_this_pr": false' /tmp/e023-g1f-prereg.txt
