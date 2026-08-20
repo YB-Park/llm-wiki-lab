@@ -23,6 +23,7 @@
     "onCommand:llmWiki.selectTopic",
     "onCommand:llmWiki.newKnowledgeNote",
     "onCommand:llmWiki.configureAgentWikiMaintenance",
+    "onCommand:llmWiki.configureQueryPlane",
     "onCommand:llmWiki.ingestActiveFile",
     "onCommand:llmWiki.ingestAuthoritativeUpdate",
     "onCommand:llmWiki.search",
@@ -38,6 +39,7 @@
     "onCommand:llmWiki.markDispute",
     "onCommand:llmWiki.feedback",
     "onLanguageModelTool:llmWiki_searchMemory",
+    "onLanguageModelTool:llmWiki_consultMemory",
     "onLanguageModelTool:llmWiki_readSource",
     "onLanguageModelTool:llmWiki_rememberSource",
     "onLanguageModelTool:llmWiki_rememberHumanKnowledge",
@@ -51,6 +53,7 @@
       { "command": "llmWiki.selectTopic", "title": "Select Filing Topic", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
       { "command": "llmWiki.newKnowledgeNote", "title": "New Human Knowledge Draft", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
       { "command": "llmWiki.configureAgentWikiMaintenance", "title": "Configure AI Summaries", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+      { "command": "llmWiki.configureQueryPlane", "title": "Configure Wiki Query Reasoning", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
       { "command": "llmWiki.ingestActiveFile", "title": "Save Active File as Project Evidence", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
       { "command": "llmWiki.ingestAuthoritativeUpdate", "title": "Save Active File as an Explicit Update", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
       { "command": "llmWiki.search", "title": "Search Saved Evidence", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
@@ -70,6 +73,7 @@
         { "command": "llmWiki.enableWorkspace", "when": "!llmWiki.workspaceEnabled && isWorkspaceTrusted" },
         { "command": "llmWiki.disableWorkspace", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
         { "command": "llmWiki.configureAgentWikiMaintenance", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+        { "command": "llmWiki.configureQueryPlane", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
         { "command": "llmWiki.doctor", "when": "isWorkspaceTrusted" },
         { "command": "llmWiki.reportIssue", "when": "false" },
         { "command": "llmWiki.createTopic", "when": "false" },
@@ -107,6 +111,24 @@
           "properties": {
             "query": { "type": "string", "description": "A concise semantic search query for the user's current information need." },
             "maxResults": { "type": "number", "description": "Maximum raw candidates, 1 to 8. Up to three derived and three Human Knowledge candidates may also be returned." }
+          },
+          "required": ["query"]
+        }
+      },
+      {
+        "name": "llmWiki_consultMemory",
+        "displayName": "Consult LLM Wiki",
+        "userDescription": "Ask project memory one grounded question and receive a compact provenance-backed brief. Read-only and separately opt-in.",
+        "modelDescription": "Use for ordinary project-memory questions when prior decisions, rationale, evidence, Human Knowledge, or history may matter. Give one self-contained question. LLM Wiki performs bounded deterministic retrieval internally and, only under its separate local query-reasoning grant and user-chosen daily call cap, uses exact gpt-5.6-luna to return a compact Wiki Brief with terminal RAW_MEMORY/HUMAN_KNOWLEDGE provenance. DERIVED_MEMORY and pending lineage are nonterminal. Do not automatically fall back to wikiMemory/raw reads if this tool reports disabled, budget-paused, or unavailable; raw tools remain explicit provenance/debug fallback.",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "wikiConsult",
+        "icon": "$(sparkle)",
+        "tags": ["llm-wiki", "memory", "consult"],
+        "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "query": { "type": "string", "maxLength": 2000, "description": "A self-contained project-memory question. Do not pass retrieval knobs or raw source IDs unless the question genuinely requires them." }
           },
           "required": ["query"]
         }
@@ -242,7 +264,7 @@
     }
   },
   "scripts": {
-    "check": "node --check entry.js && node --check extension.js && node --check agent-tools.js && node --check workspace-activation.js && node --check human-knowledge.js && node --check product-helpers.js && node --check process-errors.js && node --check python-runtime.js && node --check python-runtime-policy.js && node test/product-helpers.js && node test/workspace-activation.js && node test/process-errors.js && node test/python-runtime-policy.js && node test/static.js",
+    "check": "node --check entry.js && node --check extension.js && node --check agent-tools.js && node --check query-plane.js && node --check memory-read-service.js && node --check workspace-activation.js && node --check human-knowledge.js && node --check product-helpers.js && node --check process-errors.js && node --check python-runtime.js && node --check python-runtime-policy.js && node test/product-helpers.js && node test/workspace-activation.js && node test/process-errors.js && node test/python-runtime-policy.js && node test/static.js",
     "test:integration": "vscode-test --label runtime",
     "test:packaged": "cd test/packaged-runner && ../../node_modules/.bin/vscode-test",
     "bundle:core": "node scripts/bundle-core.js",
