@@ -1,0 +1,57 @@
+name: Validate E023 G1d result
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/g1d-results-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/g1d-adjudication-v0.json'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1d_result.py'
+      - 'experiments/E023-generality-retrieval-composition/evidence/g1d-run-32322429563/**'
+      - '.github/workflows/e023-generality-g1d.yml'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1d_execution.py'
+      - '.github/workflows/validate-e023-g1d-result.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/g1d-results-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/g1d-adjudication-v0.json'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1d_result.py'
+      - 'experiments/E023-generality-retrieval-composition/evidence/g1d-run-32322429563/**'
+      - '.github/workflows/e023-generality-g1d.yml'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1d_execution.py'
+      - '.github/workflows/validate-e023-g1d-result.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-g1d-result-zero-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile G1d result validators
+        run: |
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_g1d_execution.py
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_g1d_result.py
+      - name: Revalidate source-locked execution contract
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/validate_g1d_execution.py \
+            | tee /tmp/e023-g1d-execution-locked.txt
+          grep -q '^E023 G1d execution contract validation: PASS$' /tmp/e023-g1d-execution-locked.txt
+          grep -q '"execution_source_sha_locked": "c74673a83744789f271fa54c43b20212160007a2"' /tmp/e023-g1d-execution-locked.txt
+          grep -q '"semantic_calls_authorized_on_pr": false' /tmp/e023-g1d-execution-locked.txt
+      - name: Validate frozen G1d result and adjudication
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/validate_g1d_result.py \
+            | tee /tmp/e023-g1d-result.txt
+          grep -q '^E023 G1d frozen result validation: PASS$' /tmp/e023-g1d-result.txt
+          grep -q '"selection_promotion": "NOT_EARNED"' /tmp/e023-g1d-result.txt
+          grep -q '"frozen_model_calls": 24' /tmp/e023-g1d-result.txt
+          grep -q '"D_authority_improvements": 0' /tmp/e023-g1d-result.txt
+          grep -q '"D_authority_regressions": 1' /tmp/e023-g1d-result.txt
+          grep -q '"D_new_critical_errors": 0' /tmp/e023-g1d-result.txt
+          grep -q '"semantic_calls_authorized": false' /tmp/e023-g1d-result.txt
