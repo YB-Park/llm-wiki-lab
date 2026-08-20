@@ -1,185 +1,160 @@
 # Generality and semantic projections — working design gate
 
-Status: **WORKING DESIGN GATE / NOT AN ADR / NOT A STORAGE DECISION**  
+Status: **WORKING DESIGN GATE / G1 COMPARATOR EARNED / G2 PREREGISTRATION ALLOWED / NOT AN ADR OR PRODUCT STORAGE DECISION**  
 Date: 2026-08-20 KST  
 Tracking: Issue #160  
 Experiment: E023
 
 ## Design target
 
-LLM Wiki must not define “Wiki” as developer-shaped source summaries merely because that was the smallest useful Agent Wiki slice. But “generality” must not become an excuse to install a universal Entity/Relation/KnowledgeUnit schema, graph database, vector default, or automatic identity machinery before the workload earns it.
+LLM Wiki must be general at the capability/query boundary without prematurely forcing all knowledge into a universal storage ontology.
 
 > **Capability generality before storage uniformity.**
 
 Working thesis:
 
-> **LLM Wiki is a trustworthy Authority Core plus task-appropriate semantic projections. The Agent should reconstruct and use the right semantic view at the moment of need; every useful view does not need to exist as permanent semantic state.**
+> **LLM Wiki is a trustworthy Authority Core plus task-appropriate semantic projections. The Agent should reconstruct and use the right semantic view at the moment of need; persistence must earn itself separately.**
 
 ## Authority Core and projection boundary
 
-The durable Authority Core remains semantic-ontology agnostic. It owns admitted evidence identity/integrity/provenance, current/history and explicit correction/change/dispute semantics, Human Knowledge authorship, privacy/permission boundaries, and deterministic repairable storage invariants.
+The durable Authority Core remains ontology-agnostic. It owns:
 
-Semantic projections may be source notes, ephemeral cross-source dossiers, timelines, project summaries, decision histories, or later persistent views **if persistence earns itself**.
+- admitted evidence identity/integrity/provenance;
+- current/history and explicit correction/change/dispute semantics;
+- Human Knowledge authorship;
+- privacy/permission boundaries;
+- deterministic repairable storage invariants.
 
-Common projection safety properties matter more than one common schema:
+Semantic projections may be source notes, ephemeral cross-source dossiers, timelines, project summaries, or later persistent views if persistence earns itself.
+
+Common projection properties:
 
 - DERIVED;
 - NONCANONICAL;
-- authority-anchor resolvable;
+- terminal-authority resolvable;
 - inspectable;
 - reversible/rebuildable;
-- unable to silently impersonate RAW evidence or Human Knowledge.
+- unable to impersonate RAW evidence or Human Knowledge.
 
 ## Authoritative-anchor invariant
 
 > **Every load-bearing derived claim must resolve to an authoritative anchor whose epistemic type remains explicit.**
 
-Terminal authority may be admitted `RAW_MEMORY` or explicit `HUMAN_KNOWLEDGE`. Persistence never makes DERIVED state terminal authority by itself.
-
-E023 now sharpens this into an end-to-end requirement:
-
-> **Retrieval must expose sufficient authority; evidence budgeting must preserve it; composition must state only what that authority permits and preserve its epistemic type.**
+Terminal authority may be admitted `RAW_MEMORY` or explicit `HUMAN_KNOWLEDGE`. Persistence never makes DERIVED state terminal authority.
 
 ## Ordered architecture gates
 
-1. **G1 Retrieval / Composition** — can authority be found, budgeted, preserved, and faithfully composed at query time?
-2. **G2 Persistence** — only after a strong G1 path exists, hold retrieval/composition strong and test repeated-use benefit after lifecycle cost.
-3. **G3 Identity / Routing** — only if persistent semantic targets earn value, test automatic discovery/routing/merge-split.
+1. **G1 Retrieval / Composition**
+2. **G2 Persistence**
+3. **G3 Identity / Routing**
 
-A G1 failure is not evidence for G2. A G2 success is not evidence for G3.
+G2 must hold a strong G1 path fixed. G3 remains closed until persistent semantic targets themselves earn value.
 
-## E023 findings that remain architectural
+## G1 findings
 
 ### Truth-by-luck is a trust failure
 
-G1a first showed that a correct-looking alias merge is unsafe when the explicit identity bridge is absent. Later E023 slices reproduced the same class for identity and governing policy/compliance.
+Correct-looking identity or compliance conclusions are unsafe when the supplied authority lacks the required bridge.
 
-Strong identifiers and similarity are evidence, not automatic identity truth. Missing governing policy cannot be replaced by a plausible compliance inference.
+Similarity and strong identifiers are evidence, not automatic truth.
 
-> **Truth-by-luck is not trustworthy semantic recovery.**
+### Planner/selector complexity did not earn itself
 
-None of these failures implies a persistent identity graph is required. They first require sufficient query-time authority and disciplined composition.
+G1a, G1c-R1, and G1d showed that blind planning, free-form final selection, and deterministic RRF can fail to preserve governing/load-bearing authority.
 
-### Planner/selector complexity has not earned itself
+Do not carry that complexity into later gates without new evidence.
 
-- G1a blind planner/RRF: NOT_EARNED.
-- G1b evidence-follow: broad NOT_EARNED, but targeted identity-bridge repair signal.
-- G1c-R1: candidate pools became authority-sufficient on 6/6, then a free-form model selector destructively dropped load-bearing evidence; NOT_EARNED.
-- G1d: replacing the model selector with deterministic RRF top-4 did not generalize; lexical consensus amplified same-name/product/capability distractors and missed governing policy; NOT_EARNED.
+### G1e strengthened a simple retrieval path
 
-Determinism is not authority awareness, and planner diagnosis does not guarantee retrieval of the authoritative object.
+Prospective exact BM25 top-6 on separated material removed both top-5 authority misses with zero authority regression and no semantic regression/new critical error.
 
-## G1e — prospective simple evidence-budget replication
+Strict G1e promotion remained NOT_EARNED at 6/8 PASS.
 
-G1d's zero-model frontier found consequential authority immediately outside fixed top-5. G1e tested that signal prospectively on a new 35-anchor / 8-question slice.
+Therefore top-6 is a strong **research baseline**, not a product source-count policy.
 
-### Phase 0 — authority sufficiency, zero model
+### G1f tested composition with retrieval held identical
 
-PR #187:
+Run `32349241403` used paired byte-identical top-6 contexts.
 
-| arm | clean | risk | insufficient |
-| --- | ---: | ---: | ---: |
-| A5 exact BM25 top-5 | 2 | 4 | 2 |
-| B6 same ranking top-6 | 3 | 5 | **0** |
+O old composer: **7 PASS / 1 PARTIAL / 0 CRITICAL**.  
+N `composition_prompt_v1`: **7 PASS / 1 PARTIAL / 0 CRITICAL**.
 
-B6 authority improvements: **2**; regressions: **0**.
+The new prompt produced zero paired improvements, so its promotion is NOT_EARNED.
 
-Rank-6 evidence repaired:
+But both arms safely handled the authority-incomplete identity negative control, proposition-scoped sufficiency, and user-owned authority on new separated material.
 
-- an explicit R. Singh/Rina Singh identity bridge;
-- the second independent monthly-close observation required to establish recurrence.
+## G1 closure
 
-### Phase 1 — semantic safety/value
+The architecture gate now separates two questions:
 
-Run `32324460519`, source `505740b74776fc7b7988e9c168c9c9d0ed2067fa`, exact `gpt-5.6-luna`, 16/16 composer calls, planner 0, selector 0, zero rerolls.
+1. Did every attempted G1 mechanism earn its individual promotion? **No.**
+2. Is there now a strong enough simple G1 path to use as a controlled comparator for persistence value? **Yes.**
 
-Semantic result:
+Frozen G2 research comparator:
 
-- A5: **5 PASS / 1 PARTIAL / 1 FAIL_RETRIEVAL / 1 CRITICAL_ERROR**;
-- B6: **6 PASS / 2 PARTIAL / 0 FAIL / 0 CRITICAL_ERROR**;
-- B6 improvements: **2**;
-- B6 regressions: **0**;
-- B6 new critical errors: **0**.
+> **exact whole-object BM25 top-6 + frozen old `run_g1c.py` composer**
 
-Strict promotion required >=7/8 B6 PASS, so G1e remains **NOT_EARNED**.
+No planner, selector, RRF, vector retrieval, or persistent semantic state is added to the control.
 
-The important positive signal is still prospective:
+This is not a product runtime prescription.
 
-- CQ001 A5 made an unsupported identity merge; B6 added the explicit bridge and moved `CRITICAL_ERROR -> PASS`;
-- CQ008 A5 safely lacked enough independent evidence to establish “repeated”; B6 added the second observation and repaired the authority deficiency;
-- the extra sixth object caused **no semantic regression** across the slice;
-- no planner/selector calls were required.
-
-This makes exact BM25 with a modestly larger evidence prefix the current **strong simple retrieval baseline**, not a product `k=6` rule.
-
-## Composition is now the leading controlled bottleneck
-
-B6 had **0 authority-incomplete contexts**. The two remaining partials are composition-side and recur across E023:
-
-1. **Overcautious insufficiency calibration** — the answer has enough authority for the proposition actually asked, but declares insufficiency because it silently demands a stronger guarantee.
-2. **Epistemic-type omission** — a user-owned decision is available as `HUMAN_KNOWLEDGE`, but the answer presents it as an ordinary project fact rather than preserving that terminal authority type.
-
-This is the key architecture shift:
-
-> **The leading controlled question is no longer simply whether enough evidence can be retrieved. It is whether the Agent expresses exactly what the retrieved authority permits, with the correct epistemic type.**
-
-## What a composition contract may and may not do
-
-A future G1 composition mechanism should remain generic and ontology-agnostic. It may require behaviors such as:
-
-- user-owned decisions/beliefs/rationale remain explicitly user-owned in the answer;
-- direct authorship is not collapsed into third-party attribution;
-- an absent identity/policy bridge causes uncertainty rather than synthesis-by-similarity;
-- insufficiency is scoped to the proposition actually asked, not an unstated stronger proposition;
-- corrections/temporal state and explicit negative evidence are preserved;
-- load-bearing citations point to terminal authority rather than DERIVED intermediates.
-
-It should **not** import evaluator clauses, Cxxx/AQ/BQ-specific rules, a universal claim graph, or domain-specific ontology into runtime.
-
-User-facing language also need not expose internal labels like `HUMAN_KNOWLEDGE`; preserving epistemic meaning can be natural language such as “we decided…”, “your project decision says…”, or “the source records…”.
-
-## Evidence-budget translation remains open
-
-G1e does not establish six sources as a product default.
-
-The current product's 6,000/12,000 character boundaries are per-source `wikiRead` windows, not global multi-source answer-context budgets. E014's 320 characters are per-hit retrieval snippets. A later product-facing budget should therefore be designed explicitly, likely in character/token terms, after the simple G1 mechanism is semantically sound.
-
-## Evaluation discipline
-
-Keep separate:
-
-- positive authority sufficiency;
-- conflation risk;
-- rank/candidate cutoff;
-- evidence size;
-- semantic correctness;
-- unsupported claims / epistemic upgrades;
-- direct-vs-attributed authorship;
-- terminal authority type;
-- proposition-scoped insufficiency;
-- temporal/correction correctness;
-- model calls/cost.
-
-A sufficient context can still be composed badly. A risky context can still yield a correct answer. Do not collapse these into one score.
-
-## Current action
-
-Stay inside **G1 Retrieval / Composition**. Paid calls pause at this checkpoint.
+## G2 — persistence-value gate now open for preregistration only
 
 Immediate research question:
 
-> **Can a generic composer contract preserve terminal epistemic type and calibrate insufficiency to the actual load-bearing proposition without exposing storage jargon or importing evaluator/domain schemas into runtime?**
+> **With authority, fixed identity scope, retrieval, and composition held constant, does a rebuildable persistent semantic projection improve repeated-use answer quality/cost/latency enough to justify lifecycle and stale-state risk?**
 
-Before another paid run:
+First G2 must use fixed, prospectively supplied subjects. Automatic identity discovery/routing is G3 and remains prohibited.
 
-1. freeze the composition rules prospectively and generically;
-2. validate them with zero-model/adversarial fixtures;
-3. use new separated material for any semantic comparison;
-4. hold retrieval/evidence budget fixed to the strong simple baseline rather than retuning retrieval simultaneously;
-5. measure PASS/critical errors, authority-type preservation, insufficiency calibration, citations, and model calls separately;
-6. do not rerun AQxxx/BQxxx/CQxxx semantically;
-7. keep Dogfood 0.1.16 unchanged while natural installed use continues.
+### G2 must test lifecycle cost, not only happy-path recall
 
-Do **not** jump to persistent dossiers, graph/entity infrastructure, universal KnowledgeUnit schema, vector defaults, automatic identity/routing, or evaluator clauses as runtime canonical structure.
+Prospective material should include:
 
-Any durable semantic architecture still requires its own evidence gate and, if promoted to policy, an ADR.
+- repeated queries over the same cross-source subject;
+- new authority arriving after the projection exists;
+- correction/supersession;
+- a stale-view hazard that could cause a load-bearing wrong answer;
+- rebuild/repair behavior.
+
+Measure separately:
+
+- semantic PASS/critical error;
+- unsupported or stale load-bearing claims;
+- evidence/authority termination;
+- model calls;
+- maintenance/rebuild calls;
+- latency/cost where observable;
+- human intervention required to keep state trustworthy.
+
+A persistent arm that saves calls but trusts stale authority fails.
+
+### Persistence-arm constraints
+
+The first G2 arm may add a simple rebuildable DERIVED projection. It must not require:
+
+- graph database;
+- universal Entity/Relation/KnowledgeUnit schema;
+- automatic identity resolution;
+- merge/split/routing;
+- vector default;
+- evaluator clauses as runtime canonical structure.
+
+Any later product/storage policy still requires independent evidence and, where appropriate, an ADR.
+
+## Product evidence remains natural
+
+Dogfood 0.1.16 stays unchanged.
+
+Issue #141 natural installed use remains necessary because controlled corpora cannot establish ambient routing value, long-horizon usefulness, interaction friction, hidden model-cost annoyance, or demand for dedicated navigation/history UI.
+
+Issue #132 reliability edges remain evidence-gated. Do not adopt database/WAL architecture preemptively.
+
+## Current action
+
+1. merge/freeze the zero-model G1 closure;
+2. create a fresh G2 fixed-identity persistence preregistration;
+3. freeze new separated repeated-use/update material and lifecycle negative controls;
+4. add zero-model validator/CI;
+5. semantic calls remain zero until that preregistration is merged and a separate execution contract is reviewed.
+
+Do not rerun AQ/BQ/CQ/DQ or retune the frozen G1 slices.

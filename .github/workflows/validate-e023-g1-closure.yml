@@ -1,0 +1,39 @@
+name: Validate E023 G1 closure
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/g1-closure-decision-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1_closure.py'
+      - '.github/workflows/validate-e023-g1-closure.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/g1-closure-decision-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1_closure.py'
+      - '.github/workflows/validate-e023-g1-closure.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-g1-closure-zero-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile G1 closure validator
+        run: python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_g1_closure.py
+      - name: Validate G1 closure
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/validate_g1_closure.py | tee /tmp/e023-g1-closure.txt
+          grep -q '^E023 G1 closure validation: PASS$' /tmp/e023-g1-closure.txt
+          grep -q '"model_calls": 0' /tmp/e023-g1-closure.txt
+          grep -q '"g1_query_time_baseline_for_g2_comparator": "EARNED"' /tmp/e023-g1-closure.txt
+          grep -q '"g2_preregistration_design_authorized": true' /tmp/e023-g1-closure.txt
+          grep -q '"g2_semantic_execution_authorized": false' /tmp/e023-g1-closure.txt
+          grep -q '"g2_product_persistence_authorized": false' /tmp/e023-g1-closure.txt
+          grep -q '"automatic_identity_routing_authorized": false' /tmp/e023-g1-closure.txt
