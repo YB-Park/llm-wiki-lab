@@ -1,0 +1,76 @@
+{
+  "contract_version": 1,
+  "experiment": "E023",
+  "gate": "G1E_EXACT_BM25_EVIDENCE_BUDGET",
+  "status": "PROSPECTIVE_ZERO_MODEL_EVALUATION_CONTRACT",
+  "terminal_authority_types": ["RAW_MEMORY", "HUMAN_KNOWLEDGE"],
+  "context_statuses": ["INSUFFICIENT_AUTHORITY", "SUFFICIENT_CLEAN", "SUFFICIENT_WITH_CONFLATION_RISK"],
+  "questions": {
+    "CQ001": {
+      "clauses": [
+        {"clause_id":"identity_bridge","type":"all_of","anchor_ids":["C003"],"terminal_authority_types":["RAW_MEMORY"],"description":"The Northstar registry must explicitly bridge R. Singh to Rina Singh."},
+        {"clause_id":"repeated_attestation_requirement","type":"min_count","min_count":2,"anchor_ids":["C001","C002","C005"],"terminal_authority_types":["RAW_MEMORY"],"description":"At least two records must establish that token attestation was required repeatedly."}
+      ],
+      "corroborating_optional_anchor_ids": ["C006"],
+      "forbidden_conflation_anchor_ids": ["C004"]
+    },
+    "CQ002": {
+      "clauses": [
+        {"clause_id":"redwood_governing_policy","type":"all_of","anchor_ids":["C009"],"terminal_authority_types":["RAW_MEMORY"],"description":"Redwood's governing policy must establish geographic scope and that encryption does not waive it."},
+        {"clause_id":"acmecloud_configuration","type":"all_of","anchor_ids":["C007"],"terminal_authority_types":["RAW_MEMORY"],"description":"The vendor response must establish standard Singapore backup behavior and the Australia-only option."}
+      ],
+      "corroborating_optional_anchor_ids": ["C008","C011"],
+      "forbidden_conflation_anchor_ids": ["C010"]
+    },
+    "CQ003": {
+      "clauses": [
+        {"clause_id":"user_owned_rabbitmq_decision","type":"all_of","anchor_ids":["C013"],"terminal_authority_types":["HUMAN_KNOWLEDGE"],"description":"The no-RabbitMQ decision and rationale must terminate in explicit user-owned Human Knowledge."},
+        {"clause_id":"later_burst_non_reversal","type":"all_of","anchor_ids":["C014"],"terminal_authority_types":["RAW_MEMORY"],"description":"The later synthetic burst must establish that it did not itself reverse the decision."}
+      ],
+      "corroborating_optional_anchor_ids": ["C012"],
+      "forbidden_conflation_anchor_ids": []
+    },
+    "CQ004": {
+      "clauses": [
+        {"clause_id":"early_leak_hypothesis","type":"all_of","anchor_ids":["C015"],"terminal_authority_types":["RAW_MEMORY"],"description":"The connection-pool leak must be shown as an unconfirmed initial hypothesis."},
+        {"clause_id":"retry_causal_signal","type":"all_of","anchor_ids":["C016"],"terminal_authority_types":["RAW_MEMORY"],"description":"The retry increase and mitigation response must be present as causal evidence."},
+        {"clause_id":"final_root_cause_and_rejection","type":"all_of","anchor_ids":["C017"],"terminal_authority_types":["RAW_MEMORY"],"description":"The postmortem must establish retry amplification and reject the connection-pool-leak hypothesis."}
+      ],
+      "corroborating_optional_anchor_ids": ["C018"],
+      "forbidden_conflation_anchor_ids": []
+    },
+    "CQ005": {
+      "clauses": [
+        {"clause_id":"project_rename_bridge","type":"all_of","anchor_ids":["C020"],"terminal_authority_types":["RAW_MEMORY"],"description":"The project registry must bridge former name Finch to current name Meridian and stable ID PX-902."},
+        {"clause_id":"user_owned_v2_deprecation","type":"all_of","anchor_ids":["C021"],"terminal_authority_types":["HUMAN_KNOWLEDGE"],"description":"The v2 API deprecation decision must terminate in explicit user-owned Human Knowledge for PX-902."}
+      ],
+      "corroborating_optional_anchor_ids": ["C019"],
+      "forbidden_conflation_anchor_ids": ["C022"]
+    },
+    "CQ006": {
+      "clauses": [
+        {"clause_id":"normal_sso_requirement","type":"all_of","anchor_ids":["C023"],"terminal_authority_types":["RAW_MEMORY"],"description":"Routine privileged access must be grounded in the company SSO/MFA policy."},
+        {"clause_id":"break_glass_scope","type":"all_of","anchor_ids":["C024"],"terminal_authority_types":["RAW_MEMORY"],"description":"The bypass must be limited to a declared incident when the identity provider is unavailable."},
+        {"clause_id":"audit_not_waived","type":"all_of","anchor_ids":["C025"],"terminal_authority_types":["RAW_MEMORY"],"description":"Logging and post-incident review remain required."}
+      ],
+      "corroborating_optional_anchor_ids": [],
+      "forbidden_conflation_anchor_ids": ["C026"]
+    },
+    "CQ007": {
+      "clauses": [
+        {"clause_id":"narrow_direct_requirement","type":"all_of","anchor_ids":["C027"],"terminal_authority_types":["RAW_MEMORY"],"description":"The direct email must establish the release-specific customer-managed-key requirement and reject a broad anti-hosted interpretation."},
+        {"clause_id":"hosted_km_still_approved","type":"all_of","anchor_ids":["C030"],"terminal_authority_types":["RAW_MEMORY"],"description":"Independent strategy evidence must establish that hosted key management remains approved outside the release-specific constraint."}
+      ],
+      "corroborating_optional_anchor_ids": ["C028","C029"],
+      "forbidden_conflation_anchor_ids": ["C031"]
+    },
+    "CQ008": {
+      "clauses": [
+        {"clause_id":"user_owned_capacity_decision","type":"all_of","anchor_ids":["C034"],"terminal_authority_types":["HUMAN_KNOWLEDGE"],"description":"The 8-to-12 worker-pool decision must terminate in explicit user-owned Human Knowledge."},
+        {"clause_id":"repeated_monthly_close_observation","type":"min_count","min_count":2,"anchor_ids":["C032","C033"],"terminal_authority_types":["RAW_MEMORY"],"description":"At least two separate monthly-close observations are required to establish recurrence."}
+      ],
+      "corroborating_optional_anchor_ids": [],
+      "forbidden_conflation_anchor_ids": ["C035"]
+    }
+  }
+}
