@@ -12,6 +12,7 @@ COMMON = ROOT / "g1d_common.py"
 ADDENDUM = ROOT / "g1d-execution-addendum-v0.md"
 WORKFLOW = REPO / ".github" / "workflows" / "e023-generality-g1d.yml"
 PREREG_BASE = "b0042a87cf871070b334a6c5bef79f390b5a6434"
+EXECUTION_SOURCE_SHA = "c74673a83744789f271fa54c43b20212160007a2"
 COMMON_BLOB = "14da368b74c214a9a7c2b041b8d5a09e10a0a097"
 
 
@@ -62,14 +63,13 @@ def main() -> int:
         "model selector calls: **0**",
         "RRF `k=60`",
         "final budget `4`",
-        "github.event.before",
         PREREG_BASE,
     ]:
-        assert phrase in addendum or phrase in workflow, phrase
+        assert phrase in addendum, phrase
 
     assert "copilot-requests: write" in workflow
     assert "github.event_name == 'push'" in workflow
-    assert f"github.event.before == '{PREREG_BASE}'" in workflow
+    assert f"github.sha == '{EXECUTION_SOURCE_SHA}'" in workflow
     assert "github.event_name == 'pull_request'" in workflow
     assert "--execute-model" in workflow
     assert "actions/upload-artifact@v4" in workflow
@@ -84,7 +84,8 @@ def main() -> int:
         "rrf_k": request["rrf_k"],
         "final_top_k": request["final_top_k"],
         "common_blob_locked": COMMON_BLOB,
-        "one_shot_before_sha": PREREG_BASE,
+        "prereg_base_sha": PREREG_BASE,
+        "execution_source_sha_locked": EXECUTION_SOURCE_SHA,
         "stage_persistence_required": True,
         "semantic_calls_authorized_on_pr": False,
         "g2_persistence_authorized": False,
