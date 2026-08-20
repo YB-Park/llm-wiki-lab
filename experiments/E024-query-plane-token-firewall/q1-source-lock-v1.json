@@ -1,0 +1,10 @@
+{
+  "base_main_commit_sha": "ef8869acc688e6b52b87570376560d7495c77cfa",
+  "format": "E024-Q1-source-lock-v1",
+  "imported_git_blobs": {
+    "dogfood/llm_wiki/adapters.py": "fc62367ab929349a6be13e83258957ba1714265e"
+  },
+  "note": "The previous signal produced zero checks and no evidence directory; it is transport history only and not a semantic execution.",
+  "previous_no_run_signal_commit": "e135d3679af6b2d974eb63d7908b527c19d394f9",
+  "previous_no_run_signal_reset_commit": "bff17b875e8d3c65e94072d39d6bc415e5a7d97a"
+}

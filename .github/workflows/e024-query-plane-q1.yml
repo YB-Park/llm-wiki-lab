@@ -6,9 +6,15 @@ on:
       - experiment/e024-query-plane-gate
     paths:
       - 'remote-lab/e024-q1-execute.json'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'remote-lab/e024-q1-execute.json'
 
 jobs:
   execute:
+    if: github.event_name == 'push' || github.head_ref == 'experiment/e024-query-plane-gate'
     permissions:
       actions: read
       contents: write
@@ -19,32 +25,17 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - uses: actions/setup-node@v7
         with:
           node-version: '22'
-      - name: Validate exact frozen preregistration
+      - name: Validate exact frozen execution source
         run: |
+          python3 experiments/E024-query-plane-token-firewall/verify_q1_execution_lock.py
           python3 experiments/E024-query-plane-token-firewall/validate_q1.py
-          python3 - <<'PY'
-          import hashlib, json
-          from pathlib import Path
-          root=Path('.')
-          signal=json.loads((root/'remote-lab/e024-q1-execute.json').read_text())
-          assert signal == {
-              'execute': True,
-              'prereg_manifest_sha256': '5e2ae0fa77a95f634b3e9a12d7b54e167543e6c6cf3e65474b119c8378729c13',
-              'request_id': 'e024-q1-token-firewall-v0',
-          }, signal
-          manifest_path=root/'experiments/E024-query-plane-token-firewall/q1-prereg-manifest.json'
-          assert hashlib.sha256(manifest_path.read_bytes()).hexdigest()==signal['prereg_manifest_sha256']
-          manifest=json.loads(manifest_path.read_text())
-          for rel, expected in manifest['sha256'].items():
-              assert hashlib.sha256((root/rel).read_bytes()).hexdigest()==expected, rel
-          print('E024 Q1 execution signal: PASS')
-          PY
       - name: Install standalone GitHub Copilot CLI
         run: npm install -g @github/copilot
       - name: Execute frozen paired Q1 comparison
@@ -63,12 +54,12 @@ jobs:
           if-no-files-found: error
           retention-days: 30
       - name: Commit immutable Q1 result evidence to experiment branch
-        if: always()
+        if: always() && github.event_name == 'push'
         env:
-          SOURCE_SHA: ${{ github.sha }}
           RUN_ID: ${{ github.run_id }}
         run: |
           set -euo pipefail
+          source_sha="$(git rev-parse HEAD)"
           result=/tmp/e024-q1-result.json
           cp remote-lab/out/e024-q1/result.json "$result"
 
@@ -79,7 +70,7 @@ jobs:
           mkdir -p "$evidence_dir"
           cp "$result" "$evidence_dir/result.json"
           sha256sum "$evidence_dir/result.json" > "$evidence_dir/result.sha256"
-          python3 - "$SOURCE_SHA" "$RUN_ID" > "$evidence_dir/source.json" <<'PY'
+          python3 - "$source_sha" "$RUN_ID" > "$evidence_dir/source.json" <<'PY'
           import json, sys
           source_sha, run_id = sys.argv[1:]
           print(json.dumps({
@@ -87,7 +78,6 @@ jobs:
               'execution_source_sha': source_sha,
               'workflow': 'E024 Query Plane Q1',
               'request_id': 'e024-q1-token-firewall-v0',
-              'prereg_manifest_sha256': '5e2ae0fa77a95f634b3e9a12d7b54e167543e6c6cf3e65474b119c8378729c13',
           }, indent=2, sort_keys=True))
           PY
 
