@@ -1,0 +1,90 @@
+{
+  "evaluation_slice": "authority_sufficiency_v2",
+  "experiment": "E023",
+  "status": "SEPARATED_PROSPECTIVE_MATERIAL_NO_MODEL_ANSWERS",
+  "version": 1,
+  "questions": [
+    {
+      "question_id": "CQ001",
+      "family": "identity_attribution",
+      "question": "Who was the Northstar security contact who repeatedly required hardware token attestation before production access?",
+      "load_bearing_propositions": [
+        "R. Singh in Northstar Security records is Rina Singh",
+        "hardware token attestation was required more than once before production access",
+        "Ravi Singh from Finance must not be conflated with the security contact"
+      ]
+    },
+    {
+      "question_id": "CQ002",
+      "family": "vendor_constraint",
+      "question": "Does AcmeCloud's standard disaster recovery satisfy Redwood's Australia-only data residency requirement, and could the Australia-only option satisfy it?",
+      "load_bearing_propositions": [
+        "Redwood's governing rule covers production data, backups, and replicas",
+        "encryption does not waive the geographic restriction",
+        "AcmeCloud standard DR may place encrypted backups in Singapore",
+        "an Australia-only recovery option exists"
+      ]
+    },
+    {
+      "question_id": "CQ003",
+      "family": "decision_rationale",
+      "question": "Why did we decide not to add RabbitMQ for the first release, and did the later 12x burst reverse that decision?",
+      "load_bearing_propositions": [
+        "the no-RabbitMQ decision and rationale are explicit user-owned Human Knowledge",
+        "the rationale is operating ownership/failure modes rather than technical inferiority",
+        "the later unrealistic burst did not itself reverse the decision"
+      ]
+    },
+    {
+      "question_id": "CQ004",
+      "family": "incident_temporal",
+      "question": "What caused INC-421, and how should the initial connection-pool-leak hypothesis be treated?",
+      "load_bearing_propositions": [
+        "connection-pool leak began as an unconfirmed hypothesis",
+        "retry behavior after the timeout change is causal evidence",
+        "the postmortem identifies retry amplification and rejects the leak hypothesis"
+      ]
+    },
+    {
+      "question_id": "CQ005",
+      "family": "project_identity",
+      "question": "Did the Finch project decide to deprecate v2 API, and what is that project's current name?",
+      "load_bearing_propositions": [
+        "Finch and Meridian are the same project identity PX-902",
+        "the v2 API deprecation decision is user-owned Human Knowledge for PX-902",
+        "Meridian Metrics is a separate product and must not be conflated with PX-902"
+      ]
+    },
+    {
+      "question_id": "CQ006",
+      "family": "policy_exception",
+      "question": "When may break-glass admin bypass SSO, and does that permit routine local-admin access or waive audit review?",
+      "load_bearing_propositions": [
+        "routine privileged access requires company SSO with phishing-resistant MFA",
+        "break-glass bypass is limited to a declared incident with identity-provider unavailability",
+        "audit logging and post-incident review remain required",
+        "vendor support for local emergency login is capability, not authorization"
+      ]
+    },
+    {
+      "question_id": "CQ007",
+      "family": "negative_characterization",
+      "question": "Is Zoe Malik generally opposed to hosted key management, or was the customer-managed-key requirement narrower?",
+      "load_bearing_propositions": [
+        "the direct release requirement is for customer-managed keys",
+        "the source explicitly rejects a broad anti-hosted-key-management characterization",
+        "hosted key management remains approved outside the release-specific constraint"
+      ]
+    },
+    {
+      "question_id": "CQ008",
+      "family": "repeated_observation",
+      "question": "Why was the batch worker pool increased from 8 to 12, and what evidence made the CPU issue 'repeated'?",
+      "load_bearing_propositions": [
+        "the 8-to-12 worker decision is explicit user-owned Human Knowledge",
+        "at least two separate monthly-close observations establish recurrence",
+        "the 30x synthetic stress test is not evidence that monthly-close recurrence happened"
+      ]
+    }
+  ]
+}
