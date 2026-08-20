@@ -1,0 +1,3888 @@
+{
+  "arms": {
+    "A": [
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "identity_bridge",
+              "satisfied": true
+            },
+            {
+              "clause_id": "repeated_hsm_requirement",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "B004"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "composer": {
+          "answer": "The Kestrel security contact was Dana Ortiz, a Staff Security Engineer. D. Ortiz repeatedly required HSM signing-key rotation before pilot access (B001, B005), and a direct email identifies the sender as Dana Ortiz (B002); the registry confirms the role and identity (B003).",
+          "cited_anchor_ids": [
+            "B001",
+            "B002",
+            "B003",
+            "B005"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 3.773,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Who was the Kestrel security contact who repeatedly required HSM signing-key rotation before pilot access?",
+        "question_id": "BQ001",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "B005",
+            "rank": 1,
+            "score": 18.093101561491366
+          },
+          {
+            "anchor_id": "B002",
+            "rank": 2,
+            "score": 13.232955763394006
+          },
+          {
+            "anchor_id": "B001",
+            "rank": 3,
+            "score": 12.235124533341844
+          },
+          {
+            "anchor_id": "B004",
+            "rank": 4,
+            "score": 11.617422591708747
+          },
+          {
+            "anchor_id": "B003",
+            "rank": 5,
+            "score": 8.23691405244112
+          },
+          {
+            "anchor_id": "B006",
+            "rank": 6,
+            "score": 4.957419889057652
+          },
+          {
+            "anchor_id": "B020",
+            "rank": 7,
+            "score": 3.825622884116882
+          },
+          {
+            "anchor_id": "B011",
+            "rank": 8,
+            "score": 2.161686661374364
+          },
+          {
+            "anchor_id": "B016",
+            "rank": 9,
+            "score": 2.0999964370521593
+          },
+          {
+            "anchor_id": "B021",
+            "rank": 10,
+            "score": 1.6708167926516353
+          },
+          {
+            "anchor_id": "B014",
+            "rank": 11,
+            "score": 0.20112826516127658
+          },
+          {
+            "anchor_id": "B012",
+            "rank": 12,
+            "score": 0.19746106488915954
+          },
+          {
+            "anchor_id": "B015",
+            "rank": 13,
+            "score": 0.1901702116554858
+          },
+          {
+            "anchor_id": "B013",
+            "rank": 14,
+            "score": 0.1887252447350774
+          },
+          {
+            "anchor_id": "B019",
+            "rank": 15,
+            "score": 0.18730207075838665
+          },
+          {
+            "anchor_id": "B010",
+            "rank": 16,
+            "score": 0.18049646629165222
+          },
+          {
+            "anchor_id": "B018",
+            "rank": 17,
+            "score": 0.17664542851362997
+          },
+          {
+            "anchor_id": "B008",
+            "rank": 18,
+            "score": 0.1717592651272036
+          },
+          {
+            "anchor_id": "B007",
+            "rank": 19,
+            "score": 0.1694161672043533
+          },
+          {
+            "anchor_id": "B017",
+            "rank": 20,
+            "score": 0.16475811838485274
+          },
+          {
+            "anchor_id": "B022",
+            "rank": 21,
+            "score": 0.16313492431956958
+          },
+          {
+            "anchor_id": "B023",
+            "rank": 22,
+            "score": 0.16313492431956958
+          },
+          {
+            "anchor_id": "B009",
+            "rank": 23,
+            "score": 0.12284524030099905
+          }
+        ],
+        "selected_anchor_ids": [
+          "B005",
+          "B002",
+          "B001",
+          "B004",
+          "B003"
+        ]
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "direct_authorship",
+              "satisfied": true
+            },
+            {
+              "clause_id": "meeting_attribution",
+              "satisfied": true
+            },
+            {
+              "clause_id": "identity_bridge",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "B004"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "composer": {
+          "answer": "Dana Ortiz directly authored an email stating that the HSM signing keys must be rotated before pilot access opens, framing it as a release key-management requirement rather than a general objection to hosted HSM services (B002). Meeting records attributed the same requirement to “D. Ortiz”: completing HSM signing-key rotation before pilot access (B001, B005). The registry identifies Dana Ortiz as the contact whose meeting abbreviation is “D. Ortiz” (B003), while a separate record says Diego Ortiz did not discuss HSM keys or signing-key rotation (B004).",
+          "cited_anchor_ids": [
+            "B002",
+            "B001",
+            "B005",
+            "B003",
+            "B004"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 6.618,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "What did Dana Ortiz directly author about HSM key rotation, and what was only attributed to D. Ortiz in meeting records?",
+        "question_id": "BQ002",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "B004",
+            "rank": 1,
+            "score": 15.525097522782222
+          },
+          {
+            "anchor_id": "B005",
+            "rank": 2,
+            "score": 12.674168125213635
+          },
+          {
+            "anchor_id": "B001",
+            "rank": 3,
+            "score": 12.55374863161515
+          },
+          {
+            "anchor_id": "B003",
+            "rank": 4,
+            "score": 12.501192020008178
+          },
+          {
+            "anchor_id": "B002",
+            "rank": 5,
+            "score": 11.836069667925086
+          },
+          {
+            "anchor_id": "B017",
+            "rank": 6,
+            "score": 3.9995297586421943
+          },
+          {
+            "anchor_id": "B006",
+            "rank": 7,
+            "score": 3.9435109035072777
+          },
+          {
+            "anchor_id": "B015",
+            "rank": 8,
+            "score": 3.7819207938673767
+          },
+          {
+            "anchor_id": "B014",
+            "rank": 9,
+            "score": 3.3955171550413468
+          },
+          {
+            "anchor_id": "B018",
+            "rank": 10,
+            "score": 3.3175104418563697
+          },
+          {
+            "anchor_id": "B013",
+            "rank": 11,
+            "score": 3.1123203172378857
+          },
+          {
+            "anchor_id": "B007",
+            "rank": 12,
+            "score": 2.746780999986526
+          },
+          {
+            "anchor_id": "B011",
+            "rank": 13,
+            "score": 2.5988263006708663
+          },
+          {
+            "anchor_id": "B021",
+            "rank": 14,
+            "score": 1.7166163914333337
+          },
+          {
+            "anchor_id": "B012",
+            "rank": 15,
+            "score": 1.6278979361492194
+          },
+          {
+            "anchor_id": "B022",
+            "rank": 16,
+            "score": 1.5591635813459899
+          },
+          {
+            "anchor_id": "B010",
+            "rank": 17,
+            "score": 1.4382921520948995
+          },
+          {
+            "anchor_id": "B009",
+            "rank": 18,
+            "score": 0.7284944734068075
+          },
+          {
+            "anchor_id": "B019",
+            "rank": 19,
+            "score": 0.6781813958693695
+          }
+        ],
+        "selected_anchor_ids": [
+          "B004",
+          "B005",
+          "B001",
+          "B003",
+          "B002"
+        ]
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "user_owned_decision_and_rationale",
+              "satisfied": true
+            },
+            {
+              "clause_id": "later_burst_non_reversal",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "composer": {
+          "answer": "We did not add NATS for the first release because it would increase operating ownership and failure modes; the existing SQLite-backed queue already met the first-release latency and throughput target under a realistic workload (B007, B006). The later roughly 20x synthetic burst did not reverse that decision: it caused queue delay but was intentionally unrealistic, and the recorded next action was realistic measurement rather than adopting NATS (B008).",
+          "cited_anchor_ids": [
+            "B007",
+            "B006",
+            "B008"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 3.688,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Why did we decide not to add NATS for the first release, and did the later 20x synthetic burst reverse that decision?",
+        "question_id": "BQ003",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "B007",
+            "rank": 1,
+            "score": 15.856070290335769
+          },
+          {
+            "anchor_id": "B008",
+            "rank": 2,
+            "score": 14.409052188259528
+          },
+          {
+            "anchor_id": "B006",
+            "rank": 3,
+            "score": 8.510304948360544
+          },
+          {
+            "anchor_id": "B018",
+            "rank": 4,
+            "score": 7.785049706835189
+          },
+          {
+            "anchor_id": "B017",
+            "rank": 5,
+            "score": 7.147876150264963
+          },
+          {
+            "anchor_id": "B004",
+            "rank": 6,
+            "score": 5.705818320232233
+          },
+          {
+            "anchor_id": "B002",
+            "rank": 7,
+            "score": 4.217454556395513
+          },
+          {
+            "anchor_id": "B013",
+            "rank": 8,
+            "score": 3.708663918775504
+          },
+          {
+            "anchor_id": "B005",
+            "rank": 9,
+            "score": 2.7928139802869842
+          },
+          {
+            "anchor_id": "B015",
+            "rank": 10,
+            "score": 2.57072450081192
+          },
+          {
+            "anchor_id": "B016",
+            "rank": 11,
+            "score": 2.5626231435561824
+          },
+          {
+            "anchor_id": "B001",
+            "rank": 12,
+            "score": 2.4759360715862013
+          },
+          {
+            "anchor_id": "B021",
+            "rank": 13,
+            "score": 2.420819393099701
+          },
+          {
+            "anchor_id": "B022",
+            "rank": 14,
+            "score": 2.2804347116887076
+          },
+          {
+            "anchor_id": "B020",
+            "rank": 15,
+            "score": 1.9346328361521297
+          },
+          {
+            "anchor_id": "B010",
+            "rank": 16,
+            "score": 1.7992850846782038
+          },
+          {
+            "anchor_id": "B019",
+            "rank": 17,
+            "score": 1.442330709032825
+          },
+          {
+            "anchor_id": "B009",
+            "rank": 18,
+            "score": 0.9741849540088057
+          },
+          {
+            "anchor_id": "B011",
+            "rank": 19,
+            "score": 0.8709799770163329
+          },
+          {
+            "anchor_id": "B014",
+            "rank": 20,
+            "score": 0.7325005729936612
+          },
+          {
+            "anchor_id": "B023",
+            "rank": 21,
+            "score": 0.7212711303427172
+          },
+          {
+            "anchor_id": "B012",
+            "rank": 22,
+            "score": 0.3949221297783191
+          }
+        ],
+        "selected_anchor_ids": [
+          "B007",
+          "B008",
+          "B006",
+          "B018",
+          "B017"
+        ]
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "early_hypothesis",
+              "satisfied": true
+            },
+            {
+              "clause_id": "causal_retry_signal",
+              "satisfied": true
+            },
+            {
+              "clause_id": "final_root_cause_and_rejection",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "composer": {
+          "answer": "INC-311 was caused by a client-backoff configuration change that triggered retry amplification and retained requests longer than expected; elevated memory was downstream (B011). The initial connection-leak hypothesis should be treated as rejected, not as the cause: it was initially unconfirmed (B009), and heap inspection found no leak (B011). The retry diagnosis is supported by retry volume rising after the change and pressure falling when automatic retries were disabled (B010).",
+          "cited_anchor_ids": [
+            "B011",
+            "B009",
+            "B010"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 4.356,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "What caused INC-311, and how should the initial connection-leak hypothesis be treated?",
+        "question_id": "BQ004",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "B009",
+            "rank": 1,
+            "score": 17.305011974788833
+          },
+          {
+            "anchor_id": "B011",
+            "rank": 2,
+            "score": 13.693151344212339
+          },
+          {
+            "anchor_id": "B010",
+            "rank": 3,
+            "score": 6.766930793804757
+          },
+          {
+            "anchor_id": "B012",
+            "rank": 4,
+            "score": 3.4532569371875983
+          },
+          {
+            "anchor_id": "B022",
+            "rank": 5,
+            "score": 2.403971909111822
+          },
+          {
+            "anchor_id": "B014",
+            "rank": 6,
+            "score": 2.1212506792937225
+          },
+          {
+            "anchor_id": "B015",
+            "rank": 7,
+            "score": 1.7653900441936636
+          },
+          {
+            "anchor_id": "B005",
+            "rank": 8,
+            "score": 1.613247443118712
+          },
+          {
+            "anchor_id": "B006",
+            "rank": 9,
+            "score": 0.8764054936354342
+          },
+          {
+            "anchor_id": "B013",
+            "rank": 10,
+            "score": 0.8764054936354342
+          },
+          {
+            "anchor_id": "B019",
+            "rank": 11,
+            "score": 0.8654834666277562
+          },
+          {
+            "anchor_id": "B017",
+            "rank": 12,
+            "score": 0.8622070889104068
+          },
+          {
+            "anchor_id": "B001",
+            "rank": 13,
+            "score": 0.8083091650234651
+          },
+          {
+            "anchor_id": "B004",
+            "rank": 14,
+            "score": 0.7883989643654727
+          },
+          {
+            "anchor_id": "B018",
+            "rank": 15,
+            "score": 0.7873428445993392
+          },
+          {
+            "anchor_id": "B007",
+            "rank": 16,
+            "score": 0.7377021434120458
+          },
+          {
+            "anchor_id": "B002",
+            "rank": 17,
+            "score": 0.17539800915353984
+          },
+          {
+            "anchor_id": "B016",
+            "rank": 18,
+            "score": 0.1733839797095693
+          },
+          {
+            "anchor_id": "B008",
+            "rank": 19,
+            "score": 0.1717592651272036
+          },
+          {
+            "anchor_id": "B023",
+            "rank": 20,
+            "score": 0.16313492431956958
+          },
+          {
+            "anchor_id": "B021",
+            "rank": 21,
+            "score": 0.15998263219969547
+          }
+        ],
+        "selected_anchor_ids": [
+          "B009",
+          "B011",
+          "B010",
+          "B012",
+          "B022"
+        ]
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "corrected_start_time",
+              "satisfied": true
+            },
+            {
+              "clause_id": "retry_signal_and_rollback",
+              "satisfied": true
+            },
+            {
+              "clause_id": "final_root_cause",
+              "satisfied": true
+            },
+            {
+              "clause_id": "addendum_scope",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "composer": {
+          "answer": "INC-311 began at 14:06 on August 3, when worker memory and request latency were rising; a connection leak was only an unconfirmed initial hypothesis (B009). At 14:21, retry volume rose after the client-backoff change, and disabling automatic retries reduced memory pressure and queue depth, prompting rollback (B010). The August 5 postmortem attributed the incident to retry amplification from that configuration change, rejected the connection-leak hypothesis, and identified elevated memory as downstream (B011). The August 6 addendum changed only the incident start time: it corrected the earlier 14:00 listing to 14:06. It did not change the retry-amplification root-cause assessment (B012).",
+          "cited_anchor_ids": [
+            "B009",
+            "B010",
+            "B011",
+            "B012"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 5.351,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Reconstruct the key INC-311 timeline and explain exactly what its addendum changed.",
+        "question_id": "BQ005",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "B012",
+            "rank": 1,
+            "score": 8.845795766536053
+          },
+          {
+            "anchor_id": "B009",
+            "rank": 2,
+            "score": 4.590219053546763
+          },
+          {
+            "anchor_id": "B010",
+            "rank": 3,
+            "score": 4.07066137913053
+          },
+          {
+            "anchor_id": "B019",
+            "rank": 4,
+            "score": 3.7479692728799776
+          },
+          {
+            "anchor_id": "B011",
+            "rank": 5,
+            "score": 3.7121195746182107
+          },
+          {
+            "anchor_id": "B004",
+            "rank": 6,
+            "score": 2.660693554444941
+          },
+          {
+            "anchor_id": "B005",
+            "rank": 7,
+            "score": 2.0527910563711207
+          },
+          {
+            "anchor_id": "B002",
+            "rank": 8,
+            "score": 1.9556835826393941
+          },
+          {
+            "anchor_id": "B006",
+            "rank": 9,
+            "score": 0.8764054936354342
+          },
+          {
+            "anchor_id": "B013",
+            "rank": 10,
+            "score": 0.8764054936354342
+          },
+          {
+            "anchor_id": "B017",
+            "rank": 11,
+            "score": 0.8622070889104068
+          },
+          {
+            "anchor_id": "B022",
+            "rank": 12,
+            "score": 0.8508151732199264
+          },
+          {
+            "anchor_id": "B001",
+            "rank": 13,
+            "score": 0.8083091650234651
+          },
+          {
+            "anchor_id": "B018",
+            "rank": 14,
+            "score": 0.7873428445993392
+          },
+          {
+            "anchor_id": "B007",
+            "rank": 15,
+            "score": 0.7377021434120458
+          },
+          {
+            "anchor_id": "B014",
+            "rank": 16,
+            "score": 0.20112826516127658
+          },
+          {
+            "anchor_id": "B015",
+            "rank": 17,
+            "score": 0.1901702116554858
+          },
+          {
+            "anchor_id": "B016",
+            "rank": 18,
+            "score": 0.1733839797095693
+          },
+          {
+            "anchor_id": "B008",
+            "rank": 19,
+            "score": 0.1717592651272036
+          },
+          {
+            "anchor_id": "B023",
+            "rank": 20,
+            "score": 0.16313492431956958
+          },
+          {
+            "anchor_id": "B021",
+            "rank": 21,
+            "score": 0.15998263219969547
+          }
+        ],
+        "selected_anchor_ids": [
+          "B012",
+          "B009",
+          "B010",
+          "B019",
+          "B011"
+        ]
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "eu_residency_scope",
+              "satisfied": false
+            },
+            {
+              "clause_id": "encryption_not_waiver",
+              "satisfied": false
+            },
+            {
+              "clause_id": "standard_and_eu_only_option",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [
+            "eu_residency_scope",
+            "encryption_not_waiver"
+          ],
+          "status": "INSUFFICIENT_AUTHORITY"
+        },
+        "composer": {
+          "answer": "The standard disaster-recovery configuration does not satisfy Cedar’s EU-only rule based on the supplied evidence: encrypted backups may be stored in the United States, and NimbusGrid could not confirm that every standard-configuration copy remains inside the EU (B014, B015). The EU-only option could satisfy the rule because it is specifically available, but the anchors do not explicitly confirm that it guarantees every disaster-recovery copy stays in the EU (B014).",
+          "cited_anchor_ids": [
+            "B014",
+            "B015"
+          ],
+          "insufficient_authority": true
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 4.22,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Does NimbusGrid's standard disaster-recovery configuration satisfy Cedar's EU-only rule, and could the EU-only option satisfy it?",
+        "question_id": "BQ006",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "B014",
+            "rank": 1,
+            "score": 24.85385927281627
+          },
+          {
+            "anchor_id": "B015",
+            "rank": 2,
+            "score": 21.51209796354511
+          },
+          {
+            "anchor_id": "B023",
+            "rank": 3,
+            "score": 6.158021436615114
+          },
+          {
+            "anchor_id": "B016",
+            "rank": 4,
+            "score": 5.379599400293401
+          },
+          {
+            "anchor_id": "B021",
+            "rank": 5,
+            "score": 4.785994301183161
+          },
+          {
+            "anchor_id": "B013",
+            "rank": 6,
+            "score": 4.486944683769691
+          },
+          {
+            "anchor_id": "B022",
+            "rank": 7,
+            "score": 4.1066458278268465
+          },
+          {
+            "anchor_id": "B007",
+            "rank": 8,
+            "score": 3.654337441449022
+          },
+          {
+            "anchor_id": "B012",
+            "rank": 9,
+            "score": 3.4532569371875983
+          },
+          {
+            "anchor_id": "B010",
+            "rank": 10,
+            "score": 2.4427634429813105
+          },
+          {
+            "anchor_id": "B011",
+            "rank": 11,
+            "score": 2.2192430528639666
+          },
+          {
+            "anchor_id": "B001",
+            "rank": 12,
+            "score": 1.8838560590096072
+          },
+          {
+            "anchor_id": "B018",
+            "rank": 13,
+            "score": 1.8762678305849483
+          },
+          {
+            "anchor_id": "B008",
+            "rank": 14,
+            "score": 1.2090740686058818
+          },
+          {
+            "anchor_id": "B006",
+            "rank": 15,
+            "score": 0.8764054936354342
+          },
+          {
+            "anchor_id": "B019",
+            "rank": 16,
+            "score": 0.8654834666277562
+          },
+          {
+            "anchor_id": "B017",
+            "rank": 17,
+            "score": 0.8622070889104068
+          },
+          {
+            "anchor_id": "B009",
+            "rank": 18,
+            "score": 0.8513397137078066
+          },
+          {
+            "anchor_id": "B004",
+            "rank": 19,
+            "score": 0.7883989643654727
+          },
+          {
+            "anchor_id": "B005",
+            "rank": 20,
+            "score": 0.18049646629165222
+          },
+          {
+            "anchor_id": "B002",
+            "rank": 21,
+            "score": 0.17539800915353984
+          }
+        ],
+        "selected_anchor_ids": [
+          "B014",
+          "B015",
+          "B023",
+          "B016",
+          "B021"
+        ]
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "project_identity_bridge",
+              "satisfied": true
+            },
+            {
+              "clause_id": "user_owned_deprecation_decision",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "B019"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "composer": {
+          "answer": "Yes. The project decided to deprecate v1 webhooks after the compatibility window; the project’s current name is Harbor, formerly Lark. [B018] [B017]",
+          "cited_anchor_ids": [
+            "B018",
+            "B017"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 3.449,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Did the Lark project decide to deprecate v1 webhooks, and what is that project's current name?",
+        "question_id": "BQ007",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "B017",
+            "rank": 1,
+            "score": 17.637468906135158
+          },
+          {
+            "anchor_id": "B016",
+            "rank": 2,
+            "score": 16.079866918633307
+          },
+          {
+            "anchor_id": "B018",
+            "rank": 3,
+            "score": 14.689773155567826
+          },
+          {
+            "anchor_id": "B019",
+            "rank": 4,
+            "score": 7.144524115686513
+          },
+          {
+            "anchor_id": "B007",
+            "rank": 5,
+            "score": 5.661594009364491
+          },
+          {
+            "anchor_id": "B003",
+            "rank": 6,
+            "score": 5.160114660923179
+          },
+          {
+            "anchor_id": "B023",
+            "rank": 7,
+            "score": 3.41896557892649
+          },
+          {
+            "anchor_id": "B004",
+            "rank": 8,
+            "score": 2.98790393123531
+          },
+          {
+            "anchor_id": "B008",
+            "rank": 9,
+            "score": 2.975560413458706
+          },
+          {
+            "anchor_id": "B021",
+            "rank": 10,
+            "score": 2.7243349658573437
+          },
+          {
+            "anchor_id": "B005",
+            "rank": 11,
+            "score": 2.612317513995332
+          },
+          {
+            "anchor_id": "B015",
+            "rank": 12,
+            "score": 1.9799418857597022
+          },
+          {
+            "anchor_id": "B001",
+            "rank": 13,
+            "score": 1.9243485194893903
+          },
+          {
+            "anchor_id": "B009",
+            "rank": 14,
+            "score": 1.774546091043769
+          },
+          {
+            "anchor_id": "B006",
+            "rank": 15,
+            "score": 1.7478888260810674
+          },
+          {
+            "anchor_id": "B013",
+            "rank": 16,
+            "score": 1.7478888260810674
+          },
+          {
+            "anchor_id": "B022",
+            "rank": 17,
+            "score": 1.7222985056655595
+          },
+          {
+            "anchor_id": "B002",
+            "rank": 18,
+            "score": 1.7042308384269698
+          },
+          {
+            "anchor_id": "B010",
+            "rank": 19,
+            "score": 1.6187886183865516
+          },
+          {
+            "anchor_id": "B011",
+            "rank": 20,
+            "score": 1.4636105019290708
+          },
+          {
+            "anchor_id": "B014",
+            "rank": 21,
+            "score": 1.2785177143405821
+          },
+          {
+            "anchor_id": "B012",
+            "rank": 22,
+            "score": 0.19746106488915954
+          }
+        ],
+        "selected_anchor_ids": [
+          "B017",
+          "B016",
+          "B018",
+          "B019",
+          "B007"
+        ]
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "normal_sso_requirement",
+              "satisfied": true
+            },
+            {
+              "clause_id": "break_glass_scope",
+              "satisfied": true
+            },
+            {
+              "clause_id": "audit_not_waived",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "B023"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "composer": {
+          "answer": "The break-glass administrator may bypass SSO only during a declared incident when the identity provider is unavailable (B021). Every use must still be logged, linked to that incident, and reviewed after recovery; the exception does not waive audit logging or post-incident review (B022). It does not permit routine local-administrator access, which must use corporate SSO with phishing-resistant MFA (B020).",
+          "cited_anchor_ids": [
+            "B021",
+            "B022",
+            "B020"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 4.08,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "When can the break-glass administrator bypass SSO, and does that exception waive audit logging or allow routine local-admin access?",
+        "question_id": "BQ008",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "B021",
+            "rank": 1,
+            "score": 23.939044208665656
+          },
+          {
+            "anchor_id": "B022",
+            "rank": 2,
+            "score": 21.950801472603295
+          },
+          {
+            "anchor_id": "B020",
+            "rank": 3,
+            "score": 12.77895613534048
+          },
+          {
+            "anchor_id": "B023",
+            "rank": 4,
+            "score": 12.601646332044304
+          },
+          {
+            "anchor_id": "B013",
+            "rank": 5,
+            "score": 4.486944683769691
+          },
+          {
+            "anchor_id": "B001",
+            "rank": 6,
+            "score": 3.2461982395393907
+          },
+          {
+            "anchor_id": "B005",
+            "rank": 7,
+            "score": 3.2411453792679312
+          },
+          {
+            "anchor_id": "B004",
+            "rank": 8,
+            "score": 2.660693554444941
+          },
+          {
+            "anchor_id": "B014",
+            "rank": 9,
+            "score": 2.6448083179132023
+          },
+          {
+            "anchor_id": "B007",
+            "rank": 10,
+            "score": 2.196019792430534
+          },
+          {
+            "anchor_id": "B015",
+            "rank": 11,
+            "score": 1.9799418857597022
+          },
+          {
+            "anchor_id": "B018",
+            "rank": 12,
+            "score": 1.8762678305849483
+          },
+          {
+            "anchor_id": "B002",
+            "rank": 13,
+            "score": 1.5377401896833234
+          },
+          {
+            "anchor_id": "B008",
+            "rank": 14,
+            "score": 1.2090740686058818
+          },
+          {
+            "anchor_id": "B006",
+            "rank": 15,
+            "score": 0.8764054936354342
+          },
+          {
+            "anchor_id": "B019",
+            "rank": 16,
+            "score": 0.8654834666277562
+          },
+          {
+            "anchor_id": "B017",
+            "rank": 17,
+            "score": 0.8622070889104068
+          },
+          {
+            "anchor_id": "B009",
+            "rank": 18,
+            "score": 0.8513397137078066
+          },
+          {
+            "anchor_id": "B010",
+            "rank": 19,
+            "score": 0.8148655068320911
+          },
+          {
+            "anchor_id": "B011",
+            "rank": 20,
+            "score": 0.7263665311097227
+          },
+          {
+            "anchor_id": "B012",
+            "rank": 21,
+            "score": 0.19746106488915954
+          },
+          {
+            "anchor_id": "B016",
+            "rank": 22,
+            "score": 0.1733839797095693
+          }
+        ],
+        "selected_anchor_ids": [
+          "B021",
+          "B022",
+          "B020",
+          "B023",
+          "B013"
+        ]
+      }
+    ],
+    "D": [
+      {
+        "candidate_anchor_ids": [
+          "B005",
+          "B002",
+          "B001",
+          "B004",
+          "B003"
+        ],
+        "candidate_authority": {
+          "clauses": [
+            {
+              "clause_id": "identity_bridge",
+              "satisfied": true
+            },
+            {
+              "clause_id": "repeated_hsm_requirement",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "B004"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "composer": {
+          "answer": "The Kestrel security contact was Dana Ortiz, a Staff Security Engineer, who repeatedly required HSM signing-key rotation before pilot access (B003, B002, B005).",
+          "cited_anchor_ids": [
+            "B003",
+            "B002",
+            "B005"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 3.226,
+          "model": "gpt-5.6-luna"
+        },
+        "deterministic_selector_contract_ok": true,
+        "final_authority": {
+          "clauses": [
+            {
+              "clause_id": "identity_bridge",
+              "satisfied": true
+            },
+            {
+              "clause_id": "repeated_hsm_requirement",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "B004"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "followup_retrieval": [
+          {
+            "query": "Kestrel security contact HSM signing-key rotation pilot access",
+            "ranking": [
+              {
+                "anchor_id": "B005",
+                "rank": 1,
+                "score": 16.284707159050498
+              },
+              {
+                "anchor_id": "B002",
+                "rank": 2,
+                "score": 11.509658600875479
+              },
+              {
+                "anchor_id": "B004",
+                "rank": 3,
+                "score": 11.463392667883713
+              },
+              {
+                "anchor_id": "B001",
+                "rank": 4,
+                "score": 8.390694796725409
+              },
+              {
+                "anchor_id": "B003",
+                "rank": 5,
+                "score": 8.23691405244112
+              },
+              {
+                "anchor_id": "B020",
+                "rank": 6,
+                "score": 3.825622884116882
+              },
+              {
+                "anchor_id": "B021",
+                "rank": 7,
+                "score": 1.5108341604519397
+              }
+            ]
+          },
+          {
+            "query": "Dana Ortiz Kestrel security engineer pilot HSM rotation",
+            "ranking": [
+              {
+                "anchor_id": "B003",
+                "rank": 1,
+                "score": 14.906202515709333
+              },
+              {
+                "anchor_id": "B002",
+                "rank": 2,
+                "score": 11.86157980873839
+              },
+              {
+                "anchor_id": "B005",
+                "rank": 3,
+                "score": 10.585009665951972
+              },
+              {
+                "anchor_id": "B004",
+                "rank": 4,
+                "score": 10.026212175964675
+              },
+              {
+                "anchor_id": "B001",
+                "rank": 5,
+                "score": 7.829660647330316
+              },
+              {
+                "anchor_id": "B020",
+                "rank": 6,
+                "score": 1.5033907631450247
+              }
+            ]
+          }
+        ],
+        "initial_anchor_ids": [
+          "B005",
+          "B002",
+          "B001",
+          "B004",
+          "B003"
+        ],
+        "initial_authority": {
+          "clauses": [
+            {
+              "clause_id": "identity_bridge",
+              "satisfied": true
+            },
+            {
+              "clause_id": "repeated_hsm_requirement",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "B004"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "initial_retrieval_ranking": [
+          {
+            "anchor_id": "B005",
+            "rank": 1,
+            "score": 18.093101561491366
+          },
+          {
+            "anchor_id": "B002",
+            "rank": 2,
+            "score": 13.232955763394006
+          },
+          {
+            "anchor_id": "B001",
+            "rank": 3,
+            "score": 12.235124533341844
+          },
+          {
+            "anchor_id": "B004",
+            "rank": 4,
+            "score": 11.617422591708747
+          },
+          {
+            "anchor_id": "B003",
+            "rank": 5,
+            "score": 8.23691405244112
+          },
+          {
+            "anchor_id": "B006",
+            "rank": 6,
+            "score": 4.957419889057652
+          },
+          {
+            "anchor_id": "B020",
+            "rank": 7,
+            "score": 3.825622884116882
+          },
+          {
+            "anchor_id": "B011",
+            "rank": 8,
+            "score": 2.161686661374364
+          },
+          {
+            "anchor_id": "B016",
+            "rank": 9,
+            "score": 2.0999964370521593
+          },
+          {
+            "anchor_id": "B021",
+            "rank": 10,
+            "score": 1.6708167926516353
+          },
+          {
+            "anchor_id": "B014",
+            "rank": 11,
+            "score": 0.20112826516127658
+          },
+          {
+            "anchor_id": "B012",
+            "rank": 12,
+            "score": 0.19746106488915954
+          },
+          {
+            "anchor_id": "B015",
+            "rank": 13,
+            "score": 0.1901702116554858
+          },
+          {
+            "anchor_id": "B013",
+            "rank": 14,
+            "score": 0.1887252447350774
+          },
+          {
+            "anchor_id": "B019",
+            "rank": 15,
+            "score": 0.18730207075838665
+          },
+          {
+            "anchor_id": "B010",
+            "rank": 16,
+            "score": 0.18049646629165222
+          },
+          {
+            "anchor_id": "B018",
+            "rank": 17,
+            "score": 0.17664542851362997
+          },
+          {
+            "anchor_id": "B008",
+            "rank": 18,
+            "score": 0.1717592651272036
+          },
+          {
+            "anchor_id": "B007",
+            "rank": 19,
+            "score": 0.1694161672043533
+          },
+          {
+            "anchor_id": "B017",
+            "rank": 20,
+            "score": 0.16475811838485274
+          },
+          {
+            "anchor_id": "B022",
+            "rank": 21,
+            "score": 0.16313492431956958
+          },
+          {
+            "anchor_id": "B023",
+            "rank": 22,
+            "score": 0.16313492431956958
+          },
+          {
+            "anchor_id": "B009",
+            "rank": 23,
+            "score": 0.12284524030099905
+          }
+        ],
+        "planner": {
+          "missing_or_ambiguous_relation": "Need authoritative linkage confirming the repeated HSM rotation requirement belonged to the Kestrel security contact and disambiguating Dana Ortiz from Diego Ortiz in Finance.",
+          "queries": [
+            "Kestrel security contact HSM signing-key rotation pilot access",
+            "Dana Ortiz Kestrel security engineer pilot HSM rotation"
+          ]
+        },
+        "planner_contract_ok": true,
+        "planner_receipt": {
+          "elapsed_seconds": 4.032,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Who was the Kestrel security contact who repeatedly required HSM signing-key rotation before pilot access?",
+        "question_id": "BQ001",
+        "rrf_trace": [
+          {
+            "anchor_id": "B005",
+            "initial_rank": 1,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.04865990111891751
+          },
+          {
+            "anchor_id": "B002",
+            "initial_rank": 2,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.04838709677419355
+          },
+          {
+            "anchor_id": "B003",
+            "initial_rank": 5,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.047162673392181595
+          },
+          {
+            "anchor_id": "B004",
+            "initial_rank": 4,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.04712301587301587
+          },
+          {
+            "anchor_id": "B001",
+            "initial_rank": 3,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.04688263125763126
+          }
+        ],
+        "selected_anchor_ids": [
+          "B005",
+          "B002",
+          "B003",
+          "B004"
+        ],
+        "stage": "COMPOSER_PERSISTED"
+      },
+      {
+        "candidate_anchor_ids": [
+          "B004",
+          "B005",
+          "B001",
+          "B003",
+          "B002"
+        ],
+        "candidate_authority": {
+          "clauses": [
+            {
+              "clause_id": "direct_authorship",
+              "satisfied": true
+            },
+            {
+              "clause_id": "meeting_attribution",
+              "satisfied": true
+            },
+            {
+              "clause_id": "identity_bridge",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "B004"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "composer": {
+          "answer": "Dana Ortiz directly authored an email stating that HSM signing keys must be rotated before pilot access opens, framing it as a release key-management requirement rather than a general objection to hosted HSM services (B002). In the meeting records, the requirement was only attributed to “D. Ortiz” from Kestrel Security: first as a requirement on August 1 and later as a reiteration on August 12; those records do not claim that Ortiz authored the notes (B001, B005). The supplied records do not establish that Dana Ortiz and “D. Ortiz” are definitively the same person.",
+          "cited_anchor_ids": [
+            "B002",
+            "B001",
+            "B005"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 4.245,
+          "model": "gpt-5.6-luna"
+        },
+        "deterministic_selector_contract_ok": true,
+        "final_authority": {
+          "clauses": [
+            {
+              "clause_id": "direct_authorship",
+              "satisfied": true
+            },
+            {
+              "clause_id": "meeting_attribution",
+              "satisfied": true
+            },
+            {
+              "clause_id": "identity_bridge",
+              "satisfied": false
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "B004"
+          ],
+          "missing_clause_ids": [
+            "identity_bridge"
+          ],
+          "status": "INSUFFICIENT_AUTHORITY"
+        },
+        "followup_retrieval": [
+          {
+            "query": "\"Dana Ortiz\" \"HSM signing-key rotation\" direct email",
+            "ranking": [
+              {
+                "anchor_id": "B002",
+                "rank": 1,
+                "score": 10.63054816942392
+              },
+              {
+                "anchor_id": "B004",
+                "rank": 2,
+                "score": 9.390607463557394
+              },
+              {
+                "anchor_id": "B003",
+                "rank": 3,
+                "score": 9.195148191905707
+              },
+              {
+                "anchor_id": "B005",
+                "rank": 4,
+                "score": 8.760346406074804
+              },
+              {
+                "anchor_id": "B001",
+                "rank": 5,
+                "score": 5.4450054912296455
+              }
+            ]
+          },
+          {
+            "query": "\"D. Ortiz\" \"HSM signing-key rotation\" meeting record",
+            "ranking": [
+              {
+                "anchor_id": "B005",
+                "rank": 1,
+                "score": 14.409395283550392
+              },
+              {
+                "anchor_id": "B004",
+                "rank": 2,
+                "score": 12.451256376533674
+              },
+              {
+                "anchor_id": "B001",
+                "rank": 3,
+                "score": 11.581105764772222
+              },
+              {
+                "anchor_id": "B002",
+                "rank": 4,
+                "score": 7.577104291409825
+              },
+              {
+                "anchor_id": "B003",
+                "rank": 5,
+                "score": 6.402376154996299
+              },
+              {
+                "anchor_id": "B015",
+                "rank": 6,
+                "score": 2.206700961329199
+              },
+              {
+                "anchor_id": "B008",
+                "rank": 7,
+                "score": 1.492876521754244
+              }
+            ]
+          }
+        ],
+        "initial_anchor_ids": [
+          "B004",
+          "B005",
+          "B001",
+          "B003",
+          "B002"
+        ],
+        "initial_authority": {
+          "clauses": [
+            {
+              "clause_id": "direct_authorship",
+              "satisfied": true
+            },
+            {
+              "clause_id": "meeting_attribution",
+              "satisfied": true
+            },
+            {
+              "clause_id": "identity_bridge",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "B004"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "initial_retrieval_ranking": [
+          {
+            "anchor_id": "B004",
+            "rank": 1,
+            "score": 15.525097522782222
+          },
+          {
+            "anchor_id": "B005",
+            "rank": 2,
+            "score": 12.674168125213635
+          },
+          {
+            "anchor_id": "B001",
+            "rank": 3,
+            "score": 12.55374863161515
+          },
+          {
+            "anchor_id": "B003",
+            "rank": 4,
+            "score": 12.501192020008178
+          },
+          {
+            "anchor_id": "B002",
+            "rank": 5,
+            "score": 11.836069667925086
+          },
+          {
+            "anchor_id": "B017",
+            "rank": 6,
+            "score": 3.9995297586421943
+          },
+          {
+            "anchor_id": "B006",
+            "rank": 7,
+            "score": 3.9435109035072777
+          },
+          {
+            "anchor_id": "B015",
+            "rank": 8,
+            "score": 3.7819207938673767
+          },
+          {
+            "anchor_id": "B014",
+            "rank": 9,
+            "score": 3.3955171550413468
+          },
+          {
+            "anchor_id": "B018",
+            "rank": 10,
+            "score": 3.3175104418563697
+          },
+          {
+            "anchor_id": "B013",
+            "rank": 11,
+            "score": 3.1123203172378857
+          },
+          {
+            "anchor_id": "B007",
+            "rank": 12,
+            "score": 2.746780999986526
+          },
+          {
+            "anchor_id": "B011",
+            "rank": 13,
+            "score": 2.5988263006708663
+          },
+          {
+            "anchor_id": "B021",
+            "rank": 14,
+            "score": 1.7166163914333337
+          },
+          {
+            "anchor_id": "B012",
+            "rank": 15,
+            "score": 1.6278979361492194
+          },
+          {
+            "anchor_id": "B022",
+            "rank": 16,
+            "score": 1.5591635813459899
+          },
+          {
+            "anchor_id": "B010",
+            "rank": 17,
+            "score": 1.4382921520948995
+          },
+          {
+            "anchor_id": "B009",
+            "rank": 18,
+            "score": 0.7284944734068075
+          },
+          {
+            "anchor_id": "B019",
+            "rank": 19,
+            "score": 0.6781813958693695
+          }
+        ],
+        "planner": {
+          "missing_or_ambiguous_relation": "Evidence linking Dana Ortiz to the meeting abbreviation D. Ortiz, and distinguishing Dana’s directly authored email from requirements merely attributed to D. Ortiz in meeting records.",
+          "queries": [
+            "\"Dana Ortiz\" \"HSM signing-key rotation\" direct email",
+            "\"D. Ortiz\" \"HSM signing-key rotation\" meeting record"
+          ]
+        },
+        "planner_contract_ok": true,
+        "planner_receipt": {
+          "elapsed_seconds": 4.291,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "What did Dana Ortiz directly author about HSM key rotation, and what was only attributed to D. Ortiz in meeting records?",
+        "question_id": "BQ002",
+        "rrf_trace": [
+          {
+            "anchor_id": "B004",
+            "initial_rank": 1,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.048651507139079855
+          },
+          {
+            "anchor_id": "B005",
+            "initial_rank": 2,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.04814747488101534
+          },
+          {
+            "anchor_id": "B002",
+            "initial_rank": 5,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.04740305800756621
+          },
+          {
+            "anchor_id": "B001",
+            "initial_rank": 3,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.04713064713064713
+          },
+          {
+            "anchor_id": "B003",
+            "initial_rank": 4,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.04688263125763126
+          }
+        ],
+        "selected_anchor_ids": [
+          "B004",
+          "B005",
+          "B002",
+          "B001"
+        ],
+        "stage": "COMPOSER_PERSISTED"
+      },
+      {
+        "candidate_anchor_ids": [
+          "B007",
+          "B008",
+          "B006",
+          "B018",
+          "B017"
+        ],
+        "candidate_authority": {
+          "clauses": [
+            {
+              "clause_id": "user_owned_decision_and_rationale",
+              "satisfied": true
+            },
+            {
+              "clause_id": "later_burst_non_reversal",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "composer": {
+          "answer": "We did not add NATS for the first release because it would increase operating ownership and failure modes; this was not a judgment that NATS was technically poor (B007). The existing SQLite-backed queue already met the first-release latency and throughput target under a realistic workload (B006). The later roughly 20x synthetic burst did not reverse that decision: it caused queue delay but was intentionally unrealistic, and the recorded next action was realistic measurement rather than adopting NATS (B008).",
+          "cited_anchor_ids": [
+            "B007",
+            "B006",
+            "B008"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 3.715,
+          "model": "gpt-5.6-luna"
+        },
+        "deterministic_selector_contract_ok": true,
+        "final_authority": {
+          "clauses": [
+            {
+              "clause_id": "user_owned_decision_and_rationale",
+              "satisfied": true
+            },
+            {
+              "clause_id": "later_burst_non_reversal",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "followup_retrieval": [
+          {
+            "query": "NATS first release operating ownership failure modes realistic workload decision",
+            "ranking": [
+              {
+                "anchor_id": "B007",
+                "rank": 1,
+                "score": 18.101414938926816
+              },
+              {
+                "anchor_id": "B006",
+                "rank": 2,
+                "score": 11.131187323708671
+              },
+              {
+                "anchor_id": "B008",
+                "rank": 3,
+                "score": 8.165806677920434
+              },
+              {
+                "anchor_id": "B016",
+                "rank": 4,
+                "score": 2.2158551841370437
+              },
+              {
+                "anchor_id": "B018",
+                "rank": 5,
+                "score": 1.8024294933098883
+              },
+              {
+                "anchor_id": "B002",
+                "rank": 6,
+                "score": 1.5478991533649853
+              }
+            ]
+          },
+          {
+            "query": "20x synthetic burst queue delay realistic measurement NATS decision reversal",
+            "ranking": [
+              {
+                "anchor_id": "B008",
+                "rank": 1,
+                "score": 18.46242416912488
+              },
+              {
+                "anchor_id": "B006",
+                "rank": 2,
+                "score": 6.17868959584082
+              },
+              {
+                "anchor_id": "B007",
+                "rank": 3,
+                "score": 6.057970329971969
+              },
+              {
+                "anchor_id": "B016",
+                "rank": 4,
+                "score": 2.2158551841370437
+              },
+              {
+                "anchor_id": "B018",
+                "rank": 5,
+                "score": 1.8024294933098883
+              },
+              {
+                "anchor_id": "B010",
+                "rank": 6,
+                "score": 1.6278979361492194
+              }
+            ]
+          }
+        ],
+        "initial_anchor_ids": [
+          "B007",
+          "B008",
+          "B006",
+          "B018",
+          "B017"
+        ],
+        "initial_authority": {
+          "clauses": [
+            {
+              "clause_id": "user_owned_decision_and_rationale",
+              "satisfied": true
+            },
+            {
+              "clause_id": "later_burst_non_reversal",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "initial_retrieval_ranking": [
+          {
+            "anchor_id": "B007",
+            "rank": 1,
+            "score": 15.856070290335769
+          },
+          {
+            "anchor_id": "B008",
+            "rank": 2,
+            "score": 14.409052188259528
+          },
+          {
+            "anchor_id": "B006",
+            "rank": 3,
+            "score": 8.510304948360544
+          },
+          {
+            "anchor_id": "B018",
+            "rank": 4,
+            "score": 7.785049706835189
+          },
+          {
+            "anchor_id": "B017",
+            "rank": 5,
+            "score": 7.147876150264963
+          },
+          {
+            "anchor_id": "B004",
+            "rank": 6,
+            "score": 5.705818320232233
+          },
+          {
+            "anchor_id": "B002",
+            "rank": 7,
+            "score": 4.217454556395513
+          },
+          {
+            "anchor_id": "B013",
+            "rank": 8,
+            "score": 3.708663918775504
+          },
+          {
+            "anchor_id": "B005",
+            "rank": 9,
+            "score": 2.7928139802869842
+          },
+          {
+            "anchor_id": "B015",
+            "rank": 10,
+            "score": 2.57072450081192
+          },
+          {
+            "anchor_id": "B016",
+            "rank": 11,
+            "score": 2.5626231435561824
+          },
+          {
+            "anchor_id": "B001",
+            "rank": 12,
+            "score": 2.4759360715862013
+          },
+          {
+            "anchor_id": "B021",
+            "rank": 13,
+            "score": 2.420819393099701
+          },
+          {
+            "anchor_id": "B022",
+            "rank": 14,
+            "score": 2.2804347116887076
+          },
+          {
+            "anchor_id": "B020",
+            "rank": 15,
+            "score": 1.9346328361521297
+          },
+          {
+            "anchor_id": "B010",
+            "rank": 16,
+            "score": 1.7992850846782038
+          },
+          {
+            "anchor_id": "B019",
+            "rank": 17,
+            "score": 1.442330709032825
+          },
+          {
+            "anchor_id": "B009",
+            "rank": 18,
+            "score": 0.9741849540088057
+          },
+          {
+            "anchor_id": "B011",
+            "rank": 19,
+            "score": 0.8709799770163329
+          },
+          {
+            "anchor_id": "B014",
+            "rank": 20,
+            "score": 0.7325005729936612
+          },
+          {
+            "anchor_id": "B023",
+            "rank": 21,
+            "score": 0.7212711303427172
+          },
+          {
+            "anchor_id": "B012",
+            "rank": 22,
+            "score": 0.3949221297783191
+          }
+        ],
+        "planner": {
+          "missing_or_ambiguous_relation": "Authoritative evidence linking the synthetic burst to a later decision is missing; establish whether realistic measurements followed and whether anyone formally reversed or reaffirmed the first-release NATS decision.",
+          "queries": [
+            "NATS first release operating ownership failure modes realistic workload decision",
+            "20x synthetic burst queue delay realistic measurement NATS decision reversal"
+          ]
+        },
+        "planner_contract_ok": true,
+        "planner_receipt": {
+          "elapsed_seconds": 3.647,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Why did we decide not to add NATS for the first release, and did the later 20x synthetic burst reverse that decision?",
+        "question_id": "BQ003",
+        "rrf_trace": [
+          {
+            "anchor_id": "B007",
+            "initial_rank": 1,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.04865990111891751
+          },
+          {
+            "anchor_id": "B008",
+            "initial_rank": 2,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.04839549075403121
+          },
+          {
+            "anchor_id": "B006",
+            "initial_rank": 3,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.048131080389144903
+          },
+          {
+            "anchor_id": "B018",
+            "initial_rank": 4,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.04639423076923077
+          },
+          {
+            "anchor_id": "B017",
+            "initial_rank": 5,
+            "retrieval_list_appearances": 1,
+            "rrf_score": 0.015384615384615385
+          }
+        ],
+        "selected_anchor_ids": [
+          "B007",
+          "B008",
+          "B006",
+          "B018"
+        ],
+        "stage": "COMPOSER_PERSISTED"
+      },
+      {
+        "candidate_anchor_ids": [
+          "B009",
+          "B011",
+          "B010",
+          "B012",
+          "B022"
+        ],
+        "candidate_authority": {
+          "clauses": [
+            {
+              "clause_id": "early_hypothesis",
+              "satisfied": true
+            },
+            {
+              "clause_id": "causal_retry_signal",
+              "satisfied": true
+            },
+            {
+              "clause_id": "final_root_cause_and_rejection",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "composer": {
+          "answer": "INC-311 was caused by a client-backoff configuration change that triggered retry amplification and retained requests longer than expected; the elevated memory was downstream (B011). The initial connection-leak hypothesis was an unconfirmed working hypothesis (B009) and should be treated as rejected, since heap inspection found no connection leak (B011).",
+          "cited_anchor_ids": [
+            "B011",
+            "B009"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 5.165,
+          "model": "gpt-5.6-luna"
+        },
+        "deterministic_selector_contract_ok": true,
+        "final_authority": {
+          "clauses": [
+            {
+              "clause_id": "early_hypothesis",
+              "satisfied": true
+            },
+            {
+              "clause_id": "causal_retry_signal",
+              "satisfied": true
+            },
+            {
+              "clause_id": "final_root_cause_and_rejection",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "followup_retrieval": [
+          {
+            "query": "INC-311 client-backoff retry amplification root cause retained requests",
+            "ranking": [
+              {
+                "anchor_id": "B011",
+                "rank": 1,
+                "score": 19.733391371142318
+              },
+              {
+                "anchor_id": "B012",
+                "rank": 2,
+                "score": 11.726605362987417
+              },
+              {
+                "anchor_id": "B010",
+                "rank": 3,
+                "score": 10.49465327081712
+              },
+              {
+                "anchor_id": "B009",
+                "rank": 4,
+                "score": 3.738879339838956
+              }
+            ]
+          },
+          {
+            "query": "INC-311 connection leak heap inspection hypothesis rejected",
+            "ranking": [
+              {
+                "anchor_id": "B011",
+                "rank": 1,
+                "score": 18.367616398864822
+              },
+              {
+                "anchor_id": "B009",
+                "rank": 2,
+                "score": 12.282475036941683
+              },
+              {
+                "anchor_id": "B010",
+                "rank": 3,
+                "score": 3.255795872298439
+              },
+              {
+                "anchor_id": "B012",
+                "rank": 4,
+                "score": 3.255795872298439
+              }
+            ]
+          }
+        ],
+        "initial_anchor_ids": [
+          "B009",
+          "B011",
+          "B010",
+          "B012",
+          "B022"
+        ],
+        "initial_authority": {
+          "clauses": [
+            {
+              "clause_id": "early_hypothesis",
+              "satisfied": true
+            },
+            {
+              "clause_id": "causal_retry_signal",
+              "satisfied": true
+            },
+            {
+              "clause_id": "final_root_cause_and_rejection",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "initial_retrieval_ranking": [
+          {
+            "anchor_id": "B009",
+            "rank": 1,
+            "score": 17.305011974788833
+          },
+          {
+            "anchor_id": "B011",
+            "rank": 2,
+            "score": 13.693151344212339
+          },
+          {
+            "anchor_id": "B010",
+            "rank": 3,
+            "score": 6.766930793804757
+          },
+          {
+            "anchor_id": "B012",
+            "rank": 4,
+            "score": 3.4532569371875983
+          },
+          {
+            "anchor_id": "B022",
+            "rank": 5,
+            "score": 2.403971909111822
+          },
+          {
+            "anchor_id": "B014",
+            "rank": 6,
+            "score": 2.1212506792937225
+          },
+          {
+            "anchor_id": "B015",
+            "rank": 7,
+            "score": 1.7653900441936636
+          },
+          {
+            "anchor_id": "B005",
+            "rank": 8,
+            "score": 1.613247443118712
+          },
+          {
+            "anchor_id": "B006",
+            "rank": 9,
+            "score": 0.8764054936354342
+          },
+          {
+            "anchor_id": "B013",
+            "rank": 10,
+            "score": 0.8764054936354342
+          },
+          {
+            "anchor_id": "B019",
+            "rank": 11,
+            "score": 0.8654834666277562
+          },
+          {
+            "anchor_id": "B017",
+            "rank": 12,
+            "score": 0.8622070889104068
+          },
+          {
+            "anchor_id": "B001",
+            "rank": 13,
+            "score": 0.8083091650234651
+          },
+          {
+            "anchor_id": "B004",
+            "rank": 14,
+            "score": 0.7883989643654727
+          },
+          {
+            "anchor_id": "B018",
+            "rank": 15,
+            "score": 0.7873428445993392
+          },
+          {
+            "anchor_id": "B007",
+            "rank": 16,
+            "score": 0.7377021434120458
+          },
+          {
+            "anchor_id": "B002",
+            "rank": 17,
+            "score": 0.17539800915353984
+          },
+          {
+            "anchor_id": "B016",
+            "rank": 18,
+            "score": 0.1733839797095693
+          },
+          {
+            "anchor_id": "B008",
+            "rank": 19,
+            "score": 0.1717592651272036
+          },
+          {
+            "anchor_id": "B023",
+            "rank": 20,
+            "score": 0.16313492431956958
+          },
+          {
+            "anchor_id": "B021",
+            "rank": 21,
+            "score": 0.15998263219969547
+          }
+        ],
+        "planner": {
+          "missing_or_ambiguous_relation": "Authoritative postmortem linkage between the client-backoff change, retry amplification, retained requests, and the disposition of the connection-leak hypothesis.",
+          "queries": [
+            "INC-311 client-backoff retry amplification root cause retained requests",
+            "INC-311 connection leak heap inspection hypothesis rejected"
+          ]
+        },
+        "planner_contract_ok": true,
+        "planner_receipt": {
+          "elapsed_seconds": 3.661,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "What caused INC-311, and how should the initial connection-leak hypothesis be treated?",
+        "question_id": "BQ004",
+        "rrf_trace": [
+          {
+            "anchor_id": "B011",
+            "initial_rank": 2,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.048915917503966164
+          },
+          {
+            "anchor_id": "B009",
+            "initial_rank": 1,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.04814747488101534
+          },
+          {
+            "anchor_id": "B010",
+            "initial_rank": 3,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.047619047619047616
+          },
+          {
+            "anchor_id": "B012",
+            "initial_rank": 4,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.047379032258064516
+          },
+          {
+            "anchor_id": "B022",
+            "initial_rank": 5,
+            "retrieval_list_appearances": 1,
+            "rrf_score": 0.015384615384615385
+          }
+        ],
+        "selected_anchor_ids": [
+          "B011",
+          "B009",
+          "B010",
+          "B012"
+        ],
+        "stage": "COMPOSER_PERSISTED"
+      },
+      {
+        "candidate_anchor_ids": [
+          "B012",
+          "B009",
+          "B010",
+          "B019",
+          "B011"
+        ],
+        "candidate_authority": {
+          "clauses": [
+            {
+              "clause_id": "corrected_start_time",
+              "satisfied": true
+            },
+            {
+              "clause_id": "retry_signal_and_rollback",
+              "satisfied": true
+            },
+            {
+              "clause_id": "final_root_cause",
+              "satisfied": true
+            },
+            {
+              "clause_id": "addendum_scope",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "composer": {
+          "answer": "INC-311 began at 14:06 on 2026-08-03, when worker memory and request latency were rising; the initial connection-leak hypothesis was explicitly unconfirmed (B009). By 14:21, retry volume had risen after the client-backoff change, and disabling automatic retries reduced memory pressure and queue depth, prompting rollback of that change (B010). The postmortem concluded that the backoff change caused retry amplification and prolonged request retention; heap inspection found no connection leak, rejecting the initial hypothesis (B011). The addendum changed only the previously circulated start time from 14:00 to the source-log time of 14:06; it did not change the retry-amplification root-cause assessment (B012).",
+          "cited_anchor_ids": [
+            "B009",
+            "B010",
+            "B011",
+            "B012"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 4.099,
+          "model": "gpt-5.6-luna"
+        },
+        "deterministic_selector_contract_ok": true,
+        "final_authority": {
+          "clauses": [
+            {
+              "clause_id": "corrected_start_time",
+              "satisfied": true
+            },
+            {
+              "clause_id": "retry_signal_and_rollback",
+              "satisfied": true
+            },
+            {
+              "clause_id": "final_root_cause",
+              "satisfied": true
+            },
+            {
+              "clause_id": "addendum_scope",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "followup_retrieval": [
+          {
+            "query": "INC-311 mitigation resolution timeline after 14:21",
+            "ranking": [
+              {
+                "anchor_id": "B010",
+                "rank": 1,
+                "score": 9.452257813201353
+              },
+              {
+                "anchor_id": "B012",
+                "rank": 2,
+                "score": 8.296068597541726
+              },
+              {
+                "anchor_id": "B009",
+                "rank": 3,
+                "score": 5.608319009758434
+              },
+              {
+                "anchor_id": "B011",
+                "rank": 4,
+                "score": 4.4786295652627315
+              },
+              {
+                "anchor_id": "B022",
+                "rank": 5,
+                "score": 2.029638786633951
+              },
+              {
+                "anchor_id": "B018",
+                "rank": 6,
+                "score": 1.8024294933098883
+              }
+            ]
+          },
+          {
+            "query": "INC-311 addendum original timeline start time correction rationale",
+            "ranking": [
+              {
+                "anchor_id": "B012",
+                "rank": 1,
+                "score": 14.014897510086106
+              },
+              {
+                "anchor_id": "B011",
+                "rank": 2,
+                "score": 7.019899474443996
+              },
+              {
+                "anchor_id": "B009",
+                "rank": 3,
+                "score": 3.738879339838956
+              },
+              {
+                "anchor_id": "B010",
+                "rank": 4,
+                "score": 3.255795872298439
+              }
+            ]
+          }
+        ],
+        "initial_anchor_ids": [
+          "B012",
+          "B009",
+          "B010",
+          "B019",
+          "B011"
+        ],
+        "initial_authority": {
+          "clauses": [
+            {
+              "clause_id": "corrected_start_time",
+              "satisfied": true
+            },
+            {
+              "clause_id": "retry_signal_and_rollback",
+              "satisfied": true
+            },
+            {
+              "clause_id": "final_root_cause",
+              "satisfied": true
+            },
+            {
+              "clause_id": "addendum_scope",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "initial_retrieval_ranking": [
+          {
+            "anchor_id": "B012",
+            "rank": 1,
+            "score": 8.845795766536053
+          },
+          {
+            "anchor_id": "B009",
+            "rank": 2,
+            "score": 4.590219053546763
+          },
+          {
+            "anchor_id": "B010",
+            "rank": 3,
+            "score": 4.07066137913053
+          },
+          {
+            "anchor_id": "B019",
+            "rank": 4,
+            "score": 3.7479692728799776
+          },
+          {
+            "anchor_id": "B011",
+            "rank": 5,
+            "score": 3.7121195746182107
+          },
+          {
+            "anchor_id": "B004",
+            "rank": 6,
+            "score": 2.660693554444941
+          },
+          {
+            "anchor_id": "B005",
+            "rank": 7,
+            "score": 2.0527910563711207
+          },
+          {
+            "anchor_id": "B002",
+            "rank": 8,
+            "score": 1.9556835826393941
+          },
+          {
+            "anchor_id": "B006",
+            "rank": 9,
+            "score": 0.8764054936354342
+          },
+          {
+            "anchor_id": "B013",
+            "rank": 10,
+            "score": 0.8764054936354342
+          },
+          {
+            "anchor_id": "B017",
+            "rank": 11,
+            "score": 0.8622070889104068
+          },
+          {
+            "anchor_id": "B022",
+            "rank": 12,
+            "score": 0.8508151732199264
+          },
+          {
+            "anchor_id": "B001",
+            "rank": 13,
+            "score": 0.8083091650234651
+          },
+          {
+            "anchor_id": "B018",
+            "rank": 14,
+            "score": 0.7873428445993392
+          },
+          {
+            "anchor_id": "B007",
+            "rank": 15,
+            "score": 0.7377021434120458
+          },
+          {
+            "anchor_id": "B014",
+            "rank": 16,
+            "score": 0.20112826516127658
+          },
+          {
+            "anchor_id": "B015",
+            "rank": 17,
+            "score": 0.1901702116554858
+          },
+          {
+            "anchor_id": "B016",
+            "rank": 18,
+            "score": 0.1733839797095693
+          },
+          {
+            "anchor_id": "B008",
+            "rank": 19,
+            "score": 0.1717592651272036
+          },
+          {
+            "anchor_id": "B023",
+            "rank": 20,
+            "score": 0.16313492431956958
+          },
+          {
+            "anchor_id": "B021",
+            "rank": 21,
+            "score": 0.15998263219969547
+          }
+        ],
+        "planner": {
+          "missing_or_ambiguous_relation": "The timeline lacks the later mitigation, confirmation, and resolution events, plus an authoritative record linking the addendum to the original circulated timeline and confirming that only the start time changed.",
+          "queries": [
+            "INC-311 mitigation resolution timeline after 14:21",
+            "INC-311 addendum original timeline start time correction rationale"
+          ]
+        },
+        "planner_contract_ok": true,
+        "planner_receipt": {
+          "elapsed_seconds": 4.156,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Reconstruct the key INC-311 timeline and explain exactly what its addendum changed.",
+        "question_id": "BQ005",
+        "rrf_trace": [
+          {
+            "anchor_id": "B012",
+            "initial_rank": 1,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.048915917503966164
+          },
+          {
+            "anchor_id": "B010",
+            "initial_rank": 3,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.047891458495966696
+          },
+          {
+            "anchor_id": "B009",
+            "initial_rank": 2,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.04787506400409626
+          },
+          {
+            "anchor_id": "B011",
+            "initial_rank": 5,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.0471386476426799
+          },
+          {
+            "anchor_id": "B019",
+            "initial_rank": 4,
+            "retrieval_list_appearances": 1,
+            "rrf_score": 0.015625
+          }
+        ],
+        "selected_anchor_ids": [
+          "B012",
+          "B010",
+          "B009",
+          "B011"
+        ],
+        "stage": "COMPOSER_PERSISTED"
+      },
+      {
+        "candidate_anchor_ids": [
+          "B014",
+          "B015",
+          "B023",
+          "B016",
+          "B021",
+          "B022"
+        ],
+        "candidate_authority": {
+          "clauses": [
+            {
+              "clause_id": "eu_residency_scope",
+              "satisfied": false
+            },
+            {
+              "clause_id": "encryption_not_waiver",
+              "satisfied": false
+            },
+            {
+              "clause_id": "standard_and_eu_only_option",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [
+            "eu_residency_scope",
+            "encryption_not_waiver"
+          ],
+          "status": "INSUFFICIENT_AUTHORITY"
+        },
+        "composer": {
+          "answer": "No—the standard disaster-recovery configuration does not satisfy Cedar’s EU-only rule because encrypted backups may be stored in the United States, and NimbusGrid could not confirm that every standard-configured copy remains inside the EU (B014, B015). The EU-only disaster-recovery option could satisfy the rule if it ensures every copy stays inside the EU, but the supplied authority only confirms that the option is available, not that this condition has been verified (B014, B015).",
+          "cited_anchor_ids": [
+            "B014",
+            "B015"
+          ],
+          "insufficient_authority": true
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 4.007,
+          "model": "gpt-5.6-luna"
+        },
+        "deterministic_selector_contract_ok": true,
+        "final_authority": {
+          "clauses": [
+            {
+              "clause_id": "eu_residency_scope",
+              "satisfied": false
+            },
+            {
+              "clause_id": "encryption_not_waiver",
+              "satisfied": false
+            },
+            {
+              "clause_id": "standard_and_eu_only_option",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [
+            "eu_residency_scope",
+            "encryption_not_waiver"
+          ],
+          "status": "INSUFFICIENT_AUTHORITY"
+        },
+        "followup_retrieval": [
+          {
+            "query": "Cedar EU-only disaster-recovery rule every copy EU requirement",
+            "ranking": [
+              {
+                "anchor_id": "B015",
+                "rank": 1,
+                "score": 17.113938326329073
+              },
+              {
+                "anchor_id": "B014",
+                "rank": 2,
+                "score": 12.827675375843706
+              },
+              {
+                "anchor_id": "B022",
+                "rank": 3,
+                "score": 4.413986108795239
+              },
+              {
+                "anchor_id": "B013",
+                "rank": 4,
+                "score": 4.1490508092068685
+              },
+              {
+                "anchor_id": "B007",
+                "rank": 5,
+                "score": 2.9166352980369763
+              },
+              {
+                "anchor_id": "B021",
+                "rank": 6,
+                "score": 1.7166163914333337
+              },
+              {
+                "anchor_id": "B012",
+                "rank": 7,
+                "score": 1.6278979361492194
+              },
+              {
+                "anchor_id": "B001",
+                "rank": 8,
+                "score": 1.5478991533649853
+              },
+              {
+                "anchor_id": "B002",
+                "rank": 9,
+                "score": 1.5478991533649853
+              }
+            ]
+          },
+          {
+            "query": "NimbusGrid EU-only disaster-recovery option contractual guarantee regulated enterprise plan",
+            "ranking": [
+              {
+                "anchor_id": "B014",
+                "rank": 1,
+                "score": 21.64814949376546
+              },
+              {
+                "anchor_id": "B015",
+                "rank": 2,
+                "score": 9.313123720170749
+              },
+              {
+                "anchor_id": "B022",
+                "rank": 3,
+                "score": 2.029638786633951
+              },
+              {
+                "anchor_id": "B021",
+                "rank": 4,
+                "score": 1.7166163914333337
+              },
+              {
+                "anchor_id": "B012",
+                "rank": 5,
+                "score": 1.6278979361492194
+              },
+              {
+                "anchor_id": "B007",
+                "rank": 6,
+                "score": 1.4583176490184881
+              }
+            ]
+          }
+        ],
+        "initial_anchor_ids": [
+          "B014",
+          "B015",
+          "B023",
+          "B016",
+          "B021"
+        ],
+        "initial_authority": {
+          "clauses": [
+            {
+              "clause_id": "eu_residency_scope",
+              "satisfied": false
+            },
+            {
+              "clause_id": "encryption_not_waiver",
+              "satisfied": false
+            },
+            {
+              "clause_id": "standard_and_eu_only_option",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [
+            "eu_residency_scope",
+            "encryption_not_waiver"
+          ],
+          "status": "INSUFFICIENT_AUTHORITY"
+        },
+        "initial_retrieval_ranking": [
+          {
+            "anchor_id": "B014",
+            "rank": 1,
+            "score": 24.85385927281627
+          },
+          {
+            "anchor_id": "B015",
+            "rank": 2,
+            "score": 21.51209796354511
+          },
+          {
+            "anchor_id": "B023",
+            "rank": 3,
+            "score": 6.158021436615114
+          },
+          {
+            "anchor_id": "B016",
+            "rank": 4,
+            "score": 5.379599400293401
+          },
+          {
+            "anchor_id": "B021",
+            "rank": 5,
+            "score": 4.785994301183161
+          },
+          {
+            "anchor_id": "B013",
+            "rank": 6,
+            "score": 4.486944683769691
+          },
+          {
+            "anchor_id": "B022",
+            "rank": 7,
+            "score": 4.1066458278268465
+          },
+          {
+            "anchor_id": "B007",
+            "rank": 8,
+            "score": 3.654337441449022
+          },
+          {
+            "anchor_id": "B012",
+            "rank": 9,
+            "score": 3.4532569371875983
+          },
+          {
+            "anchor_id": "B010",
+            "rank": 10,
+            "score": 2.4427634429813105
+          },
+          {
+            "anchor_id": "B011",
+            "rank": 11,
+            "score": 2.2192430528639666
+          },
+          {
+            "anchor_id": "B001",
+            "rank": 12,
+            "score": 1.8838560590096072
+          },
+          {
+            "anchor_id": "B018",
+            "rank": 13,
+            "score": 1.8762678305849483
+          },
+          {
+            "anchor_id": "B008",
+            "rank": 14,
+            "score": 1.2090740686058818
+          },
+          {
+            "anchor_id": "B006",
+            "rank": 15,
+            "score": 0.8764054936354342
+          },
+          {
+            "anchor_id": "B019",
+            "rank": 16,
+            "score": 0.8654834666277562
+          },
+          {
+            "anchor_id": "B017",
+            "rank": 17,
+            "score": 0.8622070889104068
+          },
+          {
+            "anchor_id": "B009",
+            "rank": 18,
+            "score": 0.8513397137078066
+          },
+          {
+            "anchor_id": "B004",
+            "rank": 19,
+            "score": 0.7883989643654727
+          },
+          {
+            "anchor_id": "B005",
+            "rank": 20,
+            "score": 0.18049646629165222
+          },
+          {
+            "anchor_id": "B002",
+            "rank": 21,
+            "score": 0.17539800915353984
+          }
+        ],
+        "planner": {
+          "missing_or_ambiguous_relation": "Cedar’s authoritative EU-only rule and whether it requires every disaster-recovery copy to remain in the EU; also whether NimbusGrid’s regulated enterprise EU-only option contractually guarantees that requirement.",
+          "queries": [
+            "Cedar EU-only disaster-recovery rule every copy EU requirement",
+            "NimbusGrid EU-only disaster-recovery option contractual guarantee regulated enterprise plan"
+          ]
+        },
+        "planner_contract_ok": true,
+        "planner_receipt": {
+          "elapsed_seconds": 4.574,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Does NimbusGrid's standard disaster-recovery configuration satisfy Cedar's EU-only rule, and could the EU-only option satisfy it?",
+        "question_id": "BQ006",
+        "rrf_trace": [
+          {
+            "anchor_id": "B014",
+            "initial_rank": 1,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.048915917503966164
+          },
+          {
+            "anchor_id": "B015",
+            "initial_rank": 2,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.048651507139079855
+          },
+          {
+            "anchor_id": "B022",
+            "initial_rank": 7,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.046671404880360104
+          },
+          {
+            "anchor_id": "B021",
+            "initial_rank": 5,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.04616113053613054
+          },
+          {
+            "anchor_id": "B023",
+            "initial_rank": 3,
+            "retrieval_list_appearances": 1,
+            "rrf_score": 0.015873015873015872
+          },
+          {
+            "anchor_id": "B016",
+            "initial_rank": 4,
+            "retrieval_list_appearances": 1,
+            "rrf_score": 0.015625
+          }
+        ],
+        "selected_anchor_ids": [
+          "B014",
+          "B015",
+          "B022",
+          "B021"
+        ],
+        "stage": "COMPOSER_PERSISTED"
+      },
+      {
+        "candidate_anchor_ids": [
+          "B017",
+          "B016",
+          "B018",
+          "B019",
+          "B007"
+        ],
+        "candidate_authority": {
+          "clauses": [
+            {
+              "clause_id": "project_identity_bridge",
+              "satisfied": true
+            },
+            {
+              "clause_id": "user_owned_deprecation_decision",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "B019"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "composer": {
+          "answer": "Yes. Project PRJ-482 decided to deprecate v1 webhooks after the compatibility window; its current name is Harbor, formerly Lark (B018, B017).",
+          "cited_anchor_ids": [
+            "B018",
+            "B017"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 3.316,
+          "model": "gpt-5.6-luna"
+        },
+        "deterministic_selector_contract_ok": true,
+        "final_authority": {
+          "clauses": [
+            {
+              "clause_id": "project_identity_bridge",
+              "satisfied": true
+            },
+            {
+              "clause_id": "user_owned_deprecation_decision",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "B019"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "followup_retrieval": [
+          {
+            "query": "PRJ-482 Lark Harbor rename v1 webhook deprecation decision",
+            "ranking": [
+              {
+                "anchor_id": "B016",
+                "rank": 1,
+                "score": 14.378767026238531
+              },
+              {
+                "anchor_id": "B017",
+                "rank": 2,
+                "score": 13.352642924859246
+              },
+              {
+                "anchor_id": "B018",
+                "rank": 3,
+                "score": 9.8324364857571
+              },
+              {
+                "anchor_id": "B019",
+                "rank": 4,
+                "score": 8.832224485875418
+              },
+              {
+                "anchor_id": "B008",
+                "rank": 5,
+                "score": 1.7170023828084235
+              }
+            ]
+          },
+          {
+            "query": "Lark webhook consumers deprecation approved Harbor compatibility window",
+            "ranking": [
+              {
+                "anchor_id": "B016",
+                "rank": 1,
+                "score": 12.55016436825636
+              },
+              {
+                "anchor_id": "B018",
+                "rank": 2,
+                "score": 9.931463474614242
+              },
+              {
+                "anchor_id": "B017",
+                "rank": 3,
+                "score": 6.271322890010077
+              },
+              {
+                "anchor_id": "B020",
+                "rank": 4,
+                "score": 3.1910269847452013
+              },
+              {
+                "anchor_id": "B019",
+                "rank": 5,
+                "score": 2.8274136702482005
+              }
+            ]
+          }
+        ],
+        "initial_anchor_ids": [
+          "B017",
+          "B016",
+          "B018",
+          "B019",
+          "B007"
+        ],
+        "initial_authority": {
+          "clauses": [
+            {
+              "clause_id": "project_identity_bridge",
+              "satisfied": true
+            },
+            {
+              "clause_id": "user_owned_deprecation_decision",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "B019"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "initial_retrieval_ranking": [
+          {
+            "anchor_id": "B017",
+            "rank": 1,
+            "score": 17.637468906135158
+          },
+          {
+            "anchor_id": "B016",
+            "rank": 2,
+            "score": 16.079866918633307
+          },
+          {
+            "anchor_id": "B018",
+            "rank": 3,
+            "score": 14.689773155567826
+          },
+          {
+            "anchor_id": "B019",
+            "rank": 4,
+            "score": 7.144524115686513
+          },
+          {
+            "anchor_id": "B007",
+            "rank": 5,
+            "score": 5.661594009364491
+          },
+          {
+            "anchor_id": "B003",
+            "rank": 6,
+            "score": 5.160114660923179
+          },
+          {
+            "anchor_id": "B023",
+            "rank": 7,
+            "score": 3.41896557892649
+          },
+          {
+            "anchor_id": "B004",
+            "rank": 8,
+            "score": 2.98790393123531
+          },
+          {
+            "anchor_id": "B008",
+            "rank": 9,
+            "score": 2.975560413458706
+          },
+          {
+            "anchor_id": "B021",
+            "rank": 10,
+            "score": 2.7243349658573437
+          },
+          {
+            "anchor_id": "B005",
+            "rank": 11,
+            "score": 2.612317513995332
+          },
+          {
+            "anchor_id": "B015",
+            "rank": 12,
+            "score": 1.9799418857597022
+          },
+          {
+            "anchor_id": "B001",
+            "rank": 13,
+            "score": 1.9243485194893903
+          },
+          {
+            "anchor_id": "B009",
+            "rank": 14,
+            "score": 1.774546091043769
+          },
+          {
+            "anchor_id": "B006",
+            "rank": 15,
+            "score": 1.7478888260810674
+          },
+          {
+            "anchor_id": "B013",
+            "rank": 16,
+            "score": 1.7478888260810674
+          },
+          {
+            "anchor_id": "B022",
+            "rank": 17,
+            "score": 1.7222985056655595
+          },
+          {
+            "anchor_id": "B002",
+            "rank": 18,
+            "score": 1.7042308384269698
+          },
+          {
+            "anchor_id": "B010",
+            "rank": 19,
+            "score": 1.6187886183865516
+          },
+          {
+            "anchor_id": "B011",
+            "rank": 20,
+            "score": 1.4636105019290708
+          },
+          {
+            "anchor_id": "B014",
+            "rank": 21,
+            "score": 1.2785177143405821
+          },
+          {
+            "anchor_id": "B012",
+            "rank": 22,
+            "score": 0.19746106488915954
+          }
+        ],
+        "planner": {
+          "missing_or_ambiguous_relation": "Independent project records should confirm that Lark (PRJ-482) became Harbor and that the v1 webhook deprecation was an adopted decision, not merely a planned evaluation or unrelated Harbor product change.",
+          "queries": [
+            "PRJ-482 Lark Harbor rename v1 webhook deprecation decision",
+            "Lark webhook consumers deprecation approved Harbor compatibility window"
+          ]
+        },
+        "planner_contract_ok": true,
+        "planner_receipt": {
+          "elapsed_seconds": 4.483,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Did the Lark project decide to deprecate v1 webhooks, and what is that project's current name?",
+        "question_id": "BQ007",
+        "rrf_trace": [
+          {
+            "anchor_id": "B016",
+            "initial_rank": 2,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.048915917503966164
+          },
+          {
+            "anchor_id": "B017",
+            "initial_rank": 1,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.04839549075403121
+          },
+          {
+            "anchor_id": "B018",
+            "initial_rank": 3,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.04787506400409626
+          },
+          {
+            "anchor_id": "B019",
+            "initial_rank": 4,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.046634615384615385
+          },
+          {
+            "anchor_id": "B007",
+            "initial_rank": 5,
+            "retrieval_list_appearances": 1,
+            "rrf_score": 0.015384615384615385
+          }
+        ],
+        "selected_anchor_ids": [
+          "B016",
+          "B017",
+          "B018",
+          "B019"
+        ],
+        "stage": "COMPOSER_PERSISTED"
+      },
+      {
+        "candidate_anchor_ids": [
+          "B021",
+          "B022",
+          "B020",
+          "B023",
+          "B013"
+        ],
+        "candidate_authority": {
+          "clauses": [
+            {
+              "clause_id": "normal_sso_requirement",
+              "satisfied": true
+            },
+            {
+              "clause_id": "break_glass_scope",
+              "satisfied": true
+            },
+            {
+              "clause_id": "audit_not_waived",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "B023"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "composer": {
+          "answer": "The break-glass administrator may bypass SSO only during a declared incident when the identity provider is unavailable (B021). Every use must still be logged, linked to that incident, and reviewed after recovery; the exception does not waive audit logging or post-incident review (B022). It does not permit routine local-administrator access: normal privileged access requires corporate SSO with phishing-resistant MFA, and local administrator credentials are not approved for routine use (B020).",
+          "cited_anchor_ids": [
+            "B021",
+            "B022",
+            "B020"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 3.59,
+          "model": "gpt-5.6-luna"
+        },
+        "deterministic_selector_contract_ok": true,
+        "final_authority": {
+          "clauses": [
+            {
+              "clause_id": "normal_sso_requirement",
+              "satisfied": true
+            },
+            {
+              "clause_id": "break_glass_scope",
+              "satisfied": true
+            },
+            {
+              "clause_id": "audit_not_waived",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "B023"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "followup_retrieval": [
+          {
+            "query": "break-glass account IdP unavailable declared incident audit logging post-incident review policy",
+            "ranking": [
+              {
+                "anchor_id": "B022",
+                "rank": 1,
+                "score": 23.702499369895964
+              },
+              {
+                "anchor_id": "B021",
+                "rank": 2,
+                "score": 15.55394683469201
+              },
+              {
+                "anchor_id": "B023",
+                "rank": 3,
+                "score": 7.153041966483862
+              },
+              {
+                "anchor_id": "B012",
+                "rank": 4,
+                "score": 4.688006621138119
+              },
+              {
+                "anchor_id": "B011",
+                "rank": 5,
+                "score": 2.985753043508488
+              },
+              {
+                "anchor_id": "B020",
+                "rank": 6,
+                "score": 2.6031077102919156
+              },
+              {
+                "anchor_id": "B005",
+                "rank": 7,
+                "score": 2.199504966869837
+              }
+            ]
+          },
+          {
+            "query": "local administrator credentials routine privileged access corporate SSO MFA policy",
+            "ranking": [
+              {
+                "anchor_id": "B020",
+                "rank": 1,
+                "score": 29.325313477342405
+              },
+              {
+                "anchor_id": "B021",
+                "rank": 2,
+                "score": 7.778874200572256
+              },
+              {
+                "anchor_id": "B023",
+                "rank": 3,
+                "score": 6.798333430956527
+              },
+              {
+                "anchor_id": "B022",
+                "rank": 4,
+                "score": 2.029638786633951
+              },
+              {
+                "anchor_id": "B005",
+                "rank": 5,
+                "score": 1.4327509768270599
+              },
+              {
+                "anchor_id": "B001",
+                "rank": 6,
+                "score": 1.3623421805297835
+              },
+              {
+                "anchor_id": "B002",
+                "rank": 7,
+                "score": 1.3623421805297835
+              }
+            ]
+          }
+        ],
+        "initial_anchor_ids": [
+          "B021",
+          "B022",
+          "B020",
+          "B023",
+          "B013"
+        ],
+        "initial_authority": {
+          "clauses": [
+            {
+              "clause_id": "normal_sso_requirement",
+              "satisfied": true
+            },
+            {
+              "clause_id": "break_glass_scope",
+              "satisfied": true
+            },
+            {
+              "clause_id": "audit_not_waived",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "B023"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "initial_retrieval_ranking": [
+          {
+            "anchor_id": "B021",
+            "rank": 1,
+            "score": 23.939044208665656
+          },
+          {
+            "anchor_id": "B022",
+            "rank": 2,
+            "score": 21.950801472603295
+          },
+          {
+            "anchor_id": "B020",
+            "rank": 3,
+            "score": 12.77895613534048
+          },
+          {
+            "anchor_id": "B023",
+            "rank": 4,
+            "score": 12.601646332044304
+          },
+          {
+            "anchor_id": "B013",
+            "rank": 5,
+            "score": 4.486944683769691
+          },
+          {
+            "anchor_id": "B001",
+            "rank": 6,
+            "score": 3.2461982395393907
+          },
+          {
+            "anchor_id": "B005",
+            "rank": 7,
+            "score": 3.2411453792679312
+          },
+          {
+            "anchor_id": "B004",
+            "rank": 8,
+            "score": 2.660693554444941
+          },
+          {
+            "anchor_id": "B014",
+            "rank": 9,
+            "score": 2.6448083179132023
+          },
+          {
+            "anchor_id": "B007",
+            "rank": 10,
+            "score": 2.196019792430534
+          },
+          {
+            "anchor_id": "B015",
+            "rank": 11,
+            "score": 1.9799418857597022
+          },
+          {
+            "anchor_id": "B018",
+            "rank": 12,
+            "score": 1.8762678305849483
+          },
+          {
+            "anchor_id": "B002",
+            "rank": 13,
+            "score": 1.5377401896833234
+          },
+          {
+            "anchor_id": "B008",
+            "rank": 14,
+            "score": 1.2090740686058818
+          },
+          {
+            "anchor_id": "B006",
+            "rank": 15,
+            "score": 0.8764054936354342
+          },
+          {
+            "anchor_id": "B019",
+            "rank": 16,
+            "score": 0.8654834666277562
+          },
+          {
+            "anchor_id": "B017",
+            "rank": 17,
+            "score": 0.8622070889104068
+          },
+          {
+            "anchor_id": "B009",
+            "rank": 18,
+            "score": 0.8513397137078066
+          },
+          {
+            "anchor_id": "B010",
+            "rank": 19,
+            "score": 0.8148655068320911
+          },
+          {
+            "anchor_id": "B011",
+            "rank": 20,
+            "score": 0.7263665311097227
+          },
+          {
+            "anchor_id": "B012",
+            "rank": 21,
+            "score": 0.19746106488915954
+          },
+          {
+            "anchor_id": "B016",
+            "rank": 22,
+            "score": 0.1733839797095693
+          }
+        ],
+        "planner": {
+          "missing_or_ambiguous_relation": "Authoritative, current policy tying the break-glass trigger to IdP unavailability, confirming mandatory incident-linked logging and review, and distinguishing emergency use from routine local-admin access.",
+          "queries": [
+            "break-glass account IdP unavailable declared incident audit logging post-incident review policy",
+            "local administrator credentials routine privileged access corporate SSO MFA policy"
+          ]
+        },
+        "planner_contract_ok": true,
+        "planner_receipt": {
+          "elapsed_seconds": 4.293,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "When can the break-glass administrator bypass SSO, and does that exception waive audit logging or allow routine local-admin access?",
+        "question_id": "BQ008",
+        "rrf_trace": [
+          {
+            "anchor_id": "B021",
+            "initial_rank": 1,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.048651507139079855
+          },
+          {
+            "anchor_id": "B022",
+            "initial_rank": 2,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.04814747488101534
+          },
+          {
+            "anchor_id": "B020",
+            "initial_rank": 3,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.04741797364748185
+          },
+          {
+            "anchor_id": "B023",
+            "initial_rank": 4,
+            "retrieval_list_appearances": 3,
+            "rrf_score": 0.047371031746031744
+          },
+          {
+            "anchor_id": "B013",
+            "initial_rank": 5,
+            "retrieval_list_appearances": 1,
+            "rrf_score": 0.015384615384615385
+          }
+        ],
+        "selected_anchor_ids": [
+          "B021",
+          "B022",
+          "B020",
+          "B023"
+        ],
+        "stage": "COMPOSER_PERSISTED"
+      }
+    ]
+  },
+  "execute_model": true,
+  "execution_complete": true,
+  "execution_source_sha": "c74673a83744789f271fa54c43b20212160007a2",
+  "format": "E023-G1d-v0",
+  "interpretation_boundary": "G1d tests query-time evidence-follow retrieval plus deterministic RRF evidence budgeting on a new prospectively frozen slice. No result directly authorizes persistence, entity/graph storage, vector defaults, or automatic identity/routing.",
+  "model": "gpt-5.6-luna",
+  "model_call_attempts": 24,
+  "request": {
+    "a_composer_calls": 8,
+    "candidate_followup_top_k": 3,
+    "d_composer_calls": 8,
+    "d_planner_calls": 8,
+    "d_selector_calls": 0,
+    "final_top_k": 4,
+    "initial_top_k": 5,
+    "max_ai_credits_per_call": 30,
+    "max_followup_queries": 2,
+    "max_model_call_attempts": 24,
+    "model": "gpt-5.6-luna",
+    "planner_snippet_chars": 320,
+    "question_count": 8,
+    "request_id": "e023-g1d-deterministic-selection-v0",
+    "rrf_k": 60
+  },
+  "retrieval_selection_verdict": "NOT_EARNED",
+  "selection_metrics": {
+    "authority_improvements": 0,
+    "authority_regressions": 1,
+    "authority_statuses": {
+      "BQ001": {
+        "A": "SUFFICIENT_WITH_CONFLATION_RISK",
+        "D": "SUFFICIENT_WITH_CONFLATION_RISK"
+      },
+      "BQ002": {
+        "A": "SUFFICIENT_WITH_CONFLATION_RISK",
+        "D": "INSUFFICIENT_AUTHORITY"
+      },
+      "BQ003": {
+        "A": "SUFFICIENT_CLEAN",
+        "D": "SUFFICIENT_CLEAN"
+      },
+      "BQ004": {
+        "A": "SUFFICIENT_CLEAN",
+        "D": "SUFFICIENT_CLEAN"
+      },
+      "BQ005": {
+        "A": "SUFFICIENT_CLEAN",
+        "D": "SUFFICIENT_CLEAN"
+      },
+      "BQ006": {
+        "A": "INSUFFICIENT_AUTHORITY",
+        "D": "INSUFFICIENT_AUTHORITY"
+      },
+      "BQ007": {
+        "A": "SUFFICIENT_WITH_CONFLATION_RISK",
+        "D": "SUFFICIENT_WITH_CONFLATION_RISK"
+      },
+      "BQ008": {
+        "A": "SUFFICIENT_WITH_CONFLATION_RISK",
+        "D": "SUFFICIENT_WITH_CONFLATION_RISK"
+      }
+    },
+    "complete": true,
+    "d_clean": 3,
+    "d_insufficient": 2
+  },
+  "usage": {
+    "ai_credits_or_premium_requests": "unavailable_do_not_infer",
+    "model_calls": 24,
+    "tokens": "unavailable_unless_transport_exposes_machine_readable_usage"
+  }
+}
