@@ -1,0 +1,149 @@
+{
+  "adjudication_version": 1,
+  "experiment": "E023-G1e",
+  "run": {
+    "run_id": 32324460519,
+    "execution_source_sha": "505740b74776fc7b7988e9c168c9c9d0ed2067fa",
+    "exact_model": "gpt-5.6-luna",
+    "model_call_attempts": 16,
+    "semantic_rerolls": 0,
+    "result_sha256": "865d89ad8c8b219493823bd21413196f658a9ffa2fdd3ed2948bb34b20f16727",
+    "execution_complete": true,
+    "workflow_conclusion": "success",
+    "phase0_authority_gate": "PASS"
+  },
+  "authority_summary": {
+    "A5": {
+      "SUFFICIENT_CLEAN": 2,
+      "SUFFICIENT_WITH_CONFLATION_RISK": 4,
+      "INSUFFICIENT_AUTHORITY": 2
+    },
+    "B6": {
+      "SUFFICIENT_CLEAN": 3,
+      "SUFFICIENT_WITH_CONFLATION_RISK": 5,
+      "INSUFFICIENT_AUTHORITY": 0
+    },
+    "B6_authority_improvements_vs_A5": 2,
+    "B6_authority_regressions_vs_A5": 0
+  },
+  "A5_semantic_verdicts": {
+    "CQ001": {
+      "verdict": "CRITICAL_ERROR",
+      "root_cause": "RETRIEVAL_ROOTED_UNSUPPORTED_IDENTITY_MERGE",
+      "reason": "A5 omits C003, the explicit R. Singh/Rina Singh identity bridge, and contains same-surname distractor C004. The composer nevertheless asserts that the Northstar security contact was Rina Singh and marks authority sufficient. The identity happens to match the frozen corpus but is not established by the supplied A5 context."
+    },
+    "CQ002": {
+      "verdict": "PARTIAL",
+      "root_cause": "COMPOSITION_OVERCAUTIOUS_INSUFFICIENCY",
+      "reason": "A5 is authority-sufficient for the frozen question using Redwood policy C009 and AcmeCloud configuration C007. The answer correctly rejects standard DR and says the Australia-only option could satisfy the rule, but it marks insufficient_authority=true and adds a stronger implementation/storage-scope confirmation requirement than the frozen 'could satisfy' proposition requires."
+    },
+    "CQ003": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The answer preserves the user-owned decision as first-person project authority ('We chose'), gives the operating-ownership/failure-mode rationale from C013, and correctly treats the unrealistic C014 burst as non-reversal."
+    },
+    "CQ004": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The answer preserves C015 as an unconfirmed initial leak hypothesis, C016 as the retry/mitigation causal signal, and C017 as final retry-amplification cause plus rejection of the leak hypothesis."
+    },
+    "CQ005": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The answer uses C020 to bridge Finch to Meridian/PX-902, identifies the C021 deprecation decision as user-owned project knowledge, and does not conflate unrelated Meridian Metrics C022."
+    },
+    "CQ006": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The answer preserves the routine SSO/MFA policy C023, narrow declared-incident/IdP-unavailable exception C024, audit obligations C025, and explicitly treats vendor local-admin support C026 as capability rather than authorization."
+    },
+    "CQ007": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The answer grounds the narrow release-specific customer-managed-key requirement and explicit rejection of a broad anti-hosted characterization in C027, supports continued hosted-key-management approval with C030, and does not conflate Zane Malik C031 with Zoe Malik."
+    },
+    "CQ008": {
+      "verdict": "FAIL_RETRIEVAL",
+      "root_cause": "FIXED_TOP5_MISSING_SECOND_REPEATED_OBSERVATION",
+      "reason": "A5 contains C034 and only one raw monthly-close observation C032, so the prospective min-count authority clause for 'repeated' is not satisfied. The composer behaves safely: it marks authority insufficient and explicitly says no additional dated incident is supplied to independently establish repetition. The failure is therefore retrieval/evidence-budget insufficiency rather than unsupported composition."
+    }
+  },
+  "B6_semantic_verdicts": {
+    "CQ001": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "B6 adds rank-6 C003, the explicit R. Singh/Rina Singh bridge, while retaining repeated attestation support. The composer uses C003 and does not conflate Ravi Singh C004. This removes the A5 truth-by-luck identity error."
+    },
+    "CQ002": {
+      "verdict": "PARTIAL",
+      "root_cause": "COMPOSITION_OVERCAUTIOUS_INSUFFICIENCY",
+      "reason": "Like A5, B6 is authority-sufficient for the frozen question and answers the substantive standard-DR and Australia-only-option propositions correctly, but still marks insufficient_authority=true and demands stronger confirmation than the frozen 'could satisfy' proposition requires. The extra rank-6 evidence does not cause a regression; this is a pre-existing composition calibration issue."
+    },
+    "CQ003": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The answer preserves C013 as first-person user-owned decision authority and correctly states the rationale and C014 non-reversal. The extra rank-6 evidence is ignored without semantic drift."
+    },
+    "CQ004": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The answer retains the initial hypothesis, C016 retry/mitigation causal signal, and C017 final cause/rejection. The extra rank-6 context produces no regression."
+    },
+    "CQ005": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The answer correctly bridges Finch to Meridian/PX-902 and explicitly identifies C021 as user-owned project knowledge. It does not conflate Meridian Metrics despite the risk context."
+    },
+    "CQ006": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The answer preserves policy, exception scope, and audit obligations and explicitly states that vendor capability is not authorization. The added sixth anchor causes no semantic regression."
+    },
+    "CQ007": {
+      "verdict": "PASS",
+      "root_cause": "NONE",
+      "reason": "The answer correctly rejects the broad anti-hosted characterization using C027/C030 and does not conflate Zane Malik. The sixth anchor is irrelevant noise and does not alter the answer."
+    },
+    "CQ008": {
+      "verdict": "PARTIAL",
+      "root_cause": "COMPOSITION_EPISTEMIC_TYPE_OMISSION",
+      "reason": "B6 adds C033, so the context now contains the explicit C034 user-owned capacity decision plus two independent monthly-close observations C032/C033 and is SUFFICIENT_CLEAN. The answer correctly explains the 8-to-12 change and why the CPU issue is repeated, but it presents the load-bearing C034 decision as an ordinary fact rather than making explicit that this decision authority is HUMAN_KNOWLEDGE. This is the same epistemic-type preservation requirement previously exposed by E023; retrieval is no longer the blocker on this question."
+    }
+  },
+  "semantic_summary": {
+    "A5": {
+      "PASS": 5,
+      "PARTIAL": 1,
+      "FAIL_RETRIEVAL": 1,
+      "FAIL_COMPOSITION": 0,
+      "CRITICAL_ERROR": 1
+    },
+    "B6": {
+      "PASS": 6,
+      "PARTIAL": 2,
+      "FAIL_RETRIEVAL": 0,
+      "FAIL_COMPOSITION": 0,
+      "CRITICAL_ERROR": 0
+    },
+    "B6_semantic_improvements_vs_A5": 2,
+    "B6_semantic_regressions_vs_A5": 0,
+    "B6_new_critical_errors_vs_A5": 0,
+    "frozen_final_promotion": "NOT_EARNED"
+  },
+  "promotion_arithmetic": {
+    "phase0_passed": true,
+    "B6_PASS_count": 6,
+    "required_B6_PASS_count": 7,
+    "semantic_improvements": 2,
+    "required_semantic_improvements": 1,
+    "semantic_regressions": 0,
+    "allowed_semantic_regressions": 0,
+    "new_critical_errors": 0,
+    "allowed_new_critical_errors": 0,
+    "exact_semantic_calls_complete": true,
+    "zero_rerolls": true,
+    "promotion": "NOT_EARNED",
+    "binding_failure": "B6_PASS_COUNT_6_LT_REQUIRED_7"
+  },
+  "core_interpretation": "G1e prospectively confirms that a one-object exact-BM25 evidence-budget increase can repair consequential missing authority without adding planner/selector calls or causing semantic regressions: CQ001 moves from unsupported identity merge to supported PASS, and CQ008 moves from safe retrieval insufficiency to a context with complete repeated-observation authority. The strict overall gate remains NOT_EARNED because B6 reaches only 6/8 PASS against the frozen 7/8 threshold. The remaining B6 partials are composition-side: overcautious authority sufficiency calibration on CQ002 and failure to surface HUMAN_KNOWLEDGE epistemic type on CQ008. This shifts the next core bottleneck away from more retrieval tuning and toward authority-preserving composition semantics, while preserving the strong evidence-budget mechanism signal. It does not make top-6 a product default or authorize G2/G3."
+}

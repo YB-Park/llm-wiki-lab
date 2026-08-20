@@ -1,0 +1,59 @@
+name: Validate E023 G1e result
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/g1e-results-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/g1e-adjudication-v0.json'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1e-result.py'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1e_result.py'
+      - 'experiments/E023-generality-retrieval-composition/evidence/g1e-run-32324460519/**'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1e_execution.py'
+      - '.github/workflows/e023-generality-g1e.yml'
+      - '.github/workflows/validate-e023-g1e-result.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E023-generality-retrieval-composition/g1e-results-v0.md'
+      - 'experiments/E023-generality-retrieval-composition/g1e-adjudication-v0.json'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1e_result.py'
+      - 'experiments/E023-generality-retrieval-composition/evidence/g1e-run-32324460519/**'
+      - 'experiments/E023-generality-retrieval-composition/validate_g1e_execution.py'
+      - '.github/workflows/e023-generality-g1e.yml'
+      - '.github/workflows/validate-e023-g1e-result.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-g1e-result-zero-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile G1e result validators
+        run: |
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_g1e_execution.py
+          python3 -m py_compile experiments/E023-generality-retrieval-composition/validate_g1e_result.py
+      - name: Revalidate source-locked G1e execution contract
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/validate_g1e_execution.py \
+            | tee /tmp/e023-g1e-execution-locked.txt
+          grep -q '^E023 G1e execution contract validation: PASS$' /tmp/e023-g1e-execution-locked.txt
+          grep -q '"execution_source_sha_locked": "505740b74776fc7b7988e9c168c9c9d0ed2067fa"' /tmp/e023-g1e-execution-locked.txt
+          grep -q '"semantic_calls_authorized_on_pr": false' /tmp/e023-g1e-execution-locked.txt
+      - name: Validate frozen G1e result and adjudication
+        run: |
+          python3 experiments/E023-generality-retrieval-composition/validate_g1e_result.py \
+            | tee /tmp/e023-g1e-result.txt
+          grep -q '^E023 G1e frozen result validation: PASS$' /tmp/e023-g1e-result.txt
+          grep -q '"frozen_semantic_calls": 16' /tmp/e023-g1e-result.txt
+          grep -q '"B6_semantic_improvements": 2' /tmp/e023-g1e-result.txt
+          grep -q '"B6_semantic_regressions": 0' /tmp/e023-g1e-result.txt
+          grep -q '"B6_new_critical_errors": 0' /tmp/e023-g1e-result.txt
+          grep -q '"strict_promotion": "NOT_EARNED"' /tmp/e023-g1e-result.txt
+          grep -q '"evidence_budget_signal": "STRENGTHENED"' /tmp/e023-g1e-result.txt
+          grep -q '"semantic_calls_authorized": false' /tmp/e023-g1e-result.txt
