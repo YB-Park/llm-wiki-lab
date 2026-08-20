@@ -1,0 +1,2590 @@
+{
+  "arms": {
+    "A5": [
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "identity_bridge",
+              "satisfied": false
+            },
+            {
+              "clause_id": "repeated_attestation_requirement",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "C004"
+          ],
+          "missing_clause_ids": [
+            "identity_bridge"
+          ],
+          "status": "INSUFFICIENT_AUTHORITY"
+        },
+        "composer": {
+          "answer": "The Northstar security contact was Rina Singh (identified as “R. Singh”), who repeatedly required hardware token attestation before production access (C001, C005, C002). Ravi Singh was from Northstar Finance and was not associated with this requirement (C004).",
+          "cited_anchor_ids": [
+            "C001",
+            "C005",
+            "C002",
+            "C004"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 4.059,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Who was the Northstar security contact who repeatedly required hardware token attestation before production access?",
+        "question_id": "CQ001",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "C001",
+            "rank": 1,
+            "score": 19.034111304746602
+          },
+          {
+            "anchor_id": "C005",
+            "rank": 2,
+            "score": 16.48647690090125
+          },
+          {
+            "anchor_id": "C002",
+            "rank": 3,
+            "score": 14.642807655112355
+          },
+          {
+            "anchor_id": "C006",
+            "rank": 4,
+            "score": 13.70742915964859
+          },
+          {
+            "anchor_id": "C004",
+            "rank": 5,
+            "score": 11.385242141819194
+          },
+          {
+            "anchor_id": "C003",
+            "rank": 6,
+            "score": 9.177105075242139
+          },
+          {
+            "anchor_id": "C014",
+            "rank": 7,
+            "score": 4.093778800833775
+          },
+          {
+            "anchor_id": "C009",
+            "rank": 8,
+            "score": 2.656342713681025
+          },
+          {
+            "anchor_id": "C023",
+            "rank": 9,
+            "score": 2.3131608500056204
+          },
+          {
+            "anchor_id": "C019",
+            "rank": 10,
+            "score": 2.268121519622207
+          },
+          {
+            "anchor_id": "C029",
+            "rank": 11,
+            "score": 1.9084912555762306
+          },
+          {
+            "anchor_id": "C034",
+            "rank": 12,
+            "score": 1.6681105705942227
+          },
+          {
+            "anchor_id": "C021",
+            "rank": 13,
+            "score": 1.6178950861009906
+          },
+          {
+            "anchor_id": "C010",
+            "rank": 14,
+            "score": 1.536016196402431
+          },
+          {
+            "anchor_id": "C013",
+            "rank": 15,
+            "score": 1.4636799533965128
+          },
+          {
+            "anchor_id": "C028",
+            "rank": 16,
+            "score": 1.3784118369126175
+          },
+          {
+            "anchor_id": "C024",
+            "rank": 17,
+            "score": 1.3398892803640177
+          },
+          {
+            "anchor_id": "C030",
+            "rank": 18,
+            "score": 1.1945846867739744
+          },
+          {
+            "anchor_id": "C007",
+            "rank": 19,
+            "score": 0.9954521185959174
+          }
+        ],
+        "selected_anchor_ids": [
+          "C001",
+          "C005",
+          "C002",
+          "C006",
+          "C004"
+        ],
+        "selected_evidence_chars": 762,
+        "top_k": 5
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "redwood_governing_policy",
+              "satisfied": true
+            },
+            {
+              "clause_id": "acmecloud_configuration",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "C010"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "composer": {
+          "answer": "No—AcmeCloud’s standard disaster recovery does not currently demonstrate compliance with Redwood’s Australia-only requirement: Redwood requires production data, backups, and replicas to remain in Australia, while standard recovery may store encrypted backups in Singapore and the vendor could not confirm standard copies remain in Australia (C009, C007, C008). Encryption does not remove the geographic restriction (C009, C011). The Australia-only recovery option could satisfy the requirement because it exists on the regulated plan, but the supplied evidence does not confirm its actual storage locations or implementation, so compliance remains unverified (C007, C009).",
+          "cited_anchor_ids": [
+            "C009",
+            "C007",
+            "C008",
+            "C011"
+          ],
+          "insufficient_authority": true
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 4.98,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Does AcmeCloud's standard disaster recovery satisfy Redwood's Australia-only data residency requirement, and could the Australia-only option satisfy it?",
+        "question_id": "CQ002",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "C007",
+            "rank": 1,
+            "score": 24.910591732253536
+          },
+          {
+            "anchor_id": "C008",
+            "rank": 2,
+            "score": 17.503882901224387
+          },
+          {
+            "anchor_id": "C009",
+            "rank": 3,
+            "score": 16.08199822849114
+          },
+          {
+            "anchor_id": "C011",
+            "rank": 4,
+            "score": 9.530525154539077
+          },
+          {
+            "anchor_id": "C010",
+            "rank": 5,
+            "score": 8.656898080078154
+          },
+          {
+            "anchor_id": "C013",
+            "rank": 6,
+            "score": 5.52769833560173
+          },
+          {
+            "anchor_id": "C014",
+            "rank": 7,
+            "score": 5.075675750002233
+          },
+          {
+            "anchor_id": "C025",
+            "rank": 8,
+            "score": 4.8631016688754904
+          },
+          {
+            "anchor_id": "C006",
+            "rank": 9,
+            "score": 4.133506837669285
+          },
+          {
+            "anchor_id": "C018",
+            "rank": 10,
+            "score": 4.123768028098571
+          },
+          {
+            "anchor_id": "C024",
+            "rank": 11,
+            "score": 3.8604954442211787
+          },
+          {
+            "anchor_id": "C001",
+            "rank": 12,
+            "score": 3.831641649317408
+          },
+          {
+            "anchor_id": "C021",
+            "rank": 13,
+            "score": 2.559706817671203
+          },
+          {
+            "anchor_id": "C002",
+            "rank": 14,
+            "score": 2.2105741027997925
+          },
+          {
+            "anchor_id": "C027",
+            "rank": 15,
+            "score": 1.9938106728465066
+          },
+          {
+            "anchor_id": "C026",
+            "rank": 16,
+            "score": 1.7818949007407325
+          },
+          {
+            "anchor_id": "C034",
+            "rank": 17,
+            "score": 1.6681105705942227
+          },
+          {
+            "anchor_id": "C028",
+            "rank": 18,
+            "score": 1.3784118369126175
+          },
+          {
+            "anchor_id": "C012",
+            "rank": 19,
+            "score": 1.2145097887182688
+          },
+          {
+            "anchor_id": "C030",
+            "rank": 20,
+            "score": 1.1945846867739744
+          },
+          {
+            "anchor_id": "C031",
+            "rank": 21,
+            "score": 1.1833609055195833
+          },
+          {
+            "anchor_id": "C015",
+            "rank": 22,
+            "score": 1.1537698373891816
+          },
+          {
+            "anchor_id": "C004",
+            "rank": 23,
+            "score": 1.0032469553110734
+          }
+        ],
+        "selected_anchor_ids": [
+          "C007",
+          "C008",
+          "C009",
+          "C011",
+          "C010"
+        ],
+        "selected_evidence_chars": 773,
+        "top_k": 5
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "user_owned_rabbitmq_decision",
+              "satisfied": true
+            },
+            {
+              "clause_id": "later_burst_non_reversal",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "composer": {
+          "answer": "We chose not to add RabbitMQ for the first release because another broker would increase operating ownership and failure modes; the decision would be reconsidered only if realistic measurements showed the current queue could not meet requirements (C013). The later 12x synthetic burst caused queue delay, but it was intentionally unrealistic and did not reverse that decision (C014).",
+          "cited_anchor_ids": [
+            "C013",
+            "C014"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 3.997,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Why did we decide not to add RabbitMQ for the first release, and did the later 12x burst reverse that decision?",
+        "question_id": "CQ003",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "C014",
+            "rank": 1,
+            "score": 28.259143927201798
+          },
+          {
+            "anchor_id": "C013",
+            "rank": 2,
+            "score": 16.238724905903545
+          },
+          {
+            "anchor_id": "C021",
+            "rank": 3,
+            "score": 11.484771385180677
+          },
+          {
+            "anchor_id": "C030",
+            "rank": 4,
+            "score": 9.303425196482412
+          },
+          {
+            "anchor_id": "C034",
+            "rank": 5,
+            "score": 8.099565548725103
+          },
+          {
+            "anchor_id": "C027",
+            "rank": 6,
+            "score": 7.505406899234816
+          },
+          {
+            "anchor_id": "C031",
+            "rank": 7,
+            "score": 6.77865986749781
+          },
+          {
+            "anchor_id": "C028",
+            "rank": 8,
+            "score": 6.416212758453058
+          },
+          {
+            "anchor_id": "C012",
+            "rank": 9,
+            "score": 6.047709291876252
+          },
+          {
+            "anchor_id": "C004",
+            "rank": 10,
+            "score": 5.746911057679858
+          },
+          {
+            "anchor_id": "C020",
+            "rank": 11,
+            "score": 5.074690728918666
+          },
+          {
+            "anchor_id": "C001",
+            "rank": 12,
+            "score": 4.79229347682797
+          },
+          {
+            "anchor_id": "C006",
+            "rank": 13,
+            "score": 4.327903246674442
+          },
+          {
+            "anchor_id": "C009",
+            "rank": 14,
+            "score": 4.139694573698332
+          },
+          {
+            "anchor_id": "C025",
+            "rank": 15,
+            "score": 3.363338247204519
+          },
+          {
+            "anchor_id": "C007",
+            "rank": 16,
+            "score": 2.9863563557877524
+          },
+          {
+            "anchor_id": "C010",
+            "rank": 17,
+            "score": 2.4367791839027486
+          },
+          {
+            "anchor_id": "C011",
+            "rank": 18,
+            "score": 2.2078734871914074
+          },
+          {
+            "anchor_id": "C024",
+            "rank": 19,
+            "score": 1.9259601720453625
+          },
+          {
+            "anchor_id": "C008",
+            "rank": 20,
+            "score": 1.8425378864836444
+          },
+          {
+            "anchor_id": "C015",
+            "rank": 21,
+            "score": 1.1537698373891816
+          },
+          {
+            "anchor_id": "C035",
+            "rank": 22,
+            "score": 0.8355638511694226
+          },
+          {
+            "anchor_id": "C026",
+            "rank": 23,
+            "score": 0.799227465013784
+          }
+        ],
+        "selected_anchor_ids": [
+          "C014",
+          "C013",
+          "C021",
+          "C030",
+          "C034"
+        ],
+        "selected_evidence_chars": 791,
+        "top_k": 5
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "early_leak_hypothesis",
+              "satisfied": true
+            },
+            {
+              "clause_id": "retry_causal_signal",
+              "satisfied": true
+            },
+            {
+              "clause_id": "final_root_cause_and_rejection",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "composer": {
+          "answer": "INC-421 was caused by a request-timeout configuration that triggered retry amplification; the resulting retries elevated database connections and latency downstream (C016, C017). The initial connection-pool-leak hypothesis was unconfirmed and was rejected after no leak was found, so it should be treated as an early diagnostic hypothesis—not the root cause (C015, C017).",
+          "cited_anchor_ids": [
+            "C015",
+            "C016",
+            "C017"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 4.347,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "What caused INC-421, and how should the initial connection-pool-leak hypothesis be treated?",
+        "question_id": "CQ004",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "C015",
+            "rank": 1,
+            "score": 19.502215840024036
+          },
+          {
+            "anchor_id": "C017",
+            "rank": 2,
+            "score": 16.30929821445041
+          },
+          {
+            "anchor_id": "C016",
+            "rank": 3,
+            "score": 6.291817710458826
+          },
+          {
+            "anchor_id": "C014",
+            "rank": 4,
+            "score": 5.075675750002233
+          },
+          {
+            "anchor_id": "C018",
+            "rank": 5,
+            "score": 4.123768028098571
+          },
+          {
+            "anchor_id": "C034",
+            "rank": 6,
+            "score": 3.831641649317408
+          },
+          {
+            "anchor_id": "C025",
+            "rank": 7,
+            "score": 3.2852544220189186
+          },
+          {
+            "anchor_id": "C007",
+            "rank": 8,
+            "score": 2.8784759927219006
+          },
+          {
+            "anchor_id": "C021",
+            "rank": 9,
+            "score": 2.559706817671203
+          },
+          {
+            "anchor_id": "C013",
+            "rank": 10,
+            "score": 2.2877451936069524
+          },
+          {
+            "anchor_id": "C006",
+            "rank": 11,
+            "score": 2.2705991789386077
+          },
+          {
+            "anchor_id": "C002",
+            "rank": 12,
+            "score": 2.2105741027997925
+          },
+          {
+            "anchor_id": "C009",
+            "rank": 13,
+            "score": 2.1718570319978108
+          },
+          {
+            "anchor_id": "C001",
+            "rank": 14,
+            "score": 1.6681105705942227
+          },
+          {
+            "anchor_id": "C028",
+            "rank": 15,
+            "score": 1.3784118369126175
+          },
+          {
+            "anchor_id": "C012",
+            "rank": 16,
+            "score": 1.2145097887182688
+          },
+          {
+            "anchor_id": "C030",
+            "rank": 17,
+            "score": 1.1945846867739744
+          },
+          {
+            "anchor_id": "C031",
+            "rank": 18,
+            "score": 1.1833609055195833
+          },
+          {
+            "anchor_id": "C010",
+            "rank": 19,
+            "score": 1.125622571374808
+          },
+          {
+            "anchor_id": "C008",
+            "rank": 20,
+            "score": 1.0255460514811967
+          },
+          {
+            "anchor_id": "C004",
+            "rank": 21,
+            "score": 1.0032469553110734
+          }
+        ],
+        "selected_anchor_ids": [
+          "C015",
+          "C017",
+          "C016",
+          "C014",
+          "C018"
+        ],
+        "selected_evidence_chars": 713,
+        "top_k": 5
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "project_rename_bridge",
+              "satisfied": true
+            },
+            {
+              "clause_id": "user_owned_v2_deprecation",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "C022"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "composer": {
+          "answer": "Yes. Project PX-902 decided to deprecate its v2 API after the compatibility window; this is user-owned project knowledge (C021). Its current name is Meridian; Finch was the previous name, and the rename did not create a new project (C020).",
+          "cited_anchor_ids": [
+            "C021",
+            "C020"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 3.918,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Did the Finch project decide to deprecate v2 API, and what is that project's current name?",
+        "question_id": "CQ005",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "C019",
+            "rank": 1,
+            "score": 17.994348036795483
+          },
+          {
+            "anchor_id": "C020",
+            "rank": 2,
+            "score": 17.532598406415474
+          },
+          {
+            "anchor_id": "C021",
+            "rank": 3,
+            "score": 16.69895520819828
+          },
+          {
+            "anchor_id": "C022",
+            "rank": 4,
+            "score": 11.055220750621075
+          },
+          {
+            "anchor_id": "C013",
+            "rank": 5,
+            "score": 5.3255276815242185
+          },
+          {
+            "anchor_id": "C030",
+            "rank": 6,
+            "score": 4.2757630404982745
+          },
+          {
+            "anchor_id": "C014",
+            "rank": 7,
+            "score": 4.055885664452995
+          },
+          {
+            "anchor_id": "C012",
+            "rank": 8,
+            "score": 3.8905845799993415
+          },
+          {
+            "anchor_id": "C031",
+            "rank": 9,
+            "score": 3.5096535925966834
+          },
+          {
+            "anchor_id": "C028",
+            "rank": 10,
+            "score": 3.1332386332109596
+          },
+          {
+            "anchor_id": "C001",
+            "rank": 11,
+            "score": 3.124182906233747
+          },
+          {
+            "anchor_id": "C034",
+            "rank": 12,
+            "score": 3.124182906233747
+          },
+          {
+            "anchor_id": "C004",
+            "rank": 13,
+            "score": 2.975465273988574
+          },
+          {
+            "anchor_id": "C027",
+            "rank": 14,
+            "score": 2.683698507301237
+          },
+          {
+            "anchor_id": "C025",
+            "rank": 15,
+            "score": 2.5463464122020714
+          },
+          {
+            "anchor_id": "C003",
+            "rank": 16,
+            "score": 2.4211527199864364
+          },
+          {
+            "anchor_id": "C006",
+            "rank": 17,
+            "score": 2.2705991789386077
+          },
+          {
+            "anchor_id": "C009",
+            "rank": 18,
+            "score": 2.1718570319978108
+          },
+          {
+            "anchor_id": "C026",
+            "rank": 19,
+            "score": 2.1571118162574425
+          },
+          {
+            "anchor_id": "C035",
+            "rank": 20,
+            "score": 1.555371488210741
+          },
+          {
+            "anchor_id": "C002",
+            "rank": 21,
+            "score": 1.4877326369942871
+          },
+          {
+            "anchor_id": "C024",
+            "rank": 22,
+            "score": 1.456072335639524
+          },
+          {
+            "anchor_id": "C015",
+            "rank": 23,
+            "score": 1.1537698373891816
+          },
+          {
+            "anchor_id": "C010",
+            "rank": 24,
+            "score": 1.125622571374808
+          },
+          {
+            "anchor_id": "C008",
+            "rank": 25,
+            "score": 1.0255460514811967
+          },
+          {
+            "anchor_id": "C007",
+            "rank": 26,
+            "score": 0.9954521185959174
+          }
+        ],
+        "selected_anchor_ids": [
+          "C019",
+          "C020",
+          "C021",
+          "C022",
+          "C013"
+        ],
+        "selected_evidence_chars": 688,
+        "top_k": 5
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "normal_sso_requirement",
+              "satisfied": true
+            },
+            {
+              "clause_id": "break_glass_scope",
+              "satisfied": true
+            },
+            {
+              "clause_id": "audit_not_waived",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "C026"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "composer": {
+          "answer": "Break-glass admin may bypass SSO only during a declared incident when the identity provider is unavailable (C024). It does not permit routine local-admin access; routine administrator access requires company SSO with phishing-resistant MFA, and vendor technical support does not define authorization (C023, C026). Every break-glass use must be logged, linked to the incident, and reviewed after recovery; the exception does not waive audit review (C025).",
+          "cited_anchor_ids": [
+            "C024",
+            "C023",
+            "C026",
+            "C025"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 3.959,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "When may break-glass admin bypass SSO, and does that permit routine local-admin access or waive audit review?",
+        "question_id": "CQ006",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "C024",
+            "rank": 1,
+            "score": 19.14510161515642
+          },
+          {
+            "anchor_id": "C025",
+            "rank": 2,
+            "score": 15.045175002714622
+          },
+          {
+            "anchor_id": "C023",
+            "rank": 3,
+            "score": 8.603534272325575
+          },
+          {
+            "anchor_id": "C026",
+            "rank": 4,
+            "score": 7.325773908638629
+          },
+          {
+            "anchor_id": "C006",
+            "rank": 5,
+            "score": 6.654108264691586
+          },
+          {
+            "anchor_id": "C004",
+            "rank": 6,
+            "score": 5.386452640196072
+          },
+          {
+            "anchor_id": "C009",
+            "rank": 7,
+            "score": 5.314838519159148
+          },
+          {
+            "anchor_id": "C005",
+            "rank": 8,
+            "score": 4.2222462266087595
+          },
+          {
+            "anchor_id": "C001",
+            "rank": 9,
+            "score": 4.117717809233403
+          },
+          {
+            "anchor_id": "C030",
+            "rank": 10,
+            "score": 3.0811783537242996
+          },
+          {
+            "anchor_id": "C007",
+            "rank": 11,
+            "score": 2.15486067845217
+          },
+          {
+            "anchor_id": "C011",
+            "rank": 12,
+            "score": 1.9992496458357334
+          },
+          {
+            "anchor_id": "C002",
+            "rank": 13,
+            "score": 1.984991355446949
+          },
+          {
+            "anchor_id": "C003",
+            "rank": 14,
+            "score": 1.499436087393074
+          },
+          {
+            "anchor_id": "C012",
+            "rank": 15,
+            "score": 1.2145097887182688
+          },
+          {
+            "anchor_id": "C031",
+            "rank": 16,
+            "score": 1.1833609055195833
+          },
+          {
+            "anchor_id": "C015",
+            "rank": 17,
+            "score": 1.1537698373891816
+          },
+          {
+            "anchor_id": "C010",
+            "rank": 18,
+            "score": 1.125622571374808
+          },
+          {
+            "anchor_id": "C008",
+            "rank": 19,
+            "score": 1.0255460514811967
+          },
+          {
+            "anchor_id": "C014",
+            "rank": 20,
+            "score": 0.9818969491684584
+          },
+          {
+            "anchor_id": "C021",
+            "rank": 21,
+            "score": 0.9418117315702126
+          },
+          {
+            "anchor_id": "C013",
+            "rank": 22,
+            "score": 0.8240652402104395
+          }
+        ],
+        "selected_anchor_ids": [
+          "C024",
+          "C025",
+          "C023",
+          "C026",
+          "C006"
+        ],
+        "selected_evidence_chars": 737,
+        "top_k": 5
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "narrow_direct_requirement",
+              "satisfied": true
+            },
+            {
+              "clause_id": "hosted_km_still_approved",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "C031"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "composer": {
+          "answer": "The customer-managed-key requirement was narrower: Zoe Malik’s direct email states it was a release requirement, not a general objection to hosted key management (C027). Hosted key management remained approved for workloads without that release-specific constraint (C030). Meeting notes also attribute the launch request to “Z. Malik” (C028), while the directory identifies Zoe Malik as “Z. Malik” (C029).",
+          "cited_anchor_ids": [
+            "C027",
+            "C030",
+            "C028",
+            "C029"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 5.068,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Is Zoe Malik generally opposed to hosted key management, or was the customer-managed-key requirement narrower?",
+        "question_id": "CQ007",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "C027",
+            "rank": 1,
+            "score": 20.24414061258299
+          },
+          {
+            "anchor_id": "C030",
+            "rank": 2,
+            "score": 16.22884465032347
+          },
+          {
+            "anchor_id": "C028",
+            "rank": 3,
+            "score": 9.98188723390308
+          },
+          {
+            "anchor_id": "C031",
+            "rank": 4,
+            "score": 9.867466831125473
+          },
+          {
+            "anchor_id": "C029",
+            "rank": 5,
+            "score": 7.1231486882610096
+          },
+          {
+            "anchor_id": "C001",
+            "rank": 6,
+            "score": 5.287713984956932
+          },
+          {
+            "anchor_id": "C021",
+            "rank": 7,
+            "score": 5.074232172269342
+          },
+          {
+            "anchor_id": "C014",
+            "rank": 8,
+            "score": 4.093778800833775
+          },
+          {
+            "anchor_id": "C026",
+            "rank": 9,
+            "score": 3.7805665207344967
+          },
+          {
+            "anchor_id": "C002",
+            "rank": 10,
+            "score": 3.69830673979408
+          },
+          {
+            "anchor_id": "C034",
+            "rank": 11,
+            "score": 3.124182906233747
+          },
+          {
+            "anchor_id": "C004",
+            "rank": 12,
+            "score": 3.0141823447905556
+          },
+          {
+            "anchor_id": "C009",
+            "rank": 13,
+            "score": 2.792064781163792
+          },
+          {
+            "anchor_id": "C013",
+            "rank": 14,
+            "score": 2.685700859000427
+          },
+          {
+            "anchor_id": "C007",
+            "rank": 15,
+            "score": 2.675438405576628
+          },
+          {
+            "anchor_id": "C011",
+            "rank": 16,
+            "score": 1.8214829851114533
+          },
+          {
+            "anchor_id": "C022",
+            "rank": 17,
+            "score": 1.6692056003822984
+          },
+          {
+            "anchor_id": "C035",
+            "rank": 18,
+            "score": 1.555371488210741
+          },
+          {
+            "anchor_id": "C025",
+            "rank": 19,
+            "score": 1.5208003607208747
+          },
+          {
+            "anchor_id": "C024",
+            "rank": 20,
+            "score": 1.456072335639524
+          },
+          {
+            "anchor_id": "C006",
+            "rank": 21,
+            "score": 1.2217402165664117
+          }
+        ],
+        "selected_anchor_ids": [
+          "C027",
+          "C030",
+          "C028",
+          "C031",
+          "C029"
+        ],
+        "selected_evidence_chars": 577,
+        "top_k": 5
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "user_owned_capacity_decision",
+              "satisfied": true
+            },
+            {
+              "clause_id": "repeated_monthly_close_observation",
+              "satisfied": false
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [
+            "repeated_monthly_close_observation"
+          ],
+          "status": "INSUFFICIENT_AUTHORITY"
+        },
+        "composer": {
+          "answer": "The worker pool was increased from 8 to 12 because repeated monthly-close events exceeded 70% CPU, with the change intended for the next close (C034). The supplied evidence includes a June 1 ops note documenting CPU above 70% during monthly close (C032), while the characterization as “repeated” comes from the user-owned capacity decision itself (C034). No additional dated incidents are supplied to independently establish repetition.",
+          "cited_anchor_ids": [
+            "C034",
+            "C032"
+          ],
+          "insufficient_authority": true
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 5.676,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Why was the batch worker pool increased from 8 to 12, and what evidence made the CPU issue 'repeated'?",
+        "question_id": "CQ008",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "C034",
+            "rank": 1,
+            "score": 21.55193740219401
+          },
+          {
+            "anchor_id": "C021",
+            "rank": 2,
+            "score": 6.237309731766864
+          },
+          {
+            "anchor_id": "C014",
+            "rank": 3,
+            "score": 6.219416743176181
+          },
+          {
+            "anchor_id": "C001",
+            "rank": 4,
+            "score": 6.132182757191988
+          },
+          {
+            "anchor_id": "C032",
+            "rank": 5,
+            "score": 5.5972573241604024
+          },
+          {
+            "anchor_id": "C033",
+            "rank": 6,
+            "score": 5.449924153180999
+          },
+          {
+            "anchor_id": "C035",
+            "rank": 7,
+            "score": 5.213104309133414
+          },
+          {
+            "anchor_id": "C013",
+            "rank": 8,
+            "score": 4.973446052607379
+          },
+          {
+            "anchor_id": "C028",
+            "rank": 9,
+            "score": 4.511650470123577
+          },
+          {
+            "anchor_id": "C012",
+            "rank": 10,
+            "score": 4.276907679454131
+          },
+          {
+            "anchor_id": "C015",
+            "rank": 11,
+            "score": 3.696009023485918
+          },
+          {
+            "anchor_id": "C006",
+            "rank": 12,
+            "score": 3.4923393955050193
+          },
+          {
+            "anchor_id": "C009",
+            "rank": 13,
+            "score": 3.3404671086845483
+          },
+          {
+            "anchor_id": "C031",
+            "rank": 14,
+            "score": 2.798166403642706
+          },
+          {
+            "anchor_id": "C027",
+            "rank": 15,
+            "score": 2.5766295504971004
+          },
+          {
+            "anchor_id": "C025",
+            "rank": 16,
+            "score": 2.5463464122020714
+          },
+          {
+            "anchor_id": "C030",
+            "rank": 17,
+            "score": 2.389169373547949
+          },
+          {
+            "anchor_id": "C004",
+            "rank": 18,
+            "score": 2.3722702954055164
+          },
+          {
+            "anchor_id": "C017",
+            "rank": 19,
+            "score": 2.2597083705377217
+          },
+          {
+            "anchor_id": "C007",
+            "rank": 20,
+            "score": 1.9909042371918348
+          },
+          {
+            "anchor_id": "C005",
+            "rank": 21,
+            "score": 1.6148054981231226
+          },
+          {
+            "anchor_id": "C022",
+            "rank": 22,
+            "score": 1.536016196402431
+          },
+          {
+            "anchor_id": "C002",
+            "rank": 23,
+            "score": 1.3690233400944427
+          },
+          {
+            "anchor_id": "C010",
+            "rank": 24,
+            "score": 1.125622571374808
+          },
+          {
+            "anchor_id": "C008",
+            "rank": 25,
+            "score": 1.0255460514811967
+          }
+        ],
+        "selected_anchor_ids": [
+          "C034",
+          "C021",
+          "C014",
+          "C001",
+          "C032"
+        ],
+        "selected_evidence_chars": 675,
+        "top_k": 5
+      }
+    ],
+    "B6": [
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "identity_bridge",
+              "satisfied": true
+            },
+            {
+              "clause_id": "repeated_attestation_requirement",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "C004"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "composer": {
+          "answer": "The Northstar security contact was Rina Singh (R. Singh), identified as a Principal Security Engineer; she repeatedly required hardware token attestation before production access. [C001] [C005] [C002] [C003]",
+          "cited_anchor_ids": [
+            "C001",
+            "C005",
+            "C002",
+            "C003"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 3.81,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Who was the Northstar security contact who repeatedly required hardware token attestation before production access?",
+        "question_id": "CQ001",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "C001",
+            "rank": 1,
+            "score": 19.034111304746602
+          },
+          {
+            "anchor_id": "C005",
+            "rank": 2,
+            "score": 16.48647690090125
+          },
+          {
+            "anchor_id": "C002",
+            "rank": 3,
+            "score": 14.642807655112355
+          },
+          {
+            "anchor_id": "C006",
+            "rank": 4,
+            "score": 13.70742915964859
+          },
+          {
+            "anchor_id": "C004",
+            "rank": 5,
+            "score": 11.385242141819194
+          },
+          {
+            "anchor_id": "C003",
+            "rank": 6,
+            "score": 9.177105075242139
+          },
+          {
+            "anchor_id": "C014",
+            "rank": 7,
+            "score": 4.093778800833775
+          },
+          {
+            "anchor_id": "C009",
+            "rank": 8,
+            "score": 2.656342713681025
+          },
+          {
+            "anchor_id": "C023",
+            "rank": 9,
+            "score": 2.3131608500056204
+          },
+          {
+            "anchor_id": "C019",
+            "rank": 10,
+            "score": 2.268121519622207
+          },
+          {
+            "anchor_id": "C029",
+            "rank": 11,
+            "score": 1.9084912555762306
+          },
+          {
+            "anchor_id": "C034",
+            "rank": 12,
+            "score": 1.6681105705942227
+          },
+          {
+            "anchor_id": "C021",
+            "rank": 13,
+            "score": 1.6178950861009906
+          },
+          {
+            "anchor_id": "C010",
+            "rank": 14,
+            "score": 1.536016196402431
+          },
+          {
+            "anchor_id": "C013",
+            "rank": 15,
+            "score": 1.4636799533965128
+          },
+          {
+            "anchor_id": "C028",
+            "rank": 16,
+            "score": 1.3784118369126175
+          },
+          {
+            "anchor_id": "C024",
+            "rank": 17,
+            "score": 1.3398892803640177
+          },
+          {
+            "anchor_id": "C030",
+            "rank": 18,
+            "score": 1.1945846867739744
+          },
+          {
+            "anchor_id": "C007",
+            "rank": 19,
+            "score": 0.9954521185959174
+          }
+        ],
+        "selected_anchor_ids": [
+          "C001",
+          "C005",
+          "C002",
+          "C006",
+          "C004",
+          "C003"
+        ],
+        "selected_evidence_chars": 904,
+        "top_k": 6
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "redwood_governing_policy",
+              "satisfied": true
+            },
+            {
+              "clause_id": "acmecloud_configuration",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "C010"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "composer": {
+          "answer": "No. AcmeCloud’s standard disaster recovery does not satisfy Redwood’s Australia-only requirement because it may store encrypted backups in Singapore, while Redwood requires production data, backups, and replicas to remain in Australia; encryption does not waive that restriction (C007, C009, C011). The Australia-only recovery option could satisfy the requirement because AcmeCloud says it exists on the regulated plan, but the supplied authority does not confirm its actual storage scope, so compliance is not established (C007, C009).",
+          "cited_anchor_ids": [
+            "C007",
+            "C009",
+            "C011"
+          ],
+          "insufficient_authority": true
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 4.203,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Does AcmeCloud's standard disaster recovery satisfy Redwood's Australia-only data residency requirement, and could the Australia-only option satisfy it?",
+        "question_id": "CQ002",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "C007",
+            "rank": 1,
+            "score": 24.910591732253536
+          },
+          {
+            "anchor_id": "C008",
+            "rank": 2,
+            "score": 17.503882901224387
+          },
+          {
+            "anchor_id": "C009",
+            "rank": 3,
+            "score": 16.08199822849114
+          },
+          {
+            "anchor_id": "C011",
+            "rank": 4,
+            "score": 9.530525154539077
+          },
+          {
+            "anchor_id": "C010",
+            "rank": 5,
+            "score": 8.656898080078154
+          },
+          {
+            "anchor_id": "C013",
+            "rank": 6,
+            "score": 5.52769833560173
+          },
+          {
+            "anchor_id": "C014",
+            "rank": 7,
+            "score": 5.075675750002233
+          },
+          {
+            "anchor_id": "C025",
+            "rank": 8,
+            "score": 4.8631016688754904
+          },
+          {
+            "anchor_id": "C006",
+            "rank": 9,
+            "score": 4.133506837669285
+          },
+          {
+            "anchor_id": "C018",
+            "rank": 10,
+            "score": 4.123768028098571
+          },
+          {
+            "anchor_id": "C024",
+            "rank": 11,
+            "score": 3.8604954442211787
+          },
+          {
+            "anchor_id": "C001",
+            "rank": 12,
+            "score": 3.831641649317408
+          },
+          {
+            "anchor_id": "C021",
+            "rank": 13,
+            "score": 2.559706817671203
+          },
+          {
+            "anchor_id": "C002",
+            "rank": 14,
+            "score": 2.2105741027997925
+          },
+          {
+            "anchor_id": "C027",
+            "rank": 15,
+            "score": 1.9938106728465066
+          },
+          {
+            "anchor_id": "C026",
+            "rank": 16,
+            "score": 1.7818949007407325
+          },
+          {
+            "anchor_id": "C034",
+            "rank": 17,
+            "score": 1.6681105705942227
+          },
+          {
+            "anchor_id": "C028",
+            "rank": 18,
+            "score": 1.3784118369126175
+          },
+          {
+            "anchor_id": "C012",
+            "rank": 19,
+            "score": 1.2145097887182688
+          },
+          {
+            "anchor_id": "C030",
+            "rank": 20,
+            "score": 1.1945846867739744
+          },
+          {
+            "anchor_id": "C031",
+            "rank": 21,
+            "score": 1.1833609055195833
+          },
+          {
+            "anchor_id": "C015",
+            "rank": 22,
+            "score": 1.1537698373891816
+          },
+          {
+            "anchor_id": "C004",
+            "rank": 23,
+            "score": 1.0032469553110734
+          }
+        ],
+        "selected_anchor_ids": [
+          "C007",
+          "C008",
+          "C009",
+          "C011",
+          "C010",
+          "C013"
+        ],
+        "selected_evidence_chars": 989,
+        "top_k": 6
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "user_owned_rabbitmq_decision",
+              "satisfied": true
+            },
+            {
+              "clause_id": "later_burst_non_reversal",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "composer": {
+          "answer": "We chose not to add RabbitMQ for the first release because another broker would increase operating ownership and failure modes; we would reconsider only if realistic measurements showed the current queue could not meet requirements (C013). The later 12x burst did not reverse that decision because it was intentionally unrealistic, despite causing queue delay (C014).",
+          "cited_anchor_ids": [
+            "C013",
+            "C014"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 3.857,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Why did we decide not to add RabbitMQ for the first release, and did the later 12x burst reverse that decision?",
+        "question_id": "CQ003",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "C014",
+            "rank": 1,
+            "score": 28.259143927201798
+          },
+          {
+            "anchor_id": "C013",
+            "rank": 2,
+            "score": 16.238724905903545
+          },
+          {
+            "anchor_id": "C021",
+            "rank": 3,
+            "score": 11.484771385180677
+          },
+          {
+            "anchor_id": "C030",
+            "rank": 4,
+            "score": 9.303425196482412
+          },
+          {
+            "anchor_id": "C034",
+            "rank": 5,
+            "score": 8.099565548725103
+          },
+          {
+            "anchor_id": "C027",
+            "rank": 6,
+            "score": 7.505406899234816
+          },
+          {
+            "anchor_id": "C031",
+            "rank": 7,
+            "score": 6.77865986749781
+          },
+          {
+            "anchor_id": "C028",
+            "rank": 8,
+            "score": 6.416212758453058
+          },
+          {
+            "anchor_id": "C012",
+            "rank": 9,
+            "score": 6.047709291876252
+          },
+          {
+            "anchor_id": "C004",
+            "rank": 10,
+            "score": 5.746911057679858
+          },
+          {
+            "anchor_id": "C020",
+            "rank": 11,
+            "score": 5.074690728918666
+          },
+          {
+            "anchor_id": "C001",
+            "rank": 12,
+            "score": 4.79229347682797
+          },
+          {
+            "anchor_id": "C006",
+            "rank": 13,
+            "score": 4.327903246674442
+          },
+          {
+            "anchor_id": "C009",
+            "rank": 14,
+            "score": 4.139694573698332
+          },
+          {
+            "anchor_id": "C025",
+            "rank": 15,
+            "score": 3.363338247204519
+          },
+          {
+            "anchor_id": "C007",
+            "rank": 16,
+            "score": 2.9863563557877524
+          },
+          {
+            "anchor_id": "C010",
+            "rank": 17,
+            "score": 2.4367791839027486
+          },
+          {
+            "anchor_id": "C011",
+            "rank": 18,
+            "score": 2.2078734871914074
+          },
+          {
+            "anchor_id": "C024",
+            "rank": 19,
+            "score": 1.9259601720453625
+          },
+          {
+            "anchor_id": "C008",
+            "rank": 20,
+            "score": 1.8425378864836444
+          },
+          {
+            "anchor_id": "C015",
+            "rank": 21,
+            "score": 1.1537698373891816
+          },
+          {
+            "anchor_id": "C035",
+            "rank": 22,
+            "score": 0.8355638511694226
+          },
+          {
+            "anchor_id": "C026",
+            "rank": 23,
+            "score": 0.799227465013784
+          }
+        ],
+        "selected_anchor_ids": [
+          "C014",
+          "C013",
+          "C021",
+          "C030",
+          "C034",
+          "C027"
+        ],
+        "selected_evidence_chars": 963,
+        "top_k": 6
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "early_leak_hypothesis",
+              "satisfied": true
+            },
+            {
+              "clause_id": "retry_causal_signal",
+              "satisfied": true
+            },
+            {
+              "clause_id": "final_root_cause_and_rejection",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "composer": {
+          "answer": "INC-421 was caused by a request-timeout configuration that triggered retry amplification; the elevated database connections were downstream effects, and disabling automatic retries reduced connection pressure (C016, C017). The initial connection-pool-leak hypothesis was unconfirmed and should be treated as rejected, because the postmortem found no leak (C015, C017).",
+          "cited_anchor_ids": [
+            "C015",
+            "C016",
+            "C017"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 3.77,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "What caused INC-421, and how should the initial connection-pool-leak hypothesis be treated?",
+        "question_id": "CQ004",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "C015",
+            "rank": 1,
+            "score": 19.502215840024036
+          },
+          {
+            "anchor_id": "C017",
+            "rank": 2,
+            "score": 16.30929821445041
+          },
+          {
+            "anchor_id": "C016",
+            "rank": 3,
+            "score": 6.291817710458826
+          },
+          {
+            "anchor_id": "C014",
+            "rank": 4,
+            "score": 5.075675750002233
+          },
+          {
+            "anchor_id": "C018",
+            "rank": 5,
+            "score": 4.123768028098571
+          },
+          {
+            "anchor_id": "C034",
+            "rank": 6,
+            "score": 3.831641649317408
+          },
+          {
+            "anchor_id": "C025",
+            "rank": 7,
+            "score": 3.2852544220189186
+          },
+          {
+            "anchor_id": "C007",
+            "rank": 8,
+            "score": 2.8784759927219006
+          },
+          {
+            "anchor_id": "C021",
+            "rank": 9,
+            "score": 2.559706817671203
+          },
+          {
+            "anchor_id": "C013",
+            "rank": 10,
+            "score": 2.2877451936069524
+          },
+          {
+            "anchor_id": "C006",
+            "rank": 11,
+            "score": 2.2705991789386077
+          },
+          {
+            "anchor_id": "C002",
+            "rank": 12,
+            "score": 2.2105741027997925
+          },
+          {
+            "anchor_id": "C009",
+            "rank": 13,
+            "score": 2.1718570319978108
+          },
+          {
+            "anchor_id": "C001",
+            "rank": 14,
+            "score": 1.6681105705942227
+          },
+          {
+            "anchor_id": "C028",
+            "rank": 15,
+            "score": 1.3784118369126175
+          },
+          {
+            "anchor_id": "C012",
+            "rank": 16,
+            "score": 1.2145097887182688
+          },
+          {
+            "anchor_id": "C030",
+            "rank": 17,
+            "score": 1.1945846867739744
+          },
+          {
+            "anchor_id": "C031",
+            "rank": 18,
+            "score": 1.1833609055195833
+          },
+          {
+            "anchor_id": "C010",
+            "rank": 19,
+            "score": 1.125622571374808
+          },
+          {
+            "anchor_id": "C008",
+            "rank": 20,
+            "score": 1.0255460514811967
+          },
+          {
+            "anchor_id": "C004",
+            "rank": 21,
+            "score": 1.0032469553110734
+          }
+        ],
+        "selected_anchor_ids": [
+          "C015",
+          "C017",
+          "C016",
+          "C014",
+          "C018",
+          "C034"
+        ],
+        "selected_evidence_chars": 849,
+        "top_k": 6
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "project_rename_bridge",
+              "satisfied": true
+            },
+            {
+              "clause_id": "user_owned_v2_deprecation",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "C022"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "composer": {
+          "answer": "Yes. For project PX-902, the decision was to deprecate the v2 API after the compatibility window; this is user-owned project knowledge (C021). The project's current name is Meridian; Finch was its previous name, and the rename did not create a new project (C019, C020).",
+          "cited_anchor_ids": [
+            "C021",
+            "C019",
+            "C020"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 3.551,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Did the Finch project decide to deprecate v2 API, and what is that project's current name?",
+        "question_id": "CQ005",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "C019",
+            "rank": 1,
+            "score": 17.994348036795483
+          },
+          {
+            "anchor_id": "C020",
+            "rank": 2,
+            "score": 17.532598406415474
+          },
+          {
+            "anchor_id": "C021",
+            "rank": 3,
+            "score": 16.69895520819828
+          },
+          {
+            "anchor_id": "C022",
+            "rank": 4,
+            "score": 11.055220750621075
+          },
+          {
+            "anchor_id": "C013",
+            "rank": 5,
+            "score": 5.3255276815242185
+          },
+          {
+            "anchor_id": "C030",
+            "rank": 6,
+            "score": 4.2757630404982745
+          },
+          {
+            "anchor_id": "C014",
+            "rank": 7,
+            "score": 4.055885664452995
+          },
+          {
+            "anchor_id": "C012",
+            "rank": 8,
+            "score": 3.8905845799993415
+          },
+          {
+            "anchor_id": "C031",
+            "rank": 9,
+            "score": 3.5096535925966834
+          },
+          {
+            "anchor_id": "C028",
+            "rank": 10,
+            "score": 3.1332386332109596
+          },
+          {
+            "anchor_id": "C001",
+            "rank": 11,
+            "score": 3.124182906233747
+          },
+          {
+            "anchor_id": "C034",
+            "rank": 12,
+            "score": 3.124182906233747
+          },
+          {
+            "anchor_id": "C004",
+            "rank": 13,
+            "score": 2.975465273988574
+          },
+          {
+            "anchor_id": "C027",
+            "rank": 14,
+            "score": 2.683698507301237
+          },
+          {
+            "anchor_id": "C025",
+            "rank": 15,
+            "score": 2.5463464122020714
+          },
+          {
+            "anchor_id": "C003",
+            "rank": 16,
+            "score": 2.4211527199864364
+          },
+          {
+            "anchor_id": "C006",
+            "rank": 17,
+            "score": 2.2705991789386077
+          },
+          {
+            "anchor_id": "C009",
+            "rank": 18,
+            "score": 2.1718570319978108
+          },
+          {
+            "anchor_id": "C026",
+            "rank": 19,
+            "score": 2.1571118162574425
+          },
+          {
+            "anchor_id": "C035",
+            "rank": 20,
+            "score": 1.555371488210741
+          },
+          {
+            "anchor_id": "C002",
+            "rank": 21,
+            "score": 1.4877326369942871
+          },
+          {
+            "anchor_id": "C024",
+            "rank": 22,
+            "score": 1.456072335639524
+          },
+          {
+            "anchor_id": "C015",
+            "rank": 23,
+            "score": 1.1537698373891816
+          },
+          {
+            "anchor_id": "C010",
+            "rank": 24,
+            "score": 1.125622571374808
+          },
+          {
+            "anchor_id": "C008",
+            "rank": 25,
+            "score": 1.0255460514811967
+          },
+          {
+            "anchor_id": "C007",
+            "rank": 26,
+            "score": 0.9954521185959174
+          }
+        ],
+        "selected_anchor_ids": [
+          "C019",
+          "C020",
+          "C021",
+          "C022",
+          "C013",
+          "C030"
+        ],
+        "selected_evidence_chars": 834,
+        "top_k": 6
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "normal_sso_requirement",
+              "satisfied": true
+            },
+            {
+              "clause_id": "break_glass_scope",
+              "satisfied": true
+            },
+            {
+              "clause_id": "audit_not_waived",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "C026"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "composer": {
+          "answer": "Break-glass admin may bypass SSO only for a designated account during a declared incident when the identity provider is unavailable (C024). It does not permit routine local-admin access; routine administrator access requires company SSO with phishing-resistant MFA, and vendor capability does not establish authorization (C023, C026). It also does not waive audit review: every use must be logged, linked to the incident, and reviewed after recovery (C025).",
+          "cited_anchor_ids": [
+            "C024",
+            "C023",
+            "C026",
+            "C025"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 3.565,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "When may break-glass admin bypass SSO, and does that permit routine local-admin access or waive audit review?",
+        "question_id": "CQ006",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "C024",
+            "rank": 1,
+            "score": 19.14510161515642
+          },
+          {
+            "anchor_id": "C025",
+            "rank": 2,
+            "score": 15.045175002714622
+          },
+          {
+            "anchor_id": "C023",
+            "rank": 3,
+            "score": 8.603534272325575
+          },
+          {
+            "anchor_id": "C026",
+            "rank": 4,
+            "score": 7.325773908638629
+          },
+          {
+            "anchor_id": "C006",
+            "rank": 5,
+            "score": 6.654108264691586
+          },
+          {
+            "anchor_id": "C004",
+            "rank": 6,
+            "score": 5.386452640196072
+          },
+          {
+            "anchor_id": "C009",
+            "rank": 7,
+            "score": 5.314838519159148
+          },
+          {
+            "anchor_id": "C005",
+            "rank": 8,
+            "score": 4.2222462266087595
+          },
+          {
+            "anchor_id": "C001",
+            "rank": 9,
+            "score": 4.117717809233403
+          },
+          {
+            "anchor_id": "C030",
+            "rank": 10,
+            "score": 3.0811783537242996
+          },
+          {
+            "anchor_id": "C007",
+            "rank": 11,
+            "score": 2.15486067845217
+          },
+          {
+            "anchor_id": "C011",
+            "rank": 12,
+            "score": 1.9992496458357334
+          },
+          {
+            "anchor_id": "C002",
+            "rank": 13,
+            "score": 1.984991355446949
+          },
+          {
+            "anchor_id": "C003",
+            "rank": 14,
+            "score": 1.499436087393074
+          },
+          {
+            "anchor_id": "C012",
+            "rank": 15,
+            "score": 1.2145097887182688
+          },
+          {
+            "anchor_id": "C031",
+            "rank": 16,
+            "score": 1.1833609055195833
+          },
+          {
+            "anchor_id": "C015",
+            "rank": 17,
+            "score": 1.1537698373891816
+          },
+          {
+            "anchor_id": "C010",
+            "rank": 18,
+            "score": 1.125622571374808
+          },
+          {
+            "anchor_id": "C008",
+            "rank": 19,
+            "score": 1.0255460514811967
+          },
+          {
+            "anchor_id": "C014",
+            "rank": 20,
+            "score": 0.9818969491684584
+          },
+          {
+            "anchor_id": "C021",
+            "rank": 21,
+            "score": 0.9418117315702126
+          },
+          {
+            "anchor_id": "C013",
+            "rank": 22,
+            "score": 0.8240652402104395
+          }
+        ],
+        "selected_anchor_ids": [
+          "C024",
+          "C025",
+          "C023",
+          "C026",
+          "C006",
+          "C004"
+        ],
+        "selected_evidence_chars": 892,
+        "top_k": 6
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "narrow_direct_requirement",
+              "satisfied": true
+            },
+            {
+              "clause_id": "hosted_km_still_approved",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [
+            "C031"
+          ],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_WITH_CONFLATION_RISK"
+        },
+        "composer": {
+          "answer": "The requirement was narrower: Zoe Malik’s direct email says customer-managed encryption keys were required for that release, explicitly not because of a general objection to hosted key management (C027). Hosted key management remained approved for workloads without that release-specific constraint (C030). The launch meeting also attributes the customer-managed-key request to Z. Malik, consistent with Zoe’s identity in the directory (C028, C029).",
+          "cited_anchor_ids": [
+            "C027",
+            "C030",
+            "C028",
+            "C029"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 3.797,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Is Zoe Malik generally opposed to hosted key management, or was the customer-managed-key requirement narrower?",
+        "question_id": "CQ007",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "C027",
+            "rank": 1,
+            "score": 20.24414061258299
+          },
+          {
+            "anchor_id": "C030",
+            "rank": 2,
+            "score": 16.22884465032347
+          },
+          {
+            "anchor_id": "C028",
+            "rank": 3,
+            "score": 9.98188723390308
+          },
+          {
+            "anchor_id": "C031",
+            "rank": 4,
+            "score": 9.867466831125473
+          },
+          {
+            "anchor_id": "C029",
+            "rank": 5,
+            "score": 7.1231486882610096
+          },
+          {
+            "anchor_id": "C001",
+            "rank": 6,
+            "score": 5.287713984956932
+          },
+          {
+            "anchor_id": "C021",
+            "rank": 7,
+            "score": 5.074232172269342
+          },
+          {
+            "anchor_id": "C014",
+            "rank": 8,
+            "score": 4.093778800833775
+          },
+          {
+            "anchor_id": "C026",
+            "rank": 9,
+            "score": 3.7805665207344967
+          },
+          {
+            "anchor_id": "C002",
+            "rank": 10,
+            "score": 3.69830673979408
+          },
+          {
+            "anchor_id": "C034",
+            "rank": 11,
+            "score": 3.124182906233747
+          },
+          {
+            "anchor_id": "C004",
+            "rank": 12,
+            "score": 3.0141823447905556
+          },
+          {
+            "anchor_id": "C009",
+            "rank": 13,
+            "score": 2.792064781163792
+          },
+          {
+            "anchor_id": "C013",
+            "rank": 14,
+            "score": 2.685700859000427
+          },
+          {
+            "anchor_id": "C007",
+            "rank": 15,
+            "score": 2.675438405576628
+          },
+          {
+            "anchor_id": "C011",
+            "rank": 16,
+            "score": 1.8214829851114533
+          },
+          {
+            "anchor_id": "C022",
+            "rank": 17,
+            "score": 1.6692056003822984
+          },
+          {
+            "anchor_id": "C035",
+            "rank": 18,
+            "score": 1.555371488210741
+          },
+          {
+            "anchor_id": "C025",
+            "rank": 19,
+            "score": 1.5208003607208747
+          },
+          {
+            "anchor_id": "C024",
+            "rank": 20,
+            "score": 1.456072335639524
+          },
+          {
+            "anchor_id": "C006",
+            "rank": 21,
+            "score": 1.2217402165664117
+          }
+        ],
+        "selected_anchor_ids": [
+          "C027",
+          "C030",
+          "C028",
+          "C031",
+          "C029",
+          "C001"
+        ],
+        "selected_evidence_chars": 745,
+        "top_k": 6
+      },
+      {
+        "authority": {
+          "clauses": [
+            {
+              "clause_id": "user_owned_capacity_decision",
+              "satisfied": true
+            },
+            {
+              "clause_id": "repeated_monthly_close_observation",
+              "satisfied": true
+            }
+          ],
+          "forbidden_conflation_anchor_ids_present": [],
+          "missing_clause_ids": [],
+          "status": "SUFFICIENT_CLEAN"
+        },
+        "composer": {
+          "answer": "The worker pool was increased from 8 to 12 because repeated monthly-close events exceeded 70% CPU (C034). The issue was considered “repeated” because the batch processor exceeded 70% CPU during the June close and again during the July close (C032, C033).",
+          "cited_anchor_ids": [
+            "C034",
+            "C032",
+            "C033"
+          ],
+          "insufficient_authority": false
+        },
+        "composer_contract_ok": true,
+        "composer_receipt": {
+          "elapsed_seconds": 3.359,
+          "model": "gpt-5.6-luna"
+        },
+        "question": "Why was the batch worker pool increased from 8 to 12, and what evidence made the CPU issue 'repeated'?",
+        "question_id": "CQ008",
+        "retrieval_ranking": [
+          {
+            "anchor_id": "C034",
+            "rank": 1,
+            "score": 21.55193740219401
+          },
+          {
+            "anchor_id": "C021",
+            "rank": 2,
+            "score": 6.237309731766864
+          },
+          {
+            "anchor_id": "C014",
+            "rank": 3,
+            "score": 6.219416743176181
+          },
+          {
+            "anchor_id": "C001",
+            "rank": 4,
+            "score": 6.132182757191988
+          },
+          {
+            "anchor_id": "C032",
+            "rank": 5,
+            "score": 5.5972573241604024
+          },
+          {
+            "anchor_id": "C033",
+            "rank": 6,
+            "score": 5.449924153180999
+          },
+          {
+            "anchor_id": "C035",
+            "rank": 7,
+            "score": 5.213104309133414
+          },
+          {
+            "anchor_id": "C013",
+            "rank": 8,
+            "score": 4.973446052607379
+          },
+          {
+            "anchor_id": "C028",
+            "rank": 9,
+            "score": 4.511650470123577
+          },
+          {
+            "anchor_id": "C012",
+            "rank": 10,
+            "score": 4.276907679454131
+          },
+          {
+            "anchor_id": "C015",
+            "rank": 11,
+            "score": 3.696009023485918
+          },
+          {
+            "anchor_id": "C006",
+            "rank": 12,
+            "score": 3.4923393955050193
+          },
+          {
+            "anchor_id": "C009",
+            "rank": 13,
+            "score": 3.3404671086845483
+          },
+          {
+            "anchor_id": "C031",
+            "rank": 14,
+            "score": 2.798166403642706
+          },
+          {
+            "anchor_id": "C027",
+            "rank": 15,
+            "score": 2.5766295504971004
+          },
+          {
+            "anchor_id": "C025",
+            "rank": 16,
+            "score": 2.5463464122020714
+          },
+          {
+            "anchor_id": "C030",
+            "rank": 17,
+            "score": 2.389169373547949
+          },
+          {
+            "anchor_id": "C004",
+            "rank": 18,
+            "score": 2.3722702954055164
+          },
+          {
+            "anchor_id": "C017",
+            "rank": 19,
+            "score": 2.2597083705377217
+          },
+          {
+            "anchor_id": "C007",
+            "rank": 20,
+            "score": 1.9909042371918348
+          },
+          {
+            "anchor_id": "C005",
+            "rank": 21,
+            "score": 1.6148054981231226
+          },
+          {
+            "anchor_id": "C022",
+            "rank": 22,
+            "score": 1.536016196402431
+          },
+          {
+            "anchor_id": "C002",
+            "rank": 23,
+            "score": 1.3690233400944427
+          },
+          {
+            "anchor_id": "C010",
+            "rank": 24,
+            "score": 1.125622571374808
+          },
+          {
+            "anchor_id": "C008",
+            "rank": 25,
+            "score": 1.0255460514811967
+          }
+        ],
+        "selected_anchor_ids": [
+          "C034",
+          "C021",
+          "C014",
+          "C001",
+          "C032",
+          "C033"
+        ],
+        "selected_evidence_chars": 759,
+        "top_k": 6
+      }
+    ]
+  },
+  "execute_model": true,
+  "execution_complete": true,
+  "execution_source_sha": "505740b74776fc7b7988e9c168c9c9d0ed2067fa",
+  "format": "E023-G1e-v0",
+  "interpretation_boundary": "G1e compares one exact-BM25 evidence-prefix increment on prospectively frozen material. No result makes top-6 a product policy or authorizes persistence, entity/graph storage, vector defaults, or automatic identity/routing.",
+  "model": "gpt-5.6-luna",
+  "model_call_attempts": 16,
+  "phase0_authority_gate": "PASS_FROZEN_PR187",
+  "request": {
+    "a5_composer_calls": 8,
+    "a5_top_k": 5,
+    "b6_composer_calls": 8,
+    "b6_top_k": 6,
+    "max_ai_credits_per_call": 30,
+    "max_model_call_attempts": 16,
+    "model": "gpt-5.6-luna",
+    "planner_calls": 0,
+    "question_count": 8,
+    "request_id": "e023-g1e-exact-bm25-budget-v0",
+    "selector_calls": 0
+  },
+  "semantic_promotion": "PENDING_FROZEN_ADJUDICATION",
+  "usage": {
+    "ai_credits_or_premium_requests": "unavailable_do_not_infer",
+    "model_calls": 16,
+    "tokens": "unavailable_unless_transport_exposes_machine_readable_usage"
+  }
+}
