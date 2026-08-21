@@ -125,10 +125,6 @@ process.stdout.write(JSON.stringify({
     return dict(_run_node(script, str(WORKSPACE_MODULE), str(root)))
 
 
-def sha256_file(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
 def temporal_state(root: Path, topic_id: str) -> dict:
     row = temporal_projection(root, topic_id=topic_id)
     return {
@@ -236,7 +232,7 @@ def build_fixture(base: Path) -> dict:
     ensure_workspace(root)
     topic = create_topic(root, "Reliability")
 
-    target.write_text("retry policy v1\nbackoff is bounded\n", encoding="utf-8", newline="\n")
+    target.write_bytes(b"retry policy v1\nbackoff is bounded\n")
     source1, _ = ingest_file(root, target, topic_id=topic["topic_id"])
     record_ingest(root, topic["topic_id"])
     set_source_locator(root, source1.source_id, relative_path="docs/retry.md", sha256=source1.sha256)
@@ -249,13 +245,13 @@ def build_fixture(base: Path) -> dict:
         local_label="retry-v1",
     )
 
-    target.write_text("retry policy v2\nbackoff is bounded and capped\n", encoding="utf-8", newline="\n")
+    target.write_bytes(b"retry policy v2\nbackoff is bounded and capped\n")
     source2, _ = ingest_file(root, target, topic_id=topic["topic_id"])
     record_ingest(root, topic["topic_id"], authoritative_update=True)
     set_source_locator(root, source2.source_id, relative_path="docs/retry.md", sha256=source2.sha256)
     correct_source(root, source1.source_id, source2.source_id, topic_id=topic["topic_id"])
 
-    target.write_text("retry policy v3\nbackoff is bounded, capped, and jittered\n", encoding="utf-8", newline="\n")
+    target.write_bytes(b"retry policy v3\nbackoff is bounded, capped, and jittered\n")
     source3, _ = ingest_file(root, target, topic_id=topic["topic_id"])
     record_ingest(root, topic["topic_id"], authoritative_update=True)
     set_source_locator(root, source3.source_id, relative_path="docs/retry.md", sha256=source3.sha256)
@@ -412,13 +408,14 @@ def main() -> int:
         def no_root_dependency() -> object:
             needles = [str(source_root).encode("utf-8"), str(source_workspace).encode("utf-8")]
             leaks: list[str] = []
-            for path in portable_files(source_root):
+            files = portable_files(source_root)
+            for path in files:
                 data = path.read_bytes()
                 if any(needle in data for needle in needles):
                     leaks.append(str(path.relative_to(source_root)))
             if leaks:
                 raise CaseFailure("portable_state_contains_source_root:" + ",".join(leaks))
-            return {"portable_files_checked": len(portable_files(source_root)), "absolute_root_dependencies": 0}
+            return {"portable_files_checked": len(files), "absolute_root_dependencies": 0}
 
         run_case("S0-07_portable_state_has_no_source_root_dependency", no_root_dependency)
 
