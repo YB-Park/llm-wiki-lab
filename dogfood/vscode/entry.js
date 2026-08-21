@@ -11,6 +11,7 @@ const { classifyGitSafety } = require('./git-safety');
 const { clearPythonRuntimeCache, resolvePythonRuntime } = require('./python-runtime');
 const workspaceActivation = require('./workspace-activation');
 const { discoverCopilotModels } = require('./lm-discovery');
+const personalLibrary = require('./personal-wiki-library');
 const { queryGrant, registerQueryPlaneCommand, registerQueryPlaneTool } = require('./query-plane');
 
 const execFileAsync = promisify(execFile);
@@ -297,6 +298,14 @@ async function doctor(context) {
   const maintenanceOn = configuration().get('agentWikiMaintenanceEnabled', false) === true;
   const maintenanceGuard = Number(configuration().get('agentWikiMaintenanceMaxAiCredits', 30));
   const query = workspaceEnabled ? queryGrant(context, folder) : undefined;
+  const libraryAccess = workspaceEnabled ? Boolean(personalLibrary.libraryGrant(context, folder, root)) : false;
+  let libraryCatalogStatus = 'PASS';
+  let registeredExternalStoreCount = 0;
+  try {
+    registeredExternalStoreCount = personalLibrary.registeredStores(context).length;
+  } catch (_) {
+    libraryCatalogStatus = 'NEEDS_ATTENTION';
+  }
   const storeLabel = storeInitialized ? 'INITIALIZED' : (storePresent ? 'INCOMPLETE' : 'NOT_INITIALIZED');
 
   doctorOutput.clear();
@@ -315,6 +324,9 @@ async function doctor(context) {
   doctorOutput.appendLine(`AI summaries: ${maintenanceOn ? 'ON' : 'OFF'}`);
   doctorOutput.appendLine(`Wiki query reasoning: ${query ? 'ON' : 'OFF'}`);
   doctorOutput.appendLine(`Wiki query daily call cap: ${query ? query.dailyCallLimit : 'NOT_GRANTED'}`);
+  doctorOutput.appendLine(`Personal Wiki Library access: ${libraryAccess ? 'ON' : 'OFF'}`);
+  doctorOutput.appendLine(`Personal Wiki Library catalog: ${libraryCatalogStatus}`);
+  doctorOutput.appendLine(`Registered external Wiki stores: ${libraryCatalogStatus === 'PASS' ? registeredExternalStoreCount : 'UNKNOWN'}`);
   doctorOutput.appendLine(`Copilot CLI executable: ${copilotReady ? 'FOUND' : 'NOT FOUND'}`);
   doctorOutput.appendLine('AI-summary/query model-call readiness: NOT VERIFIED (this check intentionally makes no model calls)');
   doctorOutput.appendLine('');
@@ -328,6 +340,8 @@ async function doctor(context) {
     doctorOutput.appendLine('Next action: add .wiki-lab/ (or your configured memory directory) to .git/info/exclude for a local-only choice, or .gitignore for the project; then run setup again.');
   } else if (!workspaceEnabled) {
     doctorOutput.appendLine('Next action: run “LLM Wiki: Set Up Project Memory” to explicitly enable this workspace.');
+  } else if (libraryCatalogStatus !== 'PASS') {
+    doctorOutput.appendLine('Next action: Personal Wiki Library control-plane state needs attention. Keep external project access off until the local catalog is inspected or reconfigured.');
   } else if ((maintenanceOn || query) && !copilotReady) {
     doctorOutput.appendLine('Next action: local project memory is ready. A Copilot-backed feature is enabled but needs GitHub Copilot CLI installed and authenticated.');
   } else {
@@ -367,6 +381,9 @@ async function doctor(context) {
     maintenanceGuard,
     queryReasoningOn: Boolean(query),
     queryDailyCallLimit: query ? query.dailyCallLimit : 0,
+    personalWikiLibraryAccessOn: libraryAccess,
+    personalWikiLibraryCatalogStatus: libraryCatalogStatus,
+    registeredExternalStoreCount: libraryCatalogStatus === 'PASS' ? registeredExternalStoreCount : -1,
   };
 }
 

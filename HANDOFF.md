@@ -1,6 +1,6 @@
 # Current Handoff
 
-Last updated: 2026-08-21 KST — parallel 0.1.17 dogfood + E025 F1 entry
+Last updated: 2026-08-21 KST — E025 F1 validated for installed dogfood handoff
 
 This is a **living continuation checkpoint**, not project history. Keep only what independent continuation sessions need to decide and act now. If this file conflicts with merged code or an accepted ADR, code/ADR wins. Before repo work, re-check current `main`, open PRs, relevant issues, and current branches.
 
@@ -9,20 +9,24 @@ This is a **living continuation checkpoint**, not project history. Keep only wha
 Repository: `YB-Park/llm-wiki-lab`
 
 Current product posture:
-- validated **Dogfood 0.1.17** remains the installed natural-use baseline;
+- validated **Dogfood 0.1.17** remains the installed natural-use baseline until 0.1.18 is merged, rebuilt on `main`, and published by the validated-VSIX workflow;
 - 0.1.17 includes the earned opt-in exact-Luna L0 Wiki Query Plane while preserving the Authority Core and low-level memory path;
 - current product decision: **GO for installed self-dogfood / Alpha use**;
 - public Beta: **not declared**;
 - primary product-evidence track: **Issue #141 natural installed dogfood**;
 - **E025 F0 named-store scope contract is EARNED: 18/18 PASS, zero model calls**;
-- #202 is now open only for the narrow **F1 named-store read-only product slice**;
+- **E025 F1 named-store read-only implementation is READY FOR INSTALLED DOGFOOD**;
+- validated F1 runtime head: `514daf17027827c3ec8090b6fd7e3317e00561d2`;
+- validated F1 `VS Code Dogfood` run: `32454285838` — Python 3.9, 172 Python tests, E020 78/60/7/11 zero-model, static/federation safety, cross-process usage-cap test, Extension Host, bundle, VSIX, packaged Extension Host, artifact upload all PASS;
+- E010 self-repo dogfood and E004/E014 validation workflows are green on the same tested head;
+- PR #211 may now be promoted/merged for the narrow 0.1.18 installed slice, followed by a fresh `main` build and automated validated-VSIX publish;
 - library-wide/ambient federation, sync, cross-project writes, Personal store, graph/vector/entity infrastructure, and automatic identity routing remain closed;
 - paid E023 semantic calls: **paused**;
 - E023 G2/G3 remain closed/parked;
 - E024 L1 iterative Librarian remains not earned;
 - Issue #132 reliability remains evidence-gated.
 
-Run dogfood and F1 as independent parallel continuations. Do not let the slow natural-dogfood timeline block a bounded F1 implementation, and do not let F1 destabilize the validated 0.1.17 baseline.
+The F1 promotion is a **deployment-readiness decision for one explicitly named read-only external project store path**, not an architecture-wide federation promotion. Do not use it to broaden ordinary retrieval.
 
 ## North Star
 
@@ -32,35 +36,56 @@ Build a VS Code-first **LLM Wiki** where the user owns a verifiable project-memo
 
 Cross-project value must come from authorized access to multiple independent project Authority Cores, not from globalizing those Authority Cores.
 
-## Parallel Track A — 0.1.17 installed natural dogfood
+## Track A — installed natural dogfood
 
 Primary issue: **#141**
 
-Validated release:
+Current installed validated release until 0.1.18 publication:
 - `dogfood/releases/llm-wiki-dogfood-0.1.17.vsix`
 - stable path: `dogfood/releases/llm-wiki-dogfood-latest.vsix`
 - SHA-256: `a0d8f19696e12dfa92d643d739fdbf5386f26f4e0338f536406ba78ac85b2962`
 - validated product head: `7348509b83202e473d3ef1925225dec39e6f5121`
 
-Observe only natural evidence: correct memory-path use, Query Plane usefulness/insufficiency, latency, repeated `wikiRead`, long-source recovery, pending/history behavior, lifecycle/privacy/provenance behavior, usage-guard comprehension, and whether model spend is justified. Do **not** manufacture synthetic coverage just because a case exists.
+Once #211 is merged, do not manually replace these files. The existing `publish-vsix-in-repo.yml` workflow must publish the exact 0.1.18 VSIX bytes only after the `main` `VS Code Dogfood` workflow completes successfully, including packaged Extension Host execution.
 
-Fix promptly only for meaningful blockers such as data loss/corruption, authority/privacy violation, broken enable/disable lifecycle, terminal provenance failure, misleading causal diagnostics, or unusable ordinary core/Query Plane behavior. Accumulate evidence before mild UX/default/architecture changes.
+Observe only natural evidence: correct memory-path use, Query Plane usefulness/insufficiency, latency, repeated `wikiRead`, long-source recovery, pending/history behavior, lifecycle/privacy/provenance behavior, usage-guard comprehension, named-store usefulness, and whether model spend is justified. Do **not** manufacture synthetic coverage just because a case exists.
 
-## Parallel Track B — cross-workspace Personal Wiki / E025 F1
+Fix promptly only for meaningful blockers such as data loss/corruption, authority/privacy violation, broken enable/disable lifecycle, terminal provenance failure, misleading causal diagnostics, usage-guard bypass, external-store mutation, or unusable ordinary core/Query Plane behavior. Accumulate evidence before mild UX/default/architecture changes.
+
+## Track B — cross-workspace Personal Wiki / E025 F1
 
 Primary issue and continuation source of truth: **#202**.
 
 ### Promotion state
 
-E025 F0 is merged and earned. The zero-model scope-authority preflight passed all mandatory cases while the 0.1.17 regression gate remained green.
+E025 F0 is merged and earned:
 
 `E025_F0_NAMED_STORE_SCOPE_CONTRACT = EARNED`
 
-This earns **only** the next installed/product slice: named-store read-only federation. It does not earn broad federation.
+The narrow F1 implementation has now passed its adversarial product/runtime/package gate:
 
-### F1 allowed implementation surface
+`E025_F1_NAMED_STORE_READ_ONLY = READY_FOR_INSTALLED_DOGFOOD`
 
-Implement the smallest product path that can support:
+Tested runtime head: `514daf17027827c3ec8090b6fd7e3317e00561d2`
+
+Validated `VS Code Dogfood` run: `32454285838`
+
+Evidence includes:
+- Python 3.9 bundled-core compatibility PASS;
+- Python suite PASS, 172 tests;
+- E020 frozen contract PASS: 78 cases / 60 supported / 7 partial / 11 deferred / zero model calls;
+- dedicated federation safety/static PASS;
+- separate-process atomic Query Plane usage-cap test PASS;
+- Extension Host integration PASS;
+- bundled core PASS;
+- VSIX package contents PASS;
+- unpacked packaged VSIX Extension Host PASS;
+- artifact upload PASS;
+- E010/E004/E014 companion workflows PASS.
+
+This earns **installation/natural-use evaluation of the named-store read-only slice only**. It does not earn broad federation.
+
+### F1 implemented boundary
 
 ```text
 Current trusted workspace B
@@ -71,36 +96,47 @@ Personal Wiki Library control plane
         ▼
 Named external project store A — READ ONLY
         ▼
+Bundled trusted federation read bridge
+        ▼
 Store-scoped Memory Read Service
         ▼
-Existing 0.1.17 Query Plane composer
+Existing exact-Luna Query Plane composer
         ▼
 Scope-qualified Wiki Brief
         ▼
 Scoped wikiRead follow-through
 ```
 
-Required F1 boundaries:
-- authorization is resolved **before retrieval, scoring, candidate counts, diagnostics, or model exposure**;
+Enforced F1 boundaries:
+- authorization is resolved **before external retrieval/model exposure**, and authorization/identity is revalidated during external reads and immediately before model spawn;
 - Luna never widens scope and never chooses which private store it may inspect;
-- ordinary current-project questions remain current-store-only and do not enumerate library stores;
-- the existing 0.1.17 Query Reasoning grant remains `current_store` scoped and must not silently become a federation grant;
-- external-store registration/model exposure requires a distinct explicit local grant;
-- current-workspace library access grant is separate and revocable, bound to the current workspace opt-in epoch;
-- named external stores are read-only;
-- opaque `library_store` IDs are routing identity; paths stay host-private;
+- ordinary current-project `wikiMemory` and `wikiConsult` remain current-store-only unless an external store is explicitly named;
+- the Query Reasoning grant remains `current_store` scoped and is insufficient by itself for external access;
+- external-store registration plus current-workspace library access are distinct explicit local grants;
+- current-workspace library access is bound to the workspace opt-in authority epoch;
+- named external stores have only a dedicated read bridge; the generic Python runner refuses external handles;
+- external read bridge uses the bundled trusted core with isolated Python startup rather than current-workspace `corePath`/configured runtime/PYTHONPATH;
+- registration continuity is tied to an immutable manifest authority witness and checked before/after bounded bridge operations;
+- opaque `library_store` IDs are routing identity; private paths do not enter normal Agent/model output;
 - bare `src-...` IDs never select an external store;
-- scoped provenance follow-through must read the same store that produced the hit;
-- wrong-scope, unknown-store, unavailable-store, damaged-store, or ambiguous alias resolution fails closed with no cross-store fallback;
-- external-store pending lineage may appear only for an explicit request to that store and remains nonterminal;
-- project-local Human Knowledge is authoritative as a record of that project's/user's decision context, not automatically as a global preference;
-- external-store readability never authorizes source admission, Human Knowledge writes, lineage writes, maintenance writes, or config writes there;
-- normal diagnostics and model-visible results expose logical scope, not absolute private filesystem roots;
-- Query Plane disabled/budget/unavailable/verification failure keeps `fallback=none`.
+- scoped provenance follow-through reads only the originating store and never retries against current/other stores;
+- catalog corruption, identity change, unavailable/damaged store, revoked grant, and ambiguous alias fail closed;
+- external project Human Knowledge remains that project's confirmed decision/belief record and is not automatically current-project advice/global preference;
+- external-store pending lineage is nonterminal workflow state;
+- source admission, Human Knowledge writes, lineage writes, maintenance, and config writes remain current-store-only; existing `agent-tools.js` write implementation was not widened for F1;
+- optional DERIVED note failures cannot hide external authorization/catalog/identity revocation;
+- Health reports library access/catalog validity/store count only, not roots/evidence;
+- Query Plane disabled/budget/scope/verification/usage-guard failure keeps `fallback=none`;
+- the user-chosen Query Plane daily model-attempt cap is process-safe across concurrent local Extension Hosts sharing the same extension profile/global storage, using atomic slot claims under a hash-only workspace key;
+- 0.1.17 same-day usage is conservatively carried forward into the new ledger;
+- crash/uncertain reservations remain counted rather than refunded;
+- inability to enforce the durable usage ledger blocks the model call with `model_calls=0`.
+
+The process-safe daily-attempt ledger is a **local-profile safety boundary**, not a distributed billing or multi-machine coordination claim.
 
 ### Still closed
 
-Do not open in F1:
+Do not open from this F1 result:
 - library-wide union ranking or ambient all-project search;
 - sync/Git/cloud replication;
 - Personal store writes or personal-global Human Knowledge;
@@ -110,29 +146,30 @@ Do not open in F1:
 - automatic identity/person routing or alias merging;
 - background cross-project maintenance;
 - multi-user/multi-machine concurrency;
-- persistent store identity/schema migration;
+- cross-profile/global distributed usage coordination;
+- persistent canonical store identity/schema migration;
 - E024 L1 iterative Librarian;
 - E023 G2/G3 or paid semantic tuning loops.
 
-### F1 promotion boundary
+### Installed F1 dogfood questions
 
-A candidate F1 is not ready for installed dogfood unless tests prove at minimum:
-- current-store path remains backward compatible and library-isolated by default;
-- permission composition cannot be bypassed by any subset of grants;
-- named scope resolves exactly one registered store before any external read;
-- scope-qualified RAW/HUMAN terminal refs survive Query Plane validation;
-- scoped `wikiRead` verifies immutable bytes from the originating store only;
-- same source ID in A/B cannot cross-route;
-- external-store write paths are structurally unavailable or demonstrably unchanged;
-- workspace disable/re-enable invalidates stale library access;
-- private roots are absent from normal output;
-- existing Python/E020/VS Code integration/bundle/VSIX/packaged Extension Host regression gate remains green.
+Natural installed use should now answer:
+- does explicitly naming another project feel natural or burdensome?;
+- does the Agent invoke external `wikiConsult` only when the user actually names that project?;
+- are Query Reasoning and Personal Wiki Library permission surfaces understandable as separate grants?;
+- are scope-qualified terminal refs and scoped `wikiRead` understandable?;
+- do external Human Knowledge statements stay visibly project-scoped in real answers?;
+- do missing/moved/replaced/revoked stores fail clearly without creating fallback pressure?;
+- are external reads observably non-mutating?;
+- does the compact brief reduce Main-Agent context/tool-turn burden?;
+- do local usage guards behave as expected under ordinary concurrent VS Code use?;
+- does any real use reveal a blocker that justifies the smallest causal fix?
 
-F1 may use the already-earned exact-Luna composer only after deterministic authorization, scope resolution, retrieval, and evidence verification have completed.
+Do not manufacture evidence and do not treat successful installed use as automatic permission for ambient federation.
 
 ## Authority and privacy floor
 
-These invariants remain non-negotiable across both active tracks:
+These invariants remain non-negotiable:
 - workspace use is explicit opt-in and trusted-workspace only;
 - workspace disable makes Agent tool runtime implementations non-invokable while preserving Wiki data;
 - disabling and later re-enabling project memory invalidates previous model-exposure grants;
@@ -181,27 +218,28 @@ Retained principles:
 
 > Federation decides which stores are authorized/searchable; Query Plane decides who performs retrieval/composition and what reaches the Main Agent.
 
-## Parallel Track C — reliability, only when evidence makes it material
+## Track C — reliability, only when evidence makes it material
 
 Issue **#132** remains evidence-gated:
 - `.wiki-lab/agent-state.json` deletion is not independently detectable;
 - canonical lineage append and pending workflow-state resolution are not one transaction;
 - Human Knowledge file deletion is not independently detectable without an index.
 
-Do not preemptively replace storage with a DB/WAL. Do not mix sync design into E025 F1. If installed dogfood or F1 makes a reliability edge material, fix the smallest causal defect first.
+Do not preemptively replace storage with a DB/WAL. Do not mix sync design into E025 F1. If installed dogfood makes a reliability edge material, fix the smallest causal defect first.
 
 ## Session entry points
 
-### 0.1.17 dogfood/product evidence
-- read #141 and this handoff;
-- keep the validated 0.1.17 binary stable unless a real blocker requires a fix;
+### Installed dogfood/product evidence
+- read #141, #202, and this handoff;
+- until 0.1.18 is published by the validated workflow, the installed binary remains 0.1.17;
+- once 0.1.18 is published, install the validated repo VSIX and observe ordinary work;
 - record only meaningful natural observations.
 
 ### Cross-workspace/F1
 - read #202 latest comments and this handoff;
 - inspect current open PRs/branches first;
-- implement/test only named-store read-only federation;
-- keep every authorization/scope decision deterministic and before retrieval/model exposure;
+- treat F1 implementation as ready for installed dogfood, not broad federation;
+- keep every authorization/scope decision deterministic and before model exposure;
 - do not widen into library-wide search, sync, cross-project writes, or identity infrastructure.
 
 ### Persistence/identity research
@@ -226,10 +264,11 @@ Do not preemptively replace storage with a DB/WAL. Do not mix sync design into E
 
 ## NEXT ACTION
 
-Run the project as parallel continuations:
+Proceed in this order:
 
-1. **Dogfood session:** keep 0.1.17 installed natural use running and record meaningful evidence on #141.
-2. **Cross-workspace session:** implement the bounded E025 **F1 named-store read-only product slice** with distinct library permissions, deterministic pre-retrieval scope resolution, store-scoped reads, scope-qualified terminal refs, scoped `wikiRead`, fail-closed routing, private-root redaction, and current-store-only writes. Validate the full packaged regression gate before installed dogfood.
-3. **Reliability/research sessions:** remain parked unless independent evidence activates them.
+1. **PR #211:** mark ready and merge only the bounded 0.1.18 F1 named-store read-only slice after recording tested head/run evidence on #202.
+2. **Main validation/publish:** require a fresh successful `VS Code Dogfood` push run on merged `main`; let `publish-vsix-in-repo.yml` publish the validated 0.1.18 bytes automatically. Do not manually replace release files.
+3. **Installed dogfood:** install the published 0.1.18 VSIX and collect natural evidence on #141/#202. Keep broad federation and closed research axes closed.
+4. **Reliability/research:** remain parked unless independent evidence activates them.
 
-Do not let speculative parallel work destabilize the validated 0.1.17 product, and do not use F1 as a pretext to open library-wide federation or closed research axes.
+Do not let speculative work destabilize the validated installed product, and do not use F1 readiness as a pretext to open library-wide federation or closed research axes.
