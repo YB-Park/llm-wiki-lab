@@ -118,23 +118,28 @@ def append_private_text(path: Path, text: str) -> None:
 
 
 def _tighten_private_tree(root: Path) -> None:
-    """Restore private modes under one known Wiki-owned directory.
+    """Restore private modes below one known Wiki-owned real directory.
 
-    A backup, archive extraction, or future byte-preserving sync checkout may
-    retain contents while losing POSIX privacy modes. Re-hardening is allowed to
-    change permissions only, never bytes. Symlinks are deliberately skipped so
-    this helper cannot chmod an unrelated target outside the Wiki tree.
+    Cross-platform copy/checkout may retain bytes while losing POSIX privacy
+    modes. Traverse with explicit no-follow directory tests so a symlink inside
+    the Wiki tree can never redirect chmod operations to an unrelated target.
     """
     if not _is_posix() or not root.exists() or root.is_symlink() or not root.is_dir():
         return
-    root.chmod(PRIVATE_DIR_MODE)
-    for child in root.rglob("*"):
-        if child.is_symlink():
-            continue
-        if child.is_dir():
-            child.chmod(PRIVATE_DIR_MODE)
-        elif child.is_file():
-            child.chmod(PRIVATE_FILE_MODE)
+
+    pending = [root]
+    while pending:
+        directory = pending.pop()
+        directory.chmod(PRIVATE_DIR_MODE)
+        with os.scandir(directory) as entries:
+            for entry in entries:
+                if entry.is_symlink():
+                    continue
+                child = Path(entry.path)
+                if entry.is_dir(follow_symlinks=False):
+                    pending.append(child)
+                elif entry.is_file(follow_symlinks=False):
+                    child.chmod(PRIVATE_FILE_MODE)
 
 
 def tighten_workspace_permissions(root: Path) -> None:
