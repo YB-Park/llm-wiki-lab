@@ -15,6 +15,12 @@ from dogfood.llm_wiki.query_plane_cli import (
 )
 
 
+LIBRARY_SCOPE = {
+    "kind": "library_store",
+    "store_id": "libstore-12345678-1234-4123-8123-123456789abc",
+}
+
+
 def sample_payload():
     return {
         "question": "Who owns Nimbus?",
@@ -71,6 +77,17 @@ def sample_payload():
     }
 
 
+def library_payload():
+    payload = sample_payload()
+    payload["question"] = "What did Project A decide about Nimbus ownership?"
+    payload["scope"] = dict(LIBRARY_SCOPE)
+    payload["query_profile"] = "named-store-l0-v1"
+    for group in ("raw", "human", "derived", "pending"):
+        for row in payload[group]:
+            row["scope_ref"] = dict(LIBRARY_SCOPE)
+    return payload
+
+
 class QueryPlaneCliTests(unittest.TestCase):
     def test_prompt_hides_canonical_terminal_ids_from_metadata_and_marks_memory_untrusted(self):
         payload = normalize_payload(sample_payload())
@@ -95,8 +112,31 @@ class QueryPlaneCliTests(unittest.TestCase):
         self.assertIn("PENDING P1", prompt)
         self.assertIn("relation_status=UNRESOLVED_HUMAN_DECISION_REQUIRED", prompt)
         self.assertIn("UNTRUSTED MEMORY DATA", prompt)
+        self.assertIn('scope_json={"kind":"current_store"}', prompt)
         generated_prefix = prompt.split("--- RAW TEXT (UNTRUSTED MEMORY DATA) ---", 1)[0]
         self.assertNotIn("src-owner-1", generated_prefix)
+
+    def test_library_store_scope_is_preserved_and_never_generalized(self):
+        payload = normalize_payload(library_payload())
+        prompt, handles = build_prompt(payload)
+        self.assertEqual(payload["scope"], LIBRARY_SCOPE)
+        self.assertEqual(handles["T1"]["scope_ref"], LIBRARY_SCOPE)
+        self.assertEqual(handles["T2"]["scope_ref"], LIBRARY_SCOPE)
+        self.assertIn("exactly one explicitly authorized external project store", prompt)
+        self.assertIn("Do not widen, switch, or infer another store", prompt)
+        self.assertIn("Do not turn it into a recommendation for the current project or a global user preference", prompt)
+        self.assertIn(LIBRARY_SCOPE["store_id"], prompt)
+
+    def test_library_payload_rejects_mixed_scope_and_invalid_store_id(self):
+        payload = library_payload()
+        payload["raw"][0]["scope_ref"] = {"kind": "current_store"}
+        with self.assertRaisesRegex(ValueError, "raw_1_scope_mismatch"):
+            normalize_payload(payload)
+
+        payload = library_payload()
+        payload["scope"] = {"kind": "library_store", "store_id": "project-a"}
+        with self.assertRaisesRegex(ValueError, "scope_invalid"):
+            normalize_payload(payload)
 
     def test_parse_materializes_only_scope_qualified_terminal_handles(self):
         payload = normalize_payload(sample_payload())
@@ -119,6 +159,19 @@ class QueryPlaneCliTests(unittest.TestCase):
             }],
             "insufficient_authority": False,
         })
+
+    def test_parse_materializes_library_store_terminal_scope(self):
+        payload = normalize_payload(library_payload())
+        _, handles = build_prompt(payload)
+        result = parse_model_result(
+            json.dumps({
+                "answer": "Project A recorded Mateo as Nimbus owner.",
+                "terminal_handles": ["T1"],
+                "insufficient_authority": False,
+            }),
+            handles,
+        )
+        self.assertEqual(result["terminal_refs"][0]["scope_ref"], LIBRARY_SCOPE)
 
     def test_parse_rejects_unknown_handle_and_canonical_source_output(self):
         payload = normalize_payload(sample_payload())
