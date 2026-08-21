@@ -5,6 +5,7 @@ const path = require('node:path');
 const { spawn } = require('node:child_process');
 const vscode = require('vscode');
 const memoryRead = require('./memory-read-service');
+const workspaceActivation = require('./workspace-activation');
 const { boundedProcessFailure } = require('./process-errors');
 const { resolvePythonRuntime } = require('./python-runtime');
 
@@ -45,6 +46,10 @@ function grantKey(folder) {
   return `${GRANT_KEY_PREFIX}:${folder.uri.toString()}`;
 }
 
+function currentWorkspaceOptIn(folder) {
+  return workspaceActivation.readWorkspaceOptIn(memoryRead.wikiRoot(folder));
+}
+
 function localDayKey() {
   const now = new Date();
   const yyyy = String(now.getFullYear()).padStart(4, '0');
@@ -59,7 +64,9 @@ function usageKey(folder, day = localDayKey()) {
 
 function queryGrant(context, folder) {
   const row = context.workspaceState.get(grantKey(folder));
-  if (!row || row.version !== GRANT_VERSION || row.enabled !== true) return undefined;
+  const optIn = currentWorkspaceOptIn(folder);
+  if (!row || !optIn || row.version !== GRANT_VERSION || row.enabled !== true) return undefined;
+  if (row.workspaceEnabledAt !== optIn.enabled_at) return undefined;
   if (row.model !== MODEL || row.scope !== 'current_store' || row.provider !== 'github_copilot') return undefined;
   const dailyCallLimit = Number(row.dailyCallLimit);
   const maxAiCredits = Number(row.maxAiCredits);
@@ -178,7 +185,7 @@ function disabledResult() {
     'canonical_mutation=none',
     'model_calls=0',
     'fallback=none',
-    'policy=Do not automatically dump raw Wiki memory into the Main Agent. Query reasoning requires a separate local, revocable workspace grant plus explicit user-chosen daily-call and per-response AI-credit guards.',
+    'policy=Do not automatically dump raw Wiki memory into the Main Agent. Query reasoning requires a separate local, revocable grant bound to the current workspace opt-in plus explicit user-chosen daily-call and per-response AI-credit guards.',
   ].join('\n');
 }
 
@@ -277,13 +284,16 @@ async function configureQueryPlane(context) {
     return undefined;
   }
 
+  const optIn = currentWorkspaceOptIn(folder);
+  if (!optIn) throw new Error('query_plane_workspace_not_enabled');
+
   const choice = context.extensionMode === vscode.ExtensionMode.Test
     ? 'Continue'
     : await vscode.window.showWarningMessage(
       'Enable Luna-backed Wiki query reasoning for this workspace?',
       {
         modal: true,
-        detail: 'When enabled, a wikiConsult call may send a bounded set of already-admitted Wiki evidence to GitHub Copilot using exact gpt-5.6-luna for read-only query reasoning. This is separate from AI-summary permission, source admission, Human Knowledge authorship, and canonical history changes. You will choose both a local daily model-call cap and a Copilot per-response AI-credit soft guard next.',
+        detail: 'When enabled, a wikiConsult call may send a bounded set of already-admitted Wiki evidence to GitHub Copilot using exact gpt-5.6-luna for read-only query reasoning. This is separate from AI-summary permission, source admission, Human Knowledge authorship, and canonical history changes. You will choose both a local daily model-call cap and a Copilot per-response AI-credit soft guard next. Disabling and re-enabling project memory invalidates this grant.',
       },
       'Continue'
     );
@@ -326,6 +336,7 @@ async function configureQueryPlane(context) {
     model: MODEL,
     scope: 'current_store',
     evidenceExposure: 'retrieved_admitted_memory_only',
+    workspaceEnabledAt: optIn.enabled_at,
     dailyCallLimit,
     maxAiCredits,
   };
