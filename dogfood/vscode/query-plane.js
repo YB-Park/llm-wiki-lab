@@ -186,6 +186,27 @@ function sameScope(left, right) {
   return JSON.stringify(left || {}) === JSON.stringify(right || {});
 }
 
+function preModelAuthorization(context, folder, requestedStore, originalStoreHandle) {
+  const liveGrant = queryGrant(context, folder);
+  if (!liveGrant) return { state: 'query_grant_revoked' };
+  if (!requestedStore) {
+    return { state: 'authorized', grant: liveGrant, storeHandle: memoryRead.currentStoreHandle(folder) };
+  }
+  try {
+    const liveStore = library.resolveNamedStore(context, folder, memoryRead.wikiRoot(folder), requestedStore);
+    if (
+      liveStore.storeId !== originalStoreHandle.storeId
+      || liveStore.authorityAnchor !== originalStoreHandle.authorityAnchor
+      || liveStore.root !== originalStoreHandle.root
+    ) {
+      throw new Error('library_store_identity_changed');
+    }
+    return { state: 'authorized', grant: liveGrant, storeHandle: liveStore };
+  } catch (error) {
+    return { state: 'library_scope_revoked', error };
+  }
+}
+
 function formatBrief(row, usage, storeHandle) {
   const brief = row && row.brief ? row.brief : {};
   const scope = row && row.scope ? row.scope : { kind: 'current_store' };
@@ -313,10 +334,25 @@ class WikiConsultTool {
 
     try {
       const payload = await memoryRead.collectQueryEvidence(this.context, folder, question, undefined, storeHandle);
+      const live = preModelAuthorization(this.context, folder, requestedStore, storeHandle);
+      if (live.state === 'query_grant_revoked') {
+        return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(disabledResult())]);
+      }
+      if (live.state !== 'authorized') {
+        return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(scopeBlockedResult(live.error))]);
+      }
+      if (usage.reservedCalls > live.grant.dailyCallLimit) {
+        return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(budgetBlockedResult(live.grant, {
+          ...usage,
+          dailyCallLimit: live.grant.dailyCallLimit,
+          maxAiCredits: live.grant.maxAiCredits,
+        }))]);
+      }
+      storeHandle = live.storeHandle;
       const stdout = await runComposerStdin(
         this.context,
         folder,
-        ['--model', MODEL, '--max-ai-credits', String(grant.maxAiCredits)],
+        ['--model', MODEL, '--max-ai-credits', String(live.grant.maxAiCredits)],
         JSON.stringify(payload),
         { trusted: storeHandle.isCurrentStore === false }
       );
@@ -441,6 +477,7 @@ module.exports = {
   disabledResult,
   formatBrief,
   grantKey,
+  preModelAuthorization,
   queryGrant,
   queryPlaneEnabled,
   queryUsage,
