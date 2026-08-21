@@ -8,6 +8,7 @@ import tempfile
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
+from unittest import mock
 
 from dogfood.llm_wiki.calibration import create_topic
 from dogfood.llm_wiki.federation_read_cli import _manifest_authority_anchor, main as federation_read_main
@@ -105,6 +106,31 @@ class FederationReadCliTests(unittest.TestCase):
 
             with self.assertRaisesRegex(SystemExit, "library_store_identity_changed"):
                 self._run(*self._base_args(root, anchor), "integrity")
+
+    def test_continuity_witness_is_rechecked_after_operation_before_success_output(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            parent = Path(tmp)
+            root = parent / ".wiki-lab"
+            evidence = parent / "external.md"
+            evidence.write_text("stable before operation\n", encoding="utf-8")
+            ensure_workspace(root)
+            ingest_file(root, evidence)
+            anchor = _manifest_authority_anchor(root)
+            manifest = root / "manifest.jsonl"
+
+            def mutate_during_integrity(_root: Path) -> dict:
+                lines = manifest.read_text(encoding="utf-8").splitlines()
+                first = json.loads(lines[0])
+                first["source_id"] = "src-swapped-during-read"
+                lines[0] = json.dumps(first, ensure_ascii=False, sort_keys=True)
+                manifest.write_text("\n".join(lines) + "\n", encoding="utf-8")
+                return {"ok": True}
+
+            stream = io.StringIO()
+            with mock.patch("dogfood.llm_wiki.federation_read_cli.audit_alpha_integrity", side_effect=mutate_during_integrity):
+                with redirect_stdout(stream), self.assertRaisesRegex(SystemExit, "library_store_identity_changed"):
+                    federation_read_main(list((*self._base_args(root, anchor), "integrity")))
+            self.assertEqual(stream.getvalue(), "", "a continuity change detected after the read must discard all success output")
 
 
 if __name__ == "__main__":
