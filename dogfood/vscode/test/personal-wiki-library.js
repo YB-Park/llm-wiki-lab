@@ -21,11 +21,23 @@ function context() {
   return { globalState: stateStore(), workspaceState: stateStore() };
 }
 
-function makeStore(parent, name) {
+function manifestLine(seed) {
+  const sha256 = String(seed).repeat(64).slice(0, 64).replace(/[^0-9a-f]/g, 'a');
+  return JSON.stringify({
+    event: 'ingest',
+    source_id: `src-${String(seed).replace(/[^0-9a-z]/gi, '') || 'a'}`,
+    object_id: `obj-${sha256}`,
+    sha256,
+    size_bytes: 1,
+    name: 'anchor.md',
+  }) + '\n';
+}
+
+function makeStore(parent, name, seed = 'a') {
   const root = path.join(parent, name);
-  fs.mkdirSync(root, { recursive: true });
+  fs.mkdirSync(path.join(root, 'raw'), { recursive: true });
   fs.writeFileSync(path.join(root, 'config.json'), JSON.stringify({ format: 'llm-wiki-dogfood-v0' }));
-  fs.writeFileSync(path.join(root, 'manifest.jsonl'), '');
+  fs.writeFileSync(path.join(root, 'manifest.jsonl'), manifestLine(seed));
   return root;
 }
 
@@ -36,9 +48,9 @@ function folder(name = 'current') {
 (async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'llm-wiki-library-test-'));
   try {
-    const currentRoot = makeStore(tmp, 'current');
-    const rootA = makeStore(tmp, 'external-a');
-    const rootB = makeStore(tmp, 'external-b');
+    const currentRoot = makeStore(tmp, 'current', 'c');
+    const rootA = makeStore(tmp, 'external-a', 'a');
+    const rootB = makeStore(tmp, 'external-b', 'b');
     workspaceActivation.enableWorkspace(currentRoot);
 
     const ctx = context();
@@ -66,6 +78,11 @@ function folder(name = 'current') {
     assert.equal(handle.root, fs.realpathSync(rootA));
     assert.deepEqual(handle.scopeRef, { kind: 'library_store', store_id: a.storeId });
     assert.equal(handle.isCurrentStore, false);
+    assert.equal(library.resolveStoreId(ctx, currentFolder, currentRoot, a.storeId).storeId, a.storeId);
+
+    const anchorBeforeAppend = library.manifestAuthorityAnchor(rootA);
+    fs.appendFileSync(path.join(rootA, 'manifest.jsonl'), manifestLine('d'));
+    assert.equal(library.manifestAuthorityAnchor(rootA), anchorBeforeAppend, 'append-only history must preserve store authority identity');
     assert.equal(library.resolveStoreId(ctx, currentFolder, currentRoot, a.storeId).storeId, a.storeId);
 
     await library.registerStore(ctx, {
@@ -98,6 +115,35 @@ function folder(name = 'current') {
 
     await library.setLibraryAccess(ctx, currentFolder, currentRoot, true);
     assert.ok(library.libraryGrant(ctx, currentFolder, currentRoot));
+
+    const rest = fs.readFileSync(path.join(rootA, 'manifest.jsonl'), 'utf8').split(/(?<=\n)/).slice(1).join('');
+    fs.writeFileSync(path.join(rootA, 'manifest.jsonl'), manifestLine('e') + rest);
+    assert.throws(
+      () => library.resolveStoreId(ctx, currentFolder, currentRoot, a.storeId),
+      /library_store_identity_changed/,
+      'same path with a different immutable manifest prefix must not inherit the old authorization'
+    );
+    const reauthorized = await library.registerStore(ctx, {
+      root: rootA,
+      currentRoot,
+      displayName: 'Project A replacement',
+      aliases: ['alpha-new'],
+    });
+    assert.notEqual(reauthorized.storeId, a.storeId, 'explicit re-registration of different authority must mint a new store ID');
+    assert.throws(
+      () => library.resolveStoreId(ctx, currentFolder, currentRoot, a.storeId),
+      /library_store_not_registered/
+    );
+    assert.equal(library.resolveStoreId(ctx, currentFolder, currentRoot, reauthorized.storeId).storeId, reauthorized.storeId);
+
+    const corrupt = context();
+    const goodCatalog = library.catalog(ctx);
+    await corrupt.globalState.update(library.CATALOG_KEY, {
+      version: library.CATALOG_VERSION,
+      stores: [goodCatalog.stores[0], { ...goodCatalog.stores[0] }],
+    });
+    assert.throws(() => library.catalog(corrupt), /library_catalog_corrupt/, 'duplicate authority routing state must fail closed');
+
     await library.setLibraryAccess(ctx, currentFolder, currentRoot, false);
     assert.equal(library.libraryGrant(ctx, currentFolder, currentRoot), undefined);
 
