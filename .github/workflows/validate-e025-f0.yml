@@ -3,13 +3,11 @@ name: Validate E025 F0 named-store scope contract
 on:
   pull_request:
     paths:
-      - 'HANDOFF.md'
       - 'experiments/E025-cross-workspace-named-store-federation/**'
       - '.github/workflows/validate-e025-f0.yml'
   push:
     branches: [main]
     paths:
-      - 'HANDOFF.md'
       - 'experiments/E025-cross-workspace-named-store-federation/**'
       - '.github/workflows/validate-e025-f0.yml'
 
@@ -33,6 +31,10 @@ jobs:
           base="origin/${{ github.base_ref }}"
           changed="$(git diff --name-only "$base"...HEAD)"
           printf '%s\n' "$changed"
+          if ! printf '%s\n' "$changed" | grep -Eq '^experiments/E025-cross-workspace-named-store-federation/'; then
+            echo 'Frozen F0 experiment files are unchanged; historical preflight diff boundary is not applicable.'
+            exit 0
+          fi
           if printf '%s\n' "$changed" | grep -Eq '^(dogfood/|experiments/E023-generality-retrieval-composition/|experiments/E024-query-plane-token-firewall/|decisions/|docs/14-generality-and-semantic-projections\.md$)'; then
             echo 'E025 F0 must remain preflight-only: runtime, E023/E024, ADR, or semantic-gate files changed.' >&2
             exit 1
