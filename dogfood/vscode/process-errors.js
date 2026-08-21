@@ -11,6 +11,17 @@ const EXACT_SAFE_CODES = new Set([
   'copilot_jsonl_invalid',
   'copilot_tool_request_present',
   'copilot_source_citation_missing',
+  'library_access_disabled',
+  'library_store_ambiguous',
+  'library_store_damaged',
+  'library_store_id_invalid',
+  'library_store_invalid',
+  'library_store_is_current_store',
+  'library_store_name_required',
+  'library_store_not_initialized',
+  'library_store_not_registered',
+  'library_store_unavailable',
+  'library_workspace_not_enabled',
 ]);
 
 const SAFE_PATTERNS = [
