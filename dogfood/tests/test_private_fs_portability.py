@@ -58,6 +58,32 @@ class PrivateFsPortabilityTests(unittest.TestCase):
             after = {str(path.relative_to(root)): sha256(path.read_bytes()).hexdigest() for path in paths}
             self.assertEqual(before, after, "permission recovery must not mutate Wiki bytes")
 
+    def test_tighten_never_follows_private_subtree_symlink(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            root = base / ".wiki-lab"
+            ensure_workspace(root)
+
+            human = root / "human-knowledge"
+            human.mkdir()
+            outside = base / "outside"
+            outside.mkdir()
+            outside_file = outside / "do-not-touch.txt"
+            outside_file.write_bytes(b"external bytes\n")
+            outside.chmod(0o755)
+            outside_file.chmod(0o644)
+            (human / "escape").symlink_to(outside, target_is_directory=True)
+
+            before_digest = sha256(outside_file.read_bytes()).hexdigest()
+            before_dir_mode = outside.stat().st_mode & 0o777
+            before_file_mode = outside_file.stat().st_mode & 0o777
+
+            tighten_workspace_permissions(root)
+
+            self.assertEqual(outside.stat().st_mode & 0o777, before_dir_mode)
+            self.assertEqual(outside_file.stat().st_mode & 0o777, before_file_mode)
+            self.assertEqual(sha256(outside_file.read_bytes()).hexdigest(), before_digest)
+
 
 if __name__ == "__main__":
     unittest.main()
