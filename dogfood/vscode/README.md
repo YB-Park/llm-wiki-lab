@@ -186,7 +186,7 @@ External stores are never passed to the existing generic Python runner. They use
 
 The external bridge uses the bundled trusted core with isolated Python startup. Current-workspace `corePath`, explicit Python-runtime override, `PYTHONPATH`, `PYTHONHOME`, `PYTHONSTARTUP`, and `PYTHONUSERBASE` do not choose the external Authority Core implementation.
 
-A host-local registration continuity witness is checked when the store is resolved and again inside external read execution. It is deliberately **not** a portable/global store identity claim. If the registered root is replaced by different immutable history, access fails closed and explicit re-registration is required. Losing the local catalog likewise means re-registering; no canonical project schema migration is introduced.
+A host-local registration continuity witness is checked when the store is resolved and bracketed around external read execution. It is deliberately **not** a portable/global store identity claim. If the registered root is replaced by different immutable history, access fails closed and explicit re-registration is required. Losing the local catalog likewise means re-registering; no canonical project schema migration is introduced.
 
 ### What Personal Wiki Library does not authorize
 
@@ -199,7 +199,7 @@ A host-local registration continuity witness is checked when the store is resolv
 - vector-default retrieval;
 - background cross-project indexing or maintenance.
 
-Project A's Human Knowledge means **what was confirmed in Project A**. It does not automatically become a recommendation, commitment, or preference for the current Project B.
+Project A's Human Knowledge means **what was confirmed in Project A**. Even when a question asks for comparison or transfer, the Query Plane reports that scoped decision/rationale and leaves current-project applicability to the Main Agent; it does not turn Project A's Human Knowledge into a recommendation, commitment, or global preference for Project B.
 
 ## Existing low-level Agent tools remain available
 
@@ -245,7 +245,7 @@ Before **Set Up Project Memory** succeeds:
 - no initialization or repair;
 - no source/prompt/evidence content printed.
 
-It reports project-memory state, local-store integrity, Python/Copilot executable presence, AI-summary state, and whether Query Reasoning is granted plus its daily call cap. Model-call readiness remains explicitly unverified because the health check does not make a model call just to prove availability.
+It reports project-memory state, local-store integrity, Python/Copilot executable presence, AI-summary state, Query Reasoning grant/call cap, and Personal Wiki Library access. It validates the local Library catalog and reports only the registered external-store **count**, never store names or filesystem roots. Model-call readiness remains explicitly unverified because the health check does not make a model call just to prove availability.
 
 ## Python runtime
 
@@ -266,7 +266,7 @@ For users, failures should say what failed, what was preserved, and what action 
 
 For Agent-facing failures, product code uses bounded causal states/codes. Unknown subprocess detail collapses to a generic bounded failure rather than exposing arbitrary stderr.
 
-Query Plane transport/model failure and named-store authorization/integrity failure never authorize broad raw-memory or cross-store fallback.
+Query Plane transport/model failure and named-store authorization/integrity/catalog failure never authorize broad raw-memory or cross-store fallback.
 
 ## Confirmation policy
 
@@ -295,7 +295,7 @@ Required before merge/deployment handoff:
 - E010 self-repo dogfood;
 - frozen E020 synthetic contract: **78 cases / 60 supported / 7 partial / 11 deferred / zero model calls**;
 - VS Code static boundaries plus dedicated federation-safety boundaries;
-- Extension Host integration tests, including grant/scope/write-isolation and pre-model revocation behavior;
+- Extension Host integration tests, including grant/scope/write-isolation, concurrent daily-cap reservation, and pre-model revocation behavior;
 - bundled-core checks;
 - VSIX packaging and packaged Extension Host execution;
 - no paid E023 semantic rerun and no E023 G2/G3 reopening as part of this slice.
