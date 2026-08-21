@@ -69,6 +69,8 @@ must('revoked-library-stops-with-zero-model-result', queryPlane.includes("state:
 
 must('catalog-v2', personalLibrary.includes('const CATALOG_VERSION = 2'));
 must('catalog-authority-anchor', personalLibrary.includes('authorityAnchor'));
+must('catalog-absent-is-empty', personalLibrary.includes('if (!raw) return emptyCatalog()'));
+must('catalog-version-mismatch-fails-closed', personalLibrary.includes("raw.version !== CATALOG_VERSION") && personalLibrary.includes("throw new Error('library_catalog_corrupt')"));
 must('manifest-authority-anchor-function', personalLibrary.includes('function manifestAuthorityAnchor(root)'));
 must('authority-anchor-first-ingest', personalLibrary.includes("event.event !== 'ingest'"));
 must('authority-continuity-rechecked-at-use', personalLibrary.includes('anchor !== row.authorityAnchor'));
@@ -77,8 +79,8 @@ must('identity-change-fails-closed', personalLibrary.includes("throw new Error('
 must('catalog-duplicate-id-fails-closed', personalLibrary.includes('ids.has(storeId)'));
 must('catalog-duplicate-root-fails-closed', personalLibrary.includes('roots.has(root)'));
 must('registration-mints-new-id-for-new-authority', personalLibrary.includes('sameAuthority ? existing.storeId : `libstore-${crypto.randomUUID()}`'));
-must('library-grant-binds-random-workspace-epoch', personalLibrary.includes('workspaceActivation.workspaceEpoch(optIn)') && personalLibrary.includes('workspaceEpoch: workspaceActivation.workspaceEpoch(optIn)'));
-must('legacy-library-grant-is-explicitly-bounded', personalLibrary.includes('row.workspaceEnabledAt !== optIn.enabled_at'));
+must('library-grant-binds-random-workspace-epoch', personalLibrary.includes("const storedEpoch = String(row.workspaceEpoch || '')") && personalLibrary.includes('workspaceEpoch: workspaceActivation.workspaceEpoch(optIn)'));
+mustNot('library-grant-has-no-timestamp-auth-fallback', personalLibrary.includes('row.workspaceEnabledAt !== optIn.enabled_at'));
 
 must('federation-bridge-requires-existing-store', federationRead.includes('def _require_initialized(root: Path)'));
 mustNot('federation-bridge-never-initializes', federationRead.includes('ensure_workspace'));
@@ -99,4 +101,4 @@ must('scoped-read-remains-read-only-policy', scopedRead.includes('never authoriz
 must('scoped-read-no-cross-store-fallback', scopedRead.includes('Never retry a missing external source ID against the current store or another store'));
 must('scoped-read-preserves-revocation-failures', scopedRead.includes("'library_access_disabled'") && scopedRead.includes("'library_store_identity_changed'") && scopedRead.includes("'library_store_not_registered'"));
 
-console.log('F1-FEDERATION-SAFETY-STATIC PASS strictReadBridge=yes isolatedPython=yes trustedExternalComposer=yes registrationContinuity=yes epochNonce=yes serializedUsageCap=yes liveReauthorization=yes finalSpawnAuthorization=yes writeIsolation=yes');
+console.log('F1-FEDERATION-SAFETY-STATIC PASS strictReadBridge=yes isolatedPython=yes trustedExternalComposer=yes registrationContinuity=yes strictLibraryEpoch=yes catalogFailClosed=yes serializedUsageCap=yes liveReauthorization=yes finalSpawnAuthorization=yes writeIsolation=yes');
