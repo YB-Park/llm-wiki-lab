@@ -44,6 +44,7 @@ function normalizedExceptionCandidate(line) {
   if (!trimmed) return '';
   return trimmed
     .replace(/^(?:RuntimeError|ValueError|Error):\s*/, '')
+    .replace(/^FEDERATION-READ-STOP\s+/, '')
     .trim();
 }
 
