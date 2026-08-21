@@ -31,12 +31,13 @@ must('external-read-clears-pythonstartup', memoryRead.includes('delete env.PYTHO
 must('external-read-clears-pythonuserbase', memoryRead.includes('delete env.PYTHONUSERBASE'));
 must('trusted-core-bundled-first', memoryRead.includes("path.join(bundled, 'dogfood', 'llm_wiki', 'federation_read_cli.py')"));
 must('external-handle-requires-continuity-witness', memoryRead.includes('library.AUTHORITY_ANCHOR_RE.test(String(handle.authorityAnchor')));
-must('external-read-rechecks-js-continuity', memoryRead.includes('library.verifyStoreHandle(store)'));
+must('external-standing-grant-rechecked', memoryRead.includes('library.resolveStoreId(context, folder, wikiRoot(folder), store.storeId)'));
+must('external-read-rechecks-js-continuity', memoryRead.includes('function revalidateExternalStore(context, folder, storeHandle)'));
 must('external-read-passes-continuity-to-bridge', memoryRead.includes("['--root', store.root, '--expected-authority-anchor', store.authorityAnchor, bridgeCommand, ...args]"));
 must('external-integrity-through-dispatch', memoryRead.includes("runReadOperation(context, folder, store, 'integrity')"));
 must('external-query-evidence-through-dispatch', memoryRead.includes("runReadOperation(context, folder, store, 'relevant'"));
 must('external-source-read-through-dispatch', memoryRead.includes("runReadOperation(context, folder, store, 'read'"));
-must('external-hk-rechecks-continuity', memoryRead.includes('if (!store.isCurrentStore) library.verifyStoreHandle(store)'));
+must('external-hk-bracketed-by-revalidation', (memoryRead.match(/revalidateExternalStore\(context, folder, store\)/g) || []).length >= 2);
 
 must('auto-python-runtime-is-distinct', pythonRuntime.includes('async function resolveAutoPythonRuntime(folder)'));
 must('auto-python-runtime-does-not-read-config-in-function', /async function resolveAutoPythonRuntime\(folder\)[\s\S]*?for \(const candidate of autoPythonCandidates\(\)\)/.test(pythonRuntime));
@@ -46,6 +47,12 @@ must('external-composer-uses-trusted-invocation', queryPlane.includes('memoryRea
 must('named-store-resolves-before-reservation', queryPlane.indexOf('library.resolveNamedStore(this.context, folder') < queryPlane.indexOf('reserveQueryCall(this.context, folder, grant)'));
 must('named-store-integrity-before-reservation', queryPlane.indexOf('memoryRead.assertStoreIntegrity(this.context, folder, storeHandle)') < queryPlane.indexOf('reserveQueryCall(this.context, folder, grant)'));
 must('query-grant-binds-random-workspace-epoch', queryPlane.includes('workspaceActivation.workspaceEpoch(optIn)'));
+must('pre-model-authorization-explicit', queryPlane.includes('function preModelAuthorization(context, folder, requestedStore, originalStoreHandle)'));
+must('pre-model-query-grant-rechecked', /function preModelAuthorization[\s\S]*?const liveGrant = queryGrant\(context, folder\)/.test(queryPlane));
+must('pre-model-named-store-rechecked', /function preModelAuthorization[\s\S]*?library\.resolveNamedStore\(context, folder/.test(queryPlane));
+must('pre-model-reauthorization-before-composer', queryPlane.indexOf('const live = preModelAuthorization(') < queryPlane.lastIndexOf('const stdout = await runComposerStdin('));
+must('revoked-query-stops-with-zero-model-result', queryPlane.includes("live.state === 'query_grant_revoked'") && queryPlane.includes('disabledResult()'));
+must('revoked-library-stops-with-zero-model-result', queryPlane.includes("state: 'library_scope_revoked'") && queryPlane.includes('scopeBlockedResult(live.error)'));
 
 must('catalog-v2', personalLibrary.includes('const CATALOG_VERSION = 2'));
 must('catalog-authority-anchor', personalLibrary.includes('authorityAnchor'));
@@ -58,6 +65,7 @@ must('catalog-duplicate-id-fails-closed', personalLibrary.includes('ids.has(stor
 must('catalog-duplicate-root-fails-closed', personalLibrary.includes('roots.has(root)'));
 must('registration-mints-new-id-for-new-authority', personalLibrary.includes('sameAuthority ? existing.storeId : `libstore-${crypto.randomUUID()}`'));
 must('library-grant-binds-random-workspace-epoch', personalLibrary.includes('workspaceActivation.workspaceEpoch(optIn)') && personalLibrary.includes('workspaceEpoch: workspaceActivation.workspaceEpoch(optIn)'));
+must('legacy-library-grant-is-explicitly-bounded', personalLibrary.includes('row.workspaceEnabledAt !== optIn.enabled_at'));
 
 must('federation-bridge-requires-existing-store', federationRead.includes('def _require_initialized(root: Path)'));
 mustNot('federation-bridge-never-initializes', federationRead.includes('ensure_workspace'));
@@ -76,6 +84,6 @@ mustNot('write-tools-do-not-load-library-router', agentTools.includes("require('
 mustNot('write-tools-have-no-library-store-input', agentTools.includes('library_store'));
 must('scoped-read-remains-read-only-policy', scopedRead.includes('never authorizes source admission, Human Knowledge, lineage, maintenance, or configuration writes'));
 must('scoped-read-no-cross-store-fallback', scopedRead.includes('Never retry a missing external source ID against the current store or another store'));
-must('scoped-read-preserves-identity-change', scopedRead.includes("message === 'library_store_identity_changed'"));
+must('scoped-read-preserves-revocation-failures', scopedRead.includes("'library_access_disabled'") && scopedRead.includes("'library_store_identity_changed'") && scopedRead.includes("'library_store_not_registered'"));
 
-console.log('F1-FEDERATION-SAFETY-STATIC PASS strictReadBridge=yes isolatedPython=yes trustedExternalComposer=yes registrationContinuity=yes epochNonce=yes writeIsolation=yes');
+console.log('F1-FEDERATION-SAFETY-STATIC PASS strictReadBridge=yes isolatedPython=yes trustedExternalComposer=yes registrationContinuity=yes epochNonce=yes liveReauthorization=yes writeIsolation=yes');
