@@ -5,7 +5,9 @@ const path = require('node:path');
 const { spawn } = require('node:child_process');
 const vscode = require('vscode');
 const library = require('./personal-wiki-library');
+const libraryUi = require('./personal-wiki-library-ui');
 const memoryRead = require('./memory-read-service');
+const scopedRead = require('./scoped-read-tool');
 const workspaceActivation = require('./workspace-activation');
 const { boundedProcessFailure } = require('./process-errors');
 const { resolvePythonRuntime } = require('./python-runtime');
@@ -387,13 +389,21 @@ async function configureQueryPlane(context) {
 
 function registerQueryPlaneCommand(context) {
   context.subscriptions.push(vscode.commands.registerCommand(CONFIGURE_COMMAND, () => configureQueryPlane(context)));
+  libraryUi.registerPersonalWikiLibraryCommand(context);
 }
 
 function registerQueryPlaneTool(context) {
   if (!vscode.lm || typeof vscode.lm.registerTool !== 'function') {
     throw new Error('LLM Wiki Query Plane requires the stable VS Code Language Model Tool API (VS Code 1.95+).');
   }
-  context.subscriptions.push(vscode.lm.registerTool(TOOL, new WikiConsultTool(context)));
+  const queryDisposable = vscode.lm.registerTool(TOOL, new WikiConsultTool(context));
+  const readDisposable = vscode.lm.registerTool(scopedRead.TOOL, new scopedRead.WikiScopedReadSourceTool(context));
+  context.subscriptions.push({
+    dispose() {
+      queryDisposable.dispose();
+      readDisposable.dispose();
+    },
+  });
 }
 
 module.exports = {
