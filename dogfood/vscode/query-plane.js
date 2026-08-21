@@ -20,6 +20,15 @@ const MAX_BUFFER = 16 * 1024 * 1024;
 const GRANT_KEY_PREFIX = 'llmWiki.queryPlaneGrant.v1';
 const USAGE_KEY_PREFIX = 'llmWiki.queryPlaneUsage.v1';
 const reservationLocks = new Map();
+const LIBRARY_SCOPE_FAILURES = new Set([
+  'library_access_disabled',
+  'library_catalog_corrupt',
+  'library_store_ambiguous',
+  'library_store_damaged',
+  'library_store_identity_changed',
+  'library_store_not_registered',
+  'library_store_unavailable',
+]);
 
 function firstWorkspaceFolder() {
   const folders = vscode.workspace.workspaceFolders || [];
@@ -421,14 +430,7 @@ class WikiConsultTool {
       if (message === 'agent_wiki_model_call_not_authorized') {
         return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(disabledResult())]);
       }
-      if (requestedStore && new Set([
-        'library_access_disabled',
-        'library_store_ambiguous',
-        'library_store_damaged',
-        'library_store_identity_changed',
-        'library_store_not_registered',
-        'library_store_unavailable',
-      ]).has(message)) {
+      if (requestedStore && LIBRARY_SCOPE_FAILURES.has(message)) {
         return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(scopeBlockedResult(error))]);
       }
       return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(unavailableResult(error, usage))]);
@@ -539,6 +541,7 @@ function registerQueryPlaneTool(context) {
 module.exports = {
   CONFIGURE_COMMAND,
   GRANT_VERSION,
+  LIBRARY_SCOPE_FAILURES,
   MODEL,
   TOOL,
   WikiConsultTool,
