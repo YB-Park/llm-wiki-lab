@@ -310,7 +310,7 @@ function scopeBlockedResult(error) {
     'model_calls=0',
     'fallback=none',
     `failure_json=${JSON.stringify(boundedProcessFailure(error && error.message ? error.message : String(error)))}`,
-    'policy=Named-store authorization and exact scope resolution failed before external retrieval or model exposure. Do not search the current store or other registered stores as fallback.',
+    'policy=Named-store scope or authorization was unavailable, revoked, or invalidated before model exposure. Any bounded local read already in progress is discarded, and no current-store or other-store fallback is allowed.',
   ].join('\n');
 }
 
