@@ -1,0 +1,92 @@
+name: Validate E026 S0 existing-store portability
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E026-ssh-store-portability/**'
+      - 'experiments/E020-synthetic-agent-ux/score_contract.py'
+      - 'dogfood/llm_wiki/private_fs.py'
+      - 'dogfood/tests/test_private_fs_portability.py'
+      - 'dogfood/vscode/workspace-activation.js'
+      - 'dogfood/vscode/test/workspace-activation.js'
+      - 'dogfood/vscode/test/static.js'
+      - 'dogfood/vscode/package.json'
+      - 'dogfood/vscode/README.md'
+      - '.github/workflows/validate-e026-s0.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E026-ssh-store-portability/**'
+      - 'experiments/E020-synthetic-agent-ux/score_contract.py'
+      - 'dogfood/llm_wiki/private_fs.py'
+      - 'dogfood/tests/test_private_fs_portability.py'
+      - 'dogfood/vscode/workspace-activation.js'
+      - 'dogfood/vscode/test/workspace-activation.js'
+      - 'dogfood/vscode/test/static.js'
+      - 'dogfood/vscode/package.json'
+      - 'dogfood/vscode/README.md'
+      - '.github/workflows/validate-e026-s0.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  scope-boundary:
+    name: S0-A no-sync-runtime diff boundary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Reject scope widening
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="origin/${{ github.base_ref }}"
+          changed="$(git diff --name-only "$base"...HEAD)"
+          printf '%s\n' "$changed"
+          allowed='^(experiments/E026-ssh-store-portability/|experiments/E020-synthetic-agent-ux/score_contract\.py$|dogfood/llm_wiki/private_fs\.py$|dogfood/tests/test_private_fs_portability\.py$|dogfood/vscode/workspace-activation\.js$|dogfood/vscode/test/workspace-activation\.js$|dogfood/vscode/test/static\.js$|dogfood/vscode/package\.json$|dogfood/vscode/README\.md$|\.github/workflows/validate-e026-s0\.yml$)'
+          unexpected="$(printf '%s\n' "$changed" | grep -Ev "$allowed" || true)"
+          if [ -n "$unexpected" ]; then
+            echo 'E026 S0-A is portability preflight only; unexpected files changed:' >&2
+            printf '%s\n' "$unexpected" >&2
+            exit 1
+          fi
+
+  portability-python39:
+    name: S0-A Python 3.9 portability contract
+    runs-on: ubuntu-latest
+    needs: [scope-boundary]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.9'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Compile preflight and affected runtime
+        run: |
+          python3 --version
+          node --version
+          python3 -m py_compile experiments/E026-ssh-store-portability/run_s0.py dogfood/llm_wiki/private_fs.py dogfood/tests/test_private_fs_portability.py
+          node --check dogfood/vscode/workspace-activation.js
+          node --check dogfood/vscode/test/workspace-activation.js
+          node --check dogfood/vscode/test/static.js
+      - name: Execute frozen zero-model portability contract
+        run: |
+          set -euo pipefail
+          python3 experiments/E026-ssh-store-portability/run_s0.py | tee /tmp/e026-s0.txt
+          grep -q '^E026 S0-A zero-model portability: PASS$' /tmp/e026-s0.txt
+          grep -q '"model_calls": 0' /tmp/e026-s0.txt
+          grep -q '"E026_S0_A_EXISTING_STORE_PORTABILITY": "EARNED"' /tmp/e026-s0.txt
+          test "$(grep -c '"PASS"' /tmp/e026-s0.txt)" -ge 12
+      - name: Affected privacy and authority regressions
+        run: |
+          python3 -m unittest dogfood.tests.test_private_fs_portability -v
+          node dogfood/vscode/test/workspace-activation.js
+          node dogfood/vscode/test/static.js
+      - name: Full Python regression
+        run: python3 -m unittest discover -s dogfood/tests -v

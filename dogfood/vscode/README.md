@@ -1,8 +1,10 @@
-# LLM Wiki for VS Code — 0.1.18 candidate
+# LLM Wiki for VS Code — 0.1.19 candidate
 
 LLM Wiki gives your coding Agent **durable project memory that you control**.
 
-0.1.18 keeps the existing RAW / DERIVED / HUMAN authority model and the 0.1.17 opt-in Luna-backed Query Plane. It adds one deliberately narrow Personal Wiki capability for installed dogfood: the current trusted project may consult **one explicitly named, explicitly registered external project store read-only** without turning independent project Wikis into one global memory.
+0.1.19 keeps the existing RAW / DERIVED / HUMAN authority model, the opt-in Luna-backed Query Plane, and the deliberately narrow named-store Personal Wiki slice from 0.1.18. It adds no canonical schema migration. Existing 0.1.18 `.wiki-lab` stores remain the compatibility baseline and carry forward unchanged.
+
+0.1.19 also adds small portability/privacy hardening discovered during pre-sync review: known private Wiki subtrees are re-hardened after cross-platform permission loss, the workspace opt-in marker is created private, and a zero-model portability contract verifies that a representative existing store can move to another absolute root without changing canonical identity. **This is not a sync or multi-writer claim.**
 
 This is an Alpha/dogfood candidate, not a public Beta declaration.
 
@@ -55,7 +57,15 @@ It can contain immutable admitted source evidence, correction/change/dispute/sup
 
 Back up the **whole directory as one private snapshot**. See `docs/11-local-backup-restore.md`.
 
-Each project store remains its own Authority Core. 0.1.18 does not merge manifests, copy evidence between projects, create a global canonical identity, or authorize cross-project mutation.
+Each project store remains its own Authority Core. 0.1.19 does not merge manifests, copy evidence between projects, create a global canonical identity, or authorize cross-project mutation.
+
+### Existing-store portability
+
+E026 S0-A proves a bounded compatibility property with **zero model calls**: representative 0.1.18 store state survives relocation to another absolute root with RAW identity, topics/temporal history, exact provenance, Human Knowledge, workflow state, and derived notes intact. Host-local workspace opt-in is deliberately not transported; the destination must establish a fresh authority epoch.
+
+On POSIX, when an existing copied store is initialized/checked by the current core, known private Wiki-owned files/directories are re-hardened to the current privacy modes without changing their bytes. Symlinks inside the private Human Knowledge / Agent Wiki subtrees are never followed by this permission recovery.
+
+This portability result does **not** authorize Git/SSH sync, automatic merge/rebase, live network-share semantics, distributed locks, or concurrent multi-machine writers. Git-style line-ending mutation of content-addressed RAW bytes is corruption and fails closed.
 
 ## Authority model
 
@@ -89,7 +99,7 @@ The Query Plane is read-only. It cannot admit sources, write Human Knowledge, de
 
 The Query Plane grant lives in VS Code extension **local workspace state**, not in a workspace setting file. It is therefore not intended to be committed or shared with the project.
 
-The grant remains explicitly `current_store` scoped. 0.1.18 does **not** reinterpret that grant as permission to enumerate or search a Personal Wiki Library. External named-store use requires additional grants described below.
+The grant remains explicitly `current_store` scoped. 0.1.19 does **not** reinterpret that grant as permission to enumerate or search a Personal Wiki Library. External named-store use requires additional grants described below.
 
 The grant is bound to the workspace opt-in authority epoch. Disabling and re-enabling project memory invalidates the previous grant.
 
@@ -143,7 +153,7 @@ The Query Plane adds current generic Copilot read/write/url/memory/web-search to
 
 The composer returns only the bounded structured result; hidden reasoning/retrieval traces are not returned to the Main Agent.
 
-## Personal Wiki Library — 0.1.18 named-store slice
+## Personal Wiki Library — named-store slice
 
 Personal Wiki Library is a **local routing and authorization catalog**, not another knowledge store.
 
@@ -178,7 +188,7 @@ The grants are revalidated during external reads and immediately before model ex
 
 A scoped source miss never retries the same source ID in the current store or another registered store. Pagination keeps the same scope.
 
-The exact opaque scope can be revisited while its registration and workspace library access remain valid. 0.1.18 does not add a new per-consult capability-token system; installed dogfood should tell us whether standing scoped read authority is understandable or too broad in practice.
+The exact opaque scope can be revisited while its registration and workspace library access remain valid. 0.1.19 does not add a new per-consult capability-token system; installed dogfood should tell us whether standing scoped read authority is understandable or too broad in practice.
 
 ### External reads are operationally read-only
 
@@ -190,7 +200,7 @@ A host-local registration continuity witness is checked when the store is resolv
 
 ### What Personal Wiki Library does not authorize
 
-0.1.18 does not add:
+0.1.19 does not add:
 
 - ambient or library-wide union search;
 - cross-project writes, source admission, Human Knowledge mutation, lineage mutation, or maintenance;
@@ -214,7 +224,7 @@ While project memory is enabled, the Agent may use:
 
 The legacy `llmWiki_readSource` implementation remains hidden for compatibility; the public Agent reference is the scoped `wikiRead` contract.
 
-0.1.18 does **not** remove or weaken current-store `wikiMemory`/`wikiRead`. Installed dogfood must earn any later decision to broaden ordinary retrieval.
+0.1.19 does **not** remove or weaken current-store `wikiMemory`/`wikiRead`. Installed dogfood must earn any later decision to broaden ordinary retrieval.
 
 ## AI summaries remain separate
 
@@ -234,7 +244,7 @@ Before **Set Up Project Memory** succeeds:
 
 **Disable for This Workspace** removes only the opt-in marker and immediately tears down Agent tool registrations while preserving Wiki data. The Query Plane and Personal Wiki Library workspace grants are bound to that opt-in authority epoch and become stale after disable/re-enable.
 
-0.1.18 remains single-folder only.
+0.1.19 remains single-folder only.
 
 ## Check Setup and Health
 
@@ -283,14 +293,15 @@ Blocking confirmation is reserved for authority/privacy/usage boundaries such as
 
 Routine current-store search/read/diagnostic success and already-authorized exact scoped reads should remain quiet.
 
-## 0.1.18 validation gate
+## 0.1.19 validation gate
 
-The candidate must preserve the existing deterministic safety/product contract while adding only the E025-earned named-store read-only F1 slice.
+The candidate must preserve the existing deterministic safety/product contract while adding only backward-compatible portability/privacy hardening on top of the E025-earned named-store read-only F1 slice.
 
 Required before merge/deployment handoff:
 
 - Python 3.9 compatibility;
-- full Python unit regression suite, including external-read no-mutation and registration-continuity checks;
+- full Python unit regression suite, including external-read no-mutation, registration-continuity, and portability permission checks;
+- E026 S0-A existing-store portability: **12/12 PASS / zero model calls**;
 - frozen E004/E014 checks;
 - E010 self-repo dogfood;
 - frozen E020 synthetic contract: **78 cases / 60 supported / 7 partial / 11 deferred / zero model calls**;
@@ -300,11 +311,11 @@ Required before merge/deployment handoff:
 - VSIX packaging and packaged Extension Host execution;
 - no paid E023 semantic rerun and no E023 G2/G3 reopening as part of this slice.
 
-E025 F0 already earned only the right to implement/test this named-store F1. Passing 0.1.18 does not earn a broader federation architecture.
+Passing 0.1.19 does not earn sync, distributed/multi-writer semantics, or broader federation architecture.
 
 ## What installed dogfood must decide
 
-0.1.18 should continue collecting natural 0.1.17 Query Plane evidence and additionally observe:
+0.1.19 should continue natural Query Plane / named-store evidence and additionally observe:
 
 - whether the Agent invokes `wikiConsult` at useful moments;
 - whether Main-Agent-visible Wiki context/tool-turn burden actually drops in real work;
@@ -317,7 +328,8 @@ E025 F0 already earned only the right to implement/test this named-store F1. Pas
 - whether users understand that external Human Knowledge stays project-scoped rather than becoming a global preference;
 - whether scope-qualified `wikiRead` follow-through is useful and whether standing scoped-read authority feels appropriately narrow;
 - whether missing/moved/replaced stores fail in a comprehensible way without tempting cross-store fallback;
-- whether named-store reads remain observably non-mutating in real installed use.
+- whether named-store reads remain observably non-mutating in real installed use;
+- whether an existing local Wiki remains comfortable to back up/relocate without encouraging unsupported sync assumptions.
 
 Do not use this slice as permission to add iterative L1 retrieval, **library-wide/ambient federation**, sync, cross-project writes, a Personal store, vectors/graphs/entities, background semantic maintenance, or autonomous semantic persistence. Those remain separately evidence-gated.
 

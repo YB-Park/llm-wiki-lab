@@ -117,6 +117,31 @@ def append_private_text(path: Path, text: str) -> None:
     restrict_private_file(path)
 
 
+def _tighten_private_tree(root: Path) -> None:
+    """Restore private modes below one known Wiki-owned real directory.
+
+    Cross-platform copy/checkout may retain bytes while losing POSIX privacy
+    modes. Traverse with explicit no-follow directory tests so a symlink inside
+    the Wiki tree can never redirect chmod operations to an unrelated target.
+    """
+    if not _is_posix() or not root.exists() or root.is_symlink() or not root.is_dir():
+        return
+
+    pending = [root]
+    while pending:
+        directory = pending.pop()
+        directory.chmod(PRIVATE_DIR_MODE)
+        with os.scandir(directory) as entries:
+            for entry in entries:
+                if entry.is_symlink():
+                    continue
+                child = Path(entry.path)
+                if entry.is_dir(follow_symlinks=False):
+                    pending.append(child)
+                elif entry.is_file(follow_symlinks=False):
+                    child.chmod(PRIVATE_FILE_MODE)
+
+
 def tighten_workspace_permissions(root: Path) -> None:
     """Tighten known private Wiki artifacts without changing their contents."""
     if not root.exists():
@@ -126,7 +151,7 @@ def tighten_workspace_permissions(root: Path) -> None:
     if raw.exists():
         ensure_private_directory(raw)
         for child in raw.iterdir():
-            if child.is_file():
+            if child.is_file() and not child.is_symlink():
                 restrict_private_file(child)
     for name in (
         "config.json",
@@ -136,6 +161,13 @@ def tighten_workspace_permissions(root: Path) -> None:
         "workload-events.jsonl",
         "retrieval-shadow-events.jsonl",
         "agent-state.json",
+        "workspace-opt-in.json",
         ".writer.lock",
     ):
         restrict_private_file(root / name)
+
+    # These directories contain private user/project material but Git and many
+    # cross-platform copy tools do not preserve 0700/0600 modes. Restore the
+    # current product privacy boundary when a copied store becomes active again.
+    _tighten_private_tree(root / "human-knowledge")
+    _tighten_private_tree(root / "agent-wiki")

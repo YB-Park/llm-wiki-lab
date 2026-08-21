@@ -119,7 +119,7 @@ const scopedReadSchema = tools.find((row) => row.name === 'llmWiki_readScopedSou
 must('scoped-read-scope-ref', Boolean(scopedReadSchema.scopeRef));
 assert.deepEqual(scopedReadSchema.scopeRef.properties.kind.enum, ['current_store', 'library_store'], 'STATIC-BOUNDARY scoped-read-scope-kinds');
 
-assert.equal(manifest.version, '0.1.18', 'STATIC-BOUNDARY version');
+assert.equal(manifest.version, '0.1.19', 'STATIC-BOUNDARY version');
 assert.equal(manifest.engines.vscode, '^1.95.0', 'STATIC-BOUNDARY vscode-engine');
 assert.equal(manifest.main, './entry.js', 'STATIC-BOUNDARY main-entry');
 assert.equal(manifest.private, true, 'STATIC-BOUNDARY private-package');
@@ -365,4 +365,4 @@ mustNot('git-safety-no-write', gitSafety.includes('writeFile'));
 must('bundle-core-source', bundler.includes("path.join(dogfoodRoot, 'llm_wiki')"));
 must('bundle-core-destination', bundler.includes("path.join(bundleRoot, 'dogfood')"));
 
-console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.18 agentToolDisposables=6 contributedTools=7 explicitWorkspaceOptIn=yes queryPlaneL0=optin-local-grant+daily-cap+no-raw-fallback namedStoreF1=explicit-grants+pre-retrieval-scope+scoped-provenance+write-isolation relevantRegionRead=yes doctorPureDiagnostic=yes memoryV4=yes verifiedReadV3=yes durableAuthorityState=yes humanKnowledgeV1=yes maintenanceSoftGuard=yes singleFolderFailClosed=yes');
+console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.19 agentToolDisposables=6 contributedTools=7 explicitWorkspaceOptIn=yes queryPlaneL0=optin-local-grant+daily-cap+no-raw-fallback namedStoreF1=explicit-grants+pre-retrieval-scope+scoped-provenance+write-isolation relevantRegionRead=yes doctorPureDiagnostic=yes memoryV4=yes verifiedReadV3=yes durableAuthorityState=yes humanKnowledgeV1=yes maintenanceSoftGuard=yes singleFolderFailClosed=yes');

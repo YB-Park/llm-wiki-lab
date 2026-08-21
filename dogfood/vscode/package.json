@@ -2,7 +2,7 @@
   "name": "llm-wiki-dogfood",
   "displayName": "LLM Wiki",
   "description": "Local, user-approved project memory for AI coding agents in VS Code.",
-  "version": "0.1.18",
+  "version": "0.1.19",
   "private": true,
   "publisher": "llm-wiki-lab",
   "repository": { "type": "git", "url": "https://github.com/YB-Park/llm-wiki-lab.git", "directory": "dogfood/vscode" },
