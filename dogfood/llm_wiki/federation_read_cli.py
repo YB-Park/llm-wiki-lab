@@ -193,17 +193,21 @@ def parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     root = _root(args.root)
+    expected_anchor = args.expected_authority_anchor
     try:
         _require_initialized(root)
-        _require_authority_anchor(root, args.expected_authority_anchor)
+        _require_authority_anchor(root, expected_anchor)
 
         if args.command == "integrity":
-            _print(audit_alpha_integrity(root))
+            row = audit_alpha_integrity(root)
+            _require_authority_anchor(root, expected_anchor)
+            _print(row)
             return 0
 
         if args.command == "discover":
+            rows = []
             for hit in discover_current(root, args.query, top_k_per_topic=max(0, args.top_k_per_topic), snippet_chars=320):
-                _print({
+                rows.append({
                     "topic_id": hit.topic_id,
                     "topic_label": hit.topic_label,
                     "source_id": hit.source.source_id,
@@ -215,18 +219,23 @@ def main(argv: list[str] | None = None) -> int:
                     "score": hit.score,
                     "snippet": hit.snippet,
                 })
+            _require_authority_anchor(root, expected_anchor)
+            for row in rows:
+                _print(row)
             return 0
 
         if args.command == "agent-wiki-search":
-            for hit in search_agent_notes(root, args.query, top_k=max(0, args.top_k)):
-                _print({
-                    "source_id": hit.source_id,
-                    "topic_id": hit.topic_id,
-                    "title": hit.title,
-                    "score": hit.score,
-                    "snippet": hit.snippet,
-                    "epistemic_status": "derived_noncanonical_agent_wiki",
-                })
+            rows = [{
+                "source_id": hit.source_id,
+                "topic_id": hit.topic_id,
+                "title": hit.title,
+                "score": hit.score,
+                "snippet": hit.snippet,
+                "epistemic_status": "derived_noncanonical_agent_wiki",
+            } for hit in search_agent_notes(root, args.query, top_k=max(0, args.top_k))]
+            _require_authority_anchor(root, expected_anchor)
+            for row in rows:
+                _print(row)
             return 0
 
         if args.command == "agent-wiki-show":
@@ -238,34 +247,41 @@ def main(argv: list[str] | None = None) -> int:
             markdown = root / "agent-wiki" / "source-notes" / f"{args.source_id}.md"
             if not markdown.is_file():
                 raise RuntimeError("derived_markdown_missing")
-            print(markdown.read_text(encoding="utf-8"), end="")
+            text = markdown.read_text(encoding="utf-8")
+            _require_authority_anchor(root, expected_anchor)
+            print(text, end="")
             return 0
 
         if args.command == "pending-list":
             state = _read_agent_state_readonly(root)
-            for row in state["pending_lineage"]:
-                if row["status"] == "open":
-                    _print(row)
+            rows = [row for row in state["pending_lineage"] if row["status"] == "open"]
+            _require_authority_anchor(root, expected_anchor)
+            for row in rows:
+                _print(row)
             return 0
 
         if args.command == "read":
-            _print(_raw_read(
+            row = _raw_read(
                 root,
                 args.source_id,
                 topic=args.topic,
                 start_char=args.start_char,
                 max_chars=args.max_chars,
-            ))
+            )
+            _require_authority_anchor(root, expected_anchor)
+            _print(row)
             return 0
 
         if args.command == "relevant":
-            _print(_relevant_read(
+            row = _relevant_read(
                 root,
                 args.source_id,
                 topic=args.topic,
                 query=args.query,
                 max_chars=args.max_chars,
-            ))
+            )
+            _require_authority_anchor(root, expected_anchor)
+            _print(row)
             return 0
 
         raise AssertionError(args.command)
