@@ -9,6 +9,7 @@ on:
       - 'dogfood/tests/test_private_fs_portability.py'
       - 'dogfood/vscode/workspace-activation.js'
       - 'dogfood/vscode/test/workspace-activation.js'
+      - 'dogfood/vscode/test/static.js'
       - 'dogfood/vscode/package.json'
       - 'dogfood/vscode/README.md'
       - '.github/workflows/validate-e026-s0.yml'
@@ -21,6 +22,7 @@ on:
       - 'dogfood/tests/test_private_fs_portability.py'
       - 'dogfood/vscode/workspace-activation.js'
       - 'dogfood/vscode/test/workspace-activation.js'
+      - 'dogfood/vscode/test/static.js'
       - 'dogfood/vscode/package.json'
       - 'dogfood/vscode/README.md'
       - '.github/workflows/validate-e026-s0.yml'
@@ -44,7 +46,7 @@ jobs:
           base="origin/${{ github.base_ref }}"
           changed="$(git diff --name-only "$base"...HEAD)"
           printf '%s\n' "$changed"
-          allowed='^(experiments/E026-ssh-store-portability/|experiments/E020-synthetic-agent-ux/score_contract\.py$|dogfood/llm_wiki/private_fs\.py$|dogfood/tests/test_private_fs_portability\.py$|dogfood/vscode/workspace-activation\.js$|dogfood/vscode/test/workspace-activation\.js$|dogfood/vscode/package\.json$|dogfood/vscode/README\.md$|\.github/workflows/validate-e026-s0\.yml$)'
+          allowed='^(experiments/E026-ssh-store-portability/|experiments/E020-synthetic-agent-ux/score_contract\.py$|dogfood/llm_wiki/private_fs\.py$|dogfood/tests/test_private_fs_portability\.py$|dogfood/vscode/workspace-activation\.js$|dogfood/vscode/test/workspace-activation\.js$|dogfood/vscode/test/static\.js$|dogfood/vscode/package\.json$|dogfood/vscode/README\.md$|\.github/workflows/validate-e026-s0\.yml$)'
           unexpected="$(printf '%s\n' "$changed" | grep -Ev "$allowed" || true)"
           if [ -n "$unexpected" ]; then
             echo 'E026 S0-A is portability preflight only; unexpected files changed:' >&2
@@ -72,6 +74,7 @@ jobs:
           python3 -m py_compile experiments/E026-ssh-store-portability/run_s0.py dogfood/llm_wiki/private_fs.py dogfood/tests/test_private_fs_portability.py
           node --check dogfood/vscode/workspace-activation.js
           node --check dogfood/vscode/test/workspace-activation.js
+          node --check dogfood/vscode/test/static.js
       - name: Execute frozen zero-model portability contract
         run: |
           set -euo pipefail
@@ -84,5 +87,6 @@ jobs:
         run: |
           python3 -m unittest dogfood.tests.test_private_fs_portability -v
           node dogfood/vscode/test/workspace-activation.js
+          node dogfood/vscode/test/static.js
       - name: Full Python regression
         run: python3 -m unittest discover -s dogfood/tests -v
