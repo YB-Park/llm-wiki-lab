@@ -9,6 +9,7 @@ const dogfoodRoot = path.resolve(vscodeRoot, '..');
 const entry = fs.readFileSync(path.join(vscodeRoot, 'entry.js'), 'utf8');
 const memoryRead = fs.readFileSync(path.join(vscodeRoot, 'memory-read-service.js'), 'utf8');
 const queryPlane = fs.readFileSync(path.join(vscodeRoot, 'query-plane.js'), 'utf8');
+const queryUsageLedger = fs.readFileSync(path.join(vscodeRoot, 'query-usage-ledger.js'), 'utf8');
 const personalLibrary = fs.readFileSync(path.join(vscodeRoot, 'personal-wiki-library.js'), 'utf8');
 const scopedRead = fs.readFileSync(path.join(vscodeRoot, 'scoped-read-tool.js'), 'utf8');
 const agentTools = fs.readFileSync(path.join(vscodeRoot, 'agent-tools.js'), 'utf8');
@@ -50,9 +51,15 @@ must('external-composer-trusted', queryPlane.includes('trusted: expectedStoreHan
 must('external-composer-uses-trusted-invocation', queryPlane.includes('memoryRead.trustedPythonInvocation('));
 must('named-store-resolves-before-reservation', queryPlane.indexOf('library.resolveNamedStore(this.context, folder') < queryPlane.indexOf('reserveQueryCall(this.context, folder, grant)'));
 must('named-store-integrity-before-reservation', queryPlane.indexOf('memoryRead.assertStoreIntegrity(this.context, folder, storeHandle)') < queryPlane.indexOf('reserveQueryCall(this.context, folder, grant)'));
-must('query-usage-lock-is-keyed', queryPlane.includes('const reservationLocks = new Map()') && queryPlane.includes('async function withReservationLock(key, operation)'));
-must('query-reservation-is-serialized', /async function reserveQueryCall[\s\S]*?return withReservationLock\(key, async \(\) =>/.test(queryPlane));
-must('query-reservation-rereads-state-under-lock', /return withReservationLock[\s\S]*?context\.workspaceState\.get\(key, \{\}\)/.test(queryPlane));
+must('query-usage-ledger-wired', queryPlane.includes("require('./query-usage-ledger')") && queryPlane.includes('queryUsageLedger.reserveUsage(') && queryPlane.includes('queryUsageLedger.readUsage('));
+mustNot('query-usage-no-process-local-lock-authority', queryPlane.includes('reservationLocks') || queryPlane.includes('withReservationLock'));
+must('query-usage-global-storage', queryUsageLedger.includes('context.globalStorageUri.fsPath'));
+must('query-usage-workspace-hash-only', queryUsageLedger.includes("crypto.createHash('sha256').update(uri, 'utf8').digest('hex')"));
+must('query-usage-atomic-slot-claim', queryUsageLedger.includes("fs.openSync(slotPath(directory, slot), 'wx', 0o600)"));
+must('query-usage-crash-conservative', queryUsageLedger.includes('existingSlots(directory).size'));
+must('query-usage-legacy-floor', queryPlane.includes('legacyQueryUsage(context, folder, day)') && queryUsageLedger.includes('importLegacyCount(directory, day, legacyCount)'));
+must('query-usage-read-is-nonmutating', /function readUsage[\s\S]*?existingSlots\(directory\)[\s\S]*?return \{ day, reservedCalls/.test(queryUsageLedger) && !/function readUsage[\s\S]*?ensureDirectory/.test(queryUsageLedger));
+must('query-usage-storage-failure-blocks-model', queryPlane.includes('state=query_plane_usage_guard_unavailable') && queryPlane.includes('model_calls=0') && queryPlane.includes('usage.guardUnavailable'));
 must('query-grant-binds-random-workspace-epoch', queryPlane.includes('workspaceActivation.workspaceEpoch(optIn)'));
 must('query-library-scope-failures-centralized', queryPlane.includes('const LIBRARY_SCOPE_FAILURES = new Set([') && queryPlane.includes("'library_catalog_corrupt'") && queryPlane.includes('LIBRARY_SCOPE_FAILURES.has(message)'));
 must('pre-model-authorization-explicit', queryPlane.includes('function preModelAuthorization(context, folder, requestedStore, originalStoreHandle)'));
@@ -113,4 +120,4 @@ must('scoped-read-remains-read-only-policy', scopedRead.includes('never authoriz
 must('scoped-read-no-cross-store-fallback', scopedRead.includes('Never retry a missing external source ID against the current store or another store'));
 must('scoped-read-preserves-revocation-failures', scopedRead.includes("'library_access_disabled'") && scopedRead.includes("'library_catalog_corrupt'") && scopedRead.includes("'library_store_identity_changed'") && scopedRead.includes("'library_store_not_registered'"));
 
-console.log('F1-FEDERATION-SAFETY-STATIC PASS strictReadBridge=yes isolatedPython=yes trustedExternalComposer=yes registrationContinuity=yes strictLibraryEpoch=yes catalogFailClosed=yes serializedUsageCap=yes liveReauthorization=yes finalSpawnAuthorization=yes readRevocationPropagation=yes bridgeBracket=yes inspectableAuthority=yes writeIsolation=yes');
+console.log('F1-FEDERATION-SAFETY-STATIC PASS strictReadBridge=yes isolatedPython=yes trustedExternalComposer=yes registrationContinuity=yes strictLibraryEpoch=yes catalogFailClosed=yes processSafeUsageCap=yes liveReauthorization=yes finalSpawnAuthorization=yes readRevocationPropagation=yes bridgeBracket=yes inspectableAuthority=yes writeIsolation=yes');
