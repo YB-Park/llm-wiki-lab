@@ -63,11 +63,13 @@ class WikiScopedReadSourceTool {
     } catch (error) {
       if (store.isCurrentStore === false) {
         const message = error && error.message ? error.message : String(error);
-        if (
-          message === 'library_store_damaged'
-          || message === 'library_store_unavailable'
-          || message === 'library_store_identity_changed'
-        ) throw error;
+        if (new Set([
+          'library_access_disabled',
+          'library_store_damaged',
+          'library_store_identity_changed',
+          'library_store_not_registered',
+          'library_store_unavailable',
+        ]).has(message)) throw error;
         throw new Error('library_store_source_not_found');
       }
       throw error;
