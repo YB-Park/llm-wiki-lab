@@ -72,6 +72,23 @@ function normalizeStoreHandle(folder, handle) {
   };
 }
 
+function revalidateExternalStore(context, folder, storeHandle) {
+  const store = normalizeStoreHandle(folder, storeHandle);
+  if (store.isCurrentStore) return store;
+  const live = normalizeStoreHandle(
+    folder,
+    library.resolveStoreId(context, folder, wikiRoot(folder), store.storeId)
+  );
+  if (
+    live.storeId !== store.storeId
+    || live.root !== store.root
+    || live.authorityAnchor !== store.authorityAnchor
+  ) {
+    throw new Error('library_store_identity_changed');
+  }
+  return live;
+}
+
 function coreRoot(context, folder) {
   const configured = String(configuration().get('corePath', '') || '').trim();
   if (configured) return path.isAbsolute(configured) ? configured : path.resolve(folder.uri.fsPath, configured);
@@ -157,9 +174,9 @@ async function runTrustedPythonModule(context, folder, moduleName, args) {
 }
 
 async function runReadOperation(context, folder, storeHandle, operation, args = []) {
-  const store = normalizeStoreHandle(folder, storeHandle);
+  let store = normalizeStoreHandle(folder, storeHandle);
   if (!store.isCurrentStore) {
-    library.verifyStoreHandle(store);
+    store = revalidateExternalStore(context, folder, store);
     const bridgeCommand = {
       integrity: 'integrity',
       discover: 'discover',
@@ -199,7 +216,13 @@ async function assertStoreIntegrity(context, folder, storeHandle) {
     if (!row || row.ok !== true) throw new Error('integrity-failed');
     return true;
   } catch (error) {
-    if (!store.isCurrentStore && error && error.message === 'library_store_identity_changed') throw error;
+    const message = error && error.message ? error.message : String(error);
+    if (!store.isCurrentStore && new Set([
+      'library_access_disabled',
+      'library_store_identity_changed',
+      'library_store_not_registered',
+      'library_store_unavailable',
+    ]).has(message)) throw error;
     if (!store.isCurrentStore) throw new Error('library_store_damaged');
     return false;
   }
@@ -227,11 +250,18 @@ async function collectMemoryRows(context, folder, query, options = {}) {
     runReadOperation(context, folder, store, 'derived-search', [query, '--top-k', String(derivedLimit), '--json']),
     runReadOperation(context, folder, store, 'pending-list'),
   ]);
-  if (!store.isCurrentStore) library.verifyStoreHandle(store);
+  let humanRows;
+  if (!store.isCurrentStore) {
+    revalidateExternalStore(context, folder, store);
+    humanRows = humanKnowledge.search(store.root, query, 3);
+    revalidateExternalStore(context, folder, store);
+  } else {
+    humanRows = humanKnowledge.search(store.root, query, 3);
+  }
   return {
     rawRows: parseJsonLines(rawStdout).slice(0, maxResults),
     derivedRows: parseJsonLines(derivedStdout),
-    humanRows: humanKnowledge.search(store.root, query, 3),
+    humanRows,
     pendingRows: parseJsonLines(pendingStdout),
   };
 }
@@ -399,6 +429,7 @@ module.exports = {
   normalizeStoreHandle,
   parseJsonLines,
   readSource,
+  revalidateExternalStore,
   runPythonModule,
   runReadOperation,
   runTrustedPythonModule,
