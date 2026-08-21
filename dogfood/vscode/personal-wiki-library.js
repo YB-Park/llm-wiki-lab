@@ -225,11 +225,25 @@ function verifyStoreRow(row) {
   return row;
 }
 
+function verifyStoreHandle(handle) {
+  if (
+    !handle
+    || typeof handle.root !== 'string'
+    || !path.isAbsolute(handle.root)
+    || !AUTHORITY_ANCHOR_RE.test(String(handle.authorityAnchor || ''))
+  ) {
+    throw new Error('library_store_invalid');
+  }
+  verifyStoreRow({ root: handle.root, authorityAnchor: String(handle.authorityAnchor) });
+  return handle;
+}
+
 function storeHandle(row) {
   return {
     storeId: row.storeId,
     displayName: row.displayName,
     root: row.root,
+    authorityAnchor: row.authorityAnchor,
     isCurrentStore: false,
     scopeRef: { kind: 'library_store', store_id: row.storeId },
   };
@@ -285,4 +299,5 @@ module.exports = {
   resolveNamedStore,
   resolveStoreId,
   setLibraryAccess,
+  verifyStoreHandle,
 };
