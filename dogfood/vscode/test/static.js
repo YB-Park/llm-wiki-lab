@@ -58,7 +58,15 @@ const walkthroughs = manifest.contributes.walkthroughs || [];
 assert.equal(walkthroughs.length, 1, 'STATIC-BOUNDARY walkthrough-count');
 assert.equal(walkthroughs[0].steps.length, 4, 'STATIC-BOUNDARY walkthrough-step-count');
 must('walkthrough-setup-command', walkthroughs[0].steps.some((row) => (row.completionEvents || []).includes('onCommand:llmWiki.enableWorkspace')));
-must('walkthrough-ai-summary-command', walkthroughs[0].steps.some((row) => (row.completionEvents || []).includes('onCommand:llmWiki.configureAgentWikiMaintenance')));
+must('walkthrough-host-surface-disclosure', walkthroughs[0].description.includes("VS Code's Getting Started page"));
+const walkthroughFirst = walkthroughs[0].steps.find((row) => row.id === 'llmWiki.gettingStarted.localFirst');
+const walkthroughAi = walkthroughs[0].steps.find((row) => row.id === 'llmWiki.gettingStarted.aiSummaries');
+const walkthroughChat = walkthroughs[0].steps.find((row) => row.id === 'llmWiki.gettingStarted.chat');
+must('walkthrough-installed-disclosure', walkthroughFirst && walkthroughFirst.title === 'LLM Wiki is installed' && walkthroughFirst.description.includes('Installing the extension is complete'));
+must('walkthrough-ai-summary-optional', walkthroughAi && walkthroughAi.description.includes('OFF by default') && (walkthroughAi.completionEvents || []).length === 0);
+must('walkthrough-chat-primary-cta', walkthroughChat && walkthroughChat.description.includes('(command:workbench.action.chat.open)'));
+must('walkthrough-chat-completion', walkthroughChat && (walkthroughChat.completionEvents || []).includes('onCommand:workbench.action.chat.open'));
+must('walkthrough-mark-done-disclosure', walkthroughChat && walkthroughChat.description.includes('Mark Done') && walkthroughChat.description.includes('generic VS Code Welcome page'));
 
 must('human-note-command', entry.includes("registerCommand('llmWiki.newKnowledgeNote'"));
 must('human-note-boundary-text', entry.includes('Human-owned draft. Saving this file does not ingest, promote, or mutate LLM Wiki state.'));
@@ -119,7 +127,7 @@ const scopedReadSchema = tools.find((row) => row.name === 'llmWiki_readScopedSou
 must('scoped-read-scope-ref', Boolean(scopedReadSchema.scopeRef));
 assert.deepEqual(scopedReadSchema.scopeRef.properties.kind.enum, ['current_store', 'library_store'], 'STATIC-BOUNDARY scoped-read-scope-kinds');
 
-assert.equal(manifest.version, '0.1.19', 'STATIC-BOUNDARY version');
+assert.equal(manifest.version, '0.1.20', 'STATIC-BOUNDARY version');
 assert.equal(manifest.engines.vscode, '^1.95.0', 'STATIC-BOUNDARY vscode-engine');
 assert.equal(manifest.main, './entry.js', 'STATIC-BOUNDARY main-entry');
 assert.equal(manifest.private, true, 'STATIC-BOUNDARY private-package');
@@ -365,4 +373,4 @@ mustNot('git-safety-no-write', gitSafety.includes('writeFile'));
 must('bundle-core-source', bundler.includes("path.join(dogfoodRoot, 'llm_wiki')"));
 must('bundle-core-destination', bundler.includes("path.join(bundleRoot, 'dogfood')"));
 
-console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.19 agentToolDisposables=6 contributedTools=7 explicitWorkspaceOptIn=yes queryPlaneL0=optin-local-grant+daily-cap+no-raw-fallback namedStoreF1=explicit-grants+pre-retrieval-scope+scoped-provenance+write-isolation relevantRegionRead=yes doctorPureDiagnostic=yes memoryV4=yes verifiedReadV3=yes durableAuthorityState=yes humanKnowledgeV1=yes maintenanceSoftGuard=yes singleFolderFailClosed=yes');
+console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.20 agentToolDisposables=6 contributedTools=7 explicitWorkspaceOptIn=yes queryPlaneL0=optin-local-grant+daily-cap+no-raw-fallback namedStoreF1=explicit-grants+pre-retrieval-scope+scoped-provenance+write-isolation relevantRegionRead=yes doctorPureDiagnostic=yes memoryV4=yes verifiedReadV3=yes durableAuthorityState=yes humanKnowledgeV1=yes maintenanceSoftGuard=yes singleFolderFailClosed=yes');

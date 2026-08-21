@@ -1,20 +1,24 @@
-# LLM Wiki for VS Code — 0.1.19 candidate
+# LLM Wiki for VS Code — 0.1.20 candidate
 
 LLM Wiki gives your coding Agent **durable project memory that you control**.
 
-0.1.19 keeps the existing RAW / DERIVED / HUMAN authority model, the opt-in Luna-backed Query Plane, and the deliberately narrow named-store Personal Wiki slice from 0.1.18. It adds no canonical schema migration. Existing 0.1.18 `.wiki-lab` stores remain the compatibility baseline and carry forward unchanged.
+0.1.20 keeps the existing RAW / DERIVED / HUMAN authority model, the opt-in Luna-backed Query Plane, the deliberately narrow named-store Personal Wiki slice, and the 0.1.19 portability/privacy hardening. It adds no canonical schema migration. Existing 0.1.18 `.wiki-lab` stores remain the compatibility baseline and carry forward unchanged.
 
-0.1.19 also adds small portability/privacy hardening discovered during pre-sync review: known private Wiki subtrees are re-hardened after cross-platform permission loss, the workspace opt-in marker is created private, and a zero-model portability contract verifies that a representative existing store can move to another absolute root without changing canonical identity. **This is not a sync or multi-writer claim.**
+0.1.20 is a bounded first-install UX correction from natural dogfood: the native LLM Wiki setup checklist now says explicitly that it is hosted inside VS Code's own **Getting Started** page, distinguishes extension installation from per-workspace Project Memory setup, keeps AI summaries visibly optional, and provides an explicit **Open Agent Chat** path. This changes no memory authority, grant, storage, federation, or model-call behavior.
 
 This is an Alpha/dogfood candidate, not a public Beta declaration.
 
 ## Get started
 
-1. Install the candidate `.vsix`.
-2. Open one trusted local workspace folder. Multi-root workspaces remain fail-closed.
-3. Run **LLM Wiki: Set Up Project Memory**.
-4. Keep the private Wiki directory out of Git. The default is `.wiki-lab/`.
-5. Continue in normal Agent chat.
+1. Install the candidate `.vsix`. Installation is complete before the LLM Wiki checklist appears.
+2. VS Code may automatically open its own **Getting Started** page with an **LLM Wiki setup checklist** inside it. This is a VS Code onboarding surface, not a separate LLM Wiki home screen.
+3. Open one trusted local workspace folder. Multi-root workspaces remain fail-closed.
+4. Run **LLM Wiki: Set Up Project Memory** from the checklist or Command Palette.
+5. Keep the private Wiki directory out of Git. The default is `.wiki-lab/`.
+6. AI summaries are optional and off by default; they are not required to finish basic setup.
+7. Use **Open Agent Chat** in the final checklist step and continue normal work. The Getting Started tab can be closed like any other editor.
+
+VS Code's **Mark Done** belongs to the Getting Started walkthrough UI. It only closes that checklist and may show the generic VS Code Welcome page; it does **not** install, uninstall, enable, or disable LLM Wiki.
 
 Installing the extension gives VS Code the capability. **Setting up a workspace gives the Agent permission to use that workspace's project memory.** Existing `.wiki-lab` data alone never silently enables Agent access, and setup does not authorize another project's Wiki.
 
@@ -57,7 +61,7 @@ It can contain immutable admitted source evidence, correction/change/dispute/sup
 
 Back up the **whole directory as one private snapshot**. See `docs/11-local-backup-restore.md`.
 
-Each project store remains its own Authority Core. 0.1.19 does not merge manifests, copy evidence between projects, create a global canonical identity, or authorize cross-project mutation.
+Each project store remains its own Authority Core. 0.1.20 does not merge manifests, copy evidence between projects, create a global canonical identity, or authorize cross-project mutation.
 
 ### Existing-store portability
 
@@ -99,7 +103,7 @@ The Query Plane is read-only. It cannot admit sources, write Human Knowledge, de
 
 The Query Plane grant lives in VS Code extension **local workspace state**, not in a workspace setting file. It is therefore not intended to be committed or shared with the project.
 
-The grant remains explicitly `current_store` scoped. 0.1.19 does **not** reinterpret that grant as permission to enumerate or search a Personal Wiki Library. External named-store use requires additional grants described below.
+The grant remains explicitly `current_store` scoped. 0.1.20 does **not** reinterpret that grant as permission to enumerate or search a Personal Wiki Library. External named-store use requires additional grants described below.
 
 The grant is bound to the workspace opt-in authority epoch. Disabling and re-enabling project memory invalidates the previous grant.
 
@@ -188,7 +192,7 @@ The grants are revalidated during external reads and immediately before model ex
 
 A scoped source miss never retries the same source ID in the current store or another registered store. Pagination keeps the same scope.
 
-The exact opaque scope can be revisited while its registration and workspace library access remain valid. 0.1.19 does not add a new per-consult capability-token system; installed dogfood should tell us whether standing scoped read authority is understandable or too broad in practice.
+The exact opaque scope can be revisited while its registration and workspace library access remain valid. 0.1.20 does not add a new per-consult capability-token system; installed dogfood should tell us whether standing scoped read authority is understandable or too broad in practice.
 
 ### External reads are operationally read-only
 
@@ -200,7 +204,7 @@ A host-local registration continuity witness is checked when the store is resolv
 
 ### What Personal Wiki Library does not authorize
 
-0.1.19 does not add:
+0.1.20 does not add:
 
 - ambient or library-wide union search;
 - cross-project writes, source admission, Human Knowledge mutation, lineage mutation, or maintenance;
@@ -224,7 +228,7 @@ While project memory is enabled, the Agent may use:
 
 The legacy `llmWiki_readSource` implementation remains hidden for compatibility; the public Agent reference is the scoped `wikiRead` contract.
 
-0.1.19 does **not** remove or weaken current-store `wikiMemory`/`wikiRead`. Installed dogfood must earn any later decision to broaden ordinary retrieval.
+0.1.20 does **not** remove or weaken current-store `wikiMemory`/`wikiRead`. Installed dogfood must earn any later decision to broaden ordinary retrieval.
 
 ## AI summaries remain separate
 
@@ -244,7 +248,7 @@ Before **Set Up Project Memory** succeeds:
 
 **Disable for This Workspace** removes only the opt-in marker and immediately tears down Agent tool registrations while preserving Wiki data. The Query Plane and Personal Wiki Library workspace grants are bound to that opt-in authority epoch and become stale after disable/re-enable.
 
-0.1.19 remains single-folder only.
+0.1.20 remains single-folder only.
 
 ## Check Setup and Health
 
@@ -293,9 +297,9 @@ Blocking confirmation is reserved for authority/privacy/usage boundaries such as
 
 Routine current-store search/read/diagnostic success and already-authorized exact scoped reads should remain quiet.
 
-## 0.1.19 validation gate
+## 0.1.20 validation gate
 
-The candidate must preserve the existing deterministic safety/product contract while adding only backward-compatible portability/privacy hardening on top of the E025-earned named-store read-only F1 slice.
+The candidate must preserve the existing deterministic safety/product contract while changing only bounded first-install onboarding UX on top of the 0.1.19 portability/privacy and E025 named-store read-only baseline.
 
 Required before merge/deployment handoff:
 
@@ -305,18 +309,21 @@ Required before merge/deployment handoff:
 - frozen E004/E014 checks;
 - E010 self-repo dogfood;
 - frozen E020 synthetic contract: **78 cases / 60 supported / 7 partial / 11 deferred / zero model calls**;
-- VS Code static boundaries plus dedicated federation-safety boundaries;
+- VS Code static boundaries, including first-install Walkthrough ownership/optional-step/final-chat-CTA assertions, plus dedicated federation-safety boundaries;
 - Extension Host integration tests, including grant/scope/write-isolation, concurrent daily-cap reservation, and pre-model revocation behavior;
 - bundled-core checks;
 - VSIX packaging and packaged Extension Host execution;
 - no paid E023 semantic rerun and no E023 G2/G3 reopening as part of this slice.
 
-Passing 0.1.19 does not earn sync, distributed/multi-writer semantics, or broader federation architecture.
+Passing 0.1.20 does not earn sync, distributed/multi-writer semantics, broader federation architecture, or any new memory authority.
 
 ## What installed dogfood must decide
 
-0.1.19 should continue natural Query Plane / named-store evidence and additionally observe:
+0.1.20 should continue natural Query Plane / named-store evidence and additionally observe:
 
+- whether first-install onboarding is now unambiguous about **installed extension vs workspace memory enabled**;
+- whether users understand that the LLM Wiki checklist lives inside VS Code Getting Started rather than a product-owned home screen;
+- whether **Open Agent Chat** is a natural endpoint and `Mark Done` no longer creates installation-state confusion;
 - whether the Agent invokes `wikiConsult` at useful moments;
 - whether Main-Agent-visible Wiki context/tool-turn burden actually drops in real work;
 - whether compact briefs are sufficient without repeated `wikiRead` follow-up;

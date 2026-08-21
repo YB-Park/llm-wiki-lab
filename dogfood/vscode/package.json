@@ -2,7 +2,7 @@
   "name": "llm-wiki-dogfood",
   "displayName": "LLM Wiki",
   "description": "Local, user-approved project memory for AI coding agents in VS Code.",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "private": true,
   "publisher": "llm-wiki-lab",
   "repository": { "type": "git", "url": "https://github.com/YB-Park/llm-wiki-lab.git", "directory": "dogfood/vscode" },
@@ -253,13 +253,13 @@
     "walkthroughs": [
       {
         "id": "llmWiki.gettingStarted",
-        "title": "Get started with LLM Wiki",
-        "description": "Give your coding Agent durable project memory without silently turning guesses into project knowledge.",
+        "title": "LLM Wiki setup checklist",
+        "description": "This LLM Wiki checklist is shown inside VS Code's Getting Started page. The extension is already installed; project memory is enabled separately for each trusted workspace.",
         "steps": [
           {
             "id": "llmWiki.gettingStarted.localFirst",
-            "title": "Understand what LLM Wiki remembers",
-            "description": "LLM Wiki keeps **user-approved project memory** in this workspace. Installing the extension does not enable memory for every project.",
+            "title": "LLM Wiki is installed",
+            "description": "This is **VS Code's Getting Started page**, not a separate LLM Wiki home screen. Installing the extension is complete; project memory is still off until you explicitly set up this workspace.",
             "media": { "markdown": "media/walkthrough-local-first.md" }
           },
           {
@@ -271,16 +271,16 @@
           },
           {
             "id": "llmWiki.gettingStarted.aiSummaries",
-            "title": "Choose whether to use AI summaries",
-            "description": "Optional: [Configure AI Summaries](command:llmWiki.configureAgentWikiMaintenance). When enabled, explicitly saved source content may be sent to GitHub Copilot to build rebuildable summaries.",
-            "media": { "markdown": "media/walkthrough-ai-summaries.md" },
-            "completionEvents": ["onCommand:llmWiki.configureAgentWikiMaintenance"]
+            "title": "AI summaries are optional",
+            "description": "AI summaries are **OFF by default** and are not required to finish basic setup. If you want them later, run **LLM Wiki: Configure AI Summaries** from the Command Palette.",
+            "media": { "markdown": "media/walkthrough-ai-summaries.md" }
           },
           {
             "id": "llmWiki.gettingStarted.chat",
-            "title": "Use your normal Agent conversation",
-            "description": "Ask ordinary project questions or say what you want remembered. You should not need to learn LLM Wiki tool names.",
-            "media": { "markdown": "media/walkthrough-chat.md" }
+            "title": "Return to normal Agent chat",
+            "description": "If Project Memory setup completed, LLM Wiki is ready for this workspace. [Open Agent Chat](command:workbench.action.chat.open). VS Code's **Mark Done** only closes this checklist and may show the generic VS Code Welcome page; it does not change LLM Wiki installation or workspace memory.",
+            "media": { "markdown": "media/walkthrough-chat.md" },
+            "completionEvents": ["onCommand:workbench.action.chat.open"]
           }
         ]
       }
