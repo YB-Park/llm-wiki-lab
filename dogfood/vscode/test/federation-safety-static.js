@@ -30,7 +30,7 @@ must('external-read-clears-pythonhome', memoryRead.includes('delete env.PYTHONHO
 must('external-read-clears-pythonstartup', memoryRead.includes('delete env.PYTHONSTARTUP'));
 must('external-read-clears-pythonuserbase', memoryRead.includes('delete env.PYTHONUSERBASE'));
 must('trusted-core-bundled-first', memoryRead.includes("path.join(bundled, 'dogfood', 'llm_wiki', 'federation_read_cli.py')"));
-must('external-handle-requires-continuity-witness', memoryRead.includes('library.AUTHORITY_ANCHOR_RE.test(String(handle.authorityAnchor')));
+must('external-handle-requires-continuity-witness', memoryRead.includes('library.AUTHORITY_ANCHOR_RE.test(String(handle.authorityAnchor'));
 must('external-standing-grant-rechecked', memoryRead.includes('library.resolveStoreId(context, folder, wikiRoot(folder), store.storeId)'));
 must('external-read-rechecks-js-continuity', memoryRead.includes('function revalidateExternalStore(context, folder, storeHandle)'));
 must('external-read-passes-continuity-to-bridge', memoryRead.includes("['--root', store.root, '--expected-authority-anchor', store.authorityAnchor, bridgeCommand, ...args]"));
