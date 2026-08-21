@@ -34,7 +34,7 @@ async function resetAndEnable() {
 }
 
 suite('LLM Wiki Agent Tools', () => {
-  test('registers Query Plane in the same workspace lifecycle; disabled grant makes zero model calls and workspace disable removes the tool', async () => {
+  test('Query Plane shares workspace lifecycle and an old query grant cannot revive after workspace disable/re-enable', async () => {
     await resetAndEnable();
     let toolNames = new Set(vscode.lm.tools.map((tool) => tool.name));
     assert.ok(toolNames.has('llmWiki_consultMemory'), 'wikiConsult must be registered only after workspace opt-in');
@@ -50,11 +50,24 @@ suite('LLM Wiki Agent Tools', () => {
     const config = vscode.workspace.getConfiguration('llmWiki');
     assert.equal(config.get('queryPlaneEnabled'), undefined, 'query grant must not be a workspace configuration setting');
 
+    const queryEnabled = await vscode.commands.executeCommand('llmWiki.configureQueryPlane');
+    assert.equal(queryEnabled, true, 'test-mode query grant should be created without a model call');
+
     const disabledWorkspace = await vscode.commands.executeCommand('llmWiki.disableWorkspace');
     assert.equal(disabledWorkspace, true);
     toolNames = new Set(vscode.lm.tools.map((tool) => tool.name));
     assert.equal(toolNames.has('llmWiki_consultMemory'), false, 'workspace disable must dispose wikiConsult registration');
     assert.equal(toolNames.has('llmWiki_searchMemory'), false, 'workspace disable must dispose legacy Wiki read registration too');
+
+    const reenabled = await vscode.commands.executeCommand('llmWiki.enableWorkspace');
+    assert.equal(reenabled, true);
+    toolNames = new Set(vscode.lm.tools.map((tool) => tool.name));
+    assert.ok(toolNames.has('llmWiki_consultMemory'));
+    const staleGrant = toolText(await vscode.lm.invokeTool('llmWiki_consultMemory', {
+      input: { query: 'What did we decide about the current retry budget?' }, toolInvocationToken: undefined,
+    }));
+    assert.match(staleGrant, /state=query_plane_disabled/);
+    assert.match(staleGrant, /model_calls=0/);
   });
 
   test('registers hardened tools only after opt-in and supports search -> verified read with JSON-encoded untrusted data', async () => {
