@@ -4,13 +4,13 @@ This directory keeps the validated installable VS Code dogfood extension in Git 
 
 ## Current
 
-- Versioned: `llm-wiki-dogfood-0.1.18.vsix`
+- Versioned: `llm-wiki-dogfood-0.1.19.vsix`
 - Stable convenience path: `llm-wiki-dogfood-latest.vsix`
-- Extension version: `0.1.18`
-- VSIX bytes: `137057`
-- VSIX SHA-256: `c4a7df778f4b9a41d186a9bb69a1f00ae370812193e8a70d6f9a1231b86f45ed`
-- Validated GitHub Actions build: run `32454671072`
-- Validated build head: `09456e02ae25dfaf479c1ef77fd74b9757c45685`
+- Extension version: `0.1.19`
+- VSIX bytes: `138132`
+- VSIX SHA-256: `5ad0aa719f1b104f1a2378ade2ba71fdf959e472a524f3f3ee39c91f41b5f787`
+- Validated GitHub Actions build: run `32461723526`
+- Validated build head: `71ba27537e39be36b2ba1709c68bc36c955c967c`
 
 Both VSIX paths contain the exact artifact bytes emitted only after the `VS Code Dogfood` workflow has completed successfully on `main`, including the unpacked packaged Extension Host test.
 
