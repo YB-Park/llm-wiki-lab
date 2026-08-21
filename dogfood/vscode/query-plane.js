@@ -7,6 +7,7 @@ const vscode = require('vscode');
 const library = require('./personal-wiki-library');
 const libraryUi = require('./personal-wiki-library-ui');
 const memoryRead = require('./memory-read-service');
+const queryUsageLedger = require('./query-usage-ledger');
 const scopedRead = require('./scoped-read-tool');
 const workspaceActivation = require('./workspace-activation');
 const { boundedProcessFailure } = require('./process-errors');
@@ -19,7 +20,6 @@ const GRANT_VERSION = 1;
 const MAX_BUFFER = 16 * 1024 * 1024;
 const GRANT_KEY_PREFIX = 'llmWiki.queryPlaneGrant.v1';
 const USAGE_KEY_PREFIX = 'llmWiki.queryPlaneUsage.v1';
-const reservationLocks = new Map();
 const LIBRARY_SCOPE_FAILURES = new Set([
   'library_access_disabled',
   'library_catalog_corrupt',
@@ -93,47 +93,48 @@ function queryPlaneEnabled(context, folder) {
   return Boolean(queryGrant(context, folder));
 }
 
-function queryUsage(context, folder) {
-  const day = localDayKey();
+function legacyQueryUsage(context, folder, day) {
   const row = context.workspaceState.get(usageKey(folder, day), {});
-  return { day, reservedCalls: Math.max(0, Math.trunc(Number(row.reservedCalls || 0)) || 0) };
+  return Math.max(0, Math.min(100, Math.trunc(Number(row.reservedCalls || 0)) || 0));
 }
 
-async function withReservationLock(key, operation) {
-  const previous = reservationLocks.get(key) || Promise.resolve();
-  let release;
-  const gate = new Promise((resolve) => { release = resolve; });
-  const tail = previous.catch(() => {}).then(() => gate);
-  reservationLocks.set(key, tail);
-  await previous.catch(() => {});
+function queryUsage(context, folder) {
+  const day = localDayKey();
+  const legacyCount = legacyQueryUsage(context, folder, day);
   try {
-    return await operation();
-  } finally {
-    release();
-    if (reservationLocks.get(key) === tail) reservationLocks.delete(key);
+    return queryUsageLedger.readUsage(context, folder, day, legacyCount);
+  } catch (_) {
+    return { day, reservedCalls: legacyCount, guardStorageReady: false };
   }
 }
 
 async function reserveQueryCall(context, folder, grant) {
   const day = localDayKey();
-  const key = usageKey(folder, day);
-  return withReservationLock(key, async () => {
-    const row = context.workspaceState.get(key, {});
-    const reservedCalls = Math.max(0, Math.trunc(Number(row.reservedCalls || 0)) || 0);
-    const usage = { day, reservedCalls };
-    if (reservedCalls >= grant.dailyCallLimit) {
-      return { allowed: false, ...usage, dailyCallLimit: grant.dailyCallLimit, maxAiCredits: grant.maxAiCredits };
-    }
-    const nextReservedCalls = reservedCalls + 1;
-    await context.workspaceState.update(key, { reservedCalls: nextReservedCalls });
-    return {
-      allowed: true,
+  const legacyCount = legacyQueryUsage(context, folder, day);
+  try {
+    const usage = queryUsageLedger.reserveUsage(
+      context,
+      folder,
       day,
-      reservedCalls: nextReservedCalls,
+      grant.dailyCallLimit,
+      legacyCount
+    );
+    return {
+      ...usage,
       dailyCallLimit: grant.dailyCallLimit,
       maxAiCredits: grant.maxAiCredits,
     };
-  });
+  } catch (error) {
+    return {
+      allowed: false,
+      guardUnavailable: true,
+      failure: error,
+      day,
+      reservedCalls: legacyCount,
+      dailyCallLimit: grant.dailyCallLimit,
+      maxAiCredits: grant.maxAiCredits,
+    };
+  }
 }
 
 const runComposerStdin = async (context, folder, args, input, options = {}) => {
@@ -329,6 +330,22 @@ function budgetBlockedResult(grant, usage) {
   ].join('\n');
 }
 
+function usageGuardUnavailableResult(error, grant, usage) {
+  return [
+    'LLM_WIKI_BRIEF v2',
+    'state=query_plane_usage_guard_unavailable',
+    'authority=read_only_query_result',
+    'canonical_mutation=none',
+    'model_calls=0',
+    'fallback=none',
+    `query_reserved_today=${usage && Number(usage.reservedCalls || 0)}`,
+    `query_daily_call_limit=${grant.dailyCallLimit}`,
+    `query_max_ai_credits=${grant.maxAiCredits}`,
+    `failure_json=${JSON.stringify(boundedProcessFailure(error && error.message ? error.message : String(error)))}`,
+    'policy=The local daily model-attempt cap could not be enforced safely, so the model call was blocked. Do not silently fall back to broad raw Wiki context.',
+  ].join('\n');
+}
+
 function unavailableResult(error, usage) {
   return [
     'LLM_WIKI_BRIEF v2',
@@ -382,6 +399,11 @@ class WikiConsultTool {
     }
 
     const usage = await reserveQueryCall(this.context, folder, grant);
+    if (usage.guardUnavailable) {
+      return new vscode.LanguageModelToolResult([
+        new vscode.LanguageModelTextPart(usageGuardUnavailableResult(usage.failure, grant, usage)),
+      ]);
+    }
     if (!usage.allowed) {
       return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(budgetBlockedResult(grant, usage))]);
     }
@@ -561,6 +583,6 @@ module.exports = {
   reserveQueryCall,
   scopeBlockedResult,
   unavailableResult,
+  usageGuardUnavailableResult,
   usageKey,
-  withReservationLock,
 };
