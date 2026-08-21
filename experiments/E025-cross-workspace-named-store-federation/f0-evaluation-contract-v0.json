@@ -1,0 +1,44 @@
+{
+  "format": "E025-F0-evaluation-contract-v0",
+  "reviewed_main_sha": "7348509b83202e473d3ef1925225dec39e6f5121",
+  "model_calls_allowed": 0,
+  "slice": "named_store_read_only_scope_authority",
+  "required_cases": [
+    "F0-01_current_store_isolation",
+    "F0-02_unregistered_store_invisible",
+    "F0-03_library_grant_off",
+    "F0-04_named_registered_store_only",
+    "F0-05_ambiguous_alias_fail_closed",
+    "F0-06_unavailable_store_contained",
+    "F0-07_damaged_external_store_contained",
+    "F0-08_external_terminal_scope_required",
+    "F0-09_no_cross_store_source_fallback",
+    "F0-10_scoped_verified_read",
+    "F0-11_current_store_write_isolation",
+    "F0-12_stale_library_grant_invalidated",
+    "F0-13_query_plane_grant_alone_insufficient",
+    "F0-14_library_registration_alone_insufficient",
+    "F0-15_private_root_redacted",
+    "F0-16_zero_model_calls",
+    "F0-17_existing_0_1_17_regression_gate_green",
+    "F0-18_e023_semantic_gates_remain_closed"
+  ],
+  "promotion": {
+    "name": "E025_F0_NAMED_STORE_SCOPE_CONTRACT",
+    "earned_only_if_all_required_cases_pass": true,
+    "partial_promotion_allowed": false,
+    "max_model_calls": 0,
+    "external_store_write_paths_allowed": 0,
+    "normal_output_absolute_root_leaks_allowed": 0
+  },
+  "cannot_earn": [
+    "library_wide_union_search",
+    "ambient_cross_project_retrieval",
+    "cross_project_writes",
+    "sync_or_replication",
+    "personal_store",
+    "persistent_identity_or_entity_infrastructure",
+    "vector_default",
+    "semantic_quality_promotion"
+  ]
+}
