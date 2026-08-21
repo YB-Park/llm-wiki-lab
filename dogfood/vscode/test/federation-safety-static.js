@@ -39,7 +39,7 @@ must('external-integrity-through-dispatch', memoryRead.includes("runReadOperatio
 must('external-query-evidence-through-dispatch', memoryRead.includes("runReadOperation(context, folder, store, 'relevant'"));
 must('external-source-read-through-dispatch', memoryRead.includes("runReadOperation(context, folder, store, 'read'"));
 must('external-hk-bracketed-by-revalidation', (memoryRead.match(/revalidateExternalStore\(context, folder, store\)/g) || []).length >= 2);
-must('external-scope-failures-explicit', memoryRead.includes('const EXTERNAL_SCOPE_FAILURES = new Set([') && memoryRead.includes("'library_access_disabled'") && memoryRead.includes("'library_store_identity_changed'"));
+must('external-scope-failures-explicit', memoryRead.includes('const EXTERNAL_SCOPE_FAILURES = new Set([') && memoryRead.includes("'library_access_disabled'") && memoryRead.includes("'library_catalog_corrupt'") && memoryRead.includes("'library_store_identity_changed'"));
 must('external-candidate-revocation-not-masked', /catch \(error\) \{\n\s+if \(!store\.isCurrentStore && externalScopeFailure\(error\)\) throw error;\n\s+throw new Error\(`query_plane_candidate_verification_failed/.test(memoryRead));
 must('external-optional-derived-revocation-not-masked', /derived = await runReadOperation[\s\S]*?catch \(error\) \{\n\s+if \(!store\.isCurrentStore && externalScopeFailure\(error\)\) throw error;\n\s+derived = '';/.test(memoryRead));
 
@@ -54,6 +54,7 @@ must('query-usage-lock-is-keyed', queryPlane.includes('const reservationLocks = 
 must('query-reservation-is-serialized', /async function reserveQueryCall[\s\S]*?return withReservationLock\(key, async \(\) =>/.test(queryPlane));
 must('query-reservation-rereads-state-under-lock', /return withReservationLock[\s\S]*?context\.workspaceState\.get\(key, \{\}\)/.test(queryPlane));
 must('query-grant-binds-random-workspace-epoch', queryPlane.includes('workspaceActivation.workspaceEpoch(optIn)'));
+must('query-library-scope-failures-centralized', queryPlane.includes('const LIBRARY_SCOPE_FAILURES = new Set([') && queryPlane.includes("'library_catalog_corrupt'") && queryPlane.includes('LIBRARY_SCOPE_FAILURES.has(message)'));
 must('pre-model-authorization-explicit', queryPlane.includes('function preModelAuthorization(context, folder, requestedStore, originalStoreHandle)'));
 must('pre-model-query-grant-rechecked', /function preModelAuthorization[\s\S]*?const liveGrant = queryGrant\(context, folder\)/.test(queryPlane));
 must('pre-model-named-store-rechecked', /function preModelAuthorization[\s\S]*?library\.resolveNamedStore\(context, folder/.test(queryPlane));
@@ -110,6 +111,6 @@ mustNot('write-tools-do-not-load-library-router', agentTools.includes("require('
 mustNot('write-tools-have-no-library-store-input', agentTools.includes('library_store'));
 must('scoped-read-remains-read-only-policy', scopedRead.includes('never authorizes source admission, Human Knowledge, lineage, maintenance, or configuration writes'));
 must('scoped-read-no-cross-store-fallback', scopedRead.includes('Never retry a missing external source ID against the current store or another store'));
-must('scoped-read-preserves-revocation-failures', scopedRead.includes("'library_access_disabled'") && scopedRead.includes("'library_store_identity_changed'") && scopedRead.includes("'library_store_not_registered'"));
+must('scoped-read-preserves-revocation-failures', scopedRead.includes("'library_access_disabled'") && scopedRead.includes("'library_catalog_corrupt'") && scopedRead.includes("'library_store_identity_changed'") && scopedRead.includes("'library_store_not_registered'"));
 
 console.log('F1-FEDERATION-SAFETY-STATIC PASS strictReadBridge=yes isolatedPython=yes trustedExternalComposer=yes registrationContinuity=yes strictLibraryEpoch=yes catalogFailClosed=yes serializedUsageCap=yes liveReauthorization=yes finalSpawnAuthorization=yes readRevocationPropagation=yes bridgeBracket=yes inspectableAuthority=yes writeIsolation=yes');
