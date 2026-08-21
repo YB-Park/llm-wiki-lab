@@ -72,6 +72,19 @@ function folder(name = 'current') {
       /library_access_disabled/
     );
 
+    const initialOptIn = workspaceActivation.readWorkspaceOptIn(currentRoot);
+    await ctx.workspaceState.update(library.grantKey(currentFolder), {
+      version: library.LIBRARY_GRANT_VERSION,
+      enabled: true,
+      mode: library.LIBRARY_MODE,
+      workspaceEnabledAt: initialOptIn.enabled_at,
+    });
+    assert.equal(
+      library.libraryGrant(ctx, currentFolder, currentRoot),
+      undefined,
+      'a Personal Wiki grant without the random workspace epoch must never be accepted'
+    );
+
     await library.setLibraryAccess(ctx, currentFolder, currentRoot, true);
     const handle = library.resolveNamedStore(ctx, currentFolder, currentRoot, 'ALPHA');
     assert.equal(handle.storeId, a.storeId);
@@ -159,6 +172,14 @@ function folder(name = 'current') {
       stores: [goodCatalog.stores[0], { ...goodCatalog.stores[0] }],
     });
     assert.throws(() => library.catalog(corrupt), /library_catalog_corrupt/, 'duplicate authority routing state must fail closed');
+
+    const wrongVersion = context();
+    await wrongVersion.globalState.update(library.CATALOG_KEY, { version: 999, stores: [] });
+    assert.throws(
+      () => library.catalog(wrongVersion),
+      /library_catalog_corrupt/,
+      'an unexpected value under the v2 catalog key must never be silently treated as an empty catalog'
+    );
 
     await library.setLibraryAccess(ctx, currentFolder, currentRoot, false);
     assert.equal(library.libraryGrant(ctx, currentFolder, currentRoot), undefined);
