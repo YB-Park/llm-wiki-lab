@@ -5,12 +5,14 @@ const fs = require('node:fs');
 const path = require('node:path');
 const workspaceActivation = require('./workspace-activation');
 
-const CATALOG_KEY = 'llmWiki.personalWikiLibrary.v1';
-const CATALOG_VERSION = 1;
+const CATALOG_KEY = 'llmWiki.personalWikiLibrary.v2';
+const CATALOG_VERSION = 2;
 const LIBRARY_GRANT_KEY_PREFIX = 'llmWiki.personalWikiLibraryAccess.v1';
 const LIBRARY_GRANT_VERSION = 1;
 const LIBRARY_MODE = 'named_store_only';
 const STORE_ID_RE = /^libstore-[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const AUTHORITY_ANCHOR_RE = /^[0-9a-f]{64}$/;
+const MANIFEST_ANCHOR_READ_LIMIT = 64 * 1024;
 
 function normalizeAlias(value) {
   return String(value || '').trim().toLocaleLowerCase('en-US');
@@ -27,37 +29,57 @@ function normalizeAliases(values) {
   return result.slice(0, 12);
 }
 
-function cleanCatalog(raw) {
-  if (!raw || raw.version !== CATALOG_VERSION || !Array.isArray(raw.stores)) {
-    return { version: CATALOG_VERSION, stores: [] };
+function emptyCatalog() {
+  return { version: CATALOG_VERSION, stores: [] };
+}
+
+function validateCatalog(raw) {
+  if (!raw || raw.version !== CATALOG_VERSION) return emptyCatalog();
+  if (!Array.isArray(raw.stores)) throw new Error('library_catalog_corrupt');
+
+  const stores = [];
+  const ids = new Set();
+  const roots = new Set();
+  for (const row of raw.stores) {
+    if (
+      !row
+      || !STORE_ID_RE.test(String(row.storeId || ''))
+      || typeof row.root !== 'string'
+      || !path.isAbsolute(row.root)
+      || typeof row.displayName !== 'string'
+      || !row.displayName.trim()
+      || !Array.isArray(row.aliases)
+      || row.readExposure !== true
+      || row.modelExposure !== true
+      || !AUTHORITY_ANCHOR_RE.test(String(row.authorityAnchor || ''))
+    ) {
+      throw new Error('library_catalog_corrupt');
+    }
+    const storeId = String(row.storeId);
+    const root = String(row.root);
+    if (ids.has(storeId) || roots.has(root)) throw new Error('library_catalog_corrupt');
+    ids.add(storeId);
+    roots.add(root);
+    stores.push({
+      storeId,
+      root,
+      displayName: String(row.displayName).trim().slice(0, 120),
+      aliases: normalizeAliases(row.aliases),
+      readExposure: true,
+      modelExposure: true,
+      authorityAnchor: String(row.authorityAnchor),
+      registeredAt: String(row.registeredAt || ''),
+    });
   }
-  const stores = raw.stores.filter((row) => (
-    row
-    && STORE_ID_RE.test(String(row.storeId || ''))
-    && typeof row.root === 'string'
-    && path.isAbsolute(row.root)
-    && typeof row.displayName === 'string'
-    && row.displayName.trim()
-    && row.readExposure === true
-    && row.modelExposure === true
-  )).map((row) => ({
-    storeId: String(row.storeId),
-    root: String(row.root),
-    displayName: String(row.displayName).trim().slice(0, 120),
-    aliases: normalizeAliases(row.aliases),
-    readExposure: true,
-    modelExposure: true,
-    registeredAt: String(row.registeredAt || ''),
-  }));
   return { version: CATALOG_VERSION, stores };
 }
 
 function catalog(context) {
-  return cleanCatalog(context.globalState.get(CATALOG_KEY));
+  return validateCatalog(context.globalState.get(CATALOG_KEY));
 }
 
 async function saveCatalog(context, value) {
-  await context.globalState.update(CATALOG_KEY, cleanCatalog(value));
+  await context.globalState.update(CATALOG_KEY, validateCatalog(value));
 }
 
 function canonicalRoot(root) {
@@ -66,6 +88,42 @@ function canonicalRoot(root) {
     return fs.realpathSync(root);
   } catch (_) {
     throw new Error('library_store_unavailable');
+  }
+}
+
+function manifestAuthorityAnchor(root) {
+  const manifest = path.join(root, 'manifest.jsonl');
+  let descriptor;
+  try {
+    const stat = fs.statSync(manifest);
+    if (!stat.isFile() || stat.size <= 0) throw new Error('empty');
+    descriptor = fs.openSync(manifest, 'r');
+    const size = Math.min(stat.size, MANIFEST_ANCHOR_READ_LIMIT);
+    const buffer = Buffer.alloc(size);
+    const bytesRead = fs.readSync(descriptor, buffer, 0, size, 0);
+    const text = buffer.subarray(0, bytesRead).toString('utf8');
+    const lastNewline = text.lastIndexOf('\n');
+    if (lastNewline < 0) throw new Error('unterminated');
+    const first = text.slice(0, lastNewline + 1).split(/\r?\n/).find((line) => line.trim());
+    if (!first) throw new Error('empty');
+    const event = JSON.parse(first);
+    if (
+      !event
+      || event.event !== 'ingest'
+      || typeof event.source_id !== 'string'
+      || !event.source_id.startsWith('src-')
+      || typeof event.sha256 !== 'string'
+      || !AUTHORITY_ANCHOR_RE.test(event.sha256)
+    ) {
+      throw new Error('invalid');
+    }
+    return crypto.createHash('sha256').update(first.trim(), 'utf8').digest('hex');
+  } catch (_) {
+    throw new Error('library_store_no_authority_anchor');
+  } finally {
+    if (descriptor !== undefined) {
+      try { fs.closeSync(descriptor); } catch (_) {}
+    }
   }
 }
 
@@ -78,18 +136,21 @@ async function registerStore(context, options) {
   const displayName = String((options && options.displayName) || '').trim();
   if (!displayName || displayName.length > 120) throw new Error('library_store_display_name_invalid');
   const aliases = normalizeAliases(options && options.aliases);
+  const authorityAnchor = manifestAuthorityAnchor(root);
   const current = catalog(context);
   const existing = current.stores.find((row) => row.root === root);
+  const sameAuthority = existing && existing.authorityAnchor === authorityAnchor;
   const row = {
-    storeId: existing ? existing.storeId : `libstore-${crypto.randomUUID()}`,
+    storeId: sameAuthority ? existing.storeId : `libstore-${crypto.randomUUID()}`,
     root,
     displayName,
     aliases,
     readExposure: true,
     modelExposure: true,
-    registeredAt: existing && existing.registeredAt ? existing.registeredAt : new Date().toISOString(),
+    authorityAnchor,
+    registeredAt: sameAuthority && existing.registeredAt ? existing.registeredAt : new Date().toISOString(),
   };
-  const stores = current.stores.filter((item) => item.storeId !== row.storeId);
+  const stores = current.stores.filter((item) => item.root !== root && item.storeId !== row.storeId);
   stores.push(row);
   await saveCatalog(context, { version: CATALOG_VERSION, stores });
   return { storeId: row.storeId, displayName: row.displayName, aliases: row.aliases };
@@ -142,6 +203,26 @@ function authorizedCatalog(context, folder, currentRoot) {
   return catalog(context);
 }
 
+function verifyStoreRow(row) {
+  let resolved;
+  try {
+    resolved = fs.realpathSync(row.root);
+    if (resolved !== row.root || !fs.statSync(row.root).isDirectory()) throw new Error('identity');
+  } catch (error) {
+    if (error && error.message === 'identity') throw new Error('library_store_identity_changed');
+    throw new Error('library_store_unavailable');
+  }
+  if (!workspaceActivation.isCoreInitialized(row.root)) throw new Error('library_store_damaged');
+  let anchor;
+  try {
+    anchor = manifestAuthorityAnchor(row.root);
+  } catch (_) {
+    throw new Error('library_store_identity_changed');
+  }
+  if (anchor !== row.authorityAnchor) throw new Error('library_store_identity_changed');
+  return row;
+}
+
 function storeHandle(row) {
   return {
     storeId: row.storeId,
@@ -163,29 +244,17 @@ function resolveNamedStore(context, folder, currentRoot, requestedName) {
   ));
   if (matches.length === 0) throw new Error('library_store_not_registered');
   if (matches.length !== 1) throw new Error('library_store_ambiguous');
-  const row = matches[0];
-  try {
-    if (!fs.statSync(row.root).isDirectory()) throw new Error('not-directory');
-  } catch (_) {
-    throw new Error('library_store_unavailable');
-  }
-  if (!workspaceActivation.isCoreInitialized(row.root)) throw new Error('library_store_damaged');
-  return storeHandle(row);
+  return storeHandle(verifyStoreRow(matches[0]));
 }
 
 function resolveStoreId(context, folder, currentRoot, storeId) {
   const id = String(storeId || '').trim();
   if (!STORE_ID_RE.test(id)) throw new Error('library_store_id_invalid');
   const current = authorizedCatalog(context, folder, currentRoot);
-  const row = current.stores.find((item) => item.storeId === id && item.readExposure === true && item.modelExposure === true);
-  if (!row) throw new Error('library_store_not_registered');
-  try {
-    if (!fs.statSync(row.root).isDirectory()) throw new Error('not-directory');
-  } catch (_) {
-    throw new Error('library_store_unavailable');
-  }
-  if (!workspaceActivation.isCoreInitialized(row.root)) throw new Error('library_store_damaged');
-  return storeHandle(row);
+  const matches = current.stores.filter((item) => item.storeId === id && item.readExposure === true && item.modelExposure === true);
+  if (matches.length === 0) throw new Error('library_store_not_registered');
+  if (matches.length !== 1) throw new Error('library_catalog_corrupt');
+  return storeHandle(verifyStoreRow(matches[0]));
 }
 
 function registeredStores(context) {
@@ -197,6 +266,7 @@ function registeredStores(context) {
 }
 
 module.exports = {
+  AUTHORITY_ANCHOR_RE,
   CATALOG_KEY,
   CATALOG_VERSION,
   LIBRARY_GRANT_VERSION,
@@ -205,6 +275,7 @@ module.exports = {
   catalog,
   grantKey,
   libraryGrant,
+  manifestAuthorityAnchor,
   normalizeAlias,
   registerStore,
   registeredStores,
