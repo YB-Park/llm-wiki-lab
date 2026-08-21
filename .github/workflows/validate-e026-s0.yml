@@ -10,6 +10,7 @@ on:
       - 'dogfood/vscode/workspace-activation.js'
       - 'dogfood/vscode/test/workspace-activation.js'
       - 'dogfood/vscode/package.json'
+      - 'dogfood/vscode/README.md'
       - '.github/workflows/validate-e026-s0.yml'
   push:
     branches: [main]
@@ -21,6 +22,7 @@ on:
       - 'dogfood/vscode/workspace-activation.js'
       - 'dogfood/vscode/test/workspace-activation.js'
       - 'dogfood/vscode/package.json'
+      - 'dogfood/vscode/README.md'
       - '.github/workflows/validate-e026-s0.yml'
 
 permissions:
@@ -42,7 +44,7 @@ jobs:
           base="origin/${{ github.base_ref }}"
           changed="$(git diff --name-only "$base"...HEAD)"
           printf '%s\n' "$changed"
-          allowed='^(experiments/E026-ssh-store-portability/|experiments/E020-synthetic-agent-ux/score_contract\.py$|dogfood/llm_wiki/private_fs\.py$|dogfood/tests/test_private_fs_portability\.py$|dogfood/vscode/workspace-activation\.js$|dogfood/vscode/test/workspace-activation\.js$|dogfood/vscode/package\.json$|\.github/workflows/validate-e026-s0\.yml$)'
+          allowed='^(experiments/E026-ssh-store-portability/|experiments/E020-synthetic-agent-ux/score_contract\.py$|dogfood/llm_wiki/private_fs\.py$|dogfood/tests/test_private_fs_portability\.py$|dogfood/vscode/workspace-activation\.js$|dogfood/vscode/test/workspace-activation\.js$|dogfood/vscode/package\.json$|dogfood/vscode/README\.md$|\.github/workflows/validate-e026-s0\.yml$)'
           unexpected="$(printf '%s\n' "$changed" | grep -Ev "$allowed" || true)"
           if [ -n "$unexpected" ]; then
             echo 'E026 S0-A is portability preflight only; unexpected files changed:' >&2
