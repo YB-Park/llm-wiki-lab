@@ -89,10 +89,16 @@ jobs:
           node --check dogfood/vscode/human-knowledge.js
           node --check dogfood/vscode/git-safety.js
           node --check dogfood/vscode/lm-discovery.js
+          node --check dogfood/vscode/memory-read-service.js
+          node --check dogfood/vscode/personal-wiki-library.js
+          node --check dogfood/vscode/personal-wiki-library-ui.js
+          node --check dogfood/vscode/query-plane.js
+          node --check dogfood/vscode/scoped-read-tool.js
           node --check dogfood/vscode/process-errors.js
           node --check dogfood/vscode/python-runtime.js
           node --check dogfood/vscode/python-runtime-policy.js
           node dogfood/vscode/test/static.js
+          node dogfood/vscode/test/personal-wiki-library.js
           node dogfood/vscode/test/git-safety.js
           node dogfood/vscode/test/lm-discovery.js
           node dogfood/vscode/test/process-errors.js
@@ -123,8 +129,14 @@ jobs:
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/agent_memory_cli.py'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/agent_state.py'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/agent_state_cli.py'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/query_plane_cli.py'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/writer_lock.py'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/human-knowledge.js'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/memory-read-service.js'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/personal-wiki-library.js'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/personal-wiki-library-ui.js'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/query-plane.js'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/scoped-read-tool.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/git-safety.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/lm-discovery.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/process-errors.js'
@@ -142,8 +154,14 @@ jobs:
           test -f dist/unpacked/extension/python/dogfood/llm_wiki/agent_memory_cli.py
           test -f dist/unpacked/extension/python/dogfood/llm_wiki/agent_state.py
           test -f dist/unpacked/extension/python/dogfood/llm_wiki/agent_state_cli.py
+          test -f dist/unpacked/extension/python/dogfood/llm_wiki/query_plane_cli.py
           test -f dist/unpacked/extension/python/dogfood/llm_wiki/writer_lock.py
           test -f dist/unpacked/extension/human-knowledge.js
+          test -f dist/unpacked/extension/memory-read-service.js
+          test -f dist/unpacked/extension/personal-wiki-library.js
+          test -f dist/unpacked/extension/personal-wiki-library-ui.js
+          test -f dist/unpacked/extension/query-plane.js
+          test -f dist/unpacked/extension/scoped-read-tool.js
           test -f dist/unpacked/extension/git-safety.js
           test -f dist/unpacked/extension/lm-discovery.js
           test -f dist/unpacked/extension/process-errors.js
