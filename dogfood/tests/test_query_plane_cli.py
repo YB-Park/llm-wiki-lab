@@ -124,7 +124,9 @@ class QueryPlaneCliTests(unittest.TestCase):
         self.assertEqual(handles["T2"]["scope_ref"], LIBRARY_SCOPE)
         self.assertIn("exactly one explicitly authorized external project store", prompt)
         self.assertIn("Do not widen, switch, or infer another store", prompt)
-        self.assertIn("Do not turn it into a recommendation for the current project or a global user preference", prompt)
+        self.assertIn("authoritative only as a record of what was decided or believed in that external project", prompt)
+        self.assertIn("Even if the question asks for comparison or transfer", prompt)
+        self.assertIn("leave transfer judgment to the Main Agent", prompt)
         self.assertIn(LIBRARY_SCOPE["store_id"], prompt)
 
     def test_library_payload_rejects_mixed_scope_and_invalid_store_id(self):
