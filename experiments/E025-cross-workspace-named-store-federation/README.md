@@ -6,6 +6,8 @@ Primary issue: #202
 
 Reviewed product baseline: `main@7348509b83202e473d3ef1925225dec39e6f5121` (`0.1.17` L0 Query Plane)
 
+Frozen F0 evaluation contract: `f0-evaluation-contract-v0.json`
+
 ## Question
 
 Can LLM Wiki add a local Personal Wiki Library that allows the current trusted workspace to read one explicitly named, explicitly registered external project store **without weakening current-store authority/privacy, provenance routing, Query Plane usage guards, or write isolation**?
