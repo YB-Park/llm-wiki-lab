@@ -66,7 +66,6 @@ function enableWorkspace(root) {
   });
   if (fs.existsSync(target)) fs.unlinkSync(target);
   fs.renameSync(temporary, target);
-  try { fs.chmodSync(target, 0o600); } catch (_) {}
   return row;
 }
 
