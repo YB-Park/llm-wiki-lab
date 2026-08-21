@@ -174,8 +174,10 @@ function libraryGrant(context, folder, currentRoot) {
   const row = context.workspaceState.get(grantKey(folder));
   const optIn = workspaceActivation.readWorkspaceOptIn(currentRoot);
   if (!row || !optIn || row.version !== LIBRARY_GRANT_VERSION || row.enabled !== true) return undefined;
-  const storedEpoch = String(row.workspaceEpoch || row.workspaceEnabledAt || '');
-  if (row.mode !== LIBRARY_MODE || !storedEpoch || storedEpoch !== workspaceActivation.workspaceEpoch(optIn)) return undefined;
+  const epochMismatch = row.workspaceEpoch
+    ? row.workspaceEpoch !== workspaceActivation.workspaceEpoch(optIn)
+    : row.workspaceEnabledAt !== optIn.enabled_at;
+  if (row.mode !== LIBRARY_MODE || epochMismatch) return undefined;
   return { ...row };
 }
 
