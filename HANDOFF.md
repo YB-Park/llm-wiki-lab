@@ -47,7 +47,7 @@ Main Agent
    │ wikiConsult(self-contained question)
    ▼
 Query Controller
- grant / current-store scope / local call cap
+ local grant / current-store scope / user-chosen usage guards
    ▼
 Shared Memory Read Service
  RAW discovery / DERIVED navigation / Human Knowledge / pending lineage
@@ -81,16 +81,20 @@ These are merge blockers if violated:
 - Query Plane is read-only and cannot mutate canonical state;
 - Query Plane grant is separate from workspace opt-in, source admission, and AI-summary maintenance permission;
 - Query Plane grant lives in local VS Code `workspaceState`, not a committable workspace setting;
-- a user-chosen local daily model-call-attempt cap is required before ambient query model calls;
-- that counter is **not** an exact billing/token/AI-credit estimate;
+- no product-owned hidden Query Plane spend default: the user must explicitly choose both a daily model-call-attempt cap and a per-response Copilot AI-credit soft guard before the grant exists;
+- the daily counter is not an exact billing/token/AI-credit estimate;
+- the per-response provider guard must be enforceable by the installed Copilot CLI or Query Plane fails before a model call;
 - query call reservation happens before the model attempt and uncertain failures are not silently refunded;
 - `wikiConsult` does **not** silently fall back to broad `wikiMemory` raw context on disabled/budget/unavailable/verification failure;
 - candidate verification failure fails the consult closed;
 - long-source evidence uses bounded deterministic **query-relevant verified regions**, not a fixed first-6k read;
+- if RAW and DERIVED navigation target the same source, deterministic query hints are merged before region selection; DERIVED still never becomes terminal authority;
 - `wikiMemory` and `wikiConsult` share one Memory Read Service so authority/retrieval semantics cannot drift independently;
 - terminal brief refs are scope-qualified and may terminate only on RAW/HUMAN_KNOWLEDGE;
 - exact model remains `gpt-5.6-luna` for this candidate;
-- composer evidence travels through stdin and the Copilot process is launched from a neutral temporary cwd;
+- composer evidence travels through stdin and the actual Copilot process launches from a neutral temporary cwd;
+- Query Plane transport removes generic `GH_TOKEN`/`GITHUB_TOKEN`, `COPILOT_ALLOW_ALL`, `COPILOT_MODEL`, and `COPILOT_PROVIDER_*` routing overrides before launching the composer; explicit Copilot auth state may remain;
+- Query Plane adds current generic read/write/url/memory/web-search tool names to the excluded-tool boundary in addition to the existing hardened adapter exclusions;
 - no hidden chain-of-thought/retrieval transcript is returned;
 - existing `wikiMemory`/`wikiRead` remain available as explicit low-level provenance/debug fallback;
 - no L1 iterative retrieval, federation, graph/vector/entity layer, semantic persistence, or canonical mutation is opened by #207.
@@ -118,7 +122,7 @@ The existing synthetic product contract remains:
 
 **78 zero-model cases: 60 supported / 7 partial / 11 deferred.**
 
-#207 moves ambient candidate collection into the shared Memory Read Service, so the E020 product-surface scanner must inspect that service rather than requiring retrieval code to physically live in `agent-tools.js`.
+#207 moves ambient candidate collection into the shared Memory Read Service, so the E020 product-surface scanner inspects that service rather than requiring retrieval code to physically live in `agent-tools.js`.
 
 This is harness maintenance only: do not change E020 case judgments merely to make #207 pass.
 
@@ -154,12 +158,15 @@ Required before peer-review handoff:
 - final diff audit confirming no unintended Authority Core/write-path change;
 - README/HANDOFF accurately describe the 0.1.17 opt-in slice.
 
-Recent CI fixes on #207:
+CI/hardening fixes already found on #207:
 
 1. new Query Plane unit tests accidentally imported `pytest` although repo CI uses stdlib `unittest`; converted to `unittest` rather than adding a dependency;
 2. E020 scanner initially assumed ambient retrieval physically lived in `agent-tools.js`; updated scanner to follow the shared Memory Read Service without changing the 78 case judgments;
 3. a static ordering check initially matched the `runComposerStdin` function definition instead of the invocation; runtime source confirmed the real order is grant → reserve call → budget gate → collect evidence → composer, and the marker was made unambiguous;
-4. living HANDOFF refresh preserves the exact E023 closure markers required by its zero-model validator while clearly separating the newer E024 product slice.
+4. an Extension Host test incorrectly assumed `configuration.inspect()` returns `undefined` for an unregistered key; package static validation already proves no Query Plane setting is contributed, and runtime validation now checks the effective value is absent;
+5. final product audit removed an implicit `max-ai-credits=100` Query Plane default because spend-boundary choice belongs to the user, not the product/CTO automation;
+6. Query Plane transport tests now lock generic-auth/BYOK override stripping, current generic tool exclusions, and fail-closed behavior when Copilot cannot enforce the user-selected per-response credit guard;
+7. living HANDOFF preserves exact E023 closure markers while clearly separating the newer E024 product slice.
 
 Treat later CI failures as real until inspected.
 
@@ -172,7 +179,7 @@ Do not immediately retire 0.1.16 behavior.
 1. install candidate in one trusted single-folder workspace;
 2. verify existing project memory / source admission / HK / lineage behavior first;
 3. keep Query Reasoning off and confirm baseline still works;
-4. explicitly enable Query Reasoning and choose a local daily model-call cap;
+4. explicitly enable Query Reasoning and choose both local usage guards;
 5. smoke one real `wikiConsult` question;
 6. verify compact brief + terminal refs + no canonical mutation;
 7. then use naturally and observe rather than manufacturing coverage.
@@ -186,7 +193,7 @@ Observe:
 - conservative vs excessive insufficiency;
 - long-source authority recovery;
 - pending/history behavior;
-- grant/call-cap comprehension;
+- grant/usage-guard comprehension;
 - whether deterministic bounded evidence without Luna remains a viable competing hypothesis.
 
 ## Research posture
