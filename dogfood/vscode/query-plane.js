@@ -86,7 +86,7 @@ async function reserveQueryCall(context, folder, grant) {
   return { allowed: true, day: usage.day, reservedCalls, dailyCallLimit: grant.dailyCallLimit };
 }
 
-async function runComposerStdin(context, folder, args, input) {
+const runComposerStdin = async (context, folder, args, input) => {
   const runtime = await resolvePythonRuntime(folder);
   if (!runtime) throw new Error('python_runtime_not_found');
   const fullArgs = ['-m', 'dogfood.llm_wiki.query_plane_cli', ...args];
@@ -140,7 +140,7 @@ async function runComposerStdin(context, folder, args, input) {
     });
     child.stdin.end(input, 'utf8');
   });
-}
+};
 
 function formatBrief(row, usage) {
   const brief = row && row.brief ? row.brief : {};
