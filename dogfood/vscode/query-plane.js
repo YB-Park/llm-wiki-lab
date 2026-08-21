@@ -130,6 +130,8 @@ const runComposerStdin = async (context, folder, args, input, options = {}) => {
     env = pythonEnv(context, folder);
   }
 
+  if (typeof options.beforeSpawn === 'function') options.beforeSpawn();
+
   return new Promise((resolve, reject) => {
     const child = spawn(executable, fullArgs, {
       cwd,
@@ -205,6 +207,27 @@ function preModelAuthorization(context, folder, requestedStore, originalStoreHan
   } catch (error) {
     return { state: 'library_scope_revoked', error };
   }
+}
+
+function grantFingerprint(grant) {
+  return JSON.stringify({
+    workspaceEpoch: String((grant && (grant.workspaceEpoch || grant.workspaceEnabledAt)) || ''),
+    provider: String((grant && grant.provider) || ''),
+    model: String((grant && grant.model) || ''),
+    scope: String((grant && grant.scope) || ''),
+    dailyCallLimit: Number(grant && grant.dailyCallLimit),
+    maxAiCredits: Number(grant && grant.maxAiCredits),
+  });
+}
+
+function finalModelAuthorization(context, folder, requestedStore, originalStoreHandle, expectedGrant) {
+  const live = preModelAuthorization(context, folder, requestedStore, originalStoreHandle);
+  if (live.state === 'query_grant_revoked') throw new Error('agent_wiki_model_call_not_authorized');
+  if (live.state !== 'authorized') throw live.error || new Error('library_access_disabled');
+  if (grantFingerprint(live.grant) !== grantFingerprint(expectedGrant)) {
+    throw new Error('agent_wiki_model_call_not_authorized');
+  }
+  return live;
 }
 
 function formatBrief(row, usage, storeHandle) {
@@ -349,18 +372,43 @@ class WikiConsultTool {
         }))]);
       }
       storeHandle = live.storeHandle;
+      const expectedGrant = live.grant;
+      const expectedStoreHandle = storeHandle;
       const stdout = await runComposerStdin(
         this.context,
         folder,
-        ['--model', MODEL, '--max-ai-credits', String(live.grant.maxAiCredits)],
+        ['--model', MODEL, '--max-ai-credits', String(expectedGrant.maxAiCredits)],
         JSON.stringify(payload),
-        { trusted: storeHandle.isCurrentStore === false }
+        {
+          trusted: expectedStoreHandle.isCurrentStore === false,
+          beforeSpawn: () => finalModelAuthorization(
+            this.context,
+            folder,
+            requestedStore,
+            expectedStoreHandle,
+            expectedGrant
+          ),
+        }
       );
       const row = JSON.parse(stdout.trim());
       if (row.format !== 'llm-wiki-query-plane-v1' || row.status !== 'OK') throw new Error('query_plane_result_contract_invalid');
       if (!sameScope(row.scope, payload.scope)) throw new Error('query_plane_result_scope_mismatch');
-      return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(formatBrief(row, usage, storeHandle))]);
+      return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(formatBrief(row, usage, expectedStoreHandle))]);
     } catch (error) {
+      const message = error && error.message ? error.message : String(error);
+      if (message === 'agent_wiki_model_call_not_authorized') {
+        return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(disabledResult())]);
+      }
+      if (requestedStore && new Set([
+        'library_access_disabled',
+        'library_store_ambiguous',
+        'library_store_damaged',
+        'library_store_identity_changed',
+        'library_store_not_registered',
+        'library_store_unavailable',
+      ]).has(message)) {
+        return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(scopeBlockedResult(error))]);
+      }
       return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(unavailableResult(error, usage))]);
     }
   }
@@ -475,8 +523,10 @@ module.exports = {
   budgetBlockedResult,
   configureQueryPlane,
   disabledResult,
+  finalModelAuthorization,
   formatBrief,
   grantKey,
+  grantFingerprint,
   preModelAuthorization,
   queryGrant,
   queryPlaneEnabled,
