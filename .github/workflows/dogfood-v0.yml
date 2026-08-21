@@ -94,6 +94,7 @@ jobs:
           node --check dogfood/vscode/personal-wiki-library.js
           node --check dogfood/vscode/personal-wiki-library-ui.js
           node --check dogfood/vscode/query-plane.js
+          node --check dogfood/vscode/query-usage-ledger.js
           node --check dogfood/vscode/scoped-read-tool.js
           node --check dogfood/vscode/process-errors.js
           node --check dogfood/vscode/python-runtime.js
@@ -101,6 +102,7 @@ jobs:
           node dogfood/vscode/test/static.js
           node dogfood/vscode/test/federation-safety-static.js
           node dogfood/vscode/test/personal-wiki-library.js
+          node dogfood/vscode/test/query-usage-ledger.js
           node dogfood/vscode/test/git-safety.js
           node dogfood/vscode/test/lm-discovery.js
           node dogfood/vscode/test/process-errors.js
@@ -140,6 +142,7 @@ jobs:
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/personal-wiki-library.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/personal-wiki-library-ui.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/query-plane.js'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/query-usage-ledger.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/scoped-read-tool.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/git-safety.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/lm-discovery.js'
@@ -166,6 +169,7 @@ jobs:
           test -f dist/unpacked/extension/personal-wiki-library.js
           test -f dist/unpacked/extension/personal-wiki-library-ui.js
           test -f dist/unpacked/extension/query-plane.js
+          test -f dist/unpacked/extension/query-usage-ledger.js
           test -f dist/unpacked/extension/scoped-read-tool.js
           test -f dist/unpacked/extension/git-safety.js
           test -f dist/unpacked/extension/lm-discovery.js
