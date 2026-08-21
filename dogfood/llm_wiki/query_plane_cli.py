@@ -13,7 +13,6 @@ from typing import Any
 from .adapters import _copilot_command, _copilot_failure_code, _copilot_help_text, _final_message
 
 MODEL = "gpt-5.6-luna"
-MAX_AI_CREDITS = 100
 MAX_QUESTION_CHARS = 2000
 MAX_RAW_OBJECTS = 12
 MAX_HUMAN_OBJECTS = 6
@@ -28,12 +27,13 @@ SOURCE_ID_RE = re.compile(r"^src-[0-9A-Za-z-]+$")
 SOURCE_ID_ANY_RE = re.compile(r"\bsrc-[0-9A-Za-z-]+\b")
 HANDLE_RE = re.compile(r"^T[1-9][0-9]*$")
 TERMINAL_TYPES = {"RAW_MEMORY", "HUMAN_KNOWLEDGE"}
+QUERY_PLANE_EXCLUDED_TOOLS = ("read", "write", "url", "memory", "web_search")
 
 
 def parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="llm-wiki-query-plane")
     p.add_argument("--model", default=MODEL)
-    p.add_argument("--max-ai-credits", type=int, default=MAX_AI_CREDITS)
+    p.add_argument("--max-ai-credits", type=int, required=True)
     return p
 
 
@@ -333,9 +333,35 @@ def parse_model_result(text: str, handle_map: dict[str, dict[str, Any]]) -> dict
 
 def _neutral_environment() -> dict[str, str]:
     env = dict(os.environ)
-    for key in ("PWD", "OLDPWD", "GITHUB_WORKSPACE", "VSCODE_CWD"):
+    for key in (
+        "PWD",
+        "OLDPWD",
+        "GITHUB_WORKSPACE",
+        "VSCODE_CWD",
+        "GH_TOKEN",
+        "GITHUB_TOKEN",
+        "COPILOT_ALLOW_ALL",
+        "COPILOT_MODEL",
+    ):
         env.pop(key, None)
+    for key in list(env):
+        if key.startswith("COPILOT_PROVIDER_"):
+            env.pop(key, None)
     return env
+
+
+def _query_plane_command(exe: str, model: str, max_ai_credits: int, help_text: str) -> list[str]:
+    cmd = _copilot_command(exe, model, max_ai_credits, help_text)
+    for index, token in enumerate(cmd):
+        if not token.startswith("--excluded-tools="):
+            continue
+        current = [item for item in token.split("=", 1)[1].split(",") if item]
+        for tool in QUERY_PLANE_EXCLUDED_TOOLS:
+            if tool not in current:
+                current.append(tool)
+        cmd[index] = "--excluded-tools=" + ",".join(current)
+        break
+    return cmd
 
 
 def execute(payload: dict[str, Any], *, model: str, max_ai_credits: int) -> dict[str, Any]:
@@ -348,7 +374,7 @@ def execute(payload: dict[str, Any], *, model: str, max_ai_credits: int) -> dict
         raise RuntimeError("copilot_cli_not_found")
     prompt, handle_map = build_prompt(payload)
     help_text = _copilot_help_text(exe)
-    cmd = _copilot_command(exe, model, max_ai_credits, help_text)
+    cmd = _query_plane_command(exe, model, max_ai_credits, help_text)
     with tempfile.TemporaryDirectory(prefix="llm-wiki-query-plane-") as neutral_cwd:
         proc = subprocess.run(
             cmd,
