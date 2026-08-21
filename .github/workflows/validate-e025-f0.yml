@@ -1,0 +1,160 @@
+name: Validate E025 F0 named-store scope contract
+
+on:
+  pull_request:
+    paths:
+      - 'HANDOFF.md'
+      - 'experiments/E025-cross-workspace-named-store-federation/**'
+      - '.github/workflows/validate-e025-f0.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'HANDOFF.md'
+      - 'experiments/E025-cross-workspace-named-store-federation/**'
+      - '.github/workflows/validate-e025-f0.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  f0-diff-boundary:
+    name: F0 no-runtime-federation diff boundary
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Reject runtime or closed-axis changes in F0
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="origin/${{ github.base_ref }}"
+          changed="$(git diff --name-only "$base"...HEAD)"
+          printf '%s\n' "$changed"
+          if printf '%s\n' "$changed" | grep -Eq '^(dogfood/|experiments/E023-generality-retrieval-composition/|experiments/E024-query-plane-token-firewall/|decisions/|docs/14-generality-and-semantic-projections\.md$)'; then
+            echo 'E025 F0 must remain preflight-only: runtime, E023/E024, ADR, or semantic-gate files changed.' >&2
+            exit 1
+          fi
+
+  regression-0-1-17:
+    name: Existing 0.1.17 regression gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Compile Python core
+        run: python3 -m compileall -q dogfood
+      - name: Python unit tests
+        run: python3 -m unittest discover -s dogfood/tests -v
+      - name: CLI smoke
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          printf 'alpha cache decision uses cedar quota\n' > "$tmp/a.md"
+          python3 -m dogfood.llm_wiki.cli --root "$tmp/wiki" init
+          python3 -m dogfood.llm_wiki.cli --root "$tmp/wiki" ingest "$tmp/a.md"
+          python3 -m dogfood.llm_wiki.cli --root "$tmp/wiki" search 'cache decision'
+          python3 -m dogfood.llm_wiki.cli --root "$tmp/wiki" context 'cedar quota'
+          test "$(find "$tmp/wiki/raw" -type f | wc -l)" -eq 1
+          grep -q 'compiled_provider.*disabled' "$tmp/wiki/config.json"
+      - name: E020 synthetic Agent Wiki UX contract
+        run: python3 experiments/E020-synthetic-agent-ux/score_contract.py
+      - name: VS Code syntax and static boundary checks
+        run: |
+          set -euo pipefail
+          node --version
+          node --check dogfood/vscode/entry.js
+          node --check dogfood/vscode/extension.js
+          node --check dogfood/vscode/agent-tools.js
+          node --check dogfood/vscode/human-knowledge.js
+          node --check dogfood/vscode/git-safety.js
+          node --check dogfood/vscode/lm-discovery.js
+          node --check dogfood/vscode/memory-read-service.js
+          node --check dogfood/vscode/query-plane.js
+          node --check dogfood/vscode/process-errors.js
+          node --check dogfood/vscode/python-runtime.js
+          node --check dogfood/vscode/python-runtime-policy.js
+          node dogfood/vscode/test/static.js
+          node dogfood/vscode/test/git-safety.js
+          node dogfood/vscode/test/lm-discovery.js
+          node dogfood/vscode/test/process-errors.js
+          node dogfood/vscode/test/python-runtime-policy.js
+      - name: Install VS Code test/package tooling
+        working-directory: dogfood/vscode
+        run: npm install --no-audit --no-fund
+      - name: VS Code Extension Host integration test
+        working-directory: dogfood/vscode
+        run: xvfb-run -a npm run test:integration
+      - name: Bundle and verify shared Python core
+        working-directory: dogfood/vscode
+        run: |
+          set -euo pipefail
+          npm run bundle:core
+          tmp="$(mktemp -d)"
+          PYTHONPATH="$PWD/python" python3 -m dogfood.llm_wiki.cli --root "$tmp/wiki" init
+          grep -q 'compiled_provider.*disabled' "$tmp/wiki/config.json"
+          test -f python/dogfood/llm_wiki/cli.py
+          test -f python/dogfood/llm_wiki/agent_memory_cli.py
+          test -f python/dogfood/llm_wiki/agent_state.py
+          test -f python/dogfood/llm_wiki/agent_state_cli.py
+      - name: Package installable VSIX
+        working-directory: dogfood/vscode
+        run: |
+          set -euo pipefail
+          npm run package:vsix
+          test -s dist/llm-wiki-dogfood.vsix
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/cli.py'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/agent_memory_cli.py'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/agent_state.py'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/agent_state_cli.py'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/writer_lock.py'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/human-knowledge.js'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/memory-read-service.js'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/query-plane.js'
+      - name: Unpack and execute packaged VSIX in Extension Host
+        working-directory: dogfood/vscode
+        run: |
+          set -euo pipefail
+          rm -rf ../../.wiki-lab
+          rm -rf dist/unpacked
+          mkdir -p dist/unpacked
+          unzip -q dist/llm-wiki-dogfood.vsix -d dist/unpacked
+          test -f dist/unpacked/extension/python/dogfood/llm_wiki/cli.py
+          test -f dist/unpacked/extension/python/dogfood/llm_wiki/agent_memory_cli.py
+          test -f dist/unpacked/extension/python/dogfood/llm_wiki/agent_state.py
+          test -f dist/unpacked/extension/python/dogfood/llm_wiki/agent_state_cli.py
+          test -f dist/unpacked/extension/python/dogfood/llm_wiki/writer_lock.py
+          test -f dist/unpacked/extension/human-knowledge.js
+          test -f dist/unpacked/extension/memory-read-service.js
+          test -f dist/unpacked/extension/query-plane.js
+          xvfb-run -a npm run test:packaged
+
+  f0-zero-model:
+    name: F0 deterministic scope authority
+    needs: [f0-diff-boundary, regression-0-1-17]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile F0 harness
+        run: python3 -m py_compile experiments/E025-cross-workspace-named-store-federation/run_f0.py
+      - name: Execute frozen zero-model F0 contract
+        run: |
+          set -euo pipefail
+          python3 experiments/E025-cross-workspace-named-store-federation/run_f0.py \
+            --regression-gate-pass \
+            --diff-boundary-pass \
+            | tee /tmp/e025-f0.txt
+          grep -q '^E025 F0 zero-model validation: PASS$' /tmp/e025-f0.txt
+          grep -q '"model_calls": 0' /tmp/e025-f0.txt
+          grep -q '"E025_F0_NAMED_STORE_SCOPE_CONTRACT": "EARNED"' /tmp/e025-f0.txt
+          test "$(grep -c '"PASS"' /tmp/e025-f0.txt)" -ge 18
