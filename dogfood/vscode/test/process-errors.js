@@ -16,6 +16,16 @@ assert.equal(
   'copilot_call_failed:1'
 );
 assert.equal(
+  boundedProcessFailure('FEDERATION-READ-STOP library_store_identity_changed'),
+  'library_store_identity_changed',
+  'the strict read bridge may expose only its bounded allowlisted identity-change code'
+);
+assert.equal(
+  boundedProcessFailure('FEDERATION-READ-STOP /private/project/secret.txt'),
+  'llm_wiki_process_failed',
+  'the federation prefix must never make arbitrary detail reflectable'
+);
+assert.equal(
   boundedProcessFailure('C:\\private\\project\\secret.txt\nRuntimeError: something_private'),
   'llm_wiki_process_failed'
 );
@@ -30,4 +40,4 @@ assert.equal(
   'unsafe free-form model strings must not be reflected'
 );
 
-console.log('PROCESS-ERRORS-TEST PASS bounded=yes spoofResistant=yes rawDetailReflected=no');
+console.log('PROCESS-ERRORS-TEST PASS bounded=yes spoofResistant=yes federationAllowlist=yes rawDetailReflected=no');
