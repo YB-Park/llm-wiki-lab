@@ -34,8 +34,8 @@ function emptyCatalog() {
 }
 
 function validateCatalog(raw) {
-  if (!raw || raw.version !== CATALOG_VERSION) return emptyCatalog();
-  if (!Array.isArray(raw.stores)) throw new Error('library_catalog_corrupt');
+  if (!raw) return emptyCatalog();
+  if (raw.version !== CATALOG_VERSION || !Array.isArray(raw.stores)) throw new Error('library_catalog_corrupt');
 
   const stores = [];
   const ids = new Set();
@@ -174,10 +174,8 @@ function libraryGrant(context, folder, currentRoot) {
   const row = context.workspaceState.get(grantKey(folder));
   const optIn = workspaceActivation.readWorkspaceOptIn(currentRoot);
   if (!row || !optIn || row.version !== LIBRARY_GRANT_VERSION || row.enabled !== true) return undefined;
-  const epochMismatch = row.workspaceEpoch
-    ? row.workspaceEpoch !== workspaceActivation.workspaceEpoch(optIn)
-    : row.workspaceEnabledAt !== optIn.enabled_at;
-  if (row.mode !== LIBRARY_MODE || epochMismatch) return undefined;
+  const storedEpoch = String(row.workspaceEpoch || '');
+  if (row.mode !== LIBRARY_MODE || !storedEpoch || storedEpoch !== workspaceActivation.workspaceEpoch(optIn)) return undefined;
   return { ...row };
 }
 
