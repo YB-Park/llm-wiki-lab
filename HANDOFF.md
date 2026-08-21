@@ -87,7 +87,7 @@ Non-negotiable current product invariants:
 - automatic identity/person routing or alias merging: closed
 - background cross-project maintenance: closed
 - multi-user/multi-machine authority coordination: closed
-- E024 L1 iterative Librarian: **NOT EARNED**
+- E024 L1 iterative Librarian remains not earned.
 - **G2 Persistence: NOT_EARNED; parked.**
 - **G3 Identity / Routing: NOT_OPENED.**
 - paid E023 semantic calls: **paused**
