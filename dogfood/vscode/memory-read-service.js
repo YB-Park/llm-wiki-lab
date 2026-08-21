@@ -216,8 +216,9 @@ async function collectMemoryRows(context, folder, query, options = {}) {
   const maxResults = Math.max(1, Math.min(8, Math.trunc(Number(options.maxResults || 5)) || 5));
   const derivedLimit = Math.min(3, maxResults);
   const store = normalizeStoreHandle(folder, options.storeHandle);
+  const rawDiscoverArgs = ['discover', query, '--top-k-per-topic', '3', '--json'];
   const [rawStdout, derivedStdout, pendingStdout] = await Promise.all([
-    runReadOperation(context, folder, store, 'discover', [query, '--top-k-per-topic', '3', '--json']),
+    runReadOperation(context, folder, store, 'discover', rawDiscoverArgs.slice(1)),
     runReadOperation(context, folder, store, 'derived-search', [query, '--top-k', String(derivedLimit), '--json']),
     runReadOperation(context, folder, store, 'pending-list'),
   ]);
@@ -291,14 +292,14 @@ async function collectQueryEvidence(context, folder, question, profile, storeHan
   const raw = [];
   for (const target of targets) {
     const args = [
-      target.sourceId,
+      'relevant', target.sourceId,
       '--query', mergedTargetQuery(target, effectiveProfile.relevantQueryChars),
       '--max-chars', String(effectiveProfile.relevantRegionChars),
     ];
     if (target.topicId) args.push('--topic', target.topicId);
     let row;
     try {
-      row = JSON.parse((await runReadOperation(context, folder, store, 'relevant', args)).trim());
+      row = JSON.parse((await runReadOperation(context, folder, store, 'relevant', args.slice(1))).trim());
     } catch (_) {
       throw new Error(`query_plane_candidate_verification_failed:${target.sourceId}`);
     }
