@@ -42,7 +42,7 @@ must('external-hk-bracketed-by-revalidation', (memoryRead.match(/revalidateExter
 must('auto-python-runtime-is-distinct', pythonRuntime.includes('async function resolveAutoPythonRuntime(folder)'));
 must('auto-python-runtime-does-not-read-config-in-function', /async function resolveAutoPythonRuntime\(folder\)[\s\S]*?for \(const candidate of autoPythonCandidates\(\)\)/.test(pythonRuntime));
 
-must('external-composer-trusted', queryPlane.includes("{ trusted: storeHandle.isCurrentStore === false }"));
+must('external-composer-trusted', queryPlane.includes('trusted: expectedStoreHandle.isCurrentStore === false'));
 must('external-composer-uses-trusted-invocation', queryPlane.includes('memoryRead.trustedPythonInvocation('));
 must('named-store-resolves-before-reservation', queryPlane.indexOf('library.resolveNamedStore(this.context, folder') < queryPlane.indexOf('reserveQueryCall(this.context, folder, grant)'));
 must('named-store-integrity-before-reservation', queryPlane.indexOf('memoryRead.assertStoreIntegrity(this.context, folder, storeHandle)') < queryPlane.indexOf('reserveQueryCall(this.context, folder, grant)'));
@@ -51,6 +51,16 @@ must('pre-model-authorization-explicit', queryPlane.includes('function preModelA
 must('pre-model-query-grant-rechecked', /function preModelAuthorization[\s\S]*?const liveGrant = queryGrant\(context, folder\)/.test(queryPlane));
 must('pre-model-named-store-rechecked', /function preModelAuthorization[\s\S]*?library\.resolveNamedStore\(context, folder/.test(queryPlane));
 must('pre-model-reauthorization-before-composer', queryPlane.indexOf('const live = preModelAuthorization(') < queryPlane.lastIndexOf('const stdout = await runComposerStdin('));
+must('final-model-authorization-explicit', queryPlane.includes('function finalModelAuthorization(context, folder, requestedStore, originalStoreHandle, expectedGrant)'));
+must('final-model-grant-fingerprint-bound', queryPlane.includes('grantFingerprint(live.grant) !== grantFingerprint(expectedGrant)'));
+must('composer-before-spawn-hook', queryPlane.includes("if (typeof options.beforeSpawn === 'function') options.beforeSpawn();"));
+const beforeSpawnIndex = queryPlane.indexOf("if (typeof options.beforeSpawn === 'function') options.beforeSpawn();");
+const spawnIndex = queryPlane.indexOf('const child = spawn(executable, fullArgs');
+const trustedRuntimeIndex = queryPlane.indexOf('const invocation = await memoryRead.trustedPythonInvocation(');
+const currentRuntimeIndex = queryPlane.indexOf('const runtime = await resolvePythonRuntime(folder)');
+must('final-auth-after-runtime-preparation', beforeSpawnIndex > trustedRuntimeIndex && beforeSpawnIndex > currentRuntimeIndex);
+must('final-auth-immediately-before-spawn', beforeSpawnIndex >= 0 && spawnIndex > beforeSpawnIndex && !queryPlane.slice(beforeSpawnIndex, spawnIndex).includes('await '));
+must('invoke-supplies-final-authorization-hook', queryPlane.includes('beforeSpawn: () => finalModelAuthorization('));
 must('revoked-query-stops-with-zero-model-result', queryPlane.includes("live.state === 'query_grant_revoked'") && queryPlane.includes('disabledResult()'));
 must('revoked-library-stops-with-zero-model-result', queryPlane.includes("state: 'library_scope_revoked'") && queryPlane.includes('scopeBlockedResult(live.error)'));
 
@@ -86,4 +96,4 @@ must('scoped-read-remains-read-only-policy', scopedRead.includes('never authoriz
 must('scoped-read-no-cross-store-fallback', scopedRead.includes('Never retry a missing external source ID against the current store or another store'));
 must('scoped-read-preserves-revocation-failures', scopedRead.includes("'library_access_disabled'") && scopedRead.includes("'library_store_identity_changed'") && scopedRead.includes("'library_store_not_registered'"));
 
-console.log('F1-FEDERATION-SAFETY-STATIC PASS strictReadBridge=yes isolatedPython=yes trustedExternalComposer=yes registrationContinuity=yes epochNonce=yes liveReauthorization=yes writeIsolation=yes');
+console.log('F1-FEDERATION-SAFETY-STATIC PASS strictReadBridge=yes isolatedPython=yes trustedExternalComposer=yes registrationContinuity=yes epochNonce=yes liveReauthorization=yes finalSpawnAuthorization=yes writeIsolation=yes');
