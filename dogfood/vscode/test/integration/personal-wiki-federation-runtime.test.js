@@ -19,6 +19,18 @@ function field(text, name) {
   return match ? match[1].trim() : '';
 }
 
+function firstMemorySourceId(text) {
+  const encoded = (String(text).match(/^source_ids_json=(\[[^\n]*\])$/m) || [])[1];
+  assert.ok(encoded, 'wikiMemory result did not expose source_ids_json');
+  const ids = JSON.parse(encoded);
+  assert.ok(Array.isArray(ids) && ids.length > 0, 'wikiMemory source_ids_json was empty');
+  return String(ids[0]);
+}
+
+function escapedRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 async function resetAndEnable() {
   const extension = vscode.extensions.getExtension('llm-wiki-lab.llm-wiki-dogfood');
   assert.ok(extension, 'development extension was not discovered by VS Code');
@@ -55,7 +67,8 @@ function externalStoreWithEvidence() {
   const evidence = path.join(parent, 'external-authority.md');
   fs.writeFileSync(evidence, 'Project A decided the orchid retry budget is 914 because rollback cost dominated.\n', 'utf8');
   runCore(root, ['init']);
-  runCore(root, ['ingest', evidence]);
+  runCore(root, ['topic', 'add', 'external-f1']);
+  runCore(root, ['ingest', evidence, '--topic', 'external-f1']);
   const rows = runCore(root, ['discover', 'orchid retry budget', '--top-k-per-topic', '3', '--json'])
     .split(/\r?\n/)
     .filter(Boolean)
@@ -82,7 +95,7 @@ suite('LLM Wiki Personal Wiki F1', () => {
       });
       assert.ok(registered && registered.storeId);
       const scopeRef = { kind: 'library_store', store_id: registered.storeId };
-      assert.doesNotMatch(JSON.stringify(registered), new RegExp(external.root.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+      assert.doesNotMatch(JSON.stringify(registered), new RegExp(escapedRegex(external.root)));
 
       await assert.rejects(
         vscode.lm.invokeTool('llmWiki_readScopedSource', {
@@ -109,7 +122,7 @@ suite('LLM Wiki Personal Wiki F1', () => {
       assert.equal(JSON.parse(field(externalRead, 'scope_ref_json')).store_id, registered.storeId);
       assert.equal(JSON.parse(field(externalRead, 'scope_label_json')), 'Project A');
       assert.match(externalRead, /orchid retry budget is 914/);
-      assert.doesNotMatch(externalRead, new RegExp(external.root.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+      assert.doesNotMatch(externalRead, new RegExp(escapedRegex(external.root)));
 
       await vscode.commands.executeCommand('llmWiki.createTopic', { label: 'f1-current-only' });
       const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(currentFile));
@@ -118,8 +131,8 @@ suite('LLM Wiki Personal Wiki F1', () => {
       const currentSearch = toolText(await vscode.lm.invokeTool('llmWiki_searchMemory', {
         input: { query: 'sapphire marker 271', maxResults: 3 }, toolInvocationToken: undefined,
       }));
-      const currentSourceId = (currentSearch.match(/source_ids=(src-[^,\n]+)/) || [])[1];
-      assert.ok(currentSourceId);
+      const currentSourceId = firstMemorySourceId(currentSearch);
+      assert.match(currentSourceId, /^src-/);
 
       await assert.rejects(
         vscode.lm.invokeTool('llmWiki_readScopedSource', {
