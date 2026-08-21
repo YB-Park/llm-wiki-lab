@@ -30,10 +30,13 @@ must('external-read-clears-pythonhome', memoryRead.includes('delete env.PYTHONHO
 must('external-read-clears-pythonstartup', memoryRead.includes('delete env.PYTHONSTARTUP'));
 must('external-read-clears-pythonuserbase', memoryRead.includes('delete env.PYTHONUSERBASE'));
 must('trusted-core-bundled-first', memoryRead.includes("path.join(bundled, 'dogfood', 'llm_wiki', 'federation_read_cli.py')"));
-must('external-operations-dispatch-through-bridge', memoryRead.includes("['--root', store.root, bridgeCommand, ...args]"));
+must('external-handle-requires-continuity-witness', memoryRead.includes('library.AUTHORITY_ANCHOR_RE.test(String(handle.authorityAnchor')));
+must('external-read-rechecks-js-continuity', memoryRead.includes('library.verifyStoreHandle(store)'));
+must('external-read-passes-continuity-to-bridge', memoryRead.includes("['--root', store.root, '--expected-authority-anchor', store.authorityAnchor, bridgeCommand, ...args]"));
 must('external-integrity-through-dispatch', memoryRead.includes("runReadOperation(context, folder, store, 'integrity')"));
 must('external-query-evidence-through-dispatch', memoryRead.includes("runReadOperation(context, folder, store, 'relevant'"));
 must('external-source-read-through-dispatch', memoryRead.includes("runReadOperation(context, folder, store, 'read'"));
+must('external-hk-rechecks-continuity', memoryRead.includes('if (!store.isCurrentStore) library.verifyStoreHandle(store)'));
 
 must('auto-python-runtime-is-distinct', pythonRuntime.includes('async function resolveAutoPythonRuntime(folder)'));
 must('auto-python-runtime-does-not-read-config-in-function', /async function resolveAutoPythonRuntime\(folder\)[\s\S]*?for \(const candidate of autoPythonCandidates\(\)\)/.test(pythonRuntime));
@@ -42,16 +45,19 @@ must('external-composer-trusted', queryPlane.includes("{ trusted: storeHandle.is
 must('external-composer-uses-trusted-invocation', queryPlane.includes('memoryRead.trustedPythonInvocation('));
 must('named-store-resolves-before-reservation', queryPlane.indexOf('library.resolveNamedStore(this.context, folder') < queryPlane.indexOf('reserveQueryCall(this.context, folder, grant)'));
 must('named-store-integrity-before-reservation', queryPlane.indexOf('memoryRead.assertStoreIntegrity(this.context, folder, storeHandle)') < queryPlane.indexOf('reserveQueryCall(this.context, folder, grant)'));
+must('query-grant-binds-random-workspace-epoch', queryPlane.includes('workspaceActivation.workspaceEpoch(optIn)'));
 
 must('catalog-v2', personalLibrary.includes('const CATALOG_VERSION = 2'));
 must('catalog-authority-anchor', personalLibrary.includes('authorityAnchor'));
 must('manifest-authority-anchor-function', personalLibrary.includes('function manifestAuthorityAnchor(root)'));
 must('authority-anchor-first-ingest', personalLibrary.includes("event.event !== 'ingest'"));
-must('authority-identity-rechecked-at-use', personalLibrary.includes('anchor !== row.authorityAnchor'));
+must('authority-continuity-rechecked-at-use', personalLibrary.includes('anchor !== row.authorityAnchor'));
+must('authority-handle-recheck-exported', personalLibrary.includes('function verifyStoreHandle(handle)') && personalLibrary.includes('verifyStoreHandle,'));
 must('identity-change-fails-closed', personalLibrary.includes("throw new Error('library_store_identity_changed')"));
 must('catalog-duplicate-id-fails-closed', personalLibrary.includes('ids.has(storeId)'));
 must('catalog-duplicate-root-fails-closed', personalLibrary.includes('roots.has(root)'));
 must('registration-mints-new-id-for-new-authority', personalLibrary.includes('sameAuthority ? existing.storeId : `libstore-${crypto.randomUUID()}`'));
+must('library-grant-binds-random-workspace-epoch', personalLibrary.includes('workspaceActivation.workspaceEpoch(optIn)') && personalLibrary.includes('workspaceEpoch: workspaceActivation.workspaceEpoch(optIn)'));
 
 must('federation-bridge-requires-existing-store', federationRead.includes('def _require_initialized(root: Path)'));
 mustNot('federation-bridge-never-initializes', federationRead.includes('ensure_workspace'));
@@ -59,6 +65,9 @@ must('federation-bridge-pure-discovery', federationRead.includes('discover_curre
 must('federation-bridge-verified-source-read', federationRead.includes('find_source(root, source_id'));
 must('federation-bridge-verified-content-read', federationRead.includes('read_text(source)'));
 must('federation-bridge-readonly-agent-state', federationRead.includes('def _read_agent_state_readonly(root: Path)'));
+must('federation-bridge-requires-continuity-input', federationRead.includes('p.add_argument("--expected-authority-anchor", required=True)'));
+must('federation-bridge-rechecks-continuity', federationRead.includes('def _require_authority_anchor(root: Path, expected: str)'));
+must('federation-bridge-safe-identity-failure', federationRead.includes('FEDERATION-READ-STOP library_store_identity_changed'));
 mustNot('federation-bridge-no-agent-state-writer', federationRead.includes('write_agent_state'));
 mustNot('federation-bridge-no-ingest', federationRead.includes('ingest_file'));
 mustNot('federation-bridge-no-lineage-mutation', federationRead.includes('supersede_source') || federationRead.includes('correct_source') || federationRead.includes('change_source'));
@@ -67,5 +76,6 @@ mustNot('write-tools-do-not-load-library-router', agentTools.includes("require('
 mustNot('write-tools-have-no-library-store-input', agentTools.includes('library_store'));
 must('scoped-read-remains-read-only-policy', scopedRead.includes('never authorizes source admission, Human Knowledge, lineage, maintenance, or configuration writes'));
 must('scoped-read-no-cross-store-fallback', scopedRead.includes('Never retry a missing external source ID against the current store or another store'));
+must('scoped-read-preserves-identity-change', scopedRead.includes("message === 'library_store_identity_changed'"));
 
-console.log('F1-FEDERATION-SAFETY-STATIC PASS strictReadBridge=yes isolatedPython=yes trustedExternalComposer=yes authorityAnchor=yes writeIsolation=yes');
+console.log('F1-FEDERATION-SAFETY-STATIC PASS strictReadBridge=yes isolatedPython=yes trustedExternalComposer=yes registrationContinuity=yes epochNonce=yes writeIsolation=yes');
