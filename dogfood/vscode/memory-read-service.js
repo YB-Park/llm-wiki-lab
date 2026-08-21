@@ -21,6 +21,11 @@ const QUERY_PROFILE_V1 = Object.freeze({
   relevantQueryChars: 2000,
 });
 
+const NAMED_STORE_QUERY_PROFILE_V1 = Object.freeze({
+  ...QUERY_PROFILE_V1,
+  id: 'named-store-l0-v1',
+});
+
 function configuration() {
   return require('vscode').workspace.getConfiguration('llmWiki');
 }
@@ -28,6 +33,38 @@ function configuration() {
 function wikiRoot(folder) {
   const value = String(configuration().get('workspaceDirectory', '.wiki-lab') || '.wiki-lab');
   return path.isAbsolute(value) ? value : path.resolve(folder.uri.fsPath, value);
+}
+
+function currentStoreHandle(folder) {
+  return {
+    root: wikiRoot(folder),
+    isCurrentStore: true,
+    displayName: '',
+    scopeRef: { kind: 'current_store' },
+  };
+}
+
+function normalizeStoreHandle(folder, handle) {
+  if (!handle) return currentStoreHandle(folder);
+  if (handle.isCurrentStore === true) return currentStoreHandle(folder);
+  const scopeRef = handle.scopeRef;
+  if (
+    !scopeRef
+    || scopeRef.kind !== 'library_store'
+    || typeof scopeRef.store_id !== 'string'
+    || !/^libstore-[0-9a-f-]+$/i.test(scopeRef.store_id)
+    || typeof handle.root !== 'string'
+    || !path.isAbsolute(handle.root)
+  ) {
+    throw new Error('library_store_invalid');
+  }
+  return {
+    root: handle.root,
+    isCurrentStore: false,
+    storeId: scopeRef.store_id,
+    displayName: String(handle.displayName || ''),
+    scopeRef: { kind: 'library_store', store_id: scopeRef.store_id },
+  };
 }
 
 function coreRoot(context, folder) {
@@ -38,17 +75,18 @@ function coreRoot(context, folder) {
   return path.resolve(context.extensionPath, '..', '..');
 }
 
-function isWikiInitialized(folder) {
-  const root = wikiRoot(folder);
+function isWikiInitialized(folder, storeHandle) {
+  const root = normalizeStoreHandle(folder, storeHandle).root;
   return fs.existsSync(path.join(root, 'config.json')) && fs.existsSync(path.join(root, 'manifest.jsonl'));
 }
 
-async function runPythonModule(context, folder, moduleName, args) {
+async function runPythonModule(context, folder, moduleName, args, options = {}) {
   const runtime = await resolvePythonRuntime(folder);
   if (!runtime) throw new Error('python_runtime_not_found');
-  const root = coreRoot(context, folder);
-  const pythonPath = process.env.PYTHONPATH ? `${root}${path.delimiter}${process.env.PYTHONPATH}` : root;
-  const fullArgs = ['-m', moduleName, '--root', wikiRoot(folder), ...args];
+  const core = coreRoot(context, folder);
+  const store = normalizeStoreHandle(folder, options.storeHandle);
+  const pythonPath = process.env.PYTHONPATH ? `${core}${path.delimiter}${process.env.PYTHONPATH}` : core;
+  const fullArgs = ['-m', moduleName, '--root', store.root, ...args];
   try {
     const result = await execFileAsync(runtime.executable, fullArgs, {
       cwd: folder.uri.fsPath,
@@ -62,6 +100,28 @@ async function runPythonModule(context, folder, moduleName, args) {
     const stdout = error && error.stdout ? String(error.stdout).trim() : '';
     const detail = stderr || stdout || (error && error.message) || String(error);
     throw new Error(boundedProcessFailure(detail));
+  }
+}
+
+async function assertStoreIntegrity(context, folder, storeHandle) {
+  const store = normalizeStoreHandle(folder, storeHandle);
+  if (!isWikiInitialized(folder, store)) {
+    if (!store.isCurrentStore) throw new Error('library_store_damaged');
+    return false;
+  }
+  try {
+    const row = JSON.parse((await runPythonModule(
+      context,
+      folder,
+      'dogfood.llm_wiki.cli',
+      ['integrity'],
+      { storeHandle: store }
+    )).trim());
+    if (!row || row.ok !== true) throw new Error('integrity-failed');
+    return true;
+  } catch (_) {
+    if (!store.isCurrentStore) throw new Error('library_store_damaged');
+    return false;
   }
 }
 
@@ -80,15 +140,17 @@ function firstSourceId(row) {
 async function collectMemoryRows(context, folder, query, options = {}) {
   const maxResults = Math.max(1, Math.min(8, Math.trunc(Number(options.maxResults || 5)) || 5));
   const derivedLimit = Math.min(3, maxResults);
+  const store = normalizeStoreHandle(folder, options.storeHandle);
+  const callOptions = { storeHandle: store };
   const [rawStdout, derivedStdout, pendingStdout] = await Promise.all([
-    runPythonModule(context, folder, 'dogfood.llm_wiki.cli', ['discover', query, '--top-k-per-topic', '3', '--json']),
-    runPythonModule(context, folder, 'dogfood.llm_wiki.agent_wiki_cli', ['search', query, '--top-k', String(derivedLimit), '--json']),
-    runPythonModule(context, folder, 'dogfood.llm_wiki.agent_state_cli', ['pending-list']),
+    runPythonModule(context, folder, 'dogfood.llm_wiki.cli', ['discover', query, '--top-k-per-topic', '3', '--json'], callOptions),
+    runPythonModule(context, folder, 'dogfood.llm_wiki.agent_wiki_cli', ['search', query, '--top-k', String(derivedLimit), '--json'], callOptions),
+    runPythonModule(context, folder, 'dogfood.llm_wiki.agent_state_cli', ['pending-list'], callOptions),
   ]);
   return {
     rawRows: parseJsonLines(rawStdout).slice(0, maxResults),
     derivedRows: parseJsonLines(derivedStdout),
-    humanRows: humanKnowledge.search(wikiRoot(folder), query, 3),
+    humanRows: humanKnowledge.search(store.root, query, 3),
     pendingRows: parseJsonLines(pendingStdout),
   };
 }
@@ -105,11 +167,17 @@ function mergedTargetQuery(target, maxChars) {
     .slice(0, maxChars);
 }
 
-async function collectQueryEvidence(context, folder, question, profile = QUERY_PROFILE_V1) {
-  const memory = await collectMemoryRows(context, folder, question, { maxResults: profile.rawDiscoveryLimit });
-  const rawHits = memory.rawRows.slice(0, profile.rawDiscoveryLimit);
-  const derivedRows = memory.derivedRows.slice(0, profile.derivedLimit);
-  const humanRows = memory.humanRows.slice(0, profile.humanLimit);
+async function collectQueryEvidence(context, folder, question, profile, storeHandle) {
+  const store = normalizeStoreHandle(folder, storeHandle);
+  const effectiveProfile = profile || (store.isCurrentStore ? QUERY_PROFILE_V1 : NAMED_STORE_QUERY_PROFILE_V1);
+  const scopeRef = store.scopeRef;
+  const memory = await collectMemoryRows(context, folder, question, {
+    maxResults: effectiveProfile.rawDiscoveryLimit,
+    storeHandle: store,
+  });
+  const rawHits = memory.rawRows.slice(0, effectiveProfile.rawDiscoveryLimit);
+  const derivedRows = memory.derivedRows.slice(0, effectiveProfile.derivedLimit);
+  const humanRows = memory.humanRows.slice(0, effectiveProfile.humanLimit);
 
   const targets = [];
   const bySource = new Map();
@@ -125,7 +193,7 @@ async function collectQueryEvidence(context, folder, question, profile = QUERY_P
       }
       return;
     }
-    if (targets.length >= profile.rawInternalLimit) return;
+    if (targets.length >= effectiveProfile.rawInternalLimit) return;
     const target = {
       sourceId,
       topicId: String(topicId || '').trim(),
@@ -150,21 +218,27 @@ async function collectQueryEvidence(context, folder, question, profile = QUERY_P
   for (const target of targets) {
     const args = [
       'relevant', target.sourceId,
-      '--query', mergedTargetQuery(target, profile.relevantQueryChars),
-      '--max-chars', String(profile.relevantRegionChars),
+      '--query', mergedTargetQuery(target, effectiveProfile.relevantQueryChars),
+      '--max-chars', String(effectiveProfile.relevantRegionChars),
     ];
     if (target.topicId) args.push('--topic', target.topicId);
     let row;
     try {
-      row = JSON.parse((await runPythonModule(context, folder, 'dogfood.llm_wiki.agent_memory_cli', args)).trim());
-    } catch (error) {
+      row = JSON.parse((await runPythonModule(
+        context,
+        folder,
+        'dogfood.llm_wiki.agent_memory_cli',
+        args,
+        { storeHandle: store }
+      )).trim());
+    } catch (_) {
       throw new Error(`query_plane_candidate_verification_failed:${target.sourceId}`);
     }
     if (row.format !== 'llm-wiki-agent-relevant-read-v0' || row.source_id !== target.sourceId) {
       throw new Error(`query_plane_candidate_identity_mismatch:${target.sourceId}`);
     }
     raw.push({
-      scope_ref: { kind: 'current_store' },
+      scope_ref: { ...scopeRef },
       source_id: row.source_id,
       equivalent_source_ids: target.equivalentSourceIds.length ? target.equivalentSourceIds : [row.source_id],
       object_id: row.object_id || target.objectId || '',
@@ -183,7 +257,7 @@ async function collectQueryEvidence(context, folder, question, profile = QUERY_P
   }
 
   const human = humanRows.map((row) => ({
-    scope_ref: { kind: 'current_store' },
+    scope_ref: { ...scopeRef },
     id: row.id,
     title: row.title || '',
     statement: row.statement || '',
@@ -192,14 +266,14 @@ async function collectQueryEvidence(context, folder, question, profile = QUERY_P
     supersedes_knowledge_id: row.supersedesKnowledgeId || '',
   }));
   const derived = derivedRows.map((row) => ({
-    scope_ref: { kind: 'current_store' },
+    scope_ref: { ...scopeRef },
     source_id: row.source_id,
     topic_id: row.topic_id || '',
     title: row.title || '',
     snippet: row.snippet || '',
   }));
   const pending = memory.pendingRows.slice(0, 5).map((row) => ({
-    scope_ref: { kind: 'current_store' },
+    scope_ref: { ...scopeRef },
     decision_id: row.id,
     topic_id: row.topic_id || '',
     predecessor_source_ids: Array.isArray(row.predecessor_source_ids) ? row.predecessor_source_ids : [],
@@ -208,8 +282,8 @@ async function collectQueryEvidence(context, folder, question, profile = QUERY_P
 
   return {
     question,
-    scope: { kind: 'current_store' },
-    query_profile: profile.id,
+    scope: { ...scopeRef },
+    query_profile: effectiveProfile.id,
     raw,
     human,
     derived,
@@ -217,13 +291,49 @@ async function collectQueryEvidence(context, folder, question, profile = QUERY_P
   };
 }
 
+async function readSource(context, folder, sourceId, options = {}) {
+  const store = normalizeStoreHandle(folder, options.storeHandle);
+  if (!store.isCurrentStore) await assertStoreIntegrity(context, folder, store);
+  const startChar = Math.max(0, Math.trunc(Number(options.startChar || 0)) || 0);
+  const maxChars = Math.max(500, Math.min(12000, Math.trunc(Number(options.maxChars || 6000)) || 6000));
+  const topicId = String(options.topicId || '').trim();
+  const args = ['read', sourceId, '--start-char', String(startChar), '--max-chars', String(maxChars)];
+  if (topicId) args.push('--topic', topicId);
+  const row = JSON.parse((await runPythonModule(
+    context,
+    folder,
+    'dogfood.llm_wiki.agent_memory_cli',
+    args,
+    { storeHandle: store }
+  )).trim());
+
+  let derived = '';
+  try {
+    derived = await runPythonModule(
+      context,
+      folder,
+      'dogfood.llm_wiki.agent_wiki_cli',
+      ['show', sourceId],
+      { storeHandle: store }
+    );
+  } catch (_) {
+    derived = '';
+  }
+  return { row, derived: derived ? derived.slice(0, 6000) : '', store };
+}
+
 module.exports = {
+  NAMED_STORE_QUERY_PROFILE_V1,
   QUERY_PROFILE_V1,
+  assertStoreIntegrity,
   collectMemoryRows,
   collectQueryEvidence,
+  currentStoreHandle,
   isWikiInitialized,
   mergedTargetQuery,
+  normalizeStoreHandle,
   parseJsonLines,
+  readSource,
   runPythonModule,
   wikiRoot,
 };
