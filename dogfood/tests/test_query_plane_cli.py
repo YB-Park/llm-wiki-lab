@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 import json
+import os
 import unittest
+from unittest import mock
 
 from dogfood.llm_wiki.query_plane_cli import (
     MAX_SERIALIZED_BRIEF_CHARS,
+    _neutral_environment,
+    _query_plane_command,
     build_prompt,
     normalize_payload,
     parse_model_result,
@@ -203,6 +207,44 @@ class QueryPlaneCliTests(unittest.TestCase):
         payload["pending"][0]["successor_source_id"] = "not-a-source"
         with self.assertRaisesRegex(ValueError, "pending_1_successor_source_id_invalid"):
             normalize_payload(payload)
+
+    def test_query_plane_command_requires_supported_credit_guard_and_blocks_current_generic_tools(self):
+        help_text = "--max-ai-credits CREDITS\n--no-remote-export"
+        command = _query_plane_command("copilot", "gpt-5.6-luna", 7, help_text)
+        self.assertIn("--max-ai-credits=7", command)
+        excluded = next(token for token in command if token.startswith("--excluded-tools="))
+        for tool in ("read", "write", "url", "memory", "web_search"):
+            self.assertIn(tool, excluded.split("=", 1)[1].split(","))
+        with self.assertRaisesRegex(RuntimeError, "copilot_max_ai_credits_unsupported"):
+            _query_plane_command("copilot", "gpt-5.6-luna", 7, "--no-remote-export")
+
+    def test_neutral_environment_drops_generic_auth_byok_and_permission_overrides(self):
+        source = {
+            "PATH": os.environ.get("PATH", ""),
+            "COPILOT_GITHUB_TOKEN": "explicit-copilot-token",
+            "GH_TOKEN": "generic-gh-token",
+            "GITHUB_TOKEN": "actions-token",
+            "COPILOT_ALLOW_ALL": "1",
+            "COPILOT_MODEL": "another-model",
+            "COPILOT_PROVIDER_TYPE": "openai",
+            "COPILOT_PROVIDER_URL": "https://example.invalid",
+            "COPILOT_HOME": "/safe/copilot-home",
+            "PWD": "/project",
+        }
+        with mock.patch.dict(os.environ, source, clear=True):
+            env = _neutral_environment()
+        self.assertEqual(env["COPILOT_GITHUB_TOKEN"], "explicit-copilot-token")
+        self.assertEqual(env["COPILOT_HOME"], "/safe/copilot-home")
+        for key in (
+            "GH_TOKEN",
+            "GITHUB_TOKEN",
+            "COPILOT_ALLOW_ALL",
+            "COPILOT_MODEL",
+            "COPILOT_PROVIDER_TYPE",
+            "COPILOT_PROVIDER_URL",
+            "PWD",
+        ):
+            self.assertNotIn(key, env)
 
 
 if __name__ == "__main__":
