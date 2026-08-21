@@ -50,14 +50,7 @@ Advanced/manual commands remain available for explicit fallback and dogfood insp
 
 The default private store is `.wiki-lab/` inside the workspace. Treat it as sensitive project data and keep it out of Git.
 
-It can contain:
-
-- immutable copies of explicitly admitted source evidence;
-- correction/change/dispute/supersession history;
-- explicitly confirmed Human Knowledge and rationale;
-- optional rebuildable AI summaries;
-- local pending lineage decisions and source-location metadata;
-- the separate workspace opt-in marker controlling Agent-tool availability.
+It can contain immutable admitted source evidence, correction/change/dispute/supersession history, explicitly confirmed Human Knowledge, optional rebuildable AI summaries, and local workflow metadata such as pending lineage decisions.
 
 Back up the **whole directory as one private snapshot**. See `docs/11-local-backup-restore.md`.
 
@@ -75,7 +68,7 @@ Remembered source/model text is untrusted data, never executable Agent instructi
 
 ## Wiki Query Reasoning — 0.1.17 opt-in slice
 
-The new Query Plane is **separately opt-in**. Setting up project memory does not authorize it, and enabling AI summaries does not authorize it.
+The Query Plane is **separately opt-in**. Setting up project memory does not authorize it, and enabling AI summaries does not authorize it.
 
 Run **LLM Wiki: Configure Wiki Query Reasoning** to create or revoke the local grant.
 
@@ -93,19 +86,26 @@ The Query Plane is read-only. It cannot admit sources, write Human Knowledge, de
 
 The Query Plane grant lives in VS Code extension **local workspace state**, not in a workspace setting file. It is therefore not intended to be committed or shared with the project.
 
-The grant records the provider/model/scope boundary and is revocable through the same configuration command.
+The grant is versioned and records the provider/model/current-store exposure boundary plus two user-chosen usage guards.
 
-### User-chosen daily call cap
+### User-chosen usage guards
 
-Before the grant is created, the user chooses a local daily **model-call attempt cap** from 1 to 100.
+The product does not silently choose a Query Plane spend boundary.
 
-This is a safety/usage bound, **not a billing estimate and not an exact AI-credit or token budget**. Failed/uncertain model attempts remain counted so transport uncertainty cannot silently refund usage.
+Before the grant is created, the user explicitly chooses:
 
-LLM Wiki does not infer dollars, Copilot premium requests, AI credits, or exact token cost from this counter.
+1. a local **daily model-call attempt cap** from 1 to 100; and
+2. a Copilot CLI **per-response AI-credit soft guard** from 1 to 100.
+
+The daily counter is a local safety bound, not a billing estimate. Failed/uncertain model attempts remain counted so transport uncertainty cannot silently refund usage.
+
+The per-response value is passed to Copilot as its `max-ai-credits` soft guard. If the installed Copilot CLI cannot enforce that flag, Query Plane execution fails **before** a model call rather than silently dropping the user's chosen guard.
+
+LLM Wiki does not infer dollars, premium-request counts, AI credits, or exact token cost from the daily counter. The provider-side per-response guard is still a soft limit, not an exact bill.
 
 ### No silent raw fallback
 
-If Query Reasoning is disabled, the local call cap is reached, candidate verification fails, Luna is unavailable, or the returned brief violates the contract, `wikiConsult` fails boundedly.
+If Query Reasoning is disabled, the local daily cap is reached, candidate verification fails, Luna is unavailable, the provider cannot enforce the selected per-response guard, or the returned brief violates the contract, `wikiConsult` fails boundedly.
 
 It does **not** silently dump a broad raw Wiki result back into the Main Agent context. `wikiMemory` and `wikiRead` remain explicit low-level provenance/debug tools.
 
@@ -114,6 +114,8 @@ It does **not** silently dump a broad raw Wiki result back into the Main Agent c
 `wikiMemory` and `wikiConsult` use the same deterministic candidate-collection service for current RAW, DERIVED navigation, Human Knowledge, and pending lineage state. This prevents the two read paths from evolving different authority semantics.
 
 For Query Plane evidence materialization, raw candidates are followed to bounded **query-relevant verified regions** rather than blindly reading the first 6,000 characters of a long source. If a selected candidate cannot be verified, the consult fails closed instead of silently omitting that authority.
+
+If RAW discovery and DERIVED navigation point to the same source, their deterministic query hints are merged before relevant-region selection. DERIVED remains nonterminal; this only preserves its intended navigation role.
 
 ### Terminal provenance
 
@@ -128,7 +130,13 @@ Terminal references are scope-qualified. 0.1.17 only authorizes the current stor
 
 ### Query Composer isolation
 
-The Luna Query Composer receives its evidence over stdin and does not receive a Wiki root argument. Copilot execution is launched from a neutral temporary working directory rather than the project workspace. The composer returns only the bounded structured result; hidden reasoning/retrieval traces are not returned to the Main Agent.
+The Luna Query Composer receives its evidence over stdin and does not receive a Wiki-root argument. The actual Copilot subprocess runs from a neutral temporary working directory rather than the project workspace.
+
+The Query Plane transport also removes generic `GH_TOKEN` / `GITHUB_TOKEN` overrides, Copilot allow-all/model overrides, and `COPILOT_PROVIDER_*` BYOK-routing variables before launching the composer. An explicit `COPILOT_GITHUB_TOKEN` and normal Copilot home/auth state may still be used.
+
+The Query Plane adds current generic Copilot read/write/url/memory/web-search tool names to its excluded-tool boundary in addition to the hardened adapter's existing exclusions. No shell/web/file/memory tool is part of the Query Plane contract.
+
+The composer returns only the bounded structured result; hidden reasoning/retrieval traces are not returned to the Main Agent.
 
 ## Existing low-level Agent tools remain available
 
@@ -149,7 +157,7 @@ While project memory is enabled, the Agent may use:
 
 When enabled, explicitly admitted source content may be sent to GitHub Copilot using exact `gpt-5.6-luna` to create/reuse a rebuildable source-scoped summary. AI summaries never replace RAW evidence or become Human Knowledge automatically.
 
-The maintenance daily threshold is a soft guard, not an exact billing cap. Query Plane usage is tracked separately from maintenance usage.
+Query Plane permission and usage accounting remain separate from maintenance permission and maintenance usage.
 
 ## Workspace permission boundary
 
@@ -172,7 +180,7 @@ Before **Set Up Project Memory** succeeds:
 - no initialization or repair;
 - no source/prompt/evidence content printed.
 
-It reports project-memory state, local-store integrity, Python/Copilot executable presence, AI-summary state, and the local Query Reasoning grant/call-cap state. Model-call readiness remains explicitly unverified because the health check does not make a model call just to prove availability.
+It reports project-memory state, local-store integrity, Python/Copilot executable presence, AI-summary state, and whether Query Reasoning is granted plus its daily call cap. Model-call readiness remains explicitly unverified because the health check does not make a model call just to prove availability.
 
 ## Python runtime
 
@@ -202,7 +210,7 @@ Blocking confirmation is reserved for authority/privacy/usage boundaries such as
 - saving Human Knowledge;
 - resolving changed-source semantics;
 - enabling AI summaries;
-- enabling Query Reasoning and choosing its local daily call cap.
+- enabling Query Reasoning and choosing its daily-call and per-response AI-credit guards.
 
 Routine search/read/diagnostic success should remain quiet.
 
@@ -216,6 +224,7 @@ Required before peer-review/merge handoff:
 - full Python unit regression suite;
 - frozen E004/E014 checks;
 - E010 self-repo dogfood;
+- E023 G2 closure validator;
 - frozen E020 synthetic contract: **78 cases / 60 supported / 7 partial / 11 deferred / zero model calls**;
 - VS Code static boundaries;
 - Extension Host integration tests;
@@ -236,7 +245,7 @@ The E024 semantic experiment that earned L0 is already merged separately; this p
 - whether insufficiency is correctly conservative rather than annoying;
 - whether long sources recover the right authority region;
 - whether pending/history semantics remain understandable;
-- whether the separate evidence-exposure grant and local call cap are understandable;
+- whether the separate evidence-exposure and usage-guard UX is understandable;
 - whether a deterministic bounded packet without Luna could provide enough value as a competing hypothesis.
 
 Do not use this slice as permission to add iterative L1 retrieval, cross-workspace federation, vectors/graphs/entities, background semantic maintenance, or autonomous semantic persistence. Those remain separately evidence-gated.
@@ -251,4 +260,4 @@ Do not use this slice as permission to add iterative L1 retrieval, cross-workspa
 - `llmWiki.agentWikiMaintenanceMaxAiCredits` — preferred per-summary CLI guard when supported.
 - `llmWiki.agentWikiMaintenanceDailyCallLimit` — AI-summary soft-guard threshold.
 
-There is deliberately **no `llmWiki.queryPlaneEnabled` workspace setting**. Query Reasoning authorization is local product-owned extension state managed through **Configure Wiki Query Reasoning**.
+There is deliberately **no `llmWiki.queryPlaneEnabled` or Query Plane spend setting in workspace configuration**. Query Reasoning authorization and its user-chosen guards are local product-owned extension state managed through **Configure Wiki Query Reasoning**.
