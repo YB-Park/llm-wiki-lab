@@ -65,6 +65,7 @@ class WikiScopedReadSourceTool {
         const message = error && error.message ? error.message : String(error);
         if (new Set([
           'library_access_disabled',
+          'library_catalog_corrupt',
           'library_store_damaged',
           'library_store_identity_changed',
           'library_store_not_registered',
