@@ -174,7 +174,8 @@ function libraryGrant(context, folder, currentRoot) {
   const row = context.workspaceState.get(grantKey(folder));
   const optIn = workspaceActivation.readWorkspaceOptIn(currentRoot);
   if (!row || !optIn || row.version !== LIBRARY_GRANT_VERSION || row.enabled !== true) return undefined;
-  if (row.mode !== LIBRARY_MODE || row.workspaceEnabledAt !== optIn.enabled_at) return undefined;
+  const storedEpoch = String(row.workspaceEpoch || row.workspaceEnabledAt || '');
+  if (row.mode !== LIBRARY_MODE || !storedEpoch || storedEpoch !== workspaceActivation.workspaceEpoch(optIn)) return undefined;
   return { ...row };
 }
 
@@ -190,6 +191,7 @@ async function setLibraryAccess(context, folder, currentRoot, enabled) {
     enabled: true,
     mode: LIBRARY_MODE,
     workspaceEnabledAt: optIn.enabled_at,
+    workspaceEpoch: workspaceActivation.workspaceEpoch(optIn),
   });
   return true;
 }
