@@ -6,10 +6,12 @@ const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const humanKnowledge = require('./human-knowledge');
 const { boundedProcessFailure } = require('./process-errors');
-const { resolvePythonRuntime } = require('./python-runtime');
+const { resolveAutoPythonRuntime, resolvePythonRuntime } = require('./python-runtime');
 
 const execFileAsync = promisify(execFile);
 const MAX_BUFFER = 16 * 1024 * 1024;
+const FEDERATION_READ_MODULE = 'dogfood.llm_wiki.federation_read_cli';
+const ISOLATED_MODULE_RUNNER = "import runpy,sys; core=sys.argv[1]; module=sys.argv[2]; argv=sys.argv[3:]; sys.path.insert(0,core); sys.argv=[module,*argv]; runpy.run_module(module,run_name='__main__')";
 
 const QUERY_PROFILE_V1 = Object.freeze({
   id: 'current-store-l0-v1',
@@ -75,16 +77,46 @@ function coreRoot(context, folder) {
   return path.resolve(context.extensionPath, '..', '..');
 }
 
+function trustedCoreRoot(context) {
+  const bundled = path.resolve(context.extensionPath, 'python');
+  if (fs.existsSync(path.join(bundled, 'dogfood', 'llm_wiki', 'federation_read_cli.py'))) return bundled;
+  const development = path.resolve(context.extensionPath, '..', '..');
+  if (fs.existsSync(path.join(development, 'dogfood', 'llm_wiki', 'federation_read_cli.py'))) return development;
+  throw new Error('federation_trusted_core_unavailable');
+}
+
+function isolatedPythonEnv() {
+  const env = { ...process.env };
+  delete env.PYTHONPATH;
+  delete env.PYTHONHOME;
+  delete env.PYTHONSTARTUP;
+  delete env.PYTHONUSERBASE;
+  return env;
+}
+
+async function trustedPythonInvocation(context, folder, moduleName, args) {
+  const runtime = await resolveAutoPythonRuntime(folder);
+  if (!runtime) throw new Error('python_runtime_not_found');
+  const core = trustedCoreRoot(context);
+  return {
+    executable: runtime.executable,
+    args: ['-I', '-S', '-c', ISOLATED_MODULE_RUNNER, core, moduleName, ...args],
+    cwd: core,
+    env: isolatedPythonEnv(),
+  };
+}
+
 function isWikiInitialized(folder, storeHandle) {
   const root = normalizeStoreHandle(folder, storeHandle).root;
   return fs.existsSync(path.join(root, 'config.json')) && fs.existsSync(path.join(root, 'manifest.jsonl'));
 }
 
 async function runPythonModule(context, folder, moduleName, args, options = {}) {
+  const store = normalizeStoreHandle(folder, options.storeHandle);
+  if (!store.isCurrentStore) throw new Error('external_generic_python_runner_forbidden');
   const runtime = await resolvePythonRuntime(folder);
   if (!runtime) throw new Error('python_runtime_not_found');
   const core = coreRoot(context, folder);
-  const store = normalizeStoreHandle(folder, options.storeHandle);
   const pythonPath = process.env.PYTHONPATH ? `${core}${path.delimiter}${process.env.PYTHONPATH}` : core;
   const fullArgs = ['-m', moduleName, '--root', store.root, ...args];
   try {
@@ -103,6 +135,55 @@ async function runPythonModule(context, folder, moduleName, args, options = {}) 
   }
 }
 
+async function runTrustedPythonModule(context, folder, moduleName, args) {
+  const invocation = await trustedPythonInvocation(context, folder, moduleName, args);
+  try {
+    const result = await execFileAsync(invocation.executable, invocation.args, {
+      cwd: invocation.cwd,
+      env: invocation.env,
+      maxBuffer: MAX_BUFFER,
+      windowsHide: true,
+    });
+    return String(result.stdout || '');
+  } catch (error) {
+    const stderr = error && error.stderr ? String(error.stderr).trim() : '';
+    const stdout = error && error.stdout ? String(error.stdout).trim() : '';
+    const detail = stderr || stdout || (error && error.message) || String(error);
+    throw new Error(boundedProcessFailure(detail));
+  }
+}
+
+async function runReadOperation(context, folder, storeHandle, operation, args = []) {
+  const store = normalizeStoreHandle(folder, storeHandle);
+  if (!store.isCurrentStore) {
+    const bridgeCommand = {
+      integrity: 'integrity',
+      discover: 'discover',
+      'derived-search': 'agent-wiki-search',
+      'derived-show': 'agent-wiki-show',
+      'pending-list': 'pending-list',
+      relevant: 'relevant',
+      read: 'read',
+    }[operation];
+    if (!bridgeCommand) throw new Error('federation_read_operation_forbidden');
+    return runTrustedPythonModule(
+      context,
+      folder,
+      FEDERATION_READ_MODULE,
+      ['--root', store.root, bridgeCommand, ...args]
+    );
+  }
+
+  if (operation === 'integrity') return runPythonModule(context, folder, 'dogfood.llm_wiki.cli', ['integrity'], { storeHandle: store });
+  if (operation === 'discover') return runPythonModule(context, folder, 'dogfood.llm_wiki.cli', ['discover', ...args], { storeHandle: store });
+  if (operation === 'derived-search') return runPythonModule(context, folder, 'dogfood.llm_wiki.agent_wiki_cli', ['search', ...args], { storeHandle: store });
+  if (operation === 'derived-show') return runPythonModule(context, folder, 'dogfood.llm_wiki.agent_wiki_cli', ['show', ...args], { storeHandle: store });
+  if (operation === 'pending-list') return runPythonModule(context, folder, 'dogfood.llm_wiki.agent_state_cli', ['pending-list'], { storeHandle: store });
+  if (operation === 'relevant') return runPythonModule(context, folder, 'dogfood.llm_wiki.agent_memory_cli', ['relevant', ...args], { storeHandle: store });
+  if (operation === 'read') return runPythonModule(context, folder, 'dogfood.llm_wiki.agent_memory_cli', ['read', ...args], { storeHandle: store });
+  throw new Error('read_operation_invalid');
+}
+
 async function assertStoreIntegrity(context, folder, storeHandle) {
   const store = normalizeStoreHandle(folder, storeHandle);
   if (!isWikiInitialized(folder, store)) {
@@ -110,13 +191,7 @@ async function assertStoreIntegrity(context, folder, storeHandle) {
     return false;
   }
   try {
-    const row = JSON.parse((await runPythonModule(
-      context,
-      folder,
-      'dogfood.llm_wiki.cli',
-      ['integrity'],
-      { storeHandle: store }
-    )).trim());
+    const row = JSON.parse((await runReadOperation(context, folder, store, 'integrity')).trim());
     if (!row || row.ok !== true) throw new Error('integrity-failed');
     return true;
   } catch (_) {
@@ -141,11 +216,10 @@ async function collectMemoryRows(context, folder, query, options = {}) {
   const maxResults = Math.max(1, Math.min(8, Math.trunc(Number(options.maxResults || 5)) || 5));
   const derivedLimit = Math.min(3, maxResults);
   const store = normalizeStoreHandle(folder, options.storeHandle);
-  const callOptions = { storeHandle: store };
   const [rawStdout, derivedStdout, pendingStdout] = await Promise.all([
-    runPythonModule(context, folder, 'dogfood.llm_wiki.cli', ['discover', query, '--top-k-per-topic', '3', '--json'], callOptions),
-    runPythonModule(context, folder, 'dogfood.llm_wiki.agent_wiki_cli', ['search', query, '--top-k', String(derivedLimit), '--json'], callOptions),
-    runPythonModule(context, folder, 'dogfood.llm_wiki.agent_state_cli', ['pending-list'], callOptions),
+    runReadOperation(context, folder, store, 'discover', [query, '--top-k-per-topic', '3', '--json']),
+    runReadOperation(context, folder, store, 'derived-search', [query, '--top-k', String(derivedLimit), '--json']),
+    runReadOperation(context, folder, store, 'pending-list'),
   ]);
   return {
     rawRows: parseJsonLines(rawStdout).slice(0, maxResults),
@@ -217,20 +291,14 @@ async function collectQueryEvidence(context, folder, question, profile, storeHan
   const raw = [];
   for (const target of targets) {
     const args = [
-      'relevant', target.sourceId,
+      target.sourceId,
       '--query', mergedTargetQuery(target, effectiveProfile.relevantQueryChars),
       '--max-chars', String(effectiveProfile.relevantRegionChars),
     ];
     if (target.topicId) args.push('--topic', target.topicId);
     let row;
     try {
-      row = JSON.parse((await runPythonModule(
-        context,
-        folder,
-        'dogfood.llm_wiki.agent_memory_cli',
-        args,
-        { storeHandle: store }
-      )).trim());
+      row = JSON.parse((await runReadOperation(context, folder, store, 'relevant', args)).trim());
     } catch (_) {
       throw new Error(`query_plane_candidate_verification_failed:${target.sourceId}`);
     }
@@ -297,25 +365,13 @@ async function readSource(context, folder, sourceId, options = {}) {
   const startChar = Math.max(0, Math.trunc(Number(options.startChar || 0)) || 0);
   const maxChars = Math.max(500, Math.min(12000, Math.trunc(Number(options.maxChars || 6000)) || 6000));
   const topicId = String(options.topicId || '').trim();
-  const args = ['read', sourceId, '--start-char', String(startChar), '--max-chars', String(maxChars)];
+  const args = [sourceId, '--start-char', String(startChar), '--max-chars', String(maxChars)];
   if (topicId) args.push('--topic', topicId);
-  const row = JSON.parse((await runPythonModule(
-    context,
-    folder,
-    'dogfood.llm_wiki.agent_memory_cli',
-    args,
-    { storeHandle: store }
-  )).trim());
+  const row = JSON.parse((await runReadOperation(context, folder, store, 'read', args)).trim());
 
   let derived = '';
   try {
-    derived = await runPythonModule(
-      context,
-      folder,
-      'dogfood.llm_wiki.agent_wiki_cli',
-      ['show', sourceId],
-      { storeHandle: store }
-    );
+    derived = await runReadOperation(context, folder, store, 'derived-show', [sourceId]);
   } catch (_) {
     derived = '';
   }
@@ -323,6 +379,8 @@ async function readSource(context, folder, sourceId, options = {}) {
 }
 
 module.exports = {
+  FEDERATION_READ_MODULE,
+  ISOLATED_MODULE_RUNNER,
   NAMED_STORE_QUERY_PROFILE_V1,
   QUERY_PROFILE_V1,
   assertStoreIntegrity,
@@ -335,5 +393,9 @@ module.exports = {
   parseJsonLines,
   readSource,
   runPythonModule,
+  runReadOperation,
+  runTrustedPythonModule,
+  trustedCoreRoot,
+  trustedPythonInvocation,
   wikiRoot,
 };
