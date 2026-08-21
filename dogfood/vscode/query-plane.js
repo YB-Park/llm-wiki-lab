@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { spawn } = require('node:child_process');
 const vscode = require('vscode');
+const library = require('./personal-wiki-library');
 const memoryRead = require('./memory-read-service');
 const workspaceActivation = require('./workspace-activation');
 const { boundedProcessFailure } = require('./process-errors');
@@ -157,13 +158,24 @@ const runComposerStdin = async (context, folder, args, input) => {
   });
 };
 
-function formatBrief(row, usage) {
+function sameScope(left, right) {
+  return JSON.stringify(left || {}) === JSON.stringify(right || {});
+}
+
+function formatBrief(row, usage, storeHandle) {
   const brief = row && row.brief ? row.brief : {};
-  return [
+  const scope = row && row.scope ? row.scope : { kind: 'current_store' };
+  const lines = [
     'LLM_WIKI_BRIEF v2',
     'authority=read_only_query_result',
     'canonical_mutation=none',
-    `scope=${row && row.scope && row.scope.kind ? row.scope.kind : 'current_store'}`,
+    `scope=${scope.kind || 'current_store'}`,
+    `scope_ref_json=${JSON.stringify(scope)}`,
+  ];
+  if (storeHandle && storeHandle.isCurrentStore === false) {
+    lines.push(`scope_label_json=${JSON.stringify(String(storeHandle.displayName || ''))}`);
+  }
+  lines.push(
     `query_profile=${row.query_profile || memoryRead.QUERY_PROFILE_V1.id}`,
     `model=${row.model || MODEL}`,
     `model_calls=${Number(row.model_calls || 0)}`,
@@ -173,8 +185,9 @@ function formatBrief(row, usage) {
     `insufficient_authority=${brief.insufficient_authority === true ? 'true' : 'false'}`,
     `answer_json=${JSON.stringify(String(brief.answer || ''))}`,
     `terminal_refs_json=${JSON.stringify(Array.isArray(brief.terminal_refs) ? brief.terminal_refs : [])}`,
-    'policy=Terminal RAW_MEMORY/HUMAN_KNOWLEDGE provenance is retained with scope-qualified refs. DERIVED_MEMORY and pending-lineage state are nonterminal. The internal retrieval/composition trace is intentionally not returned.',
-  ].join('\n');
+    'policy=Terminal RAW_MEMORY/HUMAN_KNOWLEDGE provenance is retained with scope-qualified refs. DERIVED_MEMORY and pending-lineage state are nonterminal. External project Human Knowledge remains project-scoped and is not automatically a current-project recommendation. The internal retrieval/composition trace is intentionally not returned.'
+  );
+  return lines.join('\n');
 }
 
 function disabledResult() {
@@ -185,7 +198,20 @@ function disabledResult() {
     'canonical_mutation=none',
     'model_calls=0',
     'fallback=none',
-    'policy=Do not automatically dump raw Wiki memory into the Main Agent. Query reasoning requires a separate local, revocable grant bound to the current workspace opt-in plus explicit user-chosen daily-call and per-response AI-credit guards.',
+    'policy=Do not automatically dump raw Wiki memory into the Main Agent. Query reasoning requires a separate local, revocable current-store grant bound to the current workspace opt-in. External named-store access additionally requires separate Personal Wiki Library grants.',
+  ].join('\n');
+}
+
+function scopeBlockedResult(error) {
+  return [
+    'LLM_WIKI_BRIEF v2',
+    'state=library_scope_blocked',
+    'authority=read_only_query_result',
+    'canonical_mutation=none',
+    'model_calls=0',
+    'fallback=none',
+    `failure_json=${JSON.stringify(boundedProcessFailure(error && error.message ? error.message : String(error)))}`,
+    'policy=Named-store authorization and exact scope resolution failed before external retrieval or model exposure. Do not search the current store or other registered stores as fallback.',
   ].join('\n');
 }
 
@@ -225,31 +251,44 @@ class WikiConsultTool {
 
   prepareInvocation(options) {
     const query = String((options.input && options.input.query) || '').trim();
-    return { invocationMessage: `Consulting project memory for “${query.slice(0, 80)}”` };
+    const store = String((options.input && options.input.store) || '').trim();
+    return { invocationMessage: store ? `Consulting ${store} project memory for “${query.slice(0, 80)}”` : `Consulting project memory for “${query.slice(0, 80)}”` };
   }
 
   async invoke(options) {
     const folder = firstWorkspaceFolder();
-    const question = String((options.input && options.input.query) || '').trim();
+    const input = options.input || {};
+    const question = String(input.query || '').trim();
+    const requestedStore = String(input.store || '').trim();
     if (!question) throw new Error('wikiConsult.query must be a non-empty self-contained question.');
     if (question.length > 2000) throw new Error('wikiConsult.query must be 2000 characters or fewer.');
-    if (!memoryRead.isWikiInitialized(folder)) {
-      return new vscode.LanguageModelToolResult([
-        new vscode.LanguageModelTextPart('LLM_WIKI_BRIEF v2\nstate=not_initialized\nauthority=read_only_query_result\ncanonical_mutation=none\nmodel_calls=0'),
-      ]);
-    }
 
     const grant = queryGrant(this.context, folder);
     if (!grant) {
       return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(disabledResult())]);
     }
+
+    let storeHandle = memoryRead.currentStoreHandle(folder);
+    if (requestedStore) {
+      try {
+        storeHandle = library.resolveNamedStore(this.context, folder, memoryRead.wikiRoot(folder), requestedStore);
+        await memoryRead.assertStoreIntegrity(this.context, folder, storeHandle);
+      } catch (error) {
+        return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(scopeBlockedResult(error))]);
+      }
+    } else if (!memoryRead.isWikiInitialized(folder, storeHandle)) {
+      return new vscode.LanguageModelToolResult([
+        new vscode.LanguageModelTextPart('LLM_WIKI_BRIEF v2\nstate=not_initialized\nauthority=read_only_query_result\ncanonical_mutation=none\nmodel_calls=0'),
+      ]);
+    }
+
     const usage = await reserveQueryCall(this.context, folder, grant);
     if (!usage.allowed) {
       return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(budgetBlockedResult(grant, usage))]);
     }
 
     try {
-      const payload = await memoryRead.collectQueryEvidence(this.context, folder, question);
+      const payload = await memoryRead.collectQueryEvidence(this.context, folder, question, undefined, storeHandle);
       const stdout = await runComposerStdin(
         this.context,
         folder,
@@ -258,7 +297,8 @@ class WikiConsultTool {
       );
       const row = JSON.parse(stdout.trim());
       if (row.format !== 'llm-wiki-query-plane-v1' || row.status !== 'OK') throw new Error('query_plane_result_contract_invalid');
-      return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(formatBrief(row, usage))]);
+      if (!sameScope(row.scope, payload.scope)) throw new Error('query_plane_result_scope_mismatch');
+      return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(formatBrief(row, usage, storeHandle))]);
     } catch (error) {
       return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart(unavailableResult(error, usage))]);
     }
@@ -273,7 +313,7 @@ async function configureQueryPlane(context) {
       ? 'Disable Query Reasoning'
       : await vscode.window.showWarningMessage(
         'Disable Luna-backed Wiki query reasoning for this workspace?',
-        { modal: true, detail: 'Disabling stops future wikiConsult model calls. Saved Wiki data and existing query usage records are preserved.' },
+        { modal: true, detail: 'Disabling stops future wikiConsult model calls. Saved Wiki data and existing query usage records are preserved. Personal Wiki Library registration/access is separate and is not changed by this command.' },
         'Disable Query Reasoning'
       );
     if (choice === 'Disable Query Reasoning') {
@@ -293,7 +333,7 @@ async function configureQueryPlane(context) {
       'Enable Luna-backed Wiki query reasoning for this workspace?',
       {
         modal: true,
-        detail: 'When enabled, a wikiConsult call may send a bounded set of already-admitted Wiki evidence to GitHub Copilot using exact gpt-5.6-luna for read-only query reasoning. This is separate from AI-summary permission, source admission, Human Knowledge authorship, and canonical history changes. You will choose both a local daily model-call cap and a Copilot per-response AI-credit soft guard next. Disabling and re-enabling project memory invalidates this grant.',
+        detail: 'When enabled, a wikiConsult call may send a bounded set of already-admitted current-project Wiki evidence to GitHub Copilot using exact gpt-5.6-luna for read-only query reasoning. This grant remains current_store scoped. Any future named external-store consult additionally requires explicit Personal Wiki Library registration and a separate current-workspace library-access grant. You will choose both a local daily model-call cap and a Copilot per-response AI-credit soft guard next. Disabling and re-enabling project memory invalidates this grant.',
       },
       'Continue'
     );
@@ -373,5 +413,6 @@ module.exports = {
   registerQueryPlaneCommand,
   registerQueryPlaneTool,
   reserveQueryCall,
+  scopeBlockedResult,
   unavailableResult,
 };
