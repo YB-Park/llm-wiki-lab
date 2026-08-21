@@ -14,7 +14,8 @@ Merged baseline on `main`:
 - installed dogfood baseline: **0.1.16**
 - current product decision: **GO for installed self-dogfood / Alpha use**
 - public Beta: **not declared**
-- natural installed evidence track: **Issue #141**
+- primary product-evidence track: **Issue #141 natural installed dogfood**
+- paid E023 semantic calls: **paused**
 - 0.1.16 artifact remains the frozen previous baseline and must not be silently replaced under the same version.
 
 Active product candidate:
@@ -40,8 +41,6 @@ Q1 result already merged to `main` via PR #206:
 E024 earned **bounded one-shot retrieval/composition isolation**, not iterative agentic retrieval. L1 remains **NOT EARNED**.
 
 ## 0.1.17 architecture
-
-Normal conceptual path:
 
 ```text
 Main Agent
@@ -123,6 +122,17 @@ The existing synthetic product contract remains:
 
 This is harness maintenance only: do not change E020 case judgments merely to make #207 pass.
 
+## E023 closure invariants remain closed
+
+The Query Plane product slice does not reopen the persistence/identity research axis.
+
+- **G2 Persistence: NOT_EARNED; parked.**
+- **G3 Identity / Routing: NOT_OPENED.**
+- same-slice AQ/BQ/CQ/DQ/PQ semantic reruns or tuning remain unauthorized as a tuning loop.
+- paid E023 semantic calls: **paused**.
+
+The previous E023 closure continuation instruction was: **Run the Day-0 installed smoke on the exact 0.1.16 VSIX**. That sentence remains here as a closure marker for the frozen E023 decision; E024 subsequently earned a separate opt-in 0.1.17 Query Plane candidate without changing the E023 G2/G3 verdicts or Issue #141's role as the primary natural product-evidence track.
+
 ## Current PR #207 validation posture
 
 PR #207 is a **zero-model product-hardening PR**. Do not rerun a new paid E024 semantic benchmark as part of this PR.
@@ -135,6 +145,7 @@ Required before peer-review handoff:
 - E014 R1 prescore/freeze/frozen-result validation;
 - E010 self-repo dogfood;
 - E020 78-case zero-model contract;
+- E023 G2 closure validator remains green;
 - VS Code syntax/static boundaries;
 - VS Code Extension Host integration tests;
 - shared-core bundle verification;
@@ -147,9 +158,10 @@ Recent CI fixes on #207:
 
 1. new Query Plane unit tests accidentally imported `pytest` although repo CI uses stdlib `unittest`; converted to `unittest` rather than adding a dependency;
 2. E020 scanner initially assumed ambient retrieval physically lived in `agent-tools.js`; updated scanner to follow the shared Memory Read Service without changing the 78 case judgments;
-3. a static ordering check initially matched the `runComposerStdin` function definition instead of the invocation; runtime source confirmed the real order is grant → reserve call → budget gate → collect evidence → composer, and the marker was made unambiguous.
+3. a static ordering check initially matched the `runComposerStdin` function definition instead of the invocation; runtime source confirmed the real order is grant → reserve call → budget gate → collect evidence → composer, and the marker was made unambiguous;
+4. living HANDOFF refresh preserves the exact E023 closure markers required by its zero-model validator while clearly separating the newer E024 product slice.
 
-These were harness/integration issues; continue to treat later CI failures as real until inspected.
+Treat later CI failures as real until inspected.
 
 ## Installed dogfood rollout after peer review / merge
 
@@ -180,8 +192,8 @@ Observe:
 ## Research posture
 
 - E023 G1 exploratory retrieval/composition mechanism search: closed.
-- E023 G2 persistence: **NOT_EARNED / parked**.
-- G3 identity/routing: **NOT_OPENED**.
+- **G2 Persistence: NOT_EARNED; parked.**
+- **G3 Identity / Routing: NOT_OPENED.**
 - E024 L0 Query Plane: **EARNED for opt-in product dogfood**.
 - E024 L1 iterative Librarian: **NOT EARNED**.
 
