@@ -1,6 +1,6 @@
 # E025 — Cross-Workspace Named-Store Federation
 
-Status: **F0 CONTRACT FROZEN / ZERO-MODEL EXECUTION IN PROGRESS**
+Status: **F0 EARNED / 18 OF 18 PASS / ZERO MODEL CALLS / RUNTIME FEDERATION NOT YET IMPLEMENTED**
 
 Primary issue: #202
 
@@ -36,7 +36,7 @@ Store-scoped Memory Read Service
 Scope-qualified verified evidence packet
 ```
 
-F0 stops before Luna. If F0 earns promotion, the later installed slice may pass the scope-qualified packet into the existing 0.1.17 Query Plane composer.
+F0 stops before Luna. F0 promotion permits the next implementation/test step only: a small installed named-store read-only F1 slice that may pass the scope-qualified packet into the existing 0.1.17 Query Plane composer.
 
 ## Frozen first-slice scope
 
@@ -138,6 +138,20 @@ The GitHub workflow `.github/workflows/validate-e025-f0.yml` performs the 0.1.17
 
 No network model/API invocation exists in the F0 harness.
 
+## F0 adjudication
+
+Frozen-contract execution produced:
+
+```text
+F0-01..F0-18: PASS (18/18)
+model_calls: 0
+0.1.17 regression gate: PASS
+F0 no-runtime-federation diff boundary: PASS
+E025_F0_NAMED_STORE_SCOPE_CONTRACT = EARNED
+```
+
+This is a **preflight promotion only**. No product/runtime federation code was changed to obtain this result.
+
 ## Strict promotion rule
 
 `E025_F0_NAMED_STORE_SCOPE_CONTRACT = EARNED` only if:
@@ -154,10 +168,23 @@ Any required-case failure yields `NOT_EARNED`. No partial promotion.
 
 Even a perfect pass does **not** earn library-wide search, ambient cross-project retrieval, cross-project writes, sync, Personal store, persistent identity/entity infrastructure, vector defaults, or semantic quality promotion.
 
-F0 can earn only the right to implement/test the **named-store read-only installed slice**.
+F0 earns only the right to implement/test the **named-store read-only installed slice**.
 
-## After F0, only if earned
+## Next boundary — F1 named-store installed slice
 
-F1 is a small installed dogfood with one real current project B and one real explicitly registered read-only project A. It must include scoped `wikiRead` follow-through and keep authorization/scope resolution before retrieval/scoring/model exposure.
+The next product step may implement one current project B plus one explicitly registered read-only project A while preserving these boundaries:
+
+- deterministic authorization and scope resolution before retrieval/scoring/model exposure;
+- current-store Query Reasoning grant remains insufficient without the distinct library grants;
+- Luna cannot choose or widen store scope;
+- external stores expose read-only handles only;
+- `wikiConsult` defaults to current store and accepts only resolver-produced logical external scope;
+- scoped `wikiRead` follow-through is mandatory for promotion;
+- wrong/ambiguous/unavailable scope fails closed with no current-store fallback;
+- terminal refs expose logical scope, not private filesystem roots;
+- current-store writes remain the only write target;
+- library-wide search, sync, Personal store, cross-project writes, graph/vector/entity infrastructure, G3, and L1 remain closed.
+
+F1 should be a small product branch/PR and then installed dogfood, not a broad federation rewrite.
 
 0.1.17 natural dogfood on #141 continues independently; this experiment does not modify the validated 0.1.17 installed binary.
