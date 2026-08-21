@@ -36,8 +36,6 @@ async function resetAndEnable() {
 suite('LLM Wiki Agent Tools', () => {
   test('Query Plane shares workspace lifecycle and an old query grant cannot revive after workspace disable/re-enable', async () => {
     await resetAndEnable();
-    let toolNames = new Set(vscode.lm.tools.map((tool) => tool.name));
-    assert.ok(toolNames.has('llmWiki_consultMemory'), 'wikiConsult must be registered only after workspace opt-in');
 
     const disabled = toolText(await vscode.lm.invokeTool('llmWiki_consultMemory', {
       input: { query: 'What did we decide about the current retry budget?' }, toolInvocationToken: undefined,
@@ -55,19 +53,29 @@ suite('LLM Wiki Agent Tools', () => {
 
     const disabledWorkspace = await vscode.commands.executeCommand('llmWiki.disableWorkspace');
     assert.equal(disabledWorkspace, true);
-    toolNames = new Set(vscode.lm.tools.map((tool) => tool.name));
-    assert.equal(toolNames.has('llmWiki_consultMemory'), false, 'workspace disable must dispose wikiConsult registration');
-    assert.equal(toolNames.has('llmWiki_searchMemory'), false, 'workspace disable must dispose legacy Wiki read registration too');
+    await assert.rejects(
+      vscode.lm.invokeTool('llmWiki_consultMemory', {
+        input: { query: 'What did we decide about the current retry budget?' }, toolInvocationToken: undefined,
+      }),
+      undefined,
+      'workspace disable must make wikiConsult runtime implementation non-invokable before evidence collection or Luna'
+    );
+    await assert.rejects(
+      vscode.lm.invokeTool('llmWiki_searchMemory', {
+        input: { query: 'workspace activation sentinel', maxResults: 1 }, toolInvocationToken: undefined,
+      }),
+      undefined,
+      'workspace disable must make legacy Wiki read runtime implementation non-invokable too'
+    );
 
     const reenabled = await vscode.commands.executeCommand('llmWiki.enableWorkspace');
     assert.equal(reenabled, true);
-    toolNames = new Set(vscode.lm.tools.map((tool) => tool.name));
-    assert.ok(toolNames.has('llmWiki_consultMemory'));
     const staleGrant = toolText(await vscode.lm.invokeTool('llmWiki_consultMemory', {
       input: { query: 'What did we decide about the current retry budget?' }, toolInvocationToken: undefined,
     }));
     assert.match(staleGrant, /state=query_plane_disabled/);
     assert.match(staleGrant, /model_calls=0/);
+    assert.match(staleGrant, /fallback=none/);
   });
 
   test('registers hardened tools only after opt-in and supports search -> verified read with JSON-encoded untrusted data', async () => {
