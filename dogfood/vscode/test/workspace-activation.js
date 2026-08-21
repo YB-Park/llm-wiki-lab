@@ -21,18 +21,31 @@ try {
   assert.equal(activation.isCoreInitialized(root), true);
   assert.equal(activation.isWorkspaceEnabled(root), false, 'core files alone must not imply user opt-in');
 
-  const enabled = activation.enableWorkspace(root);
-  assert.equal(enabled.format, activation.WORKSPACE_OPT_IN_FORMAT);
-  assert.equal(enabled.enabled, true);
+  const first = activation.enableWorkspace(root);
+  assert.equal(first.format, activation.WORKSPACE_OPT_IN_FORMAT);
+  assert.equal(first.enabled, true);
+  assert.match(first.epoch_id, activation.EPOCH_ID_RE, 'workspace authority epoch must be a random UUID');
   assert.equal(activation.isWorkspaceEnabled(root), true);
   assert.equal(activation.readWorkspaceOptIn(root).enabled, true);
+  if (process.platform !== 'win32') {
+    assert.equal(fs.statSync(activation.markerPath(root)).mode & 0o777, 0o600, 'workspace opt-in marker must remain private');
+  }
 
   assert.equal(activation.disableWorkspace(root), true);
   assert.equal(activation.isWorkspaceEnabled(root), false);
   assert.equal(activation.isCoreInitialized(root), true, 'disable must preserve Wiki data');
+
+  const second = activation.enableWorkspace(root);
+  assert.match(second.epoch_id, activation.EPOCH_ID_RE);
+  assert.notEqual(
+    activation.workspaceEpoch(first),
+    activation.workspaceEpoch(second),
+    'disable/re-enable must mint a fresh authority epoch even inside one timestamp tick'
+  );
+  assert.equal(activation.disableWorkspace(root), true);
   assert.equal(activation.disableWorkspace(root), false);
 
-  console.log('WORKSPACE-ACTIVATION PASS explicitOptIn=yes disablePreservesData=yes');
+  console.log('WORKSPACE-ACTIVATION PASS explicitOptIn=yes privateMarker=yes freshEpoch=yes disablePreservesData=yes');
 } finally {
   fs.rmSync(temp, { recursive: true, force: true });
 }
