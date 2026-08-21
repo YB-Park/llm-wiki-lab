@@ -16,6 +16,11 @@ assert.equal(
   'copilot_call_failed:1'
 );
 assert.equal(
+  boundedProcessFailure('Error: query_usage_storage_unavailable'),
+  'query_usage_storage_unavailable',
+  'daily model-attempt guard storage failure must remain bounded and diagnosable'
+);
+assert.equal(
   boundedProcessFailure('FEDERATION-READ-STOP library_store_identity_changed'),
   'library_store_identity_changed',
   'the strict read bridge may expose only its bounded allowlisted identity-change code'
@@ -40,4 +45,4 @@ assert.equal(
   'unsafe free-form model strings must not be reflected'
 );
 
-console.log('PROCESS-ERRORS-TEST PASS bounded=yes spoofResistant=yes federationAllowlist=yes rawDetailReflected=no');
+console.log('PROCESS-ERRORS-TEST PASS bounded=yes spoofResistant=yes federationAllowlist=yes queryUsageGuard=yes rawDetailReflected=no');
