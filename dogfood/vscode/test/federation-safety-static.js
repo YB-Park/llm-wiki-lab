@@ -58,7 +58,10 @@ must('query-usage-workspace-hash-only', queryUsageLedger.includes("crypto.create
 must('query-usage-atomic-slot-claim', queryUsageLedger.includes("fs.openSync(slotPath(directory, slot), 'wx', 0o600)"));
 must('query-usage-crash-conservative', queryUsageLedger.includes('existingSlots(directory).size'));
 must('query-usage-legacy-floor', queryPlane.includes('legacyQueryUsage(context, folder, day)') && queryUsageLedger.includes('importLegacyCount(directory, day, legacyCount)'));
-must('query-usage-read-is-nonmutating', /function readUsage[\s\S]*?existingSlots\(directory\)[\s\S]*?return \{ day, reservedCalls/.test(queryUsageLedger) && !/function readUsage[\s\S]*?ensureDirectory/.test(queryUsageLedger));
+const readUsageStart = queryUsageLedger.indexOf('function readUsage(');
+const reserveUsageStart = queryUsageLedger.indexOf('function reserveUsage(');
+const readUsageSection = queryUsageLedger.slice(readUsageStart, reserveUsageStart);
+must('query-usage-read-is-nonmutating', readUsageStart >= 0 && reserveUsageStart > readUsageStart && readUsageSection.includes('existingSlots(directory)') && !readUsageSection.includes('ensureDirectory'));
 must('query-usage-storage-failure-blocks-model', queryPlane.includes('state=query_plane_usage_guard_unavailable') && queryPlane.includes('model_calls=0') && queryPlane.includes('usage.guardUnavailable'));
 must('query-grant-binds-random-workspace-epoch', queryPlane.includes('workspaceActivation.workspaceEpoch(optIn)'));
 must('query-library-scope-failures-centralized', queryPlane.includes('const LIBRARY_SCOPE_FAILURES = new Set([') && queryPlane.includes("'library_catalog_corrupt'") && queryPlane.includes('LIBRARY_SCOPE_FAILURES.has(message)'));
