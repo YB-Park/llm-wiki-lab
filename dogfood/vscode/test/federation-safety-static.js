@@ -38,6 +38,9 @@ must('external-integrity-through-dispatch', memoryRead.includes("runReadOperatio
 must('external-query-evidence-through-dispatch', memoryRead.includes("runReadOperation(context, folder, store, 'relevant'"));
 must('external-source-read-through-dispatch', memoryRead.includes("runReadOperation(context, folder, store, 'read'"));
 must('external-hk-bracketed-by-revalidation', (memoryRead.match(/revalidateExternalStore\(context, folder, store\)/g) || []).length >= 2);
+must('external-scope-failures-explicit', memoryRead.includes('const EXTERNAL_SCOPE_FAILURES = new Set([') && memoryRead.includes("'library_access_disabled'") && memoryRead.includes("'library_store_identity_changed'"));
+must('external-candidate-revocation-not-masked', /catch \(error\) \{\n\s+if \(!store\.isCurrentStore && externalScopeFailure\(error\)\) throw error;\n\s+throw new Error\(`query_plane_candidate_verification_failed/.test(memoryRead));
+must('external-optional-derived-revocation-not-masked', /derived = await runReadOperation[\s\S]*?catch \(error\) \{\n\s+if \(!store\.isCurrentStore && externalScopeFailure\(error\)\) throw error;\n\s+derived = '';/.test(memoryRead));
 
 must('auto-python-runtime-is-distinct', pythonRuntime.includes('async function resolveAutoPythonRuntime(folder)'));
 must('auto-python-runtime-does-not-read-config-in-function', /async function resolveAutoPythonRuntime\(folder\)[\s\S]*?for \(const candidate of autoPythonCandidates\(\)\)/.test(pythonRuntime));
@@ -101,4 +104,4 @@ must('scoped-read-remains-read-only-policy', scopedRead.includes('never authoriz
 must('scoped-read-no-cross-store-fallback', scopedRead.includes('Never retry a missing external source ID against the current store or another store'));
 must('scoped-read-preserves-revocation-failures', scopedRead.includes("'library_access_disabled'") && scopedRead.includes("'library_store_identity_changed'") && scopedRead.includes("'library_store_not_registered'"));
 
-console.log('F1-FEDERATION-SAFETY-STATIC PASS strictReadBridge=yes isolatedPython=yes trustedExternalComposer=yes registrationContinuity=yes strictLibraryEpoch=yes catalogFailClosed=yes serializedUsageCap=yes liveReauthorization=yes finalSpawnAuthorization=yes writeIsolation=yes');
+console.log('F1-FEDERATION-SAFETY-STATIC PASS strictReadBridge=yes isolatedPython=yes trustedExternalComposer=yes registrationContinuity=yes strictLibraryEpoch=yes catalogFailClosed=yes serializedUsageCap=yes liveReauthorization=yes finalSpawnAuthorization=yes readRevocationPropagation=yes writeIsolation=yes');
