@@ -19,6 +19,7 @@ const GRANT_VERSION = 1;
 const MAX_BUFFER = 16 * 1024 * 1024;
 const GRANT_KEY_PREFIX = 'llmWiki.queryPlaneGrant.v1';
 const USAGE_KEY_PREFIX = 'llmWiki.queryPlaneUsage.v1';
+const reservationLocks = new Map();
 
 function firstWorkspaceFolder() {
   const folders = vscode.workspace.workspaceFolders || [];
@@ -89,20 +90,41 @@ function queryUsage(context, folder) {
   return { day, reservedCalls: Math.max(0, Math.trunc(Number(row.reservedCalls || 0)) || 0) };
 }
 
-async function reserveQueryCall(context, folder, grant) {
-  const usage = queryUsage(context, folder);
-  if (usage.reservedCalls >= grant.dailyCallLimit) {
-    return { allowed: false, ...usage, dailyCallLimit: grant.dailyCallLimit, maxAiCredits: grant.maxAiCredits };
+async function withReservationLock(key, operation) {
+  const previous = reservationLocks.get(key) || Promise.resolve();
+  let release;
+  const gate = new Promise((resolve) => { release = resolve; });
+  const tail = previous.catch(() => {}).then(() => gate);
+  reservationLocks.set(key, tail);
+  await previous.catch(() => {});
+  try {
+    return await operation();
+  } finally {
+    release();
+    if (reservationLocks.get(key) === tail) reservationLocks.delete(key);
   }
-  const reservedCalls = usage.reservedCalls + 1;
-  await context.workspaceState.update(usageKey(folder, usage.day), { reservedCalls });
-  return {
-    allowed: true,
-    day: usage.day,
-    reservedCalls,
-    dailyCallLimit: grant.dailyCallLimit,
-    maxAiCredits: grant.maxAiCredits,
-  };
+}
+
+async function reserveQueryCall(context, folder, grant) {
+  const day = localDayKey();
+  const key = usageKey(folder, day);
+  return withReservationLock(key, async () => {
+    const row = context.workspaceState.get(key, {});
+    const reservedCalls = Math.max(0, Math.trunc(Number(row.reservedCalls || 0)) || 0);
+    const usage = { day, reservedCalls };
+    if (reservedCalls >= grant.dailyCallLimit) {
+      return { allowed: false, ...usage, dailyCallLimit: grant.dailyCallLimit, maxAiCredits: grant.maxAiCredits };
+    }
+    const nextReservedCalls = reservedCalls + 1;
+    await context.workspaceState.update(key, { reservedCalls: nextReservedCalls });
+    return {
+      allowed: true,
+      day,
+      reservedCalls: nextReservedCalls,
+      dailyCallLimit: grant.dailyCallLimit,
+      maxAiCredits: grant.maxAiCredits,
+    };
+  });
 }
 
 const runComposerStdin = async (context, folder, args, input, options = {}) => {
@@ -536,4 +558,6 @@ module.exports = {
   reserveQueryCall,
   scopeBlockedResult,
   unavailableResult,
+  usageKey,
+  withReservationLock,
 };
