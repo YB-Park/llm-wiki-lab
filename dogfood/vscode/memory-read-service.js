@@ -18,6 +18,7 @@ const QUERY_PROFILE_V1 = Object.freeze({
   derivedLimit: 3,
   humanLimit: 3,
   relevantRegionChars: 6000,
+  relevantQueryChars: 2000,
 });
 
 function configuration() {
@@ -98,6 +99,12 @@ function navigationQuery(question, derivedRow) {
   return [question, title, snippet].filter(Boolean).join('\n');
 }
 
+function mergedTargetQuery(target, maxChars) {
+  return [...new Set(target.queryHints.map((value) => String(value || '').trim()).filter(Boolean))]
+    .join('\n')
+    .slice(0, maxChars);
+}
+
 async function collectQueryEvidence(context, folder, question, profile = QUERY_PROFILE_V1) {
   const memory = await collectMemoryRows(context, folder, question, { maxResults: profile.rawDiscoveryLimit });
   const rawHits = memory.rawRows.slice(0, profile.rawDiscoveryLimit);
@@ -105,11 +112,29 @@ async function collectQueryEvidence(context, folder, question, profile = QUERY_P
   const humanRows = memory.humanRows.slice(0, profile.humanLimit);
 
   const targets = [];
-  const seen = new Set();
-  const addTarget = (sourceId, topicId, query, equivalentSourceIds = [], objectId = '') => {
-    if (!sourceId || seen.has(sourceId) || targets.length >= profile.rawInternalLimit) return;
-    seen.add(sourceId);
-    targets.push({ sourceId, topicId: String(topicId || '').trim(), query, equivalentSourceIds, objectId });
+  const bySource = new Map();
+  const addTarget = (sourceId, topicId, queryHint, equivalentSourceIds = [], objectId = '') => {
+    if (!sourceId) return;
+    const existing = bySource.get(sourceId);
+    if (existing) {
+      if (queryHint) existing.queryHints.push(queryHint);
+      if (!existing.topicId && topicId) existing.topicId = String(topicId).trim();
+      if (!existing.objectId && objectId) existing.objectId = String(objectId);
+      for (const equivalentId of equivalentSourceIds.map(String)) {
+        if (equivalentId && !existing.equivalentSourceIds.includes(equivalentId)) existing.equivalentSourceIds.push(equivalentId);
+      }
+      return;
+    }
+    if (targets.length >= profile.rawInternalLimit) return;
+    const target = {
+      sourceId,
+      topicId: String(topicId || '').trim(),
+      queryHints: queryHint ? [queryHint] : [],
+      equivalentSourceIds: [...new Set(equivalentSourceIds.map(String).filter(Boolean))],
+      objectId: String(objectId || ''),
+    };
+    bySource.set(sourceId, target);
+    targets.push(target);
   };
 
   for (const row of rawHits) {
@@ -125,7 +150,7 @@ async function collectQueryEvidence(context, folder, question, profile = QUERY_P
   for (const target of targets) {
     const args = [
       'relevant', target.sourceId,
-      '--query', target.query,
+      '--query', mergedTargetQuery(target, profile.relevantQueryChars),
       '--max-chars', String(profile.relevantRegionChars),
     ];
     if (target.topicId) args.push('--topic', target.topicId);
@@ -197,6 +222,7 @@ module.exports = {
   collectMemoryRows,
   collectQueryEvidence,
   isWikiInitialized,
+  mergedTargetQuery,
   parseJsonLines,
   runPythonModule,
   wikiRoot,
