@@ -48,7 +48,7 @@ suite('LLM Wiki Agent Tools', () => {
     assert.match(disabled, /fallback=none/);
 
     const config = vscode.workspace.getConfiguration('llmWiki');
-    assert.equal(config.inspect('queryPlaneEnabled'), undefined, 'query grant must not be a workspace configuration setting');
+    assert.equal(config.get('queryPlaneEnabled'), undefined, 'query grant must not be a workspace configuration setting');
 
     const disabledWorkspace = await vscode.commands.executeCommand('llmWiki.disableWorkspace');
     assert.equal(disabledWorkspace, true);
