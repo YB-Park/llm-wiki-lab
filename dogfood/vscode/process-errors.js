@@ -20,6 +20,7 @@ const EXACT_SAFE_CODES = new Set([
   'library_store_name_required',
   'library_store_not_initialized',
   'library_store_not_registered',
+  'library_store_source_not_found',
   'library_store_unavailable',
   'library_workspace_not_enabled',
 ]);
