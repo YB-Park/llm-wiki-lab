@@ -44,7 +44,7 @@ function makeExternalStore(parent) {
 }
 
 suite('LLM Wiki Query Plane revocation boundary', () => {
-  test('query and library grants are revalidated immediately before model exposure', async () => {
+  test('query and library grants survive only through the synchronous model-spawn authorization boundary', async () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'llm-wiki-f1-reauth-'));
     try {
       const currentRoot = makeCurrentStore(tmp);
@@ -57,7 +57,7 @@ suite('LLM Wiki Query Plane revocation boundary', () => {
       };
       const context = { globalState: stateStore(), workspaceState: stateStore() };
       const optIn = workspaceActivation.readWorkspaceOptIn(currentRoot);
-      await context.workspaceState.update(queryPlane.grantKey(folder), {
+      const initialGrant = {
         version: queryPlane.GRANT_VERSION,
         enabled: true,
         provider: 'github_copilot',
@@ -68,7 +68,8 @@ suite('LLM Wiki Query Plane revocation boundary', () => {
         workspaceEpoch: workspaceActivation.workspaceEpoch(optIn),
         dailyCallLimit: 1,
         maxAiCredits: 1,
-      });
+      };
+      await context.workspaceState.update(queryPlane.grantKey(folder), initialGrant);
 
       const registered = await library.registerStore(context, {
         root: externalRoot,
@@ -84,16 +85,45 @@ suite('LLM Wiki Query Plane revocation boundary', () => {
       assert.equal(allowed.state, 'authorized');
       assert.equal(allowed.storeHandle.storeId, registered.storeId);
       assert.ok(allowed.grant);
+      const finalAllowed = queryPlane.finalModelAuthorization(
+        context,
+        folder,
+        'Project A',
+        originalHandle,
+        allowed.grant
+      );
+      assert.equal(finalAllowed.state, 'authorized');
+
+      await context.workspaceState.update(queryPlane.grantKey(folder), {
+        ...initialGrant,
+        maxAiCredits: 2,
+      });
+      assert.throws(
+        () => queryPlane.finalModelAuthorization(context, folder, 'Project A', originalHandle, allowed.grant),
+        /agent_wiki_model_call_not_authorized/,
+        'reconfiguration after evidence collection must not silently change the in-flight model authority'
+      );
+      await context.workspaceState.update(queryPlane.grantKey(folder), initialGrant);
 
       await library.setLibraryAccess(context, folder, currentRoot, false);
       const libraryRevoked = queryPlane.preModelAuthorization(context, folder, 'Project A', originalHandle);
       assert.equal(libraryRevoked.state, 'library_scope_revoked');
       assert.match(String(libraryRevoked.error && libraryRevoked.error.message), /library_access_disabled/);
+      assert.throws(
+        () => queryPlane.finalModelAuthorization(context, folder, 'Project A', originalHandle, allowed.grant),
+        /library_access_disabled/,
+        'library revocation must survive through the final synchronous spawn boundary'
+      );
 
       await library.setLibraryAccess(context, folder, currentRoot, true);
       await context.workspaceState.update(queryPlane.grantKey(folder), undefined);
       const queryRevoked = queryPlane.preModelAuthorization(context, folder, 'Project A', originalHandle);
       assert.equal(queryRevoked.state, 'query_grant_revoked');
+      assert.throws(
+        () => queryPlane.finalModelAuthorization(context, folder, 'Project A', originalHandle, allowed.grant),
+        /agent_wiki_model_call_not_authorized/,
+        'query revocation must prevent subprocess spawn'
+      );
     } finally {
       fs.rmSync(tmp, { recursive: true, force: true });
     }
