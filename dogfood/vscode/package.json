@@ -299,7 +299,7 @@
     }
   },
   "scripts": {
-    "check": "node --check entry.js && node --check extension.js && node --check agent-tools.js && node --check query-plane.js && node --check memory-read-service.js && node --check personal-wiki-library.js && node --check personal-wiki-library-ui.js && node --check scoped-read-tool.js && node --check workspace-activation.js && node --check human-knowledge.js && node --check product-helpers.js && node --check process-errors.js && node --check python-runtime.js && node --check python-runtime-policy.js && node test/product-helpers.js && node test/workspace-activation.js && node test/personal-wiki-library.js && node test/process-errors.js && node test/python-runtime-policy.js && node test/static.js",
+    "check": "node --check entry.js && node --check extension.js && node --check agent-tools.js && node --check query-plane.js && node --check query-usage-ledger.js && node --check memory-read-service.js && node --check personal-wiki-library.js && node --check personal-wiki-library-ui.js && node --check scoped-read-tool.js && node --check workspace-activation.js && node --check human-knowledge.js && node --check product-helpers.js && node --check process-errors.js && node --check python-runtime.js && node --check python-runtime-policy.js && node test/product-helpers.js && node test/workspace-activation.js && node test/personal-wiki-library.js && node test/query-usage-ledger.js && node test/process-errors.js && node test/python-runtime-policy.js && node test/static.js",
     "test:integration": "vscode-test --label runtime",
     "test:packaged": "cd test/packaged-runner && ../../node_modules/.bin/vscode-test",
     "bundle:core": "node scripts/bundle-core.js",
