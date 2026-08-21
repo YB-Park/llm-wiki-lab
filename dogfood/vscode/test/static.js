@@ -202,7 +202,8 @@ must('memory-preserves-hk-support', memoryRead.includes('supporting_source_ids')
 
 must('library-global-catalog-state', personalLibrary.includes('context.globalState.get(CATALOG_KEY)') && personalLibrary.includes('context.globalState.update(CATALOG_KEY'));
 must('library-workspace-grant-state', personalLibrary.includes('context.workspaceState.get(grantKey(folder))') && personalLibrary.includes('context.workspaceState.update(grantKey(folder)'));
-must('library-grant-epoch-bound', personalLibrary.includes('row.workspaceEnabledAt !== optIn.enabled_at'));
+must('library-grant-epoch-bound', personalLibrary.includes("const storedEpoch = String(row.workspaceEpoch || '')") && personalLibrary.includes('storedEpoch !== workspaceActivation.workspaceEpoch(optIn)'));
+mustNot('library-grant-no-timestamp-auth-fallback', personalLibrary.includes('row.workspaceEnabledAt !== optIn.enabled_at'));
 must('library-random-opaque-id', personalLibrary.includes('crypto.randomUUID()'));
 must('library-current-store-rejected', personalLibrary.includes('library_store_is_current_store'));
 must('library-ambiguity-failclosed', personalLibrary.includes('library_store_ambiguous'));
