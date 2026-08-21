@@ -1,8 +1,8 @@
 # AI summaries are optional
 
-Local project memory works without AI summaries.
+Local project memory works without AI summaries. They are **OFF by default**, so there is nothing you need to enable here to finish basic setup.
 
-If you enable **AI Summaries**, explicitly saved source content may be sent to GitHub Copilot using the configured maintenance model. These summaries are navigation aids: they never replace the saved source evidence or your confirmed decisions.
+If you later choose **LLM Wiki: Configure AI Summaries**, explicitly saved source content may be sent to GitHub Copilot using the configured maintenance model. These summaries are navigation aids: they never replace the saved source evidence or your confirmed decisions.
 
 ## If Copilot CLI is not ready
 
