@@ -80,6 +80,22 @@ function folder(name = 'current') {
     assert.equal(handle.isCurrentStore, false);
     assert.equal(library.resolveStoreId(ctx, currentFolder, currentRoot, a.storeId).storeId, a.storeId);
 
+    const originalOptIn = workspaceActivation.readWorkspaceOptIn(currentRoot);
+    const replacementEpoch = originalOptIn.epoch_id === '11111111-1111-4111-8111-111111111111'
+      ? '22222222-2222-4222-8222-222222222222'
+      : '11111111-1111-4111-8111-111111111111';
+    fs.writeFileSync(workspaceActivation.markerPath(currentRoot), `${JSON.stringify({
+      ...originalOptIn,
+      epoch_id: replacementEpoch,
+    }, null, 2)}\n`);
+    assert.equal(
+      library.libraryGrant(ctx, currentFolder, currentRoot),
+      undefined,
+      'a different authority epoch must invalidate the prior library grant even when enabled_at is unchanged'
+    );
+    await library.setLibraryAccess(ctx, currentFolder, currentRoot, true);
+    assert.ok(library.libraryGrant(ctx, currentFolder, currentRoot));
+
     const anchorBeforeAppend = library.manifestAuthorityAnchor(rootA);
     fs.appendFileSync(path.join(rootA, 'manifest.jsonl'), manifestLine('d'));
     assert.equal(library.manifestAuthorityAnchor(rootA), anchorBeforeAppend, 'append-only history must preserve store authority identity');
