@@ -8,6 +8,7 @@ const { defaultPythonNames } = require('./python-runtime-policy');
 
 const execFileAsync = promisify(execFile);
 const runtimeCache = new Map();
+const autoRuntimeCache = new Map();
 
 function configuration() {
   return vscode.workspace.getConfiguration('llmWiki');
@@ -38,6 +39,10 @@ function pythonCandidates(folder, platform = process.platform) {
   return defaultPythonNames(platform).map((executable) => ({ executable, source: 'auto' }));
 }
 
+function autoPythonCandidates(platform = process.platform) {
+  return defaultPythonNames(platform).map((executable) => ({ executable, source: 'auto-isolated' }));
+}
+
 async function executableAvailable(executable, cwd) {
   try {
     await execFileAsync(executable, ['--version'], {
@@ -66,13 +71,29 @@ async function resolvePythonRuntime(folder) {
   return undefined;
 }
 
+async function resolveAutoPythonRuntime(folder) {
+  const key = `${folder.uri.toString()}|${process.platform}`;
+  if (autoRuntimeCache.has(key)) return autoRuntimeCache.get(key);
+  for (const candidate of autoPythonCandidates()) {
+    if (await executableAvailable(candidate.executable, folder.uri.fsPath)) {
+      autoRuntimeCache.set(key, candidate);
+      return candidate;
+    }
+  }
+  autoRuntimeCache.set(key, undefined);
+  return undefined;
+}
+
 function clearPythonRuntimeCache() {
   runtimeCache.clear();
+  autoRuntimeCache.clear();
 }
 
 module.exports = {
+  autoPythonCandidates,
   clearPythonRuntimeCache,
   explicitSettingValue,
   pythonCandidates,
+  resolveAutoPythonRuntime,
   resolvePythonRuntime,
 };
