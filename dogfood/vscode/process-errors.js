@@ -27,6 +27,7 @@ const EXACT_SAFE_CODES = new Set([
   'library_store_source_not_found',
   'library_store_unavailable',
   'library_workspace_not_enabled',
+  'query_usage_storage_unavailable',
 ]);
 
 const SAFE_PATTERNS = [
