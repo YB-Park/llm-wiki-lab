@@ -46,6 +46,9 @@ must('external-composer-trusted', queryPlane.includes('trusted: expectedStoreHan
 must('external-composer-uses-trusted-invocation', queryPlane.includes('memoryRead.trustedPythonInvocation('));
 must('named-store-resolves-before-reservation', queryPlane.indexOf('library.resolveNamedStore(this.context, folder') < queryPlane.indexOf('reserveQueryCall(this.context, folder, grant)'));
 must('named-store-integrity-before-reservation', queryPlane.indexOf('memoryRead.assertStoreIntegrity(this.context, folder, storeHandle)') < queryPlane.indexOf('reserveQueryCall(this.context, folder, grant)'));
+must('query-usage-lock-is-keyed', queryPlane.includes('const reservationLocks = new Map()') && queryPlane.includes('async function withReservationLock(key, operation)'));
+must('query-reservation-is-serialized', /async function reserveQueryCall[\s\S]*?return withReservationLock\(key, async \(\) =>/.test(queryPlane));
+must('query-reservation-rereads-state-under-lock', /return withReservationLock[\s\S]*?context\.workspaceState\.get\(key, \{\}\)/.test(queryPlane));
 must('query-grant-binds-random-workspace-epoch', queryPlane.includes('workspaceActivation.workspaceEpoch(optIn)'));
 must('pre-model-authorization-explicit', queryPlane.includes('function preModelAuthorization(context, folder, requestedStore, originalStoreHandle)'));
 must('pre-model-query-grant-rechecked', /function preModelAuthorization[\s\S]*?const liveGrant = queryGrant\(context, folder\)/.test(queryPlane));
@@ -96,4 +99,4 @@ must('scoped-read-remains-read-only-policy', scopedRead.includes('never authoriz
 must('scoped-read-no-cross-store-fallback', scopedRead.includes('Never retry a missing external source ID against the current store or another store'));
 must('scoped-read-preserves-revocation-failures', scopedRead.includes("'library_access_disabled'") && scopedRead.includes("'library_store_identity_changed'") && scopedRead.includes("'library_store_not_registered'"));
 
-console.log('F1-FEDERATION-SAFETY-STATIC PASS strictReadBridge=yes isolatedPython=yes trustedExternalComposer=yes registrationContinuity=yes epochNonce=yes liveReauthorization=yes finalSpawnAuthorization=yes writeIsolation=yes');
+console.log('F1-FEDERATION-SAFETY-STATIC PASS strictReadBridge=yes isolatedPython=yes trustedExternalComposer=yes registrationContinuity=yes epochNonce=yes serializedUsageCap=yes liveReauthorization=yes finalSpawnAuthorization=yes writeIsolation=yes');
