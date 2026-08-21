@@ -13,6 +13,14 @@ const execFileAsync = promisify(execFile);
 const MAX_BUFFER = 16 * 1024 * 1024;
 const FEDERATION_READ_MODULE = 'dogfood.llm_wiki.federation_read_cli';
 const ISOLATED_MODULE_RUNNER = "import runpy,sys; core=sys.argv[1]; module=sys.argv[2]; argv=sys.argv[3:]; sys.path.insert(0,core); sys.argv=[module,*argv]; runpy.run_module(module,run_name='__main__')";
+const EXTERNAL_SCOPE_FAILURES = new Set([
+  'library_access_disabled',
+  'library_catalog_corrupt',
+  'library_store_damaged',
+  'library_store_identity_changed',
+  'library_store_not_registered',
+  'library_store_unavailable',
+]);
 
 const QUERY_PROFILE_V1 = Object.freeze({
   id: 'current-store-l0-v1',
@@ -70,6 +78,11 @@ function normalizeStoreHandle(folder, handle) {
     displayName: String(handle.displayName || ''),
     scopeRef: { kind: 'library_store', store_id: scopeRef.store_id },
   };
+}
+
+function externalScopeFailure(error) {
+  const message = error && error.message ? error.message : String(error);
+  return EXTERNAL_SCOPE_FAILURES.has(message);
 }
 
 function revalidateExternalStore(context, folder, storeHandle) {
@@ -216,13 +229,7 @@ async function assertStoreIntegrity(context, folder, storeHandle) {
     if (!row || row.ok !== true) throw new Error('integrity-failed');
     return true;
   } catch (error) {
-    const message = error && error.message ? error.message : String(error);
-    if (!store.isCurrentStore && new Set([
-      'library_access_disabled',
-      'library_store_identity_changed',
-      'library_store_not_registered',
-      'library_store_unavailable',
-    ]).has(message)) throw error;
+    if (!store.isCurrentStore && externalScopeFailure(error)) throw error;
     if (!store.isCurrentStore) throw new Error('library_store_damaged');
     return false;
   }
@@ -336,7 +343,8 @@ async function collectQueryEvidence(context, folder, question, profile, storeHan
     let row;
     try {
       row = JSON.parse((await runReadOperation(context, folder, store, 'relevant', args.slice(1))).trim());
-    } catch (_) {
+    } catch (error) {
+      if (!store.isCurrentStore && externalScopeFailure(error)) throw error;
       throw new Error(`query_plane_candidate_verification_failed:${target.sourceId}`);
     }
     if (row.format !== 'llm-wiki-agent-relevant-read-v0' || row.source_id !== target.sourceId) {
@@ -409,13 +417,15 @@ async function readSource(context, folder, sourceId, options = {}) {
   let derived = '';
   try {
     derived = await runReadOperation(context, folder, store, 'derived-show', [sourceId]);
-  } catch (_) {
+  } catch (error) {
+    if (!store.isCurrentStore && externalScopeFailure(error)) throw error;
     derived = '';
   }
   return { row, derived: derived ? derived.slice(0, 6000) : '', store };
 }
 
 module.exports = {
+  EXTERNAL_SCOPE_FAILURES,
   FEDERATION_READ_MODULE,
   ISOLATED_MODULE_RUNNER,
   NAMED_STORE_QUERY_PROFILE_V1,
@@ -424,6 +434,7 @@ module.exports = {
   collectMemoryRows,
   collectQueryEvidence,
   currentStoreHandle,
+  externalScopeFailure,
   isWikiInitialized,
   mergedTargetQuery,
   normalizeStoreHandle,
