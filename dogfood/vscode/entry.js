@@ -11,10 +11,11 @@ const { classifyGitSafety } = require('./git-safety');
 const { clearPythonRuntimeCache, resolvePythonRuntime } = require('./python-runtime');
 const workspaceActivation = require('./workspace-activation');
 const { discoverCopilotModels } = require('./lm-discovery');
+const { queryGrant, registerQueryPlaneCommand, registerQueryPlaneTool } = require('./query-plane');
 
 const execFileAsync = promisify(execFile);
 const WORKSPACE_ENABLED_CONTEXT = 'llmWiki.workspaceEnabled';
-const AGENT_TOOL_COUNT = 5;
+const AGENT_TOOL_COUNT = 6;
 const MULTI_ROOT_MESSAGE = 'LLM Wiki currently supports one workspace folder at a time. Open the project as a single-folder workspace before using project memory.';
 let doctorOutput;
 let baseSurfaceRegistered = false;
@@ -122,6 +123,7 @@ function ensureAgentToolsRegistered(context) {
   if (agentToolsRegistered) return;
   const before = context.subscriptions.length;
   registerAgentTools(context);
+  registerQueryPlaneTool(context);
   const added = context.subscriptions.slice(before);
   if (added.length !== AGENT_TOOL_COUNT) {
     for (const disposable of added) disposable.dispose();
@@ -294,6 +296,7 @@ async function doctor(context) {
   const realisticDogfoodReady = localReady && gitSafeForEvidence && workspaceEnabled;
   const maintenanceOn = configuration().get('agentWikiMaintenanceEnabled', false) === true;
   const maintenanceGuard = Number(configuration().get('agentWikiMaintenanceMaxAiCredits', 30));
+  const query = workspaceEnabled ? queryGrant(context, folder) : undefined;
   const storeLabel = storeInitialized ? 'INITIALIZED' : (storePresent ? 'INCOMPLETE' : 'NOT_INITIALIZED');
 
   doctorOutput.clear();
@@ -310,8 +313,10 @@ async function doctor(context) {
   doctorOutput.appendLine(`Local data integrity: ${!storePresent ? 'NOT CHECKED' : (integrityReady ? 'PASS' : 'NEEDS ATTENTION')}`);
   doctorOutput.appendLine(`Git privacy: ${gitSafety === 'UNPROTECTED' ? 'NEEDS ATTENTION — local memory directory is not ignored by Git' : 'PASS'} (${gitSafety})`);
   doctorOutput.appendLine(`AI summaries: ${maintenanceOn ? 'ON' : 'OFF'}`);
+  doctorOutput.appendLine(`Wiki query reasoning: ${query ? 'ON' : 'OFF'}`);
+  doctorOutput.appendLine(`Wiki query daily call cap: ${query ? query.dailyCallLimit : 'NOT_GRANTED'}`);
   doctorOutput.appendLine(`Copilot CLI executable: ${copilotReady ? 'FOUND' : 'NOT FOUND'}`);
-  doctorOutput.appendLine('AI-summary model-call readiness: NOT VERIFIED (this check intentionally makes no model calls)');
+  doctorOutput.appendLine('AI-summary/query model-call readiness: NOT VERIFIED (this check intentionally makes no model calls)');
   doctorOutput.appendLine('');
   if (!pythonReady) {
     doctorOutput.appendLine('Next action: install Python or set LLM Wiki: Python Executable explicitly, then run this check again.');
@@ -323,8 +328,8 @@ async function doctor(context) {
     doctorOutput.appendLine('Next action: add .wiki-lab/ (or your configured memory directory) to .git/info/exclude for a local-only choice, or .gitignore for the project; then run setup again.');
   } else if (!workspaceEnabled) {
     doctorOutput.appendLine('Next action: run “LLM Wiki: Set Up Project Memory” to explicitly enable this workspace.');
-  } else if (maintenanceOn && !copilotReady) {
-    doctorOutput.appendLine('Next action: local project memory is ready. AI summaries are enabled but need GitHub Copilot CLI installed and authenticated.');
+  } else if ((maintenanceOn || query) && !copilotReady) {
+    doctorOutput.appendLine('Next action: local project memory is ready. A Copilot-backed feature is enabled but needs GitHub Copilot CLI installed and authenticated.');
   } else {
     doctorOutput.appendLine('Local project memory is ready. Continue in normal Agent chat.');
   }
@@ -360,6 +365,8 @@ async function doctor(context) {
     askReady,
     maintenanceOn,
     maintenanceGuard,
+    queryReasoningOn: Boolean(query),
+    queryDailyCallLimit: query ? query.dailyCallLimit : 0,
   };
 }
 
@@ -474,14 +481,17 @@ async function reportIssue(context) {
     const runtime = await resolvePythonRuntime(folder);
     const copilotReady = await executableAvailable('copilot', ['--version'], folder.uri.fsPath);
     const gitSafety = await classifyGitSafety(folder.uri.fsPath, root);
+    const query = workspaceActivation.isWorkspaceEnabled(root) ? queryGrant(context, folder) : undefined;
     lines.push(`project_memory=${workspaceActivation.isWorkspaceEnabled(root) ? 'on' : (workspaceActivation.isCoreInitialized(root) ? 'off' : 'not_set_up')}`);
     lines.push(`python_runtime=${runtime ? 'found' : 'missing'}`);
     lines.push(`python_runtime_source=${runtime ? runtime.source : 'none'}`);
     lines.push(`git_privacy=${gitSafety}`);
     lines.push(`ai_summaries=${configuration().get('agentWikiMaintenanceEnabled', false) === true ? 'on' : 'off'}`);
+    lines.push(`query_reasoning=${query ? 'on' : 'off'}`);
+    lines.push(`query_daily_call_cap=${query ? query.dailyCallLimit : 0}`);
     lines.push(`copilot_cli_executable=${copilotReady ? 'found' : 'not_found'}`);
   }
-  lines.push('ai_summary_model_call_readiness=not_verified_by_this_report');
+  lines.push('ai_summary_query_model_call_readiness=not_verified_by_this_report');
   await vscode.commands.executeCommand('vscode.openIssueReporter', {
     extensionId: context.extension.id,
     data: lines.join('\n'),
@@ -533,6 +543,7 @@ async function activate(context) {
   context.subscriptions.push(vscode.commands.registerCommand('llmWiki.disableWorkspace', () => commandBoundary('Disable for This Workspace', () => disableWorkspace(context))));
   context.subscriptions.push(vscode.commands.registerCommand('llmWiki.newKnowledgeNote', (options) => commandBoundary('New Human Knowledge Note', () => newHumanKnowledgeNote(options || {}))));
   context.subscriptions.push(vscode.commands.registerCommand('llmWiki.configureAgentWikiMaintenance', () => commandBoundary('Configure AI Summaries', () => configureAgentWikiMaintenance())));
+  registerQueryPlaneCommand(context);
   context.subscriptions.push(vscode.commands.registerCommand('llmWiki.doctor', () => commandBoundary('Check Setup and Health', () => doctor(context))));
   context.subscriptions.push(vscode.commands.registerCommand('llmWiki.reportIssue', () => commandBoundary('Report an Issue', () => reportIssue(context))));
   context.subscriptions.push(vscode.commands.registerCommand('llmWiki.experimentalDiscoverCopilotModels', () => commandBoundary('Discover Copilot Models', () => discoverModels())));

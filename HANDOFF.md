@@ -1,249 +1,194 @@
 # Current Handoff
 
-Last updated: 2026-08-20 KST — Dogfood GO checkpoint
+Last updated: 2026-08-21 KST — 0.1.17 L0 Query Plane installed-dogfood posture
 
-This is a **living continuation checkpoint**, not a project history.
-Keep only what a new continuation needs to decide and act **now**.
-Historical experiments, rationale, PR-by-PR detail, and frozen results belong in their source docs, issues, PRs, ADRs, and Git.
+This is a **living continuation checkpoint**, not project history. Historical experiments, PR choreography, review detail, and frozen results belong in their source docs/issues/Git.
 
-If this file conflicts with merged code or an accepted ADR, code/ADR wins.
-Before any new repo work, re-check current `main` and open PRs; volatile repository state does not belong in this handoff.
+If this file conflicts with merged code or an accepted ADR, code/ADR wins. Before repo work, re-check current `main` and open work.
 
 ## NOW
 
 Repository: `YB-Park/llm-wiki-lab`
 
-Current state:
-- product baseline: **Dogfood 0.1.16**
-- current product decision: **GO for installed self-dogfood / Alpha use**
-- public Beta / broad Marketplace readiness: **not declared by this checkpoint**
-- primary product-evidence track: **Issue #141 natural installed dogfood**
-- E023 research: **parked**
-- paid E023 semantic calls: **paused**
-- G3 identity/routing: **not opened**
+Current product posture:
+- installed baseline remains **0.1.16** until the next installed smoke replaces it;
+- **0.1.17** is the next opt-in installed-dogfood candidate and adds the earned L0 Luna-backed Wiki Query Plane;
+- current product decision: **GO for installed self-dogfood / Alpha use**;
+- public Beta: **not declared**;
+- primary product-evidence track: **Issue #141 natural installed dogfood**;
+- paid E023 semantic calls: **paused**;
+- 0.1.16 artifact remains a frozen historical baseline and must not be silently replaced under the same version.
 
-The immediate job is no longer to invent another benchmark or architecture layer.
-It is to determine whether LLM Wiki is genuinely useful during normal long-horizon Agent work.
+## Why 0.1.17 exists
 
-## North Star
+E024 tested whether Wiki retrieval/composition could be kept out of the Main Agent context while preserving terminal authority. The frozen Q1 result earned the L0 Query Plane:
+- 18/18 exact `gpt-5.6-luna` paired calls completed;
+- Query Plane semantic adjudication: **9/9 PASS**;
+- critical failures: **0**;
+- paired regressions: **0**;
+- Main-visible Wiki character ratio: median **5.19%**, max **7.62%**;
+- max compact brief: **583 chars**.
 
-Build a VS Code-first **LLM Wiki** where the user owns a verifiable project-memory system and the coding Agent naturally recovers and compounds useful knowledge inside explicit authority boundaries.
+E024 earned **bounded one-shot retrieval/composition isolation**, not iterative agentic retrieval. L1 remains **NOT EARNED**.
 
-> **Human controls admission and epistemic commitment. LLM controls routine retrieval, organization, compilation, and maintenance inside granted authority.**
+## 0.1.17 architecture
 
-Normal product use should remain ordinary VS Code Agent conversation.
+```text
+Main Agent
+   │ wikiConsult(self-contained question)
+   ▼
+Query Controller
+ local grant / current-store scope / user-chosen usage guards
+   ▼
+Shared Memory Read Service
+ RAW discovery / DERIVED navigation / Human Knowledge / pending lineage
+   ▼
+verified query-relevant RAW regions
+   ▼
+Evidence Packet
+   ▼
+Isolated exact-Luna Query Composer
+   ▼
+Deterministic result validation
+   ▼
+Compact Wiki Brief
+ answer / scope-qualified terminal refs / insufficiency
+```
 
-## Product baseline — do not casually change during dogfood
+Authority Core stays below this layer and is not redesigned by the Query Plane.
 
-Dogfood **0.1.16** is the installed baseline.
+## 0.1.17 authority and privacy floor
 
-Release artifact:
-- `dogfood/releases/llm-wiki-dogfood-latest.vsix`
-- version: `0.1.16`
-- SHA-256: `5fd7c76483b6bef16bff9d3e76fc7b05f05348ae04a2526237843a53891ffb08`
-- validated main run: `32204779167`
+Treat these as product invariants unless a separate evidence-backed decision changes them:
 
-E023 changed research conclusions, **not the 0.1.16 runtime product**.
+- workspace use remains explicit opt-in and trusted-workspace only;
+- workspace disable makes Agent tool runtime implementations non-invokable while preserving Wiki data;
+- disabling and later re-enabling project memory invalidates the previous Query Plane grant; query reasoning must be explicitly granted again;
+- `Check Setup and Health` remains **0 model calls / 0 state changes**;
+- `RAW_MEMORY` stays immutable admitted evidence/provenance authority;
+- `DERIVED_MEMORY` remains noncanonical, rebuildable, and navigation-only;
+- `HUMAN_KNOWLEDGE` remains explicit user-owned knowledge, not independent external factual corroboration;
+- pending lineage is workflow state, never terminal authority and never model-resolved automatically;
+- source admission, Human Knowledge authorship, and lineage semantics stay human-gated;
+- Query Plane is read-only and cannot mutate canonical epistemic state;
+- Query Plane permission is separate from workspace opt-in, source admission, and AI-summary maintenance permission;
+- Query Plane grant lives in local VS Code `workspaceState`, not a committable workspace setting;
+- no product-owned hidden Query Plane spend default exists: the user explicitly chooses both a daily model-call-attempt cap and a per-response Copilot AI-credit soft guard before the grant exists;
+- the local daily counter is not an exact billing/token/AI-credit estimate;
+- the per-response provider guard must be enforceable by the installed Copilot CLI or Query Plane fails before a model call;
+- query usage reservation happens before the model attempt and uncertain attempts are not silently refunded;
+- `wikiConsult` never silently falls back to broad `wikiMemory` raw context on disabled, budget-paused, unavailable, or verification-failure states;
+- selected candidate verification failure fails the consult closed;
+- long-source evidence uses bounded deterministic **query-relevant verified regions**, not a fixed first-6k read;
+- RAW and DERIVED navigation hints for the same source may be deterministically merged for region selection, but DERIVED never becomes terminal authority;
+- `wikiMemory` and `wikiConsult` share one Memory Read Service so candidate/authority semantics do not drift independently;
+- terminal Wiki Brief refs are scope-qualified and may terminate only on RAW/HUMAN_KNOWLEDGE;
+- exact model for this slice is `gpt-5.6-luna`;
+- composer evidence travels through stdin and the actual Copilot subprocess runs from a neutral temporary cwd;
+- Query Plane transport strips generic `GH_TOKEN`/`GITHUB_TOKEN`, Copilot allow-all/model overrides, and `COPILOT_PROVIDER_*` routing overrides before launching the composer;
+- current generic read/write/url/memory/web-search tool names remain in the Query Plane exclusion boundary in addition to existing hardened adapter exclusions;
+- no hidden chain-of-thought or retrieval transcript is returned;
+- existing `wikiMemory`/`wikiRead` remain available for explicit low-level provenance/debug fallback;
+- no L1 iterative retrieval, federation, graph/vector/entity layer, semantic persistence, or canonical mutation is opened by 0.1.17.
 
-During long-horizon dogfood, prefer to keep this binary fixed.
-Do not patch every small annoyance immediately; otherwise the observed product keeps changing.
-Interrupt the freeze only for a real P0/P1 class defect such as data loss/corruption risk, broken authority/privacy boundary, provenance failure, unusable core path, or repeated causal failure that blocks normal use.
+## Versioned query policy
 
-## Authority floor
+The current-store L0 policy is represented as the versioned internal query profile `current-store-l0-v1`.
 
-These are product invariants unless a separate evidence-backed product decision changes them:
+Do not turn current candidate counts, top-k values, or region sizes into universal architectural truths. Revise query profiles only from evidence while preserving the authority floor.
 
-- workspace use is explicit opt-in and trusted-workspace only;
-- `Check Setup and Health` = **0 model calls / 0 state changes**;
-- disabling removes Agent tool availability while preserving Wiki data;
-- new source bytes require human confirmation before durable admission;
-- `RAW_MEMORY` = immutable admitted evidence / provenance authority;
-- `DERIVED_MEMORY` = noncanonical, rebuildable synthesis/navigation aid;
-- `HUMAN_KNOWLEDGE` = explicit user-owned decision, belief, rationale, or approved synthesis;
-- changed remembered files require explicit correction/change/dispute/supersede/independent semantics;
-- load-bearing facts surfaced from derived memory should resolve back to terminal authority;
-- AI summaries are optional and off by default until separately granted;
-- source/model-controlled memory text remains untrusted data, not instructions.
+## Future federation compatibility
 
-E020 remains the deterministic safety/product contract:
+Cross-workspace Personal Wiki Library/federation (#202) and Query Plane (#204) remain separate axes:
+- federation decides **which stores are authorized/searchable**;
+- Query Plane decides **who performs retrieval/composition and what reaches the Main Agent**.
+
+0.1.17 searches only the current store. Terminal references already carry a scope shape so future federation can add store-qualified refs without replacing the Main-Agent `wikiConsult` contract.
+
+Future rule remains: authorization is resolved **before retrieval/scoring/model exposure**. Luna never widens scope.
+
+## E020 deterministic contract
+
+The existing synthetic product contract remains:
+
 **78 zero-model cases: 60 supported / 7 partial / 11 deferred.**
 
-## Before long-horizon dogfood — Day-0 smoke only
+Ambient candidate collection now lives in the shared Memory Read Service. E020 may follow that product seam, but its case judgments must not be changed merely to accommodate implementation movement.
 
-Do **one short installed smoke**, then stop synthetic expansion and use the product naturally.
+## E023 closure invariants remain closed
 
-1. Install the validated 0.1.16 VSIX.
-2. Open one trusted **single-folder** real workspace.
-3. Keep `.wiki-lab/` (or configured Wiki directory) out of Git.
-4. Run `LLM Wiki: Check Setup and Health`.
-5. Set up project memory explicitly.
-6. Keep AI summaries **OFF first** and verify the core loop:
-   - remember one small real file;
-   - ask a normal historical/project question without naming Wiki tool names;
-   - observe whether the Agent uses memory naturally;
-   - when a memory hit matters, observe whether it follows to verified raw provenance.
-7. Smoke one user-owned decision:
-   - “remember that we decided X because Y”;
-   - later explicitly supersede/change it once.
-8. Smoke one changed remembered file and one explicit lineage resolution.
-9. If AI summaries will actually be used, enable them separately and try one small real source.
-10. Before valuable long-horizon use, make one approved **whole `.wiki-lab/` snapshot**.
+The Query Plane product slice does not reopen persistence/identity research.
 
-### Day-0 stop/fix conditions
+- **G2 Persistence: NOT_EARNED; parked.**
+- **G3 Identity / Routing: NOT_OPENED.**
+- same-slice AQ/BQ/CQ/DQ/PQ semantic reruns or tuning remain unauthorized as a tuning loop.
+- paid E023 semantic calls: **paused**.
 
-Fix before continuing long-horizon dogfood if any of these appear:
+Frozen E023 continuation marker: **Run the Day-0 installed smoke on the exact 0.1.16 VSIX**. E024 later earned a separate 0.1.17 Query Plane slice without changing the E023 G2/G3 verdicts or Issue #141's role as the primary natural product-evidence track.
 
-- admitted/canonical data is lost or corrupted;
-- a write crosses an authority/privacy boundary without the required user decision;
-- provenance cannot resolve a load-bearing remembered claim;
-- the installed core path cannot be used reliably;
-- a causal failure is hidden enough that the Agent/user cannot recover without guessing;
-- setup/disable boundaries leave tools available in an unauthorized state.
+## Installed dogfood rollout
 
-Do **not** stop the dogfood merely because retrieval is imperfect, a confirmation feels slightly annoying, usage visibility is missing, or a navigation UI might be nice.
-Those are exactly the things natural use should evaluate.
+Do not immediately retire the proven low-level memory path.
 
-## Primary evidence track — Issue #141
+For 0.1.17 installed dogfood:
+1. install the validated 0.1.17 VSIX in one trusted single-folder workspace;
+2. verify existing project memory, source admission, Human Knowledge, and lineage behavior first;
+3. keep Query Reasoning off and confirm the baseline path still works;
+4. explicitly enable Query Reasoning and choose both local usage guards;
+5. smoke one real `wikiConsult` question;
+6. verify a compact brief, terminal refs, no raw-context fallback, and no canonical mutation;
+7. disable project memory, re-enable it, and verify the old Query Plane grant does not revive;
+8. then use naturally rather than manufacturing benchmark coverage.
 
-Natural use is now the decisive product test.
+Natural evidence should decide whether `wikiConsult` later becomes the ordinary preferred memory path.
 
-Observe, without manufacturing scenarios:
-
-- does ordinary Agent conversation invoke project memory at the right moments?
-- does a useful memory hit naturally follow through to `wikiRead` / verified provenance?
-- do saved decisions and rationale get recovered days or weeks later?
-- does LLM Wiki actually save re-reading/re-discovery effort?
-- is source-admission confirmation tolerable or repeatedly disruptive?
-- is changed-source lineage understandable in real work?
-- are AI summaries useful enough to justify their latency/spend?
-- is the daily AI-summary soft guard useful or annoying?
-- does hidden maintenance consumption create repeated uncertainty?
-- is a dedicated navigation/history surface ever genuinely missed?
-- do causal product fields keep the Agent from inventing failure explanations?
-
-Record **natural events worth remembering**, not artificial coverage counts.
-
-## How to react to dogfood evidence
-
-### Fix promptly
-
-A narrow product fix is justified when installed use shows repeated or high-impact:
-- data/integrity failure;
-- authority/privacy violation or confusing authority decision;
-- broken setup/update/recovery path;
-- provenance failure;
-- misleading causal diagnostics that cause wrong Agent behavior;
-- severe recurring UX friction on the normal path.
-
-### Accumulate evidence first
-
-Do not immediately implement from one mild observation:
-- usage/token/AI-credit dashboard;
-- Tree/Activity/history UI;
-- alternate retrieval defaults;
-- automatic concept/entity routing;
-- large-source chunk/compile pipeline;
-- automatic backup/sync;
-- broader ingestion formats.
-
-Repeated natural friction should choose the next slice.
-
-If hidden maintenance usage becomes a repeated real problem, the leading candidate is **product-owned usage visibility**.
-Keep these distinct:
-- local model-call count;
-- tokens;
-- actual Copilot AI credits / premium requests.
-
-Never infer one from another.
+Observe:
+- Main-visible Wiki chars/tool turns;
+- repeated `wikiRead` follow-up rate;
+- latency;
+- conservative vs excessive insufficiency;
+- long-source authority recovery;
+- pending/history behavior;
+- grant/usage-guard comprehension;
+- whether deterministic bounded evidence without Luna remains a viable competing hypothesis.
 
 ## Research posture
 
-Architecture research is not the current priority.
-
-Current gate state:
-- **G1 Retrieval / Composition: closed** as exploratory mechanism search.
+- E023 G1 exploratory retrieval/composition mechanism search: closed.
 - **G2 Persistence: NOT_EARNED; parked.**
 - **G3 Identity / Routing: NOT_OPENED.**
+- E024 L0 Query Plane: **EARNED for opt-in product dogfood**.
+- E024 L1 iterative Librarian: **NOT EARNED**.
 
-The useful retained E023 principle is:
+Retained principle:
 
 > A representation may preserve authority globally while a later selection bottleneck destroys it locally.
 
-And for any future rebuildable persistent state:
+Query Plane principle:
 
-> Bind it to a deterministic source-authority snapshot and fail closed to current authority when stale.
+> Hide retrieval/composition work from the Main Agent's context, not terminal provenance from the user/system.
 
-These principles do **not** authorize persistence.
+## Known reliability edges
 
-Do not start merely because the mechanism is available:
-- same-slice AQ/BQ/CQ/DQ/PQ semantic reruns or tuning;
-- product top-6/default-composer promotion;
-- persistent semantic dossiers;
-- graph DB / universal Entity-Relation-KnowledgeUnit schema;
-- automatic identity discovery/merge/split/routing;
-- vector retrieval defaults;
-- background semantic maintenance/watchers;
-- broad automatic contradiction resolution;
-- federation/X2;
-- evaluator clauses as runtime canonical structure.
-
-Reopen G2 only from **independent natural evidence** that query-time reconstruction is materially too slow, costly, unreliable, or unable to provide a repeatedly needed durable derived view.
-Any reopened experiment uses new separated material and fresh preregistration.
-
-## Known reliability edges — not current blockers
-
-Issue #132 remains open and evidence-gated:
-
+Issue #132 remains evidence-gated:
 - `.wiki-lab/agent-state.json` deletion is not independently detectable;
-- canonical lineage relation append and pending workflow-state resolution are not one transaction.
-
-Current posture:
-- use whole-directory private snapshots;
-- fail closed on detected corruption;
-- do not claim atomicity/state-loss detection that does not exist;
-- do not preemptively replace storage with a database/WAL;
-- fix narrowly if installed use or recovery tests make these edges material.
-
-Also retained:
+- canonical lineage append and pending workflow-state resolution are not one transaction;
 - Human Knowledge file deletion is not independently detectable without an index.
 
-## Operating edges
-
-- Copilot CLI runtime capability probing is authoritative over version assumptions.
-- `compiled_provider=disabled` is expected and unrelated to AI-summary maintenance.
-- daily maintenance call threshold is a soft guard; `0` disables new model-backed summary generation.
-- source-size policy:
-  - `<=40k` chars: preferred single pass;
-  - `40,001–80k`: allowed oversize single pass;
-  - `>80k`: preserve RAW, skip derived maintenance before model call;
-  - never silently truncate.
-- exact-current workspace-file bytes reuse existing evidence without a second admission modal.
-- multi-root workspaces remain fail-closed in 0.1.16.
-- E013/E015 remain natural/data-gated; do not manufacture workload or divergence.
-
-## NEXT ACTION
-
-**Run the Day-0 installed smoke on the exact 0.1.16 VSIX.**
-
-If it passes:
-1. take a whole-Wiki backup snapshot;
-2. freeze the product binary;
-3. use LLM Wiki on real work;
-4. record only meaningful natural observations on #141;
-5. let repeated installed friction select the next product slice.
-
-Do not add another research gate before this unless the Day-0 smoke exposes a concrete blocker.
+Do not preemptively replace storage with a DB/WAL merely because Query Plane exists.
 
 ## Fast pointers
 
-- installed natural dogfood: Issue #141
-- release-readiness audit: Issue #158 / PR #159
-- reliability follow-up: Issue #132
-- current VSIX: `dogfood/releases/llm-wiki-dogfood-latest.vsix`
+- Query Plane product issue: **#204**
+- natural installed dogfood: **#141**
+- cross-workspace/federation advisory gate: **#202**
+- reliability follow-up: **#132**
 - user guide: `dogfood/vscode/README.md`
-- backup/restore: `docs/11-local-backup-restore.md`
 - E020 deterministic contract: `experiments/E020-synthetic-agent-ux/README.md`
-- E023 current closure: `experiments/E023-generality-retrieval-composition/README.md`
-- G2 closure decision: `experiments/E023-generality-retrieval-composition/g2-closure-decision-v0.md`
-- generality gate: Issue #160 / `docs/14-generality-and-semantic-projections.md`
+- E024 Query Plane experiment: `experiments/E024-query-plane-token-firewall/`
+- Query Plane advisory review: `research/advisory-reviews/2026-08-20-luna-wiki-query-plane-review.md`
 - autonomy philosophy: `docs/12-autonomy-ux-philosophy.md`
+
+## NEXT ACTION
+
+After the 0.1.17 package/runtime gate is green, install the validated 0.1.17 VSIX and run the short installed-dogfood rollout above. Keep the existing low-level memory path available, gather natural evidence on Issue #141, and let repeated real-world friction choose the next product slice.

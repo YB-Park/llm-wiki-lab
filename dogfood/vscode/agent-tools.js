@@ -7,6 +7,7 @@ const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const vscode = require('vscode');
 const humanKnowledge = require('./human-knowledge');
+const memoryRead = require('./memory-read-service');
 const { boundedProcessFailure } = require('./process-errors');
 const { resolvePythonRuntime } = require('./python-runtime');
 const { parseIngestReceipt, workspaceRelativePath } = require('./product-helpers');
@@ -577,16 +578,9 @@ class WikiMemorySearchTool {
       ]);
     }
     const maxResults = normalizeMaxResults(options.input && options.input.maxResults);
-    const [rawStdout, derivedStdout, pendingRows] = await Promise.all([
-      runCli(this.context, folder, ['discover', query, '--top-k-per-topic', '3', '--json']),
-      runAgentWikiCli(this.context, folder, ['search', query, '--top-k', String(Math.min(3, maxResults)), '--json']),
-      openPendingLineageRows(this.context, folder),
-    ]);
-    const rawRows = parseJsonLines(rawStdout).slice(0, maxResults);
-    const derivedRows = parseJsonLines(derivedStdout);
-    const humanRows = humanKnowledge.search(wikiRoot(folder), query, 3);
+    const rows = await memoryRead.collectMemoryRows(this.context, folder, query, { maxResults });
     return new vscode.LanguageModelToolResult([
-      new vscode.LanguageModelTextPart(formatMemoryResult(rawRows, derivedRows, humanRows, pendingRows)),
+      new vscode.LanguageModelTextPart(formatMemoryResult(rows.rawRows, rows.derivedRows, rows.humanRows, rows.pendingRows)),
     ]);
   }
 }

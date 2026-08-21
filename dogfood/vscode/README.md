@@ -1,28 +1,28 @@
-# LLM Wiki for VS Code — 0.1.16 release candidate
+# LLM Wiki for VS Code — 0.1.17 candidate
 
 LLM Wiki gives your coding Agent **durable project memory that you control**.
 
-Install the extension, enable project memory for a trusted workspace, and keep using normal Agent chat. The Agent can look up saved project context when it is useful. Things that become official project memory—or change what earlier memory means—stay explicit and human-approved.
+0.1.17 keeps the 0.1.16 authority model and adds an **opt-in Luna-backed Wiki Query Plane** for installed dogfood. The Query Plane is intended to keep broad Wiki retrieval/composition work out of the Main Agent context while returning a compact, provenance-backed Wiki Brief.
+
+This is an Alpha/dogfood candidate, not a public Beta declaration.
 
 ## Get started
 
-1. Install the `.vsix` with **Extensions → … → Install from VSIX…**.
-2. Open **one trusted local workspace folder**. Multi-root workspaces are intentionally not enabled in 0.1.16.
-3. Follow the built-in **Get started with LLM Wiki** walkthrough, or run **LLM Wiki: Set Up Project Memory**.
-4. If the project is a Git repository, keep the private memory directory out of Git. With the default `.wiki-lab/`, use `.git/info/exclude` for a local-only choice or `.gitignore` for a project-wide choice.
+1. Install the candidate `.vsix`.
+2. Open one trusted local workspace folder. Multi-root workspaces remain fail-closed.
+3. Run **LLM Wiki: Set Up Project Memory**.
+4. Keep the private Wiki directory out of Git. The default is `.wiki-lab/`.
 5. Continue in normal Agent chat.
 
-Installing LLM Wiki gives VS Code the capability. **Setting up a workspace gives the Agent permission to use it there.** Existing `.wiki-lab` data alone never silently enables Agent access.
+Installing the extension gives VS Code the capability. **Setting up a workspace gives the Agent permission to use project memory there.** Existing `.wiki-lab` data alone never silently enables Agent access.
 
-## What normal use feels like
+## Normal use
 
-You do not need to learn LLM Wiki tool names or operate a separate database UI.
+You do not need to learn Wiki tool names.
 
-A normal historical question can simply be:
+A historical question can simply be:
 
 > “왜 예전에 Redis를 안 쓰기로 했지?”
-
-The Agent may search project memory, follow a relevant result back to verified saved evidence, and answer with the recovered context.
 
 When you want to preserve something, say it naturally:
 
@@ -32,225 +32,232 @@ or:
 
 > “우리는 운영 복잡성 때문에 Redis를 아직 쓰지 않기로 결정했어. 이 결정 기억해.”
 
-LLM Wiki keeps the final authority boundary explicit. Saving durable source evidence, saving your confirmed decision/rationale, and deciding whether a changed source is a correction/change/dispute/replacement all require product-owned confirmation.
+LLM Wiki keeps authority boundaries explicit. Durable source admission, user-owned Human Knowledge, and the semantic relationship between changed revisions remain human-approved.
 
-## The four normal commands
+## Five normal commands
 
-The default Command Palette intentionally stays small:
+The normal Command Palette intentionally stays small:
 
 - **LLM Wiki: Set Up Project Memory** — explicitly enable this workspace.
 - **LLM Wiki: Check Setup and Health** — read-only diagnostics; zero model calls and zero state changes.
-- **LLM Wiki: Configure AI Summaries** — optional Copilot-backed summaries; off by default.
-- **LLM Wiki: Disable for This Workspace** — stop Agent access while keeping saved Wiki data on disk.
+- **LLM Wiki: Configure AI Summaries** — optional source-scoped Copilot summaries; off by default.
+- **LLM Wiki: Configure Wiki Query Reasoning** — optional Luna-backed query reasoning; off until a separate local grant is created.
+- **LLM Wiki: Disable for This Workspace** — stop Agent access while preserving Wiki data.
 
-Advanced/manual dogfood commands remain registered for testing and explicit fallback workflows, but they are hidden from the default Command Palette.
+Advanced/manual commands remain available for explicit fallback and dogfood inspection but stay out of the normal palette.
 
 ## Project memory is local-first
 
 The default private store is `.wiki-lab/` inside the workspace. Treat it as sensitive project data and keep it out of Git.
 
-The directory can contain:
+It can contain immutable admitted source evidence, correction/change/dispute/supersession history, explicitly confirmed Human Knowledge, optional rebuildable AI summaries, and local workflow metadata such as pending lineage decisions.
 
-- immutable copies of explicitly saved source evidence;
-- history describing corrections, changes over time, disputes, and replacements;
-- your explicitly confirmed project knowledge and rationale;
-- optional rebuildable AI summaries;
-- local pending decisions and source-location metadata;
-- the separate workspace opt-in marker controlling Agent-tool availability.
+Back up the **whole directory as one private snapshot**. See `docs/11-local-backup-restore.md`.
 
-Back up the **whole directory as one private snapshot** rather than copying individual files. See `docs/11-local-backup-restore.md` for the longer operating note.
+## Authority model
+
+The product contract distinguishes:
+
+- **RAW_MEMORY** — immutable admitted evidence and provenance authority.
+- **DERIVED_MEMORY** — noncanonical, rebuildable synthesis/navigation aid.
+- **HUMAN_KNOWLEDGE** — a user-confirmed decision, belief, rationale, or approved synthesis; authoritative as a record of what the user confirmed, not as independent external evidence.
+
+Changed remembered files never silently become corrections or later states. The user explicitly chooses correction, change, dispute, supersede, or independent evidence.
+
+Remembered source/model text is untrusted data, never executable Agent instruction.
+
+## Wiki Query Reasoning — 0.1.17 opt-in slice
+
+The Query Plane is **separately opt-in**. Setting up project memory does not authorize it, and enabling AI summaries does not authorize it.
+
+Run **LLM Wiki: Configure Wiki Query Reasoning** to create or revoke the local grant.
+
+When enabled, an ordinary `wikiConsult` call may:
+
+1. search the current authorized project store with deterministic retrieval;
+2. follow selected candidates to verified query-relevant raw regions;
+3. include relevant current Human Knowledge and unresolved lineage state with their epistemic roles preserved;
+4. send that bounded evidence packet to GitHub Copilot using exact `gpt-5.6-luna`;
+5. return a compact Wiki Brief containing the answer, terminal authority references, and insufficiency status.
+
+The Query Plane is read-only. It cannot admit sources, write Human Knowledge, decide lineage, or mutate canonical Wiki history.
+
+### Separate local grant
+
+The Query Plane grant lives in VS Code extension **local workspace state**, not in a workspace setting file. It is therefore not intended to be committed or shared with the project.
+
+The grant is versioned and records the provider/model/current-store exposure boundary plus two user-chosen usage guards.
+
+### User-chosen usage guards
+
+The product does not silently choose a Query Plane spend boundary.
+
+Before the grant is created, the user explicitly chooses:
+
+1. a local **daily model-call attempt cap** from 1 to 100; and
+2. a Copilot CLI **per-response AI-credit soft guard** from 1 to 100.
+
+The daily counter is a local safety bound, not a billing estimate. Failed/uncertain model attempts remain counted so transport uncertainty cannot silently refund usage.
+
+The per-response value is passed to Copilot as its `max-ai-credits` soft guard. If the installed Copilot CLI cannot enforce that flag, Query Plane execution fails **before** a model call rather than silently dropping the user's chosen guard.
+
+LLM Wiki does not infer dollars, premium-request counts, AI credits, or exact token cost from the daily counter. The provider-side per-response guard is still a soft limit, not an exact bill.
+
+### No silent raw fallback
+
+If Query Reasoning is disabled, the local daily cap is reached, candidate verification fails, Luna is unavailable, the provider cannot enforce the selected per-response guard, or the returned brief violates the contract, `wikiConsult` fails boundedly.
+
+It does **not** silently dump a broad raw Wiki result back into the Main Agent context. `wikiMemory` and `wikiRead` remain explicit low-level provenance/debug tools.
+
+### Shared Memory Read Service
+
+`wikiMemory` and `wikiConsult` use the same deterministic candidate-collection service for current RAW, DERIVED navigation, Human Knowledge, and pending lineage state. This prevents the two read paths from evolving different authority semantics.
+
+For Query Plane evidence materialization, raw candidates are followed to bounded **query-relevant verified regions** rather than blindly reading the first 6,000 characters of a long source. If a selected candidate cannot be verified, the consult fails closed instead of silently omitting that authority.
+
+If RAW discovery and DERIVED navigation point to the same source, their deterministic query hints are merged before relevant-region selection. DERIVED remains nonterminal; this only preserves its intended navigation role.
+
+### Terminal provenance
+
+A Wiki Brief may terminate on:
+
+- `RAW_MEMORY`;
+- `HUMAN_KNOWLEDGE`.
+
+`DERIVED_MEMORY` and pending-lineage workflow state are nonterminal. Derived notes can help navigation, but a load-bearing factual claim must resolve to terminal authority.
+
+Terminal references are scope-qualified. 0.1.17 only authorizes the current store, but the reference shape is intentionally compatible with a future explicitly authorized multi-store/federation layer without changing the Main-Agent `wikiConsult` contract.
+
+### Query Composer isolation
+
+The Luna Query Composer receives its evidence over stdin and does not receive a Wiki-root argument. The actual Copilot subprocess runs from a neutral temporary working directory rather than the project workspace.
+
+The Query Plane transport also removes generic `GH_TOKEN` / `GITHUB_TOKEN` overrides, Copilot allow-all/model overrides, and `COPILOT_PROVIDER_*` BYOK-routing variables before launching the composer. An explicit `COPILOT_GITHUB_TOKEN` and normal Copilot home/auth state may still be used.
+
+The Query Plane adds current generic Copilot read/write/url/memory/web-search tool names to its excluded-tool boundary in addition to the hardened adapter's existing exclusions. No shell/web/file/memory tool is part of the Query Plane contract.
+
+The composer returns only the bounded structured result; hidden reasoning/retrieval traces are not returned to the Main Agent.
+
+## Existing low-level Agent tools remain available
+
+While project memory is enabled, the Agent may use:
+
+- `#wikiConsult` / `llmWiki_consultMemory` — opt-in compact Query Plane path.
+- `#wikiMemory` / `llmWiki_searchMemory` — low-level read-only memory search.
+- `#wikiRead` / `llmWiki_readSource` — verified immutable source read with pagination.
+- `#rememberWikiSource` / `llmWiki_rememberSource` — durable local source admission after product confirmation.
+- `#rememberHumanKnowledge` / `llmWiki_rememberHumanKnowledge` — user-owned project knowledge after product confirmation.
+- `#resolveWikiLineage` / `llmWiki_resolveLineage` — record an explicitly chosen relation between changed revisions.
+
+0.1.17 does **not** remove or weaken `wikiMemory`/`wikiRead`. Installed dogfood must earn any later decision to make `wikiConsult` the ordinary default path.
+
+## AI summaries remain separate
+
+**LLM Wiki: Configure AI Summaries** controls a separate outbound-data grant. It is off by default.
+
+When enabled, explicitly admitted source content may be sent to GitHub Copilot using exact `gpt-5.6-luna` to create/reuse a rebuildable source-scoped summary. AI summaries never replace RAW evidence or become Human Knowledge automatically.
+
+Query Plane permission and usage accounting remain separate from maintenance permission and maintenance usage.
 
 ## Workspace permission boundary
 
-LLM Wiki does not activate itself for every project after installation.
-
 Before **Set Up Project Memory** succeeds:
 
-- LLM Wiki Agent tools are hidden by the VS Code contribution condition;
+- Agent tools are hidden by contribution conditions;
 - runtime tool implementations are not registered;
-- no model call is made by setup or health checks.
+- setup/health make no model call.
 
-Setup verifies the local store and Git privacy, then writes a separate local opt-in marker. **Disable for This Workspace** removes only that marker. Saved Wiki data remains intact and Agent tools are unregistered again immediately.
+**Disable for This Workspace** removes only the opt-in marker and immediately tears down Agent tool registrations while preserving Wiki data. The Query Plane tool shares this same lifecycle; a separate query grant cannot keep the tool alive in a disabled workspace.
 
-0.1.16 intentionally supports one workspace folder at a time. A multi-root workspace does not silently pick the first project and enable memory against it.
+0.1.17 remains single-folder only.
+
+## Check Setup and Health
+
+**LLM Wiki: Check Setup and Health** remains a pure diagnostic command:
+
+- **0 model calls**;
+- **0 state changes**;
+- no initialization or repair;
+- no source/prompt/evidence content printed.
+
+It reports project-memory state, local-store integrity, Python/Copilot executable presence, AI-summary state, and whether Query Reasoning is granted plus its daily call cap. Model-call readiness remains explicitly unverified because the health check does not make a model call just to prove availability.
 
 ## Python runtime
 
 The bundled local core requires Python 3.9+.
 
-`llmWiki.pythonExecutable` defaults to an empty value, which means **auto-detect**:
+`llmWiki.pythonExecutable` is empty by default and auto-detects:
 
 - Windows: `python`, then `py`, then `python3`;
 - macOS/Linux: `python3`, then `python`.
 
-If you explicitly configure an executable, LLM Wiki respects that value rather than silently falling back to another runtime.
-
-If Python cannot be started, setup stays disabled and offers a direct path to LLM Wiki settings instead of creating a partial workspace opt-in.
-
-## AI summaries are optional
-
-Local project memory works without GitHub Copilot CLI and without AI summaries.
-
-**LLM Wiki: Configure AI Summaries** controls a separate workspace-scoped outbound-data grant and is **OFF by default**. When enabled, after you explicitly save a source and no unresolved history decision blocks it, that saved source may be sent to GitHub Copilot using exact `gpt-5.6-luna` to create or reuse a source-scoped summary.
-
-AI summaries are navigation aids. They never replace saved source evidence and never become your confirmed project decision automatically.
-
-If Copilot CLI is not ready:
-
-1. [Install GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/set-up-copilot-cli/install-copilot-cli).
-2. Run `copilot login` and complete GitHub authentication.
-3. Run **LLM Wiki: Check Setup and Health** again.
-
-An organization or enterprise policy can disable Copilot CLI even when the executable exists. For that reason the zero-model health check distinguishes:
-
-- **Copilot CLI executable: FOUND / NOT FOUND**;
-- **AI-summary model-call readiness: NOT VERIFIED**.
-
-The health command never makes a model call just to prove authentication or model access.
-
-### AI-summary size and spend controls
-
-The current dogfood policy uses a 40,000-character preferred single-pass target and a temporary 80,000-character hard ceiling. Sources from 40,001–80,000 characters may still use one summary pass; above 80,000 characters summary generation stops before a model call while the saved raw source remains intact.
-
-Two settings provide visibility/control:
-
-- `llmWiki.agentWikiMaintenanceMaxAiCredits` — preferred per-summary Copilot guard, default `30`, used only when the installed CLI advertises the corresponding flag;
-- `llmWiki.agentWikiMaintenanceDailyCallLimit` — compatibility name for the daily soft-guard threshold, default `10`; `0` disables new model-backed summary generation. A positive threshold prompts once before continuing for the rest of that day and is not a hard billing cap.
-
-A failed or declined summary step never rolls back source admission.
-
-## Check Setup and Health
-
-**LLM Wiki: Check Setup and Health** is a pure diagnostic command:
-
-- **0 model calls**;
-- **0 state changes**;
-- no initialization;
-- no repair;
-- no source/prompt/evidence content printed.
-
-The first section is user-oriented and reports:
-
-- Project memory: ON / OFF / NOT SET UP;
-- Local memory store;
-- Python runtime;
-- Git privacy;
-- local data integrity;
-- AI summaries;
-- Copilot CLI executable presence;
-- model-call readiness as explicitly unverified by the zero-model check;
-- a concrete next action when known.
-
-Technical details follow below. `compiled_provider=disabled` is expected and is **not used by AI summaries**.
+An explicit override is respected rather than silently falling back.
 
 ## Errors and recovery
 
-Release UX uses two bounded representations of failures.
+For users, failures should say what failed, what was preserved, and what action is available without dumping source text, prompts, arbitrary paths, or secrets.
 
-For the user, LLM Wiki should say what failed, what was preserved, and what action to take next. Routine errors do not dump arbitrary tracebacks, local paths, source text, prompts, or secrets into notifications.
+For Agent-facing failures, product code uses bounded causal states/codes. Unknown subprocess detail collapses to a generic bounded failure rather than exposing arbitrary stderr.
 
-For the Agent, recoverable tool failures expose stable fields such as `failure_code`, `stage`, and `model_call_attempted` where they matter. Arbitrary subprocess stderr is not passed through as model-visible diagnosis material. Unknown subprocess detail collapses to a generic bounded failure code.
-
-The process-error classifier only accepts a small allowlist of final exception codes and is covered by spoof/leak tests so source text cannot manufacture a false Copilot diagnosis.
+Query Plane transport/model failure never authorizes broad raw-memory fallback.
 
 ## Confirmation policy
 
-Modal dialogs are intentionally rare and reserved for boundaries where the user must make an immediate authority/privacy/spend decision:
+Blocking confirmation is reserved for authority/privacy/usage boundaries such as:
 
-- enable or disable project memory for this workspace;
-- save a local file as durable project evidence;
-- save your confirmed project knowledge/decision;
-- resolve what changed saved revisions mean;
-- turn on AI summaries;
-- continue optional model-backed summaries after the daily soft-guard reminder.
+- setting up or disabling project memory;
+- source admission;
+- saving Human Knowledge;
+- resolving changed-source semantics;
+- enabling AI summaries;
+- enabling Query Reasoning and choosing its daily-call and per-response AI-credit guards.
 
-Routine success, health output, search/read, topic filing, and ordinary diagnostics should not create repeated blocking dialogs.
+Routine search/read/diagnostic success should remain quiet.
 
-Whether an explicit chat request like “remember this file” can eventually replace the second source-admission modal is deliberately **not** decided synthetically. That is an evidence-dependent dogfood question because it changes an authority boundary.
+## 0.1.17 validation gate
 
-## Trust model — advanced
+The candidate must preserve the existing deterministic safety/product contract while adding the opt-in Query Plane slice.
 
-Normal users do not need these internal labels, but they define the product contract:
+Required before peer-review/merge handoff:
 
-- **RAW_MEMORY** — immutable admitted source evidence; factual/provenance authority.
-- **DERIVED_MEMORY** — AI-created summaries/navigation aids; noncanonical and rebuildable.
-- **HUMAN_KNOWLEDGE** — a decision, belief, rationale, or user-approved synthesis explicitly confirmed for durable memory; it is not independent external evidence.
+- Python 3.9 compatibility;
+- full Python unit regression suite;
+- frozen E004/E014 checks;
+- E010 self-repo dogfood;
+- E023 G2 closure validator;
+- frozen E020 synthetic contract: **78 cases / 60 supported / 7 partial / 11 deferred / zero model calls**;
+- VS Code static boundaries;
+- Extension Host integration tests;
+- bundled-core checks;
+- VSIX packaging and packaged Extension Host execution;
+- no new paid semantic benchmark as part of this PR.
 
-The user decides what is admitted as official durable knowledge and what semantic relationship changed evidence has. The Agent handles retrieval, organization, provenance following, and optional rebuildable summarization.
+The E024 semantic experiment that earned L0 is already merged separately; this product PR should not re-tune against that material.
 
-### Changed remembered files
+## What installed dogfood must decide
 
-LLM Wiki does not silently guess what a new revision means. The new bytes are preserved first, then optional summary work pauses while the relationship remains unresolved.
+0.1.17 should collect natural evidence about:
 
-The user can explicitly choose:
+- whether the Agent invokes `wikiConsult` at useful moments;
+- whether Main-Agent-visible Wiki context/tool-turn burden actually drops in real work;
+- whether compact briefs are sufficient without repeated `wikiRead` follow-up;
+- whether query latency is acceptable;
+- whether insufficiency is correctly conservative rather than annoying;
+- whether long sources recover the right authority region;
+- whether pending/history semantics remain understandable;
+- whether the separate evidence-exposure and usage-guard UX is understandable;
+- whether a deterministic bounded packet without Luna could provide enough value as a competing hypothesis.
 
-- **correction** — the older revision was wrong;
-- **change** — the older state may have been valid, and the newer state became valid later;
-- **dispute** — both current revisions remain unresolved/conflicting;
-- **supersede** — generic replacement without a stronger temporal/correction claim;
-- **independent** — keep them unrelated.
-
-Before recording the relation, LLM Wiki verifies both immutable revisions, checks their durable file/SHA binding, shows a bounded old/new changed-region preview, and revalidates immediately before the canonical mutation. A change requires a timezone-aware effective instant.
-
-### Human Knowledge
-
-A user decision/rationale becomes durable only after the full proposed statement is shown for confirmation. A later explicit change can supersede an older current Human Knowledge record while retaining history. Tentative inferred preferences are not silently persisted.
-
-Malformed/tampered Human Knowledge and fork/cycle ambiguity fail closed. The stored integrity hash is a corruption check, not cryptographic tamper resistance.
-
-## Agent tools — advanced
-
-The normal Agent may choose these naturally while project memory is enabled:
-
-- `#wikiMemory` / `llmWiki_searchMemory` — search current project memory; read-only.
-- `#wikiRead` / `llmWiki_readSource` — read verified immutable source evidence; read-only and paginated.
-- `#rememberWikiSource` / `llmWiki_rememberSource` — admit a local workspace file after product confirmation.
-- `#rememberHumanKnowledge` / `llmWiki_rememberHumanKnowledge` — save the user's confirmed decision/rationale after product confirmation.
-- `#resolveWikiLineage` / `llmWiki_resolveLineage` — record an explicitly chosen relationship between changed revisions.
-
-Remembered raw/derived text is framed as untrusted quoted data and JSON-encoded at the Agent boundary. Search does not authorize writes. Load-bearing facts surfaced by a derived summary should be followed back to raw source evidence.
+Do not use this slice as permission to add iterative L1 retrieval, cross-workspace federation, vectors/graphs/entities, background semantic maintenance, or autonomous semantic persistence. Those remain separately evidence-gated.
 
 ## Settings
 
-- `llmWiki.pythonExecutable` — empty by default; auto-detect Python. Set only to override.
-- `llmWiki.corePath` — advanced local core override; empty uses the bundled core in an installed VSIX.
-- `llmWiki.workspaceDirectory` — private local project-memory directory; default `.wiki-lab`.
-- `llmWiki.maxAiCredits` — advanced preferred guard for the legacy explicit Ask Luna path.
-- `llmWiki.agentWikiMaintenanceEnabled` — optional AI summaries, workspace-scoped, default `false`.
-- `llmWiki.agentWikiMaintenanceMaxAiCredits` — preferred per-summary guard, default `30`.
-- `llmWiki.agentWikiMaintenanceDailyCallLimit` — daily soft-guard threshold, default `10`; `0` disables new summary generations.
+- `llmWiki.pythonExecutable` — optional Python override.
+- `llmWiki.corePath` — advanced local core override.
+- `llmWiki.workspaceDirectory` — private local store; default `.wiki-lab`.
+- `llmWiki.maxAiCredits` — legacy explicit Ask Luna preferred guard.
+- `llmWiki.agentWikiMaintenanceEnabled` — optional AI summaries; separate grant.
+- `llmWiki.agentWikiMaintenanceMaxAiCredits` — preferred per-summary CLI guard when supported.
+- `llmWiki.agentWikiMaintenanceDailyCallLimit` — AI-summary soft-guard threshold.
 
-## 0.1.16 validation gate
-
-0.1.16 keeps the existing authority/retrieval contract and adds release-oriented VS Code UX hardening:
-
-- native first-install Walkthrough;
-- four-command normal Command Palette surface;
-- user-facing terminology centered on project memory and AI summaries;
-- actionable zero-model Setup & Health output;
-- quiet routine success paths;
-- workspace-state status bar rather than internal filing topic;
-- immediate status/tool teardown on disable;
-- explicit single-folder fail-closed behavior for multi-root workspaces;
-- cross-platform Python auto-discovery unless explicitly overridden;
-- bounded subprocess error classification with direct spoof/leak tests;
-- user/Agent causal maintenance-failure reporting;
-- packaged-VSIX checks for the release UX helpers and onboarding assets.
-
-The frozen E020 synthetic contract remains **78 cases: 60 supported / 7 partial / 11 deferred**, with zero model calls. Python 3.9 compatibility, Python unit tests, E020, static boundaries, dev Extension Host, bundled core, VSIX packaging, and unpacked packaged Extension Host are all required before this candidate is considered mergeable.
-
-## What still needs real dogfood
-
-A polished release candidate still cannot replace real multi-session use. Natural dogfood should decide:
-
-- whether the Agent searches memory at the right moments;
-- whether it follows important memory hits to source evidence naturally;
-- whether source-admission confirmation causes approval fatigue;
-- whether “remember our decision” feels natural in conversation;
-- whether old/new revision previews are understandable;
-- whether optional AI-summary latency/spend is worth it;
-- whether the daily soft guard is useful or annoying;
-- whether users ever need a dedicated history/navigation view;
-- whether returning days later actually recovers reasoning the user would otherwise have lost.
-
-Do not add vectors/graphs, background watching, URL/PDF capture, cross-workspace federation, automatic concept routing, or a large custom navigation UI just because they are available ideas. Those remain evidence-gated product decisions.
+There is deliberately **no `llmWiki.queryPlaneEnabled` or Query Plane spend setting in workspace configuration**. Query Reasoning authorization and its user-chosen guards are local product-owned extension state managed through **Configure Wiki Query Reasoning**.
