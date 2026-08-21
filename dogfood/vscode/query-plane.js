@@ -62,8 +62,10 @@ function queryGrant(context, folder) {
   if (!row || row.version !== GRANT_VERSION || row.enabled !== true) return undefined;
   if (row.model !== MODEL || row.scope !== 'current_store' || row.provider !== 'github_copilot') return undefined;
   const dailyCallLimit = Number(row.dailyCallLimit);
+  const maxAiCredits = Number(row.maxAiCredits);
   if (!Number.isInteger(dailyCallLimit) || dailyCallLimit < 1 || dailyCallLimit > 100) return undefined;
-  return { ...row, dailyCallLimit };
+  if (!Number.isInteger(maxAiCredits) || maxAiCredits < 1 || maxAiCredits > 100) return undefined;
+  return { ...row, dailyCallLimit, maxAiCredits };
 }
 
 function queryPlaneEnabled(context, folder) {
@@ -79,11 +81,17 @@ function queryUsage(context, folder) {
 async function reserveQueryCall(context, folder, grant) {
   const usage = queryUsage(context, folder);
   if (usage.reservedCalls >= grant.dailyCallLimit) {
-    return { allowed: false, ...usage, dailyCallLimit: grant.dailyCallLimit };
+    return { allowed: false, ...usage, dailyCallLimit: grant.dailyCallLimit, maxAiCredits: grant.maxAiCredits };
   }
   const reservedCalls = usage.reservedCalls + 1;
   await context.workspaceState.update(usageKey(folder, usage.day), { reservedCalls });
-  return { allowed: true, day: usage.day, reservedCalls, dailyCallLimit: grant.dailyCallLimit };
+  return {
+    allowed: true,
+    day: usage.day,
+    reservedCalls,
+    dailyCallLimit: grant.dailyCallLimit,
+    maxAiCredits: grant.maxAiCredits,
+  };
 }
 
 const runComposerStdin = async (context, folder, args, input) => {
@@ -154,6 +162,7 @@ function formatBrief(row, usage) {
     `model_calls=${Number(row.model_calls || 0)}`,
     `query_reserved_today=${usage && Number(usage.reservedCalls || 0)}`,
     `query_daily_call_limit=${usage && Number(usage.dailyCallLimit || 0)}`,
+    `query_max_ai_credits=${usage && Number(usage.maxAiCredits || 0)}`,
     `insufficient_authority=${brief.insufficient_authority === true ? 'true' : 'false'}`,
     `answer_json=${JSON.stringify(String(brief.answer || ''))}`,
     `terminal_refs_json=${JSON.stringify(Array.isArray(brief.terminal_refs) ? brief.terminal_refs : [])}`,
@@ -169,7 +178,7 @@ function disabledResult() {
     'canonical_mutation=none',
     'model_calls=0',
     'fallback=none',
-    'policy=Do not automatically dump raw Wiki memory into the Main Agent. Query reasoning requires a separate local, revocable workspace grant and an explicit daily model-call cap.',
+    'policy=Do not automatically dump raw Wiki memory into the Main Agent. Query reasoning requires a separate local, revocable workspace grant plus explicit user-chosen daily-call and per-response AI-credit guards.',
   ].join('\n');
 }
 
@@ -183,7 +192,8 @@ function budgetBlockedResult(grant, usage) {
     'fallback=none',
     `query_reserved_today=${usage.reservedCalls}`,
     `query_daily_call_limit=${grant.dailyCallLimit}`,
-    'policy=The local query-reasoning call cap has been reached. Do not silently fall back to broad raw Wiki context.',
+    `query_max_ai_credits=${grant.maxAiCredits}`,
+    'policy=The local query-reasoning daily call cap has been reached. Do not silently fall back to broad raw Wiki context.',
   ].join('\n');
 }
 
@@ -197,6 +207,7 @@ function unavailableResult(error, usage) {
     'fallback=none',
     `query_reserved_today=${usage && Number(usage.reservedCalls || 0)}`,
     `query_daily_call_limit=${usage && Number(usage.dailyCallLimit || 0)}`,
+    `query_max_ai_credits=${usage && Number(usage.maxAiCredits || 0)}`,
     `failure_json=${JSON.stringify(boundedProcessFailure(error && error.message ? error.message : String(error)))}`,
     'policy=Do not automatically fall back by loading broad raw Wiki context into the Main Agent. Continue without Wiki memory or use explicit diagnostic/raw drill-down.',
   ].join('\n');
@@ -235,7 +246,7 @@ class WikiConsultTool {
       const stdout = await runComposerStdin(
         this.context,
         folder,
-        ['--model', MODEL],
+        ['--model', MODEL, '--max-ai-credits', String(grant.maxAiCredits)],
         JSON.stringify(payload)
       );
       const row = JSON.parse(stdout.trim());
@@ -272,15 +283,16 @@ async function configureQueryPlane(context) {
       'Enable Luna-backed Wiki query reasoning for this workspace?',
       {
         modal: true,
-        detail: 'When enabled, a wikiConsult call may send a bounded set of already-admitted Wiki evidence to GitHub Copilot using exact gpt-5.6-luna for read-only query reasoning. This is separate from AI-summary permission, source admission, Human Knowledge authorship, and canonical history changes. You will choose a local daily model-call cap next.',
+        detail: 'When enabled, a wikiConsult call may send a bounded set of already-admitted Wiki evidence to GitHub Copilot using exact gpt-5.6-luna for read-only query reasoning. This is separate from AI-summary permission, source admission, Human Knowledge authorship, and canonical history changes. You will choose both a local daily model-call cap and a Copilot per-response AI-credit soft guard next.',
       },
       'Continue'
     );
   if (choice !== 'Continue') return undefined;
 
   let dailyCallLimit = 1;
+  let maxAiCredits = 1;
   if (context.extensionMode !== vscode.ExtensionMode.Test) {
-    const raw = await vscode.window.showInputBox({
+    const rawDaily = await vscode.window.showInputBox({
       title: 'LLM Wiki: Query reasoning daily call cap',
       prompt: 'Choose the maximum number of model-backed wikiConsult attempts allowed today in this workspace. This is a local safety cap, not a billing estimate.',
       placeHolder: 'Enter an integer from 1 to 100',
@@ -290,8 +302,21 @@ async function configureQueryPlane(context) {
         return Number.isInteger(number) && number >= 1 && number <= 100 ? undefined : 'Enter an integer from 1 to 100.';
       },
     });
-    if (raw === undefined) return undefined;
-    dailyCallLimit = Number(raw);
+    if (rawDaily === undefined) return undefined;
+    dailyCallLimit = Number(rawDaily);
+
+    const rawCredits = await vscode.window.showInputBox({
+      title: 'LLM Wiki: Query reasoning per-response AI-credit guard',
+      prompt: 'Choose the Copilot CLI soft maximum AI credits for each wikiConsult response. This is a provider usage/cost guard, not an exact bill; LLM Wiki does not choose a default for you.',
+      placeHolder: 'Enter an integer from 1 to 100',
+      ignoreFocusOut: true,
+      validateInput: (value) => {
+        const number = Number(value);
+        return Number.isInteger(number) && number >= 1 && number <= 100 ? undefined : 'Enter an integer from 1 to 100.';
+      },
+    });
+    if (rawCredits === undefined) return undefined;
+    maxAiCredits = Number(rawCredits);
   }
 
   const grant = {
@@ -302,6 +327,7 @@ async function configureQueryPlane(context) {
     scope: 'current_store',
     evidenceExposure: 'retrieved_admitted_memory_only',
     dailyCallLimit,
+    maxAiCredits,
   };
   await context.workspaceState.update(grantKey(folder), grant);
   if (context.extensionMode !== vscode.ExtensionMode.Test) vscode.window.showInformationMessage('LLM Wiki query reasoning is enabled locally for this workspace.');
