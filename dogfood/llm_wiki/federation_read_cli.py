@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -15,6 +16,8 @@ from .store import find_source, read_text
 from .temporal import temporal_source_status
 
 SOURCE_ID_RE = re.compile(r"^src-[0-9A-Za-z-]+$")
+AUTHORITY_ANCHOR_RE = re.compile(r"^[0-9a-f]{64}$")
+MANIFEST_ANCHOR_READ_LIMIT = 64 * 1024
 
 
 def _root(value: str) -> Path:
@@ -28,6 +31,35 @@ def _require_initialized(root: Path) -> None:
         and (root / "raw").is_dir()
     ):
         raise RuntimeError("federation_store_not_initialized")
+
+
+def _manifest_authority_anchor(root: Path) -> str:
+    manifest = root / "manifest.jsonl"
+    with manifest.open("rb") as handle:
+        text = handle.read(MANIFEST_ANCHOR_READ_LIMIT).decode("utf-8")
+    first = next((line for line in text.splitlines() if line.strip()), "")
+    if not first:
+        raise RuntimeError("library_store_identity_changed")
+    event = json.loads(first)
+    source_id = event.get("source_id") if isinstance(event, dict) else None
+    sha256 = event.get("sha256") if isinstance(event, dict) else None
+    if (
+        not isinstance(event, dict)
+        or event.get("event") != "ingest"
+        or not isinstance(source_id, str)
+        or not source_id.startswith("src-")
+        or not isinstance(sha256, str)
+        or not AUTHORITY_ANCHOR_RE.fullmatch(sha256)
+    ):
+        raise RuntimeError("library_store_identity_changed")
+    return hashlib.sha256(first.strip().encode("utf-8")).hexdigest()
+
+
+def _require_authority_anchor(root: Path, expected: str) -> None:
+    if not AUTHORITY_ANCHOR_RE.fullmatch(expected):
+        raise RuntimeError("library_store_identity_changed")
+    if _manifest_authority_anchor(root) != expected:
+        raise RuntimeError("library_store_identity_changed")
 
 
 def _topic_id(root: Path, value: str | None) -> str | None:
@@ -124,6 +156,7 @@ def _relevant_read(root: Path, source_id: str, *, topic: str | None, query: str,
 def parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="llm-wiki-federation-read")
     p.add_argument("--root", required=True)
+    p.add_argument("--expected-authority-anchor", required=True)
     sub = p.add_subparsers(dest="command", required=True)
 
     sub.add_parser("integrity")
@@ -162,6 +195,7 @@ def main(argv: list[str] | None = None) -> int:
     root = _root(args.root)
     try:
         _require_initialized(root)
+        _require_authority_anchor(root, args.expected_authority_anchor)
 
         if args.command == "integrity":
             _print(audit_alpha_integrity(root))
@@ -235,7 +269,9 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         raise AssertionError(args.command)
-    except (ValueError, RuntimeError, OSError, UnicodeError, json.JSONDecodeError, KeyError, TypeError):
+    except (ValueError, RuntimeError, OSError, UnicodeError, json.JSONDecodeError, KeyError, TypeError) as exc:
+        if str(exc) == "library_store_identity_changed":
+            raise SystemExit("FEDERATION-READ-STOP library_store_identity_changed") from None
         raise SystemExit("FEDERATION-READ-STOP federation_read_failed") from None
 
 
