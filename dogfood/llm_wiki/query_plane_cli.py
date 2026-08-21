@@ -352,6 +352,8 @@ def _neutral_environment() -> dict[str, str]:
 
 def _query_plane_command(exe: str, model: str, max_ai_credits: int, help_text: str) -> list[str]:
     cmd = _copilot_command(exe, model, max_ai_credits, help_text)
+    if not any(token.startswith("--max-ai-credits=") for token in cmd):
+        raise RuntimeError("copilot_max_ai_credits_unsupported")
     for index, token in enumerate(cmd):
         if not token.startswith("--excluded-tools="):
             continue
