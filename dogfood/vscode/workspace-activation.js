@@ -59,9 +59,14 @@ function enableWorkspace(root) {
     enabled_at: new Date().toISOString(),
     epoch_id: crypto.randomUUID(),
   };
-  fs.writeFileSync(temporary, `${JSON.stringify(row, null, 2)}\n`, { encoding: 'utf8', flag: 'wx' });
+  fs.writeFileSync(temporary, `${JSON.stringify(row, null, 2)}\n`, {
+    encoding: 'utf8',
+    flag: 'wx',
+    mode: 0o600,
+  });
   if (fs.existsSync(target)) fs.unlinkSync(target);
   fs.renameSync(temporary, target);
+  try { fs.chmodSync(target, 0o600); } catch (_) {}
   return row;
 }
 
