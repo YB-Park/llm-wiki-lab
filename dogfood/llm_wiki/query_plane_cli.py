@@ -248,7 +248,8 @@ def build_prompt(payload: dict[str, Any]) -> tuple[str, dict[str, dict[str, Any]
     if library_scope:
         lines.extend([
             "The packet comes from exactly one explicitly authorized external project store. Do not widen, switch, or infer another store.",
-            "Project-local HUMAN_KNOWLEDGE is authoritative as a record of what was decided or believed in that external project. Do not turn it into a recommendation for the current project or a global user preference unless the user's question explicitly asks for comparison or transfer reasoning.",
+            "Project-local HUMAN_KNOWLEDGE is authoritative only as a record of what was decided or believed in that external project.",
+            "Even if the question asks for comparison or transfer, do not turn that project-local record into a recommendation for the current project or a global user preference; report the scoped decision/rationale and leave transfer judgment to the Main Agent.",
         ])
     lines.extend([
         f"query_profile={payload['query_profile']}",
