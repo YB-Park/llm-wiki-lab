@@ -52,8 +52,9 @@ def main() -> int:
     assert "G2 FIXED-IDENTITY PERSISTENCE NOT EARNED AND PARKED" in readme
     assert "G3 NOT OPENED" in readme
 
-    # HANDOFF.md is a living continuation checkpoint. Validate current decision
-    # boundaries, not historical section titles or experiment narration.
+    # HANDOFF.md is a living continuation checkpoint. Validate only current
+    # decision boundaries; historical experiment instructions belong in the
+    # frozen experiment/closure documents above, not in HANDOFF.md.
     for phrase in [
         "## NOW",
         "current product decision: **GO for installed self-dogfood / Alpha use**",
@@ -63,7 +64,6 @@ def main() -> int:
         "**G3 Identity / Routing: NOT_OPENED.**",
         "same-slice AQ/BQ/CQ/DQ/PQ semantic reruns or tuning",
         "## NEXT ACTION",
-        "Run the Day-0 installed smoke on the exact 0.1.16 VSIX",
     ]:
         assert phrase in handoff, phrase
 
