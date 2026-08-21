@@ -68,7 +68,8 @@ Non-negotiable current product invariants:
 - Query Plane is read-only and exact model remains `gpt-5.6-luna`
 - terminal Wiki Brief refs terminate only on RAW/HUMAN_KNOWLEDGE
 - external project Human Knowledge remains project-scoped; it is not automatically a current-project recommendation/global preference
-- authorization and exact named-store scope are resolved before external retrieval/model exposure
+- authorization is resolved **before retrieval, scoring, candidate counts, diagnostics, or model exposure**
+- exact named-store scope is resolved before external retrieval/model exposure
 - wrong/unknown/ambiguous/revoked/unavailable external scope fails closed with no current/other-store fallback
 - external reads never authorize external source/HK/lineage/maintenance/config writes
 - private filesystem roots stay out of normal Agent/model output
