@@ -104,14 +104,35 @@ async function reserveQueryCall(context, folder, grant) {
   };
 }
 
-const runComposerStdin = async (context, folder, args, input) => {
-  const runtime = await resolvePythonRuntime(folder);
-  if (!runtime) throw new Error('python_runtime_not_found');
-  const fullArgs = ['-m', 'dogfood.llm_wiki.query_plane_cli', ...args];
+const runComposerStdin = async (context, folder, args, input, options = {}) => {
+  let executable;
+  let fullArgs;
+  let cwd;
+  let env;
+  if (options.trusted === true) {
+    const invocation = await memoryRead.trustedPythonInvocation(
+      context,
+      folder,
+      'dogfood.llm_wiki.query_plane_cli',
+      args
+    );
+    executable = invocation.executable;
+    fullArgs = invocation.args;
+    cwd = invocation.cwd;
+    env = invocation.env;
+  } else {
+    const runtime = await resolvePythonRuntime(folder);
+    if (!runtime) throw new Error('python_runtime_not_found');
+    executable = runtime.executable;
+    fullArgs = ['-m', 'dogfood.llm_wiki.query_plane_cli', ...args];
+    cwd = folder.uri.fsPath;
+    env = pythonEnv(context, folder);
+  }
+
   return new Promise((resolve, reject) => {
-    const child = spawn(runtime.executable, fullArgs, {
-      cwd: folder.uri.fsPath,
-      env: pythonEnv(context, folder),
+    const child = spawn(executable, fullArgs, {
+      cwd,
+      env,
       windowsHide: true,
       stdio: ['pipe', 'pipe', 'pipe'],
     });
@@ -295,7 +316,8 @@ class WikiConsultTool {
         this.context,
         folder,
         ['--model', MODEL, '--max-ai-credits', String(grant.maxAiCredits)],
-        JSON.stringify(payload)
+        JSON.stringify(payload),
+        { trusted: storeHandle.isCurrentStore === false }
       );
       const row = JSON.parse(stdout.trim());
       if (row.format !== 'llm-wiki-query-plane-v1' || row.status !== 'OK') throw new Error('query_plane_result_contract_invalid');
