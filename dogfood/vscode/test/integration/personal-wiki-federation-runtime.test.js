@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
@@ -20,15 +21,40 @@ function field(text, name) {
 }
 
 function firstMemorySourceId(text) {
-  const encoded = (String(text).match(/^source_ids_json=(\[[^\n]*\])$/m) || [])[1];
-  assert.ok(encoded, 'wikiMemory result did not expose source_ids_json');
-  const ids = JSON.parse(encoded);
-  assert.ok(Array.isArray(ids) && ids.length > 0, 'wikiMemory source_ids_json was empty');
-  return String(ids[0]);
+  const value = (String(text).match(/^source_ids=([^\n]+)$/m) || [])[1];
+  assert.ok(value, 'wikiMemory result did not expose source_ids');
+  const ids = value.split(',').map((item) => item.trim()).filter(Boolean);
+  assert.ok(ids.length > 0, 'wikiMemory source_ids was empty');
+  return ids[0];
 }
 
 function escapedRegex(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function treeSnapshot(root) {
+  const rows = [];
+  const visit = (target, relative) => {
+    const stat = fs.statSync(target);
+    const mode = stat.mode & 0o777;
+    if (stat.isDirectory()) {
+      rows.push({ relative, kind: 'dir', mode });
+      for (const name of fs.readdirSync(target).sort()) {
+        visit(path.join(target, name), relative === '.' ? name : `${relative}/${name}`);
+      }
+      return;
+    }
+    if (stat.isFile()) {
+      rows.push({
+        relative,
+        kind: 'file',
+        mode,
+        sha256: crypto.createHash('sha256').update(fs.readFileSync(target)).digest('hex'),
+      });
+    }
+  };
+  visit(root, '.');
+  return rows;
 }
 
 async function resetAndEnable() {
@@ -76,15 +102,25 @@ function externalStoreWithEvidence() {
   assert.ok(rows.length > 0, 'external store discover produced no source');
   const sourceId = String((rows[0].source_ids || [rows[0].source_id])[0] || '');
   assert.match(sourceId, /^src-/);
+
+  if (process.platform !== 'win32') {
+    fs.chmodSync(root, 0o755);
+    fs.chmodSync(path.join(root, 'raw'), 0o755);
+    for (const name of ['config.json', 'manifest.jsonl', 'topics.json']) fs.chmodSync(path.join(root, name), 0o644);
+  }
   return { parent, root, sourceId };
 }
 
 suite('LLM Wiki Personal Wiki F1', () => {
-  test('named-store grants, scoped provenance, wrong-scope fail-closed, and write isolation survive Extension Host lifecycle', async () => {
+  test('named-store grants, strict read-only isolation, scoped provenance, and write isolation survive Extension Host lifecycle', async () => {
     const { folder, wikiRoot } = await resetAndEnable();
     const external = externalStoreWithEvidence();
     const currentFile = path.join(folder.uri.fsPath, 'f1-current-only.md');
+    const sitecustomize = path.join(folder.uri.fsPath, 'sitecustomize.py');
+    const siteSentinel = path.join(folder.uri.fsPath, 'f1-sitecustomize-ran.txt');
     fs.writeFileSync(currentFile, 'Current project alone contains the sapphire marker 271.\n', 'utf8');
+    const config = vscode.workspace.getConfiguration('llmWiki');
+    const oldPythonPath = process.env.PYTHONPATH;
 
     try {
       const registered = await vscode.commands.executeCommand('llmWiki.configurePersonalWikiLibrary', {
@@ -96,6 +132,7 @@ suite('LLM Wiki Personal Wiki F1', () => {
       assert.ok(registered && registered.storeId);
       const scopeRef = { kind: 'library_store', store_id: registered.storeId };
       assert.doesNotMatch(JSON.stringify(registered), new RegExp(escapedRegex(external.root)));
+      const externalBaseline = treeSnapshot(external.root);
 
       await assert.rejects(
         vscode.lm.invokeTool('llmWiki_readScopedSource', {
@@ -103,6 +140,7 @@ suite('LLM Wiki Personal Wiki F1', () => {
         }),
         /library_access_disabled/
       );
+      assert.deepEqual(treeSnapshot(external.root), externalBaseline, 'authorization failure must not touch the external store');
 
       const libraryEnabled = await vscode.commands.executeCommand('llmWiki.configurePersonalWikiLibrary', { action: 'enable' });
       assert.equal(libraryEnabled, true);
@@ -113,6 +151,12 @@ suite('LLM Wiki Personal Wiki F1', () => {
       assert.match(queryDisabled, /state=query_plane_disabled/);
       assert.match(queryDisabled, /model_calls=0/);
       assert.match(queryDisabled, /fallback=none/);
+      assert.deepEqual(treeSnapshot(external.root), externalBaseline);
+
+      await config.update('corePath', 'THIS-F1-EXTERNAL-READ-MUST-NOT-USE', vscode.ConfigurationTarget.Workspace);
+      await config.update('pythonExecutable', 'THIS-F1-EXTERNAL-READ-MUST-NOT-USE', vscode.ConfigurationTarget.Workspace);
+      fs.writeFileSync(sitecustomize, `require = None\nopen(${JSON.stringify(siteSentinel)}, 'w').write('ran')\n`, 'utf8');
+      process.env.PYTHONPATH = folder.uri.fsPath;
 
       const externalRead = toolText(await vscode.lm.invokeTool('llmWiki_readScopedSource', {
         input: { sourceId: external.sourceId, scopeRef, maxChars: 1000 }, toolInvocationToken: undefined,
@@ -123,11 +167,19 @@ suite('LLM Wiki Personal Wiki F1', () => {
       assert.equal(JSON.parse(field(externalRead, 'scope_label_json')), 'Project A');
       assert.match(externalRead, /orchid retry budget is 914/);
       assert.doesNotMatch(externalRead, new RegExp(escapedRegex(external.root)));
+      assert.equal(fs.existsSync(siteSentinel), false, 'isolated external reads must ignore current-workspace sitecustomize/PYTHONPATH');
+      assert.deepEqual(treeSnapshot(external.root), externalBaseline, 'external provenance reads must be byte- and mode-preserving');
+
+      await config.update('corePath', '', vscode.ConfigurationTarget.Workspace);
+      await config.update('pythonExecutable', '', vscode.ConfigurationTarget.Workspace);
+      if (oldPythonPath === undefined) delete process.env.PYTHONPATH; else process.env.PYTHONPATH = oldPythonPath;
+      fs.rmSync(sitecustomize, { force: true });
 
       await vscode.commands.executeCommand('llmWiki.createTopic', { label: 'f1-current-only' });
       const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(currentFile));
       await vscode.window.showTextDocument(doc, { preview: false });
       await vscode.commands.executeCommand('llmWiki.ingestActiveFile');
+      assert.deepEqual(treeSnapshot(external.root), externalBaseline, 'current-store source admission must not mutate the external store');
       const currentSearch = toolText(await vscode.lm.invokeTool('llmWiki_searchMemory', {
         input: { query: 'sapphire marker 271', maxResults: 3 }, toolInvocationToken: undefined,
       }));
@@ -141,13 +193,13 @@ suite('LLM Wiki Personal Wiki F1', () => {
         /library_store_source_not_found/,
         'an external scope miss must never retry the same source ID against the current store'
       );
+      assert.deepEqual(treeSnapshot(external.root), externalBaseline, 'wrong-scope failure must not touch either fallback store state');
 
-      const externalManifestBeforeWrite = fs.readFileSync(path.join(external.root, 'manifest.jsonl'), 'utf8');
       const hk = toolText(await vscode.lm.invokeTool('llmWiki_rememberHumanKnowledge', {
         input: { statement: 'F1 write isolation test belongs to the current project only.' }, toolInvocationToken: undefined,
       }));
       assert.match(hk, /LLM_WIKI_HUMAN_KNOWLEDGE_RESULT v2/);
-      assert.equal(fs.readFileSync(path.join(external.root, 'manifest.jsonl'), 'utf8'), externalManifestBeforeWrite);
+      assert.deepEqual(treeSnapshot(external.root), externalBaseline, 'current-store Human Knowledge must not create or modify any external artifact');
 
       const queryEnabled = await vscode.commands.executeCommand('llmWiki.configureQueryPlane');
       assert.equal(queryEnabled, true);
@@ -160,6 +212,7 @@ suite('LLM Wiki Personal Wiki F1', () => {
       assert.match(scopeBlocked, /failure_json="library_access_disabled"/);
       assert.match(scopeBlocked, /model_calls=0/);
       assert.match(scopeBlocked, /fallback=none/);
+      assert.deepEqual(treeSnapshot(external.root), externalBaseline);
 
       await vscode.commands.executeCommand('llmWiki.configurePersonalWikiLibrary', { action: 'enable' });
       const disabledWorkspace = await vscode.commands.executeCommand('llmWiki.disableWorkspace');
@@ -181,11 +234,17 @@ suite('LLM Wiki Personal Wiki F1', () => {
         /library_access_disabled/,
         'workspace opt-in epoch change must invalidate the old library access grant'
       );
+      assert.deepEqual(treeSnapshot(external.root), externalBaseline);
 
       assert.ok(fs.existsSync(path.join(wikiRoot, 'manifest.jsonl')));
       assert.ok(fs.existsSync(path.join(external.root, 'manifest.jsonl')));
     } finally {
+      await config.update('corePath', '', vscode.ConfigurationTarget.Workspace);
+      await config.update('pythonExecutable', '', vscode.ConfigurationTarget.Workspace);
+      if (oldPythonPath === undefined) delete process.env.PYTHONPATH; else process.env.PYTHONPATH = oldPythonPath;
       fs.rmSync(currentFile, { force: true });
+      fs.rmSync(sitecustomize, { force: true });
+      fs.rmSync(siteSentinel, { force: true });
       fs.rmSync(external.parent, { recursive: true, force: true });
     }
   });
