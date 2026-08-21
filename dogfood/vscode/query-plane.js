@@ -69,7 +69,8 @@ function queryGrant(context, folder) {
   const row = context.workspaceState.get(grantKey(folder));
   const optIn = currentWorkspaceOptIn(folder);
   if (!row || !optIn || row.version !== GRANT_VERSION || row.enabled !== true) return undefined;
-  if (row.workspaceEnabledAt !== optIn.enabled_at) return undefined;
+  const storedEpoch = String(row.workspaceEpoch || row.workspaceEnabledAt || '');
+  if (!storedEpoch || storedEpoch !== workspaceActivation.workspaceEpoch(optIn)) return undefined;
   if (row.model !== MODEL || row.scope !== 'current_store' || row.provider !== 'github_copilot') return undefined;
   const dailyCallLimit = Number(row.dailyCallLimit);
   const maxAiCredits = Number(row.maxAiCredits);
@@ -401,6 +402,7 @@ async function configureQueryPlane(context) {
     scope: 'current_store',
     evidenceExposure: 'retrieved_admitted_memory_only',
     workspaceEnabledAt: optIn.enabled_at,
+    workspaceEpoch: workspaceActivation.workspaceEpoch(optIn),
     dailyCallLimit,
     maxAiCredits,
   };
