@@ -6,6 +6,7 @@ const path = require('node:path');
 
 const vscodeRoot = path.resolve(__dirname, '..');
 const dogfoodRoot = path.resolve(vscodeRoot, '..');
+const entry = fs.readFileSync(path.join(vscodeRoot, 'entry.js'), 'utf8');
 const memoryRead = fs.readFileSync(path.join(vscodeRoot, 'memory-read-service.js'), 'utf8');
 const queryPlane = fs.readFileSync(path.join(vscodeRoot, 'query-plane.js'), 'utf8');
 const personalLibrary = fs.readFileSync(path.join(vscodeRoot, 'personal-wiki-library.js'), 'utf8');
@@ -85,6 +86,12 @@ must('registration-mints-new-id-for-new-authority', personalLibrary.includes('sa
 must('library-grant-binds-random-workspace-epoch', personalLibrary.includes("const storedEpoch = String(row.workspaceEpoch || '')") && personalLibrary.includes('workspaceEpoch: workspaceActivation.workspaceEpoch(optIn)'));
 mustNot('library-grant-has-no-timestamp-auth-fallback', personalLibrary.includes('row.workspaceEnabledAt !== optIn.enabled_at'));
 
+must('doctor-library-state-readonly', entry.includes("const personalLibrary = require('./personal-wiki-library')") && entry.includes('personalLibrary.registeredStores(context).length') && entry.includes('personalLibrary.libraryGrant(context, folder, root)'));
+must('doctor-library-access-visible', entry.includes('Personal Wiki Library access:'));
+must('doctor-library-catalog-visible', entry.includes('Personal Wiki Library catalog:'));
+must('doctor-library-count-only', entry.includes('Registered external Wiki stores:') && !entry.includes('registeredStores(context).map'));
+must('doctor-library-corruption-action', entry.includes('Personal Wiki Library control-plane state needs attention.'));
+
 must('federation-bridge-requires-existing-store', federationRead.includes('def _require_initialized(root: Path)'));
 mustNot('federation-bridge-never-initializes', federationRead.includes('ensure_workspace'));
 must('federation-bridge-pure-discovery', federationRead.includes('discover_current(root, args.query'));
@@ -93,6 +100,7 @@ must('federation-bridge-verified-content-read', federationRead.includes('read_te
 must('federation-bridge-readonly-agent-state', federationRead.includes('def _read_agent_state_readonly(root: Path)'));
 must('federation-bridge-requires-continuity-input', federationRead.includes('p.add_argument("--expected-authority-anchor", required=True)'));
 must('federation-bridge-rechecks-continuity', federationRead.includes('def _require_authority_anchor(root: Path, expected: str)'));
+must('federation-bridge-brackets-success', (federationRead.match(/_require_authority_anchor\(root, expected_anchor\)/g) || []).length >= 8);
 must('federation-bridge-safe-identity-failure', federationRead.includes('FEDERATION-READ-STOP library_store_identity_changed'));
 mustNot('federation-bridge-no-agent-state-writer', federationRead.includes('write_agent_state'));
 mustNot('federation-bridge-no-ingest', federationRead.includes('ingest_file'));
@@ -104,4 +112,4 @@ must('scoped-read-remains-read-only-policy', scopedRead.includes('never authoriz
 must('scoped-read-no-cross-store-fallback', scopedRead.includes('Never retry a missing external source ID against the current store or another store'));
 must('scoped-read-preserves-revocation-failures', scopedRead.includes("'library_access_disabled'") && scopedRead.includes("'library_store_identity_changed'") && scopedRead.includes("'library_store_not_registered'"));
 
-console.log('F1-FEDERATION-SAFETY-STATIC PASS strictReadBridge=yes isolatedPython=yes trustedExternalComposer=yes registrationContinuity=yes strictLibraryEpoch=yes catalogFailClosed=yes serializedUsageCap=yes liveReauthorization=yes finalSpawnAuthorization=yes readRevocationPropagation=yes writeIsolation=yes');
+console.log('F1-FEDERATION-SAFETY-STATIC PASS strictReadBridge=yes isolatedPython=yes trustedExternalComposer=yes registrationContinuity=yes strictLibraryEpoch=yes catalogFailClosed=yes serializedUsageCap=yes liveReauthorization=yes finalSpawnAuthorization=yes readRevocationPropagation=yes bridgeBracket=yes inspectableAuthority=yes writeIsolation=yes');
