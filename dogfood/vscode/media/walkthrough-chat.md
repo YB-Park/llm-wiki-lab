@@ -1,6 +1,6 @@
 # Continue in normal Agent chat
 
-LLM Wiki does not have a separate main screen. After workspace setup, keep working in normal VS Code Agent chat.
+After workspace setup, keep working in normal VS Code Agent chat. LLM Wiki now has a small sidebar overview for memory state and follow-through, but it is **not** a separate application you need to operate while you work.
 
 Ask things such as:
 
@@ -10,6 +10,6 @@ Ask things such as:
 
 The Agent can search and read project memory when useful. Actions that create durable knowledge or change its meaning remain explicit.
 
-This walkthrough lives inside VS Code's **Getting Started** editor. Use **Open Agent Chat** below to continue working; you can close the Getting Started tab like any other editor when you no longer need it.
+Use the sidebar when you want to check whether project memory or optional AI features are on, see registered other-project memories, or open technical health details. Use **Open Agent Chat** below to continue your actual work.
 
-VS Code's **Mark Done** only closes this checklist and may show the generic VS Code Welcome page. It does not install, uninstall, enable, or disable LLM Wiki.
+This walkthrough lives inside VS Code's **Getting Started** editor. You can close the Getting Started tab like any other editor when you no longer need it.

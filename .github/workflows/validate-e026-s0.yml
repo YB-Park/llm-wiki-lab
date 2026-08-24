@@ -44,7 +44,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - name: Reject scope widening
+      - name: Reject E026 scope widening when E026 runtime/preflight changes
         if: github.event_name == 'pull_request'
         shell: bash
         run: |
@@ -52,10 +52,22 @@ jobs:
           base="origin/${{ github.base_ref }}"
           changed="$(git diff --name-only "$base"...HEAD)"
           printf '%s\n' "$changed"
+
+          # E026 is a closed/earned portability slice. Generic product/version/
+          # static-doc changes still rerun its zero-model regression below, but
+          # they must not be forced to preserve E026's historical branch-only
+          # file whitelist. Enforce the whitelist only when this PR actually
+          # changes E026 runtime/preflight authority.
+          e026_relevant='^(experiments/E026-ssh-store-portability/|dogfood/llm_wiki/private_fs\.py$|dogfood/tests/test_private_fs_portability\.py$|dogfood/vscode/workspace-activation\.js$|dogfood/vscode/test/workspace-activation\.js$)'
+          if ! printf '%s\n' "$changed" | grep -Eq "$e026_relevant"; then
+            echo 'E026 S0-A scope boundary: not applicable to this product-only diff; frozen portability regression still runs.'
+            exit 0
+          fi
+
           allowed='^(experiments/E026-ssh-store-portability/|experiments/E020-synthetic-agent-ux/score_contract\.py$|dogfood/llm_wiki/private_fs\.py$|dogfood/tests/test_private_fs_portability\.py$|dogfood/vscode/workspace-activation\.js$|dogfood/vscode/test/workspace-activation\.js$|dogfood/vscode/test/static\.js$|dogfood/vscode/package\.json$|dogfood/vscode/README\.md$|dogfood/vscode/media/walkthrough-(local-first|ai-summaries|chat)\.md$|\.github/workflows/validate-e026-s0\.yml$)'
           unexpected="$(printf '%s\n' "$changed" | grep -Ev "$allowed" || true)"
           if [ -n "$unexpected" ]; then
-            echo 'E026 S0-A is portability preflight only; unexpected files changed:' >&2
+            echo 'E026 S0-A runtime/preflight changed together with files outside the frozen portability slice:' >&2
             printf '%s\n' "$unexpected" >&2
             exit 1
           fi

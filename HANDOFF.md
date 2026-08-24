@@ -1,133 +1,178 @@
 # Current Handoff
 
-Last updated: 2026-08-21 KST
+Last updated: 2026-08-24 KST
 
-This file is a **living continuation checkpoint**, not project history. Keep only current state, authority boundaries, and next actions. Historical detail belongs in experiment/ADR/issue records. If this file conflicts with merged code or an accepted ADR, code/ADR wins.
+This file is a **living continuation checkpoint**, not project history. Keep only current state, authority boundaries, active evidence questions, and next actions. Historical rationale belongs in merged commits, PRs, ADRs, experiments, or dedicated design documents. If this file conflicts with merged code or an accepted ADR, code/ADR wins.
 
-Before repo work: re-check `main`, open PRs, relevant issues/comments, and active branches.
+Before repo work: re-check `main`, open PRs, relevant current design docs, and active branches.
 
 ## NOW
 
 Repository: `YB-Park/llm-wiki-lab`
 
-- current product decision: **GO for installed self-dogfood / Alpha use**
+### Published baseline
+
+- `main`: `22be8db1eb63840f94fb7731b3e7aad8fa47f418`
+- validated/published dogfood: **0.1.20**
+- versioned VSIX: `dogfood/releases/llm-wiki-dogfood-0.1.20.vsix`
+- stable convenience path: `dogfood/releases/llm-wiki-dogfood-latest.vsix`
+- SHA-256: `a534e4e32eda8c89805deaf36f41fc287a4da285e90f4e6248ee47a8029b2532`
+- validated build: GitHub Actions `32467009165`, product head `4351d5b4c6e7400be9bbe007f09f7ecfd9047385`
 - public Beta: **not declared**
-- current `main` publication checkpoint: `c5cfc1304f6026b84c1e37478e0f85e7c917e8ca`
-- validated/published dogfood: **0.1.19**
-  - versioned VSIX: `dogfood/releases/llm-wiki-dogfood-0.1.19.vsix`
-  - stable convenience path: `dogfood/releases/llm-wiki-dogfood-latest.vsix`
-  - SHA-256: `5ad0aa719f1b104f1a2378ade2ba71fdf959e472a524f3f3ee39c91f41b5f787`
-  - validated product head: `71ba27537e39be36b2ba1709c68bc36c955c967c`
-  - validated `VS Code Dogfood` run: `32461723526`
-- existing **0.1.18 store format remains the compatibility baseline**; 0.1.19 introduced no canonical schema migration
-- E024 L0 Query Plane: **EARNED for opt-in product dogfood**
-- E025 F0 named-store authority preflight: **EARNED, 18/18 PASS, zero model calls**
-- E025 F1 named-store read-only federation: **EARNED FOR INSTALLED DOGFOOD and shipped**
-- E026 S0-A existing-store portability: **EARNED, 12/12 PASS, Python 3.9, zero model calls; shipped in 0.1.19**
-- primary natural product evidence: **#141**; cross-workspace evidence/continuation: **#202**; portability/remote continuation: **#213**
-- #132 reliability remains evidence-gated; do not preemptively introduce DB/WAL or speculative persistence
 
-## CURRENT PRODUCT SHAPE
+### Active product work
 
-- trusted **single-folder** workspace only; multi-root fails closed
-- each project keeps an independent Authority Core (`.wiki-lab` by default)
-- ordinary `wikiMemory` / `wikiConsult` remain **current-store-only**
-- Personal Wiki Library is local routing/authorization state, not a merged/global knowledge store
-- an external project is usable only as an **explicitly registered, explicitly named, read-only store** with a separate current-workspace library grant
-- exact external scope is resolved before retrieval; scoped `wikiRead` follow-through stays in that exact store
-- external store failure never falls back to the current store or another registered store
-- source admission, Human Knowledge, lineage, maintenance, and configuration writes remain current-store-only
-- external Human Knowledge remains **project-scoped context**, not a global preference or automatic recommendation
-- the host-local registration continuity witness detects accidental store replacement; it is **not portable/global store identity**
-- Query Plane is read-only; exact composer model remains `gpt-5.6-luna`
+Natural installed dogfood has activated a **UX/UI convergence phase**. The core is not being reopened merely because the product experience is difficult.
 
-## PORTABILITY / REMOTE BOUNDARY
+- design gate: `docs/product-ux-vnext.md`
+- active branch: `agent/ux-vnext-product-shell`
+- active draft PR: **#217 — UX vNext U0: add native LLM Wiki product shell**
+- candidate version on the branch: **0.1.21**
+- U0 status: **implementation in validation; not yet merged/published**
 
-E026 S0-A earned only **existing-store portability**, not synchronization.
+U0 is intentionally narrow:
 
-What is now proven:
+- one native LLM Wiki Activity Bar container;
+- one native Tree View / Welcome View;
+- persistent user-facing state for Project memory, AI summaries, AI-assisted memory answers, and Other project memories;
+- registered external projects shown by display name only;
+- sparse actions: Agent Chat, health details, refresh;
+- first-install walkthrough reduced to installed -> setup -> Agent Chat;
+- **no Webview, no canonical schema migration, no retrieval/model/grant widening**.
 
-- a representative existing 0.1.18 Wiki can move to a different absolute root without changing RAW/source identity, temporal history, exact provenance, Human Knowledge identity/lineage, workflow state, or derived-note readability
-- host-local `workspace-opt-in.json` is not portable authority; the destination requires a fresh workspace authority epoch
-- 0.1.19 re-hardens known private Wiki files/subtrees after permission-losing copy/checkout without changing bytes
-- permission recovery does not follow private-subtree symlinks
-- LF/CRLF mutation of content-addressed RAW fails closed as integrity corruption
+The product direction is not new policy. It implements the already-stated intent in `docs/12-autonomy-ux-philosophy.md`: ordinary Agent chat is primary, automation is ambient but legible, review should not become an approval storm, and Doctor/manual commands are expert/fallback surfaces.
 
-Do **not** infer from S0-A that any of the following are supported:
+## PRODUCT / UX TARGET
 
-- SSH/Git/cloud replication or automatic multi-PC sharing
-- Remote SSH / WSL / Dev Container / Codespaces as a validated product boundary
-- multi-machine concurrent writers or distributed writer/usage coordination
-- live network-share Authority Core semantics
-- automatic Git merge/rebase/conflict resolution of Wiki state
-- portable/global store identity or synchronized Personal Wiki catalog/grants
+Optimize for the user's small task model rather than exposing the system's internal authority model.
 
-If remote work is deliberately activated, the earned sequence is: **S0-B host-local Remote/SSH runtime matrix first, then S1 user-owned SSH transport proof**. S1 should remain byte-preserving, single-writer/fast-forward, and fail closed on divergence until evidence earns anything broader.
+A normal user should be able to answer:
 
-## AUTHORITY FLOOR
+1. Is project memory on here?
+2. What optional AI behavior is on?
+3. Are other project memories available?
+4. Did something I asked to remember become durable memory?
+5. Is anything waiting for my judgment?
+6. If something is wrong, what is the next safe action?
+
+Default product language should prefer `Project memory`, `AI summaries`, `AI-assisted memory answers`, `Other project memories`, and later `Needs attention` / plain-language pending decisions.
+
+Technical terms such as RAW/DERIVED enum labels, `current_store`, `library_store`, opaque store IDs, `scope_ref`, authority epochs, experiment tags, and calibration fields remain available where they are actually needed: tool contracts, provenance, diagnostics, tests, and expert inspection.
+
+## AUTHORITY FLOOR — DO NOT WEAKEN FOR UX
+
+The Alpha Core is ready under the convergence rule in `docs/09-alpha-core-readiness-gate.md`. New core work still requires a real dogfood/trust failure or an earned evidence boundary.
 
 Non-negotiable current invariants:
 
-- workspace use is explicit opt-in; disabling/re-enabling invalidates stale Query/Library grants
-- `Check Setup and Health` = **0 model calls / 0 state changes**
-- `RAW_MEMORY` = immutable admitted evidence / provenance authority
-- `DERIVED_MEMORY` = noncanonical, rebuildable navigation/synthesis aid
-- `HUMAN_KNOWLEDGE` = explicit user-owned project decision/belief/rationale
-- source admission, Human Knowledge authorship, and lineage semantics remain human-gated
-- terminal Wiki Brief refs terminate only on RAW/HUMAN_KNOWLEDGE
-- authorization constrains scope **before retrieval, scoring, candidate counts, diagnostics, or model exposure**
-- named-store authorization is revalidated across external reads and immediately before model execution
-- wrong/unknown/ambiguous/revoked/unavailable external scope fails closed
-- external reads never authorize external mutation
-- private filesystem roots stay out of normal Agent/model output
-- Query usage reservations are conservative; uncertain/failed attempts are not silently refunded
-- the daily Query attempt guard is local process/profile protection, **not distributed billing or multi-machine coordination**
-- no silent broad-RAW fallback
+- workspace use is explicit opt-in; disabling/re-enabling invalidates stale Query/Library workspace grants;
+- `Check Setup and Health` = **0 model calls / 0 state changes**;
+- `RAW_MEMORY` = immutable admitted evidence / provenance authority;
+- `DERIVED_MEMORY` = noncanonical, rebuildable navigation/synthesis aid;
+- `HUMAN_KNOWLEDGE` = explicit user-owned project decision/belief/rationale;
+- source admission, Human Knowledge authorship, and canonical lineage semantics remain human-gated;
+- changed remembered files never silently become correction/change/dispute/supersession;
+- authorization constrains external scope before retrieval/model exposure;
+- external project memory remains explicitly registered, explicitly named, **read-only**, and separately granted per current workspace;
+- wrong/unknown/ambiguous/revoked/unavailable external scope fails closed with no current/other-store fallback;
+- terminal Wiki Brief refs terminate only on RAW/HUMAN_KNOWLEDGE;
+- private filesystem roots stay out of normal Agent/model output;
+- Query usage reservation remains conservative; uncertain/failed attempts are not silently refunded;
+- no silent broad-RAW fallback.
+
+See ADR-0002 and `docs/12-autonomy-ux-philosophy.md` for the product/core boundary. Do not duplicate epistemic/storage logic into the VS Code UI merely to make the interface convenient.
+
+## CURRENT PRODUCT BOUNDARY
+
+Still true unless a later evidence-backed change explicitly supersedes it:
+
+- trusted **single-folder** workspace only; multi-root fails closed;
+- each project keeps an independent Authority Core (`.wiki-lab` by default);
+- ordinary `wikiMemory` / `wikiConsult` remain current-store-only;
+- other-project memory is named-store-only, local routing/authorization state — not a merged/global knowledge store;
+- external reads never authorize external writes, maintenance, source admission, Human Knowledge mutation, or lineage mutation;
+- exact external scope is preserved through `wikiRead` follow-through;
+- Query Plane remains read-only and exact composer model remains `gpt-5.6-luna`;
+- existing-store portability is earned; sync, Remote-runtime support, and multi-writer behavior are not.
+
+## UX VNEXT SEQUENCE
+
+Do not build every desirable surface at once. Earn each slice in installed use.
+
+### U0 — Product shell — ACTIVE
+
+Persistent native state/orientation surface with no authority widening. See PR #217 and `docs/product-ux-vnext.md`.
+
+### U1 — Safe action placement — NOT OPENED
+
+Candidate: contextual `Remember in Project Memory`, but only after the existing `rememberWikiSource` admission contract is shared/reused. It must preserve dirty-editor refusal, explicit admission confirmation, same-file reuse/detection, pending-lineage creation, and optional maintenance behavior. Do **not** create a weaker parallel ingest path for discoverability.
+
+### U2 — Pending decisions / activity — NOT OPENED
+
+Candidate: plain-language semantic choices over the existing verified lineage mechanism plus bounded review/activity. Canonical relation enums stay unchanged internally.
+
+### U3 — Other-project memory simplification — NOT OPENED
+
+Candidate: project-folder-first registration, derived display name, aliases as advanced, and coherent sequencing of still-separate registration/access/query authorities.
+
+### U4 — AI-assisted answer configuration — NOT OPENED
+
+Candidate: meaningful bounded choices plus Custom instead of unexplained bare-number entry, while preserving explicit user selection and the exact stored numeric caps.
 
 ## NOT EARNED / PARKED
 
-- library-wide ambient/union search
-- sync/Git/cloud replication and automatic remote discovery
-- multi-writer semantic merge, distributed locks, or automatic conflict resolution
-- Personal/global writable store or cross-project writes
-- portable global identity, automatic person/alias routing, graph/entity/ontology infrastructure
-- vector-default retrieval or background cross-project maintenance
-- E024 L1 iterative Librarian
-- **G2 Persistence: NOT_EARNED; parked**
-- **G3 Identity / Routing: NOT_OPENED**
-- paid E023 semantic reruns remain **paused**; do not spend on model-backed benchmark work without explicit authorization
+- library-wide ambient/union search;
+- sync/Git/cloud replication and automatic remote discovery;
+- validated Remote SSH / WSL / Dev Container / Codespaces product boundary;
+- multi-writer semantic merge, distributed locks, or automatic conflict resolution;
+- Personal/global writable store or cross-project writes;
+- portable global identity, automatic person/alias routing, graph/entity/ontology infrastructure;
+- vector-default retrieval or background cross-project maintenance;
+- E024 L1 iterative Librarian;
+- G2 Persistence: **NOT_EARNED; parked**;
+- G3 Identity / Routing: **NOT_OPENED**;
+- paid E023 semantic reruns remain paused absent explicit authorization/evidence.
 
-## ACTIVE DOGFOOD QUESTIONS
+## U0 VALIDATION / DOGFOOD GATE
 
-Natural **0.1.19** use should answer only what real work exposes:
+Before merging/publishing 0.1.21:
 
-- does ordinary current-project memory remain natural, reliable, and low-friction?
-- when another registered project is explicitly named, does `wikiConsult` route correctly and usefully?
-- are separate Query Reasoning and Personal Wiki Library grants understandable?
-- is scope-qualified `wikiRead` provenance follow-through sufficient and appropriately narrow?
-- do external Human Knowledge statements stay visibly project-scoped?
-- do moved/replaced/revoked stores fail clearly without fallback pressure?
-- does real usage create a strong enough Remote/multi-PC need to activate #213 S0-B/S1?
+- existing Python 3.9/core regressions must stay green;
+- E020 deterministic contract stays green and remains a safety/product-contract gate, **not a human product-quality score**;
+- VS Code syntax/static boundaries stay green, including one native View Container / one View / Welcome View / no Webview;
+- Extension Host integration and packaged VSIX execution stay green;
+- bundled-core and packaging checks stay green;
+- no model calls are required merely to validate U0.
 
-Do not manufacture dogfood evidence.
+After merge/publish, installed U0 dogfood should answer task-level questions, not “does the sidebar look prettier?”:
+
+- can a fresh user set up memory without README/maintainer help?
+- can they tell whether memory and optional AI features are on?
+- can they see registered other-project memories without learning store IDs/paths?
+- do they naturally return to Agent chat rather than operate LLM Wiki like a database?
+- can they find technical health/recovery when needed?
+
+Do not manufacture dogfood evidence and do not reopen core infrastructure to solve an interaction problem that belongs in the adapter/product layer.
 
 ## FAST POINTERS
 
-- installed natural dogfood: **#141**
-- cross-workspace / Personal Wiki: **#202**
-- Query Plane: **#204**
-- portability / future user-owned SSH transport: **#213**
-- reliability: **#132**
-- current release metadata: `dogfood/releases/README.md`
-- user guide: `dogfood/vscode/README.md`
-- E025 contract/results: `experiments/E025-cross-workspace-named-store-federation/`
-- E026 portability contract/results: `experiments/E026-ssh-store-portability/`
-- E020 frozen product contract: **78 zero-model cases: 60 supported / 7 partial / 11 deferred**
+- UX vNext design gate: `docs/product-ux-vnext.md`
+- autonomy/UX contract: `docs/12-autonomy-ux-philosophy.md`
+- VS Code-first/editor-agnostic core: `decisions/ADR-0002-vscode-first-editor-agnostic-core.md`
+- Alpha Core convergence rule: `docs/09-alpha-core-readiness-gate.md`
+- current UX implementation: PR **#217** / `agent/ux-vnext-product-shell`
+- current published release metadata: `dogfood/releases/README.md`
+- installed product guide: `dogfood/vscode/README.md`
+- natural installed evidence: #141
+- cross-workspace / named-store evidence: #202
+- Query Plane: #204
+- portability / future remote work: #213
+- reliability: #132
 
 ## NEXT ACTION
 
-1. Install/use the published **0.1.19** VSIX in ordinary work; existing 0.1.18 Wiki data carries forward unchanged.
-2. Record only meaningful natural evidence on #141/#202; keep same-host named-store federation narrow and read-only.
-3. Do not add sync/server/global-memory architecture merely because portability is now proven.
-4. If Remote/multi-PC becomes material, continue #213 with **S0-B before S1** and preserve byte-exact authority plus fresh destination-local authorization.
-5. Reliability/research work remains parked unless independent evidence activates it.
+1. Finish coherence/validation of **U0 / PR #217**; do not merge while required checks are red or while product copy contradicts the new sidebar mental model.
+2. If U0 passes deterministic + packaged Extension Host gates, review the diff specifically for authority duplication/widening, then merge/publish as 0.1.21 through the existing release workflow.
+3. Install and dogfood 0.1.21 in ordinary Agent work. Collect task-level UX evidence; do not treat E020 counts or visual polish as sufficient product evidence.
+4. Open U1 only after U0 installed use confirms the persistent product shell is useful. U1 source-admission discoverability must reuse the existing safe admission path.
+5. Keep broader core/retrieval/sync/reliability work parked unless independent evidence activates it.

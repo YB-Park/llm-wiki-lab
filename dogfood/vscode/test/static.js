@@ -8,6 +8,7 @@ const root = path.resolve(__dirname, '..');
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const entry = fs.readFileSync(path.join(root, 'entry.js'), 'utf8');
 const extension = fs.readFileSync(path.join(root, 'extension.js'), 'utf8');
+const productView = fs.readFileSync(path.join(root, 'product-view.js'), 'utf8');
 const agentTools = fs.readFileSync(path.join(root, 'agent-tools.js'), 'utf8');
 const queryPlane = fs.readFileSync(path.join(root, 'query-plane.js'), 'utf8');
 const memoryRead = fs.readFileSync(path.join(root, 'memory-read-service.js'), 'utf8');
@@ -33,15 +34,17 @@ function mustNot(label, condition) {
 
 const commands = new Set((manifest.contributes.commands || []).map((row) => row.command));
 for (const command of [
-  'llmWiki.enableWorkspace', 'llmWiki.disableWorkspace', 'llmWiki.createTopic', 'llmWiki.selectTopic', 'llmWiki.newKnowledgeNote',
+  'llmWiki.enableWorkspace', 'llmWiki.disableWorkspace', 'llmWiki.openAgentChat', 'llmWiki.refreshOverview',
+  'llmWiki.createTopic', 'llmWiki.selectTopic', 'llmWiki.newKnowledgeNote',
   'llmWiki.configureAgentWikiMaintenance', 'llmWiki.configureQueryPlane', 'llmWiki.configurePersonalWikiLibrary',
   'llmWiki.ingestActiveFile', 'llmWiki.ingestAuthoritativeUpdate', 'llmWiki.search', 'llmWiki.discoverAcrossTopics',
   'llmWiki.markCorrection', 'llmWiki.markChange', 'llmWiki.markDispute', 'llmWiki.feedback', 'llmWiki.ask',
   'llmWiki.calibration', 'llmWiki.doctor', 'llmWiki.reportIssue', 'llmWiki.experimentalDiscoverCopilotModels',
 ]) must(`command:${command}`, commands.has(command));
-assert.equal(commands.size, 21, 'STATIC-BOUNDARY command-count');
+assert.equal(commands.size, 23, 'STATIC-BOUNDARY command-count');
 mustNot('internal-core-init-not-user-contributed', commands.has('llmWiki.init'));
 must('startup-activation', manifest.activationEvents.includes('onStartupFinished'));
+must('overview-view-activation', manifest.activationEvents.includes('onView:llmWiki.overview'));
 must('enable-activation', manifest.activationEvents.includes('onCommand:llmWiki.enableWorkspace'));
 must('disable-activation', manifest.activationEvents.includes('onCommand:llmWiki.disableWorkspace'));
 must('query-config-activation', manifest.activationEvents.includes('onCommand:llmWiki.configureQueryPlane'));
@@ -54,19 +57,34 @@ assert.deepEqual(visiblePalette, new Set([
   'llmWiki.enableWorkspace', 'llmWiki.disableWorkspace', 'llmWiki.configureAgentWikiMaintenance',
   'llmWiki.configureQueryPlane', 'llmWiki.configurePersonalWikiLibrary', 'llmWiki.doctor',
 ]), 'STATIC-BOUNDARY release-command-palette');
+
+const viewContainers = manifest.contributes.viewsContainers && manifest.contributes.viewsContainers.activitybar || [];
+assert.equal(viewContainers.length, 1, 'STATIC-BOUNDARY ux-single-view-container');
+assert.equal(viewContainers[0].id, 'llmWiki', 'STATIC-BOUNDARY ux-view-container-id');
+const wikiViews = manifest.contributes.views && manifest.contributes.views.llmWiki || [];
+assert.equal(wikiViews.length, 1, 'STATIC-BOUNDARY ux-single-view');
+assert.equal(wikiViews[0].id, 'llmWiki.overview', 'STATIC-BOUNDARY ux-overview-view-id');
+must('ux-native-tree-view-no-webview', !manifest.contributes.webviews && !manifest.contributes.webviewViews);
+const welcomeRows = manifest.contributes.viewsWelcome || [];
+must('ux-setup-welcome-primary-action', welcomeRows.some((row) => row.view === 'llmWiki.overview' && row.contents.includes('[Set Up Project Memory](command:llmWiki.enableWorkspace)')));
+must('ux-welcome-ai-optional', welcomeRows.some((row) => row.contents.includes('AI features stay optional')));
+const titleActions = manifest.contributes.menus['view/title'] || [];
+assert.deepEqual(new Set(titleActions.map((row) => row.command)), new Set(['llmWiki.openAgentChat', 'llmWiki.doctor', 'llmWiki.refreshOverview']), 'STATIC-BOUNDARY ux-sparse-title-actions');
+
 const walkthroughs = manifest.contributes.walkthroughs || [];
 assert.equal(walkthroughs.length, 1, 'STATIC-BOUNDARY walkthrough-count');
-assert.equal(walkthroughs[0].steps.length, 4, 'STATIC-BOUNDARY walkthrough-step-count');
+assert.equal(walkthroughs[0].steps.length, 3, 'STATIC-BOUNDARY walkthrough-step-count');
 must('walkthrough-setup-command', walkthroughs[0].steps.some((row) => (row.completionEvents || []).includes('onCommand:llmWiki.enableWorkspace')));
 must('walkthrough-host-surface-disclosure', walkthroughs[0].description.includes("VS Code's Getting Started page"));
+must('walkthrough-sidebar-orientation', walkthroughs[0].description.includes('sidebar overview'));
 const walkthroughFirst = walkthroughs[0].steps.find((row) => row.id === 'llmWiki.gettingStarted.localFirst');
 const walkthroughAi = walkthroughs[0].steps.find((row) => row.id === 'llmWiki.gettingStarted.aiSummaries');
 const walkthroughChat = walkthroughs[0].steps.find((row) => row.id === 'llmWiki.gettingStarted.chat');
 must('walkthrough-installed-disclosure', walkthroughFirst && walkthroughFirst.title === 'LLM Wiki is installed' && walkthroughFirst.description.includes('Installing the extension is complete'));
-must('walkthrough-ai-summary-optional', walkthroughAi && walkthroughAi.description.includes('OFF by default') && (walkthroughAi.completionEvents || []).length === 0);
+must('walkthrough-ai-summary-removed-from-setup', !walkthroughAi);
 must('walkthrough-chat-primary-cta', walkthroughChat && walkthroughChat.description.includes('(command:workbench.action.chat.open)'));
 must('walkthrough-chat-completion', walkthroughChat && (walkthroughChat.completionEvents || []).includes('onCommand:workbench.action.chat.open'));
-must('walkthrough-mark-done-disclosure', walkthroughChat && walkthroughChat.description.includes('Mark Done') && walkthroughChat.description.includes('generic VS Code Welcome page'));
+must('walkthrough-no-separate-app', walkthroughChat && walkthroughChat.description.includes('do not need to operate a separate Wiki app'));
 
 must('human-note-command', entry.includes("registerCommand('llmWiki.newKnowledgeNote'"));
 must('human-note-boundary-text', entry.includes('Human-owned draft. Saving this file does not ingest, promote, or mutate LLM Wiki state.'));
@@ -127,7 +145,7 @@ const scopedReadSchema = tools.find((row) => row.name === 'llmWiki_readScopedSou
 must('scoped-read-scope-ref', Boolean(scopedReadSchema.scopeRef));
 assert.deepEqual(scopedReadSchema.scopeRef.properties.kind.enum, ['current_store', 'library_store'], 'STATIC-BOUNDARY scoped-read-scope-kinds');
 
-assert.equal(manifest.version, '0.1.20', 'STATIC-BOUNDARY version');
+assert.equal(manifest.version, '0.1.21', 'STATIC-BOUNDARY version');
 assert.equal(manifest.engines.vscode, '^1.95.0', 'STATIC-BOUNDARY vscode-engine');
 assert.equal(manifest.main, './entry.js', 'STATIC-BOUNDARY main-entry');
 assert.equal(manifest.private, true, 'STATIC-BOUNDARY private-package');
@@ -143,6 +161,7 @@ assert.equal(configProps['llmWiki.agentWikiMaintenanceDailyCallLimit'].maximum, 
 must('daily-soft-guard-description', configProps['llmWiki.agentWikiMaintenanceDailyCallLimit'].description.includes('soft-guard threshold'));
 mustNot('query-grant-not-workspace-setting', Object.prototype.hasOwnProperty.call(configProps, 'llmWiki.queryPlaneEnabled'));
 mustNot('library-grant-not-workspace-setting', Object.prototype.hasOwnProperty.call(configProps, 'llmWiki.personalWikiLibraryAccess'));
+must('check-includes-product-view', manifest.scripts.check.includes('product-view.js'));
 must('check-includes-workspace-activation', manifest.scripts.check.includes('workspace-activation.js'));
 must('check-runs-workspace-activation-test', manifest.scripts.check.includes('test/workspace-activation.js'));
 must('check-includes-human-knowledge', manifest.scripts.check.includes('human-knowledge.js'));
@@ -158,13 +177,16 @@ assert.equal(manifest.devDependencies['@vscode/vsce'], '3.9.2', 'STATIC-BOUNDARY
 
 must('entry-load-agent-tools', entry.includes("require('./agent-tools')"));
 must('entry-load-query-plane', entry.includes("require('./query-plane')"));
+must('entry-load-product-view', entry.includes("require('./product-view')"));
 must('entry-load-workspace-activation', entry.includes("require('./workspace-activation')"));
 must('entry-load-python-runtime', entry.includes("require('./python-runtime')"));
+must('entry-register-product-view-before-runtime', entry.indexOf('registerProductView(context);') < entry.indexOf('await refreshWorkspaceRuntimeAvailability(context);'));
 must('entry-register-agent-tools', entry.includes('registerAgentTools(context);'));
 must('entry-register-query-tool-same-lifecycle', entry.includes('registerQueryPlaneTool(context);'));
 must('entry-agent-tool-count-six-disposables', entry.includes('const AGENT_TOOL_COUNT = 6'));
 must('workspace-context-key', entry.includes("const WORKSPACE_ENABLED_CONTEXT = 'llmWiki.workspaceEnabled'"));
 must('workspace-context-set', entry.includes("executeCommand('setContext', WORKSPACE_ENABLED_CONTEXT"));
+must('overview-refresh-follows-workspace-context', entry.includes("executeCommand('llmWiki.refreshOverview')"));
 must('explicit-enable-command', entry.includes("registerCommand('llmWiki.enableWorkspace'"));
 must('explicit-disable-command', entry.includes("registerCommand('llmWiki.disableWorkspace'"));
 must('initialize-git-gate', entry.includes("gitSafety === 'UNPROTECTED'"));
@@ -175,6 +197,16 @@ must('doctor-reports-opt-in', entry.includes('Workspace opt-in:'));
 must('doctor-reports-tools', entry.includes('Agent tools:'));
 must('single-folder-runtime-gate', entry.includes('folders.length === 1 && workspaceActivation.isWorkspaceEnabled'));
 must('status-lifecycle-sync', entry.includes('base.setStatusVisible(enabled)'));
+
+must('product-view-native-tree', productView.includes('vscode.window.createTreeView(VIEW_ID'));
+must('product-view-no-webview', !productView.includes('createWebview') && !productView.includes('Webview'));
+must('product-view-user-vocabulary', productView.includes("node('Project memory'") && productView.includes("node('AI-assisted memory answers'") && productView.includes("node('Other project memories'"));
+must('product-view-other-project-names', productView.includes('store.displayName'));
+mustNot('product-view-no-store-id-display', productView.includes('store.storeId'));
+mustNot('product-view-no-root-display', productView.includes('store.root'));
+mustNot('product-view-no-authority-epoch', productView.includes('authority epoch'));
+must('product-view-refresh-on-visible', productView.includes('tree.onDidChangeVisibility'));
+must('product-view-workspace-eligible-context', productView.includes("const WORKSPACE_ELIGIBLE_CONTEXT = 'llmWiki.workspaceEligible'"));
 
 must('query-local-grant-workspace-state', queryPlane.includes('context.workspaceState.get(grantKey(folder))') && queryPlane.includes('context.workspaceState.update(grantKey(folder), grant)'));
 mustNot('query-grant-no-configuration-update', queryPlane.includes("config.update('queryPlaneEnabled'"));
@@ -373,4 +405,4 @@ mustNot('git-safety-no-write', gitSafety.includes('writeFile'));
 must('bundle-core-source', bundler.includes("path.join(dogfoodRoot, 'llm_wiki')"));
 must('bundle-core-destination', bundler.includes("path.join(bundleRoot, 'dogfood')"));
 
-console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.20 agentToolDisposables=6 contributedTools=7 explicitWorkspaceOptIn=yes queryPlaneL0=optin-local-grant+daily-cap+no-raw-fallback namedStoreF1=explicit-grants+pre-retrieval-scope+scoped-provenance+write-isolation relevantRegionRead=yes doctorPureDiagnostic=yes memoryV4=yes verifiedReadV3=yes durableAuthorityState=yes humanKnowledgeV1=yes maintenanceSoftGuard=yes singleFolderFailClosed=yes');
+console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.21 agentToolDisposables=6 contributedTools=7 uxVNextU0=native-single-view+welcome+agent-first explicitWorkspaceOptIn=yes queryPlaneL0=optin-local-grant+daily-cap+no-raw-fallback namedStoreF1=explicit-grants+pre-retrieval-scope+scoped-provenance+write-isolation relevantRegionRead=yes doctorPureDiagnostic=yes memoryV4=yes verifiedReadV3=yes durableAuthorityState=yes humanKnowledgeV1=yes maintenanceSoftGuard=yes singleFolderFailClosed=yes');
