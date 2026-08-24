@@ -1,5 +1,6 @@
 'use strict';
 
+const fs = require('node:fs');
 const path = require('node:path');
 const vscode = require('vscode');
 const library = require('./personal-wiki-library');
@@ -9,7 +10,7 @@ const COMMAND = 'llmWiki.configurePersonalWikiLibrary';
 
 function firstWorkspaceFolder() {
   const folders = vscode.workspace.workspaceFolders || [];
-  if (!folders.length) throw new Error('Open a trusted VS Code workspace/folder before configuring Personal Wiki Library.');
+  if (!folders.length) throw new Error('Open a trusted VS Code workspace/folder before managing other project memories.');
   if (folders.length !== 1) throw new Error('LLM Wiki currently supports one workspace folder at a time. Open the project as a single-folder workspace before using project memory.');
   return folders[0];
 }
@@ -18,63 +19,76 @@ function testOptions(context, options) {
   return context.extensionMode === vscode.ExtensionMode.Test && options && typeof options === 'object' ? options : {};
 }
 
+function looksLikeStore(root) {
+  return fs.existsSync(path.join(root, 'config.json')) && fs.existsSync(path.join(root, 'manifest.jsonl'));
+}
+
+function detectStoreFromSelection(selected) {
+  const chosen = path.resolve(selected);
+  if (path.basename(chosen) === '.wiki-lab' && looksLikeStore(chosen)) {
+    return { root: chosen, projectRoot: path.dirname(chosen) };
+  }
+  const conventional = path.join(chosen, '.wiki-lab');
+  if (looksLikeStore(conventional)) {
+    return { root: conventional, projectRoot: chosen };
+  }
+  if (looksLikeStore(chosen)) {
+    return { root: chosen, projectRoot: path.dirname(chosen) };
+  }
+  return undefined;
+}
+
 async function registerExternalStore(context, folder, options = {}) {
   const test = testOptions(context, options);
   let root = String(test.root || '').trim();
-  if (!root) {
+  let projectRoot;
+
+  if (root) {
+    const detected = detectStoreFromSelection(root);
+    if (detected) {
+      root = detected.root;
+      projectRoot = detected.projectRoot;
+    } else {
+      projectRoot = path.basename(root) === '.wiki-lab' ? path.dirname(root) : path.dirname(root);
+    }
+  } else {
     const picked = await vscode.window.showOpenDialog({
       canSelectFiles: false,
       canSelectFolders: true,
       canSelectMany: false,
-      openLabel: 'Select LLM Wiki Store',
-      title: 'Select the external project LLM Wiki store folder (usually .wiki-lab)',
+      openLabel: 'Add Project',
+      title: 'Choose another project that already uses LLM Wiki',
     });
     if (!picked || picked.length !== 1) return undefined;
-    root = picked[0].fsPath;
+    const detected = detectStoreFromSelection(picked[0].fsPath);
+    if (!detected) {
+      const choice = await vscode.window.showWarningMessage(
+        'LLM Wiki project memory was not found in that project.',
+        'Choose Another Project'
+      );
+      if (choice === 'Choose Another Project') return registerExternalStore(context, folder, options);
+      return undefined;
+    }
+    root = detected.root;
+    projectRoot = detected.projectRoot;
   }
 
-  const parentLabel = path.basename(root) === '.wiki-lab' ? path.basename(path.dirname(root)) : path.basename(root);
-  let displayName = String(test.displayName || '').trim();
-  if (!displayName) {
-    displayName = await vscode.window.showInputBox({
-      title: 'Personal Wiki Library: Project name',
-      prompt: 'Logical project name shown in scoped Wiki results. This is metadata, not authority identity.',
-      value: parentLabel,
-      ignoreFocusOut: true,
-      validateInput: (value) => {
-        const text = String(value || '').trim();
-        if (!text) return 'A project name is required.';
-        if (text.length > 120) return 'Use 120 characters or fewer.';
-        return undefined;
-      },
-    });
-    if (displayName === undefined) return undefined;
-    displayName = displayName.trim();
-  }
-
-  let aliases = Array.isArray(test.aliases) ? test.aliases.map(String) : undefined;
-  if (!aliases) {
-    const aliasText = await vscode.window.showInputBox({
-      title: 'Personal Wiki Library: Optional aliases',
-      prompt: 'Comma-separated names that may explicitly select this store. Ambiguous aliases fail closed.',
-      placeHolder: 'project-a, legacy-name',
-      ignoreFocusOut: true,
-    });
-    if (aliasText === undefined) return undefined;
-    aliases = aliasText.split(',').map((item) => item.trim()).filter(Boolean);
-  }
+  const derivedName = path.basename(projectRoot || path.dirname(root)) || 'Other Project';
+  let displayName = String(test.displayName || '').trim() || derivedName;
+  if (displayName.length > 120) displayName = displayName.slice(0, 120);
+  const aliases = Array.isArray(test.aliases) ? test.aliases.map(String) : [];
 
   const confirmed = context.extensionMode === vscode.ExtensionMode.Test
     ? true
     : await vscode.window.showWarningMessage(
-      `Register “${displayName}” as a read-only Personal Wiki source?`,
+      `Add “${displayName}” as read-only project memory?`,
       {
         modal: true,
-        detail: 'Registration allows this local project store to be selected only by an explicit named-store request. Its admitted evidence may be returned to the current Agent and, only when both current Query Reasoning and current-workspace library access are separately enabled, bounded evidence may be sent to exact gpt-5.6-luna. Registration does not authorize writes, sync, ambient library search, or cross-project maintenance.',
+        detail: 'You can consult this project only when you explicitly name it. LLM Wiki will not write to it, merge it into a global memory, search every project automatically, or run cross-project maintenance.',
       },
-      'Register Read-only Store'
+      'Add Read-only Project'
     );
-  if (confirmed !== true && confirmed !== 'Register Read-only Store') return undefined;
+  if (confirmed !== true && confirmed !== 'Add Read-only Project') return undefined;
 
   const row = await library.registerStore(context, {
     root,
@@ -82,8 +96,23 @@ async function registerExternalStore(context, folder, options = {}) {
     displayName,
     aliases,
   });
+
   if (context.extensionMode !== vscode.ExtensionMode.Test) {
-    vscode.window.showInformationMessage(`Registered “${row.displayName}” as a read-only Personal Wiki source. Named-store access for this workspace is a separate setting.`);
+    const currentRoot = memoryRead.wikiRoot(folder);
+    const existingGrant = library.libraryGrant(context, folder, currentRoot);
+    if (!existingGrant) {
+      const access = await vscode.window.showInformationMessage(
+        `Added “${row.displayName}”. Allow this workspace to consult explicitly named added projects?`,
+        'Allow Here',
+        'Not Now'
+      );
+      if (access === 'Allow Here') {
+        await library.setLibraryAccess(context, folder, currentRoot, true);
+        vscode.window.showInformationMessage(`“${row.displayName}” is ready for this workspace when AI-assisted memory answers are enabled.`);
+      }
+    } else {
+      vscode.window.showInformationMessage(`Added “${row.displayName}” as read-only project memory.`);
+    }
   }
   return row;
 }
@@ -95,26 +124,31 @@ async function configurePersonalWikiLibrary(context, options = {}) {
   const stores = library.registeredStores(context);
   const test = testOptions(context, options);
   let action = String(test.action || '').trim();
+
   if (!action) {
     const choice = await vscode.window.showQuickPick([
       {
-        label: '$(add) Register read-only project store',
-        description: 'Add another local LLM Wiki store with explicit external-read/model-exposure disclosure',
+        label: '$(add) Add another project',
+        description: 'Choose its project folder; LLM Wiki finds the local memory automatically',
         action: 'register',
       },
       {
-        label: grant ? '$(circle-slash) Disable named-store access for this workspace' : '$(key) Enable named-store access for this workspace',
-        description: grant ? 'Revokes this workspace library grant; registrations remain' : 'Allows explicit named-store requests only; no ambient library search',
+        label: grant ? '$(circle-slash) Stop using added projects here' : '$(key) Allow added projects in this workspace',
+        description: grant
+          ? 'Keeps the projects registered but revokes this workspace access'
+          : 'Allows only projects you explicitly name; no all-project search',
         action: grant ? 'disable' : 'enable',
       },
       ...(stores.length ? [{
-        label: '$(trash) Remove registered project store',
-        description: 'Remove a read-only registration; canonical project data is untouched',
+        label: '$(trash) Remove an added project',
+        description: 'Removes only the local registration; the other project is untouched',
         action: 'remove',
       }] : []),
     ], {
-      title: 'LLM Wiki: Configure Personal Wiki Library',
-      placeHolder: `${stores.length} registered read-only store${stores.length === 1 ? '' : 's'}; named-store access ${grant ? 'ON' : 'OFF'} for this workspace`,
+      title: 'LLM Wiki: Other Project Memories',
+      placeHolder: stores.length
+        ? `${stores.length} project${stores.length === 1 ? '' : 's'} added · access ${grant ? 'on' : 'off'} in this workspace`
+        : 'Add a project if you want Agent chat to consult its LLM Wiki memory explicitly',
       ignoreFocusOut: true,
     });
     if (!choice) return undefined;
@@ -122,49 +156,59 @@ async function configurePersonalWikiLibrary(context, options = {}) {
   }
 
   if (action === 'register') return registerExternalStore(context, folder, test);
+
   if (action === 'enable') {
     const approved = context.extensionMode === vscode.ExtensionMode.Test
       ? true
       : await vscode.window.showWarningMessage(
-        'Enable named-store Personal Wiki access for this workspace?',
+        'Allow this workspace to consult added project memories?',
         {
           modal: true,
-          detail: 'This workspace may explicitly select a registered read-only project store by its exact name/alias. Ordinary project questions stay current-store-only. This grant does not widen the existing current_store Query Reasoning grant, does not enable ambient all-project search, and becomes stale if project memory is disabled and re-enabled.',
+          detail: 'Only an explicitly named registered project can be consulted. Ordinary questions remain scoped to this project. This does not enable all-project search, external writes, or cross-project maintenance.',
         },
-        'Enable Named-store Access'
+        'Allow Added Projects'
       );
-    if (approved !== true && approved !== 'Enable Named-store Access') return undefined;
+    if (approved !== true && approved !== 'Allow Added Projects') return undefined;
     await library.setLibraryAccess(context, folder, currentRoot, true);
+    if (context.extensionMode !== vscode.ExtensionMode.Test) vscode.window.showInformationMessage('Added project memories are allowed in this workspace.');
     return true;
   }
+
   if (action === 'disable') {
     await library.setLibraryAccess(context, folder, currentRoot, false);
+    if (context.extensionMode !== vscode.ExtensionMode.Test) vscode.window.showInformationMessage('This workspace will no longer consult added project memories.');
     return false;
   }
+
   if (action === 'remove') {
     let storeId = String(test.storeId || '').trim();
     let displayName = '';
     if (!storeId) {
       const selected = await vscode.window.showQuickPick(
-        stores.map((row) => ({ label: row.displayName, description: row.storeId, storeId: row.storeId })),
-        { title: 'Remove a Personal Wiki registration', ignoreFocusOut: true }
+        stores.map((row) => ({
+          label: row.displayName,
+          description: 'Read-only project memory',
+          storeId: row.storeId,
+        })),
+        { title: 'Remove an added project', ignoreFocusOut: true }
       );
       if (!selected) return undefined;
       storeId = selected.storeId;
       displayName = selected.label;
     } else {
-      displayName = (stores.find((row) => row.storeId === storeId) || {}).displayName || 'registered project';
+      displayName = (stores.find((row) => row.storeId === storeId) || {}).displayName || 'added project';
     }
     const approved = context.extensionMode === vscode.ExtensionMode.Test
       ? true
       : await vscode.window.showWarningMessage(
-        `Remove “${displayName}” from Personal Wiki Library?`,
-        { modal: true, detail: 'Only the local registration is removed. The project Wiki store and its canonical evidence are not modified.' },
-        'Remove Registration'
+        `Remove “${displayName}” from Other Project Memories?`,
+        { modal: true, detail: 'Only this machine’s registration is removed. The other project and all of its memory remain untouched.' },
+        'Remove Project'
       );
-    if (approved !== true && approved !== 'Remove Registration') return undefined;
+    if (approved !== true && approved !== 'Remove Project') return undefined;
     return library.removeStore(context, storeId);
   }
+
   throw new Error('library_configuration_action_invalid');
 }
 
@@ -175,5 +219,6 @@ function registerPersonalWikiLibraryCommand(context) {
 module.exports = {
   COMMAND,
   configurePersonalWikiLibrary,
+  detectStoreFromSelection,
   registerPersonalWikiLibraryCommand,
 };

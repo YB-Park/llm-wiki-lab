@@ -9,6 +9,8 @@ const manifest = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'ut
 const entry = fs.readFileSync(path.join(root, 'entry.js'), 'utf8');
 const extension = fs.readFileSync(path.join(root, 'extension.js'), 'utf8');
 const productView = fs.readFileSync(path.join(root, 'product-view.js'), 'utf8');
+const productActions = fs.readFileSync(path.join(root, 'product-actions.js'), 'utf8');
+const productQueryConfig = fs.readFileSync(path.join(root, 'product-query-config.js'), 'utf8');
 const agentTools = fs.readFileSync(path.join(root, 'agent-tools.js'), 'utf8');
 const queryPlane = fs.readFileSync(path.join(root, 'query-plane.js'), 'utf8');
 const memoryRead = fs.readFileSync(path.join(root, 'memory-read-service.js'), 'utf8');
@@ -35,18 +37,22 @@ function mustNot(label, condition) {
 const commands = new Set((manifest.contributes.commands || []).map((row) => row.command));
 for (const command of [
   'llmWiki.enableWorkspace', 'llmWiki.disableWorkspace', 'llmWiki.openAgentChat', 'llmWiki.refreshOverview',
+  'llmWiki.rememberActiveFile', 'llmWiki.reviewPendingChanges', 'llmWiki.configureAiAnswersFriendly',
   'llmWiki.createTopic', 'llmWiki.selectTopic', 'llmWiki.newKnowledgeNote',
   'llmWiki.configureAgentWikiMaintenance', 'llmWiki.configureQueryPlane', 'llmWiki.configurePersonalWikiLibrary',
   'llmWiki.ingestActiveFile', 'llmWiki.ingestAuthoritativeUpdate', 'llmWiki.search', 'llmWiki.discoverAcrossTopics',
   'llmWiki.markCorrection', 'llmWiki.markChange', 'llmWiki.markDispute', 'llmWiki.feedback', 'llmWiki.ask',
   'llmWiki.calibration', 'llmWiki.doctor', 'llmWiki.reportIssue', 'llmWiki.experimentalDiscoverCopilotModels',
 ]) must(`command:${command}`, commands.has(command));
-assert.equal(commands.size, 23, 'STATIC-BOUNDARY command-count');
+assert.equal(commands.size, 26, 'STATIC-BOUNDARY command-count');
 mustNot('internal-core-init-not-user-contributed', commands.has('llmWiki.init'));
 must('startup-activation', manifest.activationEvents.includes('onStartupFinished'));
 must('overview-view-activation', manifest.activationEvents.includes('onView:llmWiki.overview'));
 must('enable-activation', manifest.activationEvents.includes('onCommand:llmWiki.enableWorkspace'));
 must('disable-activation', manifest.activationEvents.includes('onCommand:llmWiki.disableWorkspace'));
+must('remember-action-activation', manifest.activationEvents.includes('onCommand:llmWiki.rememberActiveFile'));
+must('review-action-activation', manifest.activationEvents.includes('onCommand:llmWiki.reviewPendingChanges'));
+must('friendly-query-config-activation', manifest.activationEvents.includes('onCommand:llmWiki.configureAiAnswersFriendly'));
 must('query-config-activation', manifest.activationEvents.includes('onCommand:llmWiki.configureQueryPlane'));
 must('library-config-activation', manifest.activationEvents.includes('onCommand:llmWiki.configurePersonalWikiLibrary'));
 
@@ -54,9 +60,19 @@ assert.equal(manifest.displayName, 'LLM Wiki', 'STATIC-BOUNDARY release-display-
 const paletteRows = manifest.contributes.menus.commandPalette || [];
 const visiblePalette = new Set(paletteRows.filter((row) => row.when !== 'false').map((row) => row.command));
 assert.deepEqual(visiblePalette, new Set([
-  'llmWiki.enableWorkspace', 'llmWiki.disableWorkspace', 'llmWiki.configureAgentWikiMaintenance',
-  'llmWiki.configureQueryPlane', 'llmWiki.configurePersonalWikiLibrary', 'llmWiki.doctor',
+  'llmWiki.enableWorkspace', 'llmWiki.disableWorkspace', 'llmWiki.rememberActiveFile',
+  'llmWiki.reviewPendingChanges', 'llmWiki.configureAiAnswersFriendly',
+  'llmWiki.configureAgentWikiMaintenance', 'llmWiki.configurePersonalWikiLibrary', 'llmWiki.doctor',
 ]), 'STATIC-BOUNDARY release-command-palette');
+must('advanced-query-config-hidden', paletteRows.some((row) => row.command === 'llmWiki.configureQueryPlane' && row.when === 'false'));
+
+const explorerContext = manifest.contributes.menus['explorer/context'] || [];
+const editorContext = manifest.contributes.menus['editor/context'] || [];
+assert.equal(explorerContext.length, 1, 'STATIC-BOUNDARY one-explorer-context-action');
+assert.equal(editorContext.length, 1, 'STATIC-BOUNDARY one-editor-context-action');
+assert.equal(explorerContext[0].command, 'llmWiki.rememberActiveFile', 'STATIC-BOUNDARY explorer-remember-action');
+assert.equal(editorContext[0].command, 'llmWiki.rememberActiveFile', 'STATIC-BOUNDARY editor-remember-action');
+must('context-action-workspace-gated', explorerContext[0].when.includes('llmWiki.workspaceEnabled') && explorerContext[0].when.includes('isWorkspaceTrusted') && explorerContext[0].when.includes('resourceScheme == file'));
 
 const viewContainers = manifest.contributes.viewsContainers && manifest.contributes.viewsContainers.activitybar || [];
 assert.equal(viewContainers.length, 1, 'STATIC-BOUNDARY ux-single-view-container');
@@ -84,7 +100,8 @@ must('walkthrough-installed-disclosure', walkthroughFirst && walkthroughFirst.ti
 must('walkthrough-ai-summary-removed-from-setup', !walkthroughAi);
 must('walkthrough-chat-primary-cta', walkthroughChat && walkthroughChat.description.includes('(command:workbench.action.chat.open)'));
 must('walkthrough-chat-completion', walkthroughChat && (walkthroughChat.completionEvents || []).includes('onCommand:workbench.action.chat.open'));
-must('walkthrough-no-separate-app', walkthroughChat && walkthroughChat.description.includes('do not need to operate a separate Wiki app'));
+must('walkthrough-chat-remains-primary', walkthroughChat && walkthroughChat.description.includes('ordinary questions still belong in Agent chat'));
+must('walkthrough-contextual-remember-discovery', walkthroughChat && walkthroughChat.description.includes("file's context menu"));
 
 must('human-note-command', entry.includes("registerCommand('llmWiki.newKnowledgeNote'"));
 must('human-note-boundary-text', entry.includes('Human-owned draft. Saving this file does not ingest, promote, or mutate LLM Wiki state.'));
@@ -145,7 +162,7 @@ const scopedReadSchema = tools.find((row) => row.name === 'llmWiki_readScopedSou
 must('scoped-read-scope-ref', Boolean(scopedReadSchema.scopeRef));
 assert.deepEqual(scopedReadSchema.scopeRef.properties.kind.enum, ['current_store', 'library_store'], 'STATIC-BOUNDARY scoped-read-scope-kinds');
 
-assert.equal(manifest.version, '0.1.21', 'STATIC-BOUNDARY version');
+assert.equal(manifest.version, '0.1.22', 'STATIC-BOUNDARY version');
 assert.equal(manifest.engines.vscode, '^1.95.0', 'STATIC-BOUNDARY vscode-engine');
 assert.equal(manifest.main, './entry.js', 'STATIC-BOUNDARY main-entry');
 assert.equal(manifest.private, true, 'STATIC-BOUNDARY private-package');
@@ -162,6 +179,8 @@ must('daily-soft-guard-description', configProps['llmWiki.agentWikiMaintenanceDa
 mustNot('query-grant-not-workspace-setting', Object.prototype.hasOwnProperty.call(configProps, 'llmWiki.queryPlaneEnabled'));
 mustNot('library-grant-not-workspace-setting', Object.prototype.hasOwnProperty.call(configProps, 'llmWiki.personalWikiLibraryAccess'));
 must('check-includes-product-view', manifest.scripts.check.includes('product-view.js'));
+must('check-includes-product-actions', manifest.scripts.check.includes('product-actions.js'));
+must('check-includes-product-query-config', manifest.scripts.check.includes('product-query-config.js'));
 must('check-includes-workspace-activation', manifest.scripts.check.includes('workspace-activation.js'));
 must('check-runs-workspace-activation-test', manifest.scripts.check.includes('test/workspace-activation.js'));
 must('check-includes-human-knowledge', manifest.scripts.check.includes('human-knowledge.js'));
@@ -201,12 +220,32 @@ must('status-lifecycle-sync', entry.includes('base.setStatusVisible(enabled)'));
 must('product-view-native-tree', productView.includes('vscode.window.createTreeView(VIEW_ID'));
 must('product-view-no-webview', !productView.includes('createWebview') && !productView.includes('Webview'));
 must('product-view-user-vocabulary', productView.includes("node('Project memory'") && productView.includes("node('AI-assisted memory answers'") && productView.includes("node('Other project memories'"));
+must('product-view-primary-agent-action', productView.includes("node('Ask Agent with project memory'"));
+must('product-view-remember-action', productView.includes("node('Remember active file'"));
+must('product-view-review-action', productView.includes("node('Review saved-file changes'"));
+must('product-view-registers-safe-actions', productView.includes('productActions.registerProductActions(context)'));
+must('product-view-registers-friendly-query-config', productView.includes('productQueryConfig.registerProductQueryConfig(context)'));
 must('product-view-other-project-names', productView.includes('store.displayName'));
 mustNot('product-view-no-store-id-display', productView.includes('store.storeId'));
 mustNot('product-view-no-root-display', productView.includes('store.root'));
 mustNot('product-view-no-authority-epoch', productView.includes('authority epoch'));
 must('product-view-refresh-on-visible', productView.includes('tree.onDidChangeVisibility'));
 must('product-view-workspace-eligible-context', productView.includes("const WORKSPACE_ELIGIBLE_CONTEXT = 'llmWiki.workspaceEligible'"));
+
+must('product-actions-use-stable-tool-invoke', productActions.includes('vscode.lm.invokeTool'));
+must('product-actions-reuse-remember-tool', productActions.includes("const REMEMBER_TOOL = 'llmWiki_rememberSource'") && productActions.includes('invokeTool(REMEMBER_TOOL'));
+must('product-actions-read-pending-via-readonly-tool', productActions.includes("const SEARCH_TOOL = 'llmWiki_searchMemory'") && productActions.includes('invokeTool(SEARCH_TOOL'));
+must('product-actions-reuse-lineage-tool', productActions.includes("const RESOLVE_LINEAGE_TOOL = 'llmWiki_resolveLineage'") && productActions.includes('invokeTool(RESOLVE_LINEAGE_TOOL'));
+mustNot('product-actions-no-cli', productActions.includes('runCli'));
+mustNot('product-actions-no-direct-ingest', productActions.includes("'ingest'"));
+mustNot('product-actions-no-canonical-source-mutation', productActions.includes("'source', 'correct'") || productActions.includes("'source', 'change'") || productActions.includes("'source', 'dispute'") || productActions.includes("'source', 'supersede'"));
+mustNot('product-actions-no-authority-state-write', productActions.includes('workspaceState.update') || productActions.includes('globalState.update'));
+must('product-actions-plain-correction-language', productActions.includes('The older version was wrong — this fixes it'));
+must('product-actions-plain-change-language', productActions.includes('Things changed over time — both were right at different times'));
+must('product-actions-plain-dispute-language', productActions.includes('They disagree and this is not resolved yet'));
+must('product-actions-plain-supersede-language', productActions.includes('Use the newer version going forward'));
+must('product-actions-plain-independent-language', productActions.includes('These should stay separate'));
+must('product-actions-effective-time-aware', productActions.includes('timezone-aware ISO timestamp'));
 
 must('query-local-grant-workspace-state', queryPlane.includes('context.workspaceState.get(grantKey(folder))') && queryPlane.includes('context.workspaceState.update(grantKey(folder), grant)'));
 mustNot('query-grant-no-configuration-update', queryPlane.includes("config.update('queryPlaneEnabled'"));
@@ -225,6 +264,17 @@ must('query-composer-no-root-arg', queryPlane.includes("['-m', 'dogfood.llm_wiki
 must('query-scope-qualified-brief', queryPlane.includes('scope-qualified refs'));
 must('query-register-library-command', queryPlane.includes('libraryUi.registerPersonalWikiLibraryCommand(context)'));
 must('query-composite-lifecycle', queryPlane.includes('queryDisposable.dispose()') && queryPlane.includes('readDisposable.dispose()'));
+
+must('friendly-query-explicit-presets', productQueryConfig.includes("label: 'Light'") && productQueryConfig.includes("label: 'Regular'") && productQueryConfig.includes("label: 'Frequent'"));
+must('friendly-query-no-default-selection', productQueryConfig.includes('Nothing is selected automatically'));
+must('friendly-query-uses-canonical-model', productQueryConfig.includes('model: queryPlane.MODEL'));
+must('friendly-query-uses-grant-version', productQueryConfig.includes('version: queryPlane.GRANT_VERSION'));
+must('friendly-query-current-store-only', productQueryConfig.includes("scope: 'current_store'"));
+must('friendly-query-evidence-exposure-narrow', productQueryConfig.includes("evidenceExposure: 'retrieved_admitted_memory_only'"));
+must('friendly-query-validates-through-query-plane', productQueryConfig.includes('const validated = queryPlane.queryGrant(context, folder)'));
+must('friendly-query-rolls-back-invalid-grant', productQueryConfig.includes('await context.workspaceState.update(queryPlane.grantKey(folder), previous)'));
+mustNot('friendly-query-no-model-call', productQueryConfig.includes('vscode.lm') || productQueryConfig.includes('spawn(') || productQueryConfig.includes('runComposer'));
+mustNot('friendly-query-no-retrieval', productQueryConfig.includes('collectQueryEvidence'));
 
 must('memory-profile-versioned', memoryRead.includes("id: 'current-store-l0-v1'"));
 must('memory-named-profile-versioned', memoryRead.includes("id: 'named-store-l0-v1'"));
@@ -248,8 +298,14 @@ must('library-random-opaque-id', personalLibrary.includes('crypto.randomUUID()')
 must('library-current-store-rejected', personalLibrary.includes('library_store_is_current_store'));
 must('library-ambiguity-failclosed', personalLibrary.includes('library_store_ambiguous'));
 must('library-no-union-search-api', !personalLibrary.includes('searchAll') && !personalLibrary.includes('unionSearch'));
-must('library-ui-explicit-readonly-disclosure', personalLibraryUi.includes('Register Read-only Store') && personalLibraryUi.includes('does not authorize writes, sync, ambient library search'));
-must('library-ui-named-only-disclosure', personalLibraryUi.includes('no ambient library search'));
+must('library-ui-project-folder-first', personalLibraryUi.includes('Choose another project that already uses LLM Wiki'));
+must('library-ui-detects-conventional-store', personalLibraryUi.includes("path.join(chosen, '.wiki-lab')"));
+must('library-ui-derived-name', personalLibraryUi.includes('const derivedName = path.basename(projectRoot'));
+must('library-ui-still-uses-register-store', personalLibraryUi.includes('library.registerStore(context'));
+must('library-ui-still-uses-separate-workspace-grant', personalLibraryUi.includes('library.setLibraryAccess(context, folder, currentRoot, true)'));
+must('library-ui-explicit-readonly-disclosure', personalLibraryUi.includes('Add Read-only Project') && personalLibraryUi.includes('will not write to it'));
+must('library-ui-named-only-disclosure', personalLibraryUi.includes('Only an explicitly named registered project can be consulted'));
+mustNot('library-ui-no-mandatory-alias-prompt', personalLibraryUi.includes('Optional aliases'));
 
 must('scoped-read-resolve-by-opaque-id', scopedRead.includes('library.resolveStoreId(context, folder'));
 must('scoped-read-v3', scopedRead.includes('LLM_WIKI_SOURCE_READ v3'));
@@ -405,4 +461,4 @@ mustNot('git-safety-no-write', gitSafety.includes('writeFile'));
 must('bundle-core-source', bundler.includes("path.join(dogfoodRoot, 'llm_wiki')"));
 must('bundle-core-destination', bundler.includes("path.join(bundleRoot, 'dogfood')"));
 
-console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.21 agentToolDisposables=6 contributedTools=7 uxVNextU0=native-single-view+welcome+agent-first explicitWorkspaceOptIn=yes queryPlaneL0=optin-local-grant+daily-cap+no-raw-fallback namedStoreF1=explicit-grants+pre-retrieval-scope+scoped-provenance+write-isolation relevantRegionRead=yes doctorPureDiagnostic=yes memoryV4=yes verifiedReadV3=yes durableAuthorityState=yes humanKnowledgeV1=yes maintenanceSoftGuard=yes singleFolderFailClosed=yes');
+console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.22 agentToolDisposables=6 contributedTools=7 uxVNext=actionable-native-view+contextual-safe-admission+plain-language-lineage+project-folder-federation+friendly-query-limits explicitWorkspaceOptIn=yes queryPlaneL0=optin-local-grant+daily-cap+no-raw-fallback namedStoreF1=explicit-grants+pre-retrieval-scope+scoped-provenance+write-isolation relevantRegionRead=yes doctorPureDiagnostic=yes memoryV4=yes verifiedReadV3=yes durableAuthorityState=yes humanKnowledgeV1=yes maintenanceSoftGuard=yes singleFolderFailClosed=yes');
