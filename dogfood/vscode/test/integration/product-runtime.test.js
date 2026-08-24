@@ -70,7 +70,7 @@ suite('LLM Wiki Product Surface', () => {
       assert.match(String(result || ''), /authority=human_confirmed_source_admission|authority=existing_source_reuse/);
       const rawRoot = path.join(wikiRoot, 'raw');
       const admitted = fs.existsSync(rawRoot)
-        ? fs.readdirSync(rawRoot, { recursive: true }).filter((name) => String(name).endsWith('.bin'))
+        ? fs.readdirSync(rawRoot, { recursive: true }).filter((name) => String(name).endsWith('.txt'))
         : [];
       assert.ok(admitted.length >= 1, 'contextual remember did not create canonical raw evidence');
     } finally {
