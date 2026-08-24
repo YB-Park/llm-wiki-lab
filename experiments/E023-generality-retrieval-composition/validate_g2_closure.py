@@ -52,17 +52,16 @@ def main() -> int:
     assert "G2 FIXED-IDENTITY PERSISTENCE NOT EARNED AND PARKED" in readme
     assert "G3 NOT OPENED" in readme
 
-    # HANDOFF.md is a living continuation checkpoint. Validate only current
-    # decision boundaries; historical experiment instructions belong in the
-    # frozen experiment/closure documents above, not in HANDOFF.md.
+    # HANDOFF.md is a living continuation checkpoint. A closed experiment may
+    # verify that its still-relevant authority boundaries remain intact, but it
+    # must not pin the handoff to historical wording, release numbers, or the
+    # primary product track that happened to exist when the experiment closed.
     for phrase in [
         "## NOW",
-        "current product decision: **GO for installed self-dogfood / Alpha use**",
-        "primary product-evidence track: **Issue #141 natural installed dogfood**",
-        "paid E023 semantic calls: **paused**",
-        "**G2 Persistence: NOT_EARNED; parked.**",
-        "**G3 Identity / Routing: NOT_OPENED.**",
-        "same-slice AQ/BQ/CQ/DQ/PQ semantic reruns or tuning",
+        "UX/UI convergence phase",
+        "paid E023 semantic reruns remain paused",
+        "G2 Persistence: **NOT_EARNED; parked**",
+        "G3 Identity / Routing: **NOT_OPENED**",
         "## NEXT ACTION",
     ]:
         assert phrase in handoff, phrase
@@ -81,6 +80,8 @@ def main() -> int:
         "same_slice_pq_rerun_authorized": False,
         "product_persistence_authorized": False,
         "paid_e023_semantic_calls_authorized": False,
+        # Historical closure output: this records what E023 handed control back
+        # to when it closed. It is not an assertion about today's primary track.
         "next_primary_track": "ISSUE_141_NATURAL_DOGFOOD",
         "issue_132_reliability": "EVIDENCE_GATED",
     }
