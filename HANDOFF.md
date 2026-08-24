@@ -12,35 +12,37 @@ Repository: `YB-Park/llm-wiki-lab`
 
 ### Published baseline
 
-- `main`: `22be8db1eb63840f94fb7731b3e7aad8fa47f418`
-- validated/published dogfood: **0.1.20**
-- versioned VSIX: `dogfood/releases/llm-wiki-dogfood-0.1.20.vsix`
+- `main`: `8b981339aa896ad76c2b1d47244911626c5f78f5`
+- validated/published dogfood: **0.1.21**
+- product merge head: `abd93c57567afbeef960a86ccf0dc204adc3691f`
+- versioned VSIX: `dogfood/releases/llm-wiki-dogfood-0.1.21.vsix`
 - stable convenience path: `dogfood/releases/llm-wiki-dogfood-latest.vsix`
-- SHA-256: `a534e4e32eda8c89805deaf36f41fc287a4da285e90f4e6248ee47a8029b2532`
-- validated build: GitHub Actions `32467009165`, product head `4351d5b4c6e7400be9bbe007f09f7ecfd9047385`
+- VSIX bytes: `140151`
+- SHA-256: `fa4d166abb6ac8331f06d729b3be2c0d91d660cf210e4cf33f2eda55d09d1fc2`
+- validated GitHub Actions build: `32686519533`
+- PR #217: **merged**
 - public Beta: **not declared**
+
+The published VSIX is the exact artifact emitted after the successful `VS Code Dogfood` run on `main`, including packaged-VSIX Extension Host execution. The versioned 0.1.21 path is immutable under the existing release rule.
 
 ### Active product work
 
-Natural installed dogfood has activated a **UX/UI convergence phase**. The core is not being reopened merely because the product experience is difficult.
+The project is now in **installed UX vNext U0 dogfood**. Do not reopen the Authority Core merely because interaction quality still needs work.
 
-- design gate: `docs/product-ux-vnext.md`
-- active branch: `agent/ux-vnext-product-shell`
-- active draft PR: **#217 — UX vNext U0: add native LLM Wiki product shell**
-- candidate version on the branch: **0.1.21**
-- U0 status: **implementation in validation; not yet merged/published**
-
-U0 is intentionally narrow:
+U0 is shipped:
 
 - one native LLM Wiki Activity Bar container;
 - one native Tree View / Welcome View;
 - persistent user-facing state for Project memory, AI summaries, AI-assisted memory answers, and Other project memories;
 - registered external projects shown by display name only;
-- sparse actions: Agent Chat, health details, refresh;
+- existing safe configuration flows reachable from the relevant overview rows;
+- sparse title actions for Agent Chat, health details, and refresh;
 - first-install walkthrough reduced to installed -> setup -> Agent Chat;
 - **no Webview, no canonical schema migration, no retrieval/model/grant widening**.
 
-The product direction is not new policy. It implements the already-stated intent in `docs/12-autonomy-ux-philosophy.md`: ordinary Agent chat is primary, automation is ambient but legible, review should not become an approval storm, and Doctor/manual commands are expert/fallback surfaces.
+Design gate: `docs/product-ux-vnext.md`.
+
+The product direction implements the existing intent in `docs/12-autonomy-ux-philosophy.md`: ordinary Agent chat is primary, automation is ambient but legible, review should not become an approval storm, and Doctor/manual commands are expert/fallback surfaces.
 
 ## PRODUCT / UX TARGET
 
@@ -57,7 +59,7 @@ A normal user should be able to answer:
 
 Default product language should prefer `Project memory`, `AI summaries`, `AI-assisted memory answers`, `Other project memories`, and later `Needs attention` / plain-language pending decisions.
 
-Technical terms such as RAW/DERIVED enum labels, `current_store`, `library_store`, opaque store IDs, `scope_ref`, authority epochs, experiment tags, and calibration fields remain available where they are actually needed: tool contracts, provenance, diagnostics, tests, and expert inspection.
+Technical terms such as RAW/DERIVED enum labels, `current_store`, `library_store`, opaque store IDs, `scope_ref`, authority epochs, experiment tags, and calibration fields remain available where actually needed: tool contracts, provenance, diagnostics, tests, and expert inspection.
 
 ## AUTHORITY FLOOR — DO NOT WEAKEN FOR UX
 
@@ -99,9 +101,18 @@ Still true unless a later evidence-backed change explicitly supersedes it:
 
 Do not build every desirable surface at once. Earn each slice in installed use.
 
-### U0 — Product shell — ACTIVE
+### U0 — Product shell — SHIPPED / DOGFOOD ACTIVE
 
-Persistent native state/orientation surface with no authority widening. See PR #217 and `docs/product-ux-vnext.md`.
+Published as **0.1.21**. Judge it through ordinary installed work, not screenshots or synthetic support counts alone.
+
+Current evidence questions:
+
+- can a fresh user set up memory without README/maintainer help?
+- can they tell at a glance whether project memory and optional AI features are on?
+- can they see and understand other-project memory availability without store IDs/paths?
+- do they naturally return to Agent chat instead of treating LLM Wiki as a separate database app?
+- can they find technical health/recovery only when needed?
+- does the legacy status-bar entry still pull users toward a diagnostic-first mental model, or is the new Overview sufficient? Treat installed behavior as the deciding evidence.
 
 ### U1 — Safe action placement — NOT OPENED
 
@@ -133,26 +144,18 @@ Candidate: meaningful bounded choices plus Custom instead of unexplained bare-nu
 - G3 Identity / Routing: **NOT_OPENED**;
 - paid E023 semantic reruns remain paused absent explicit authorization/evidence.
 
-## U0 VALIDATION / DOGFOOD GATE
+## RELEASE / VALIDATION EVIDENCE
 
-Before merging/publishing 0.1.21:
+0.1.21 release gate is complete:
 
-- existing Python 3.9/core regressions must stay green;
-- E020 deterministic contract stays green and remains a safety/product-contract gate, **not a human product-quality score**;
-- VS Code syntax/static boundaries stay green, including one native View Container / one View / Welcome View / no Webview;
-- Extension Host integration and packaged VSIX execution stay green;
-- bundled-core and packaging checks stay green;
-- no model calls are required merely to validate U0.
+- PR head `111619735b0dac20de0ca28653111c7459a3814b`: VS Code Dogfood and E004/E010/E014/E023/E026 checks green;
+- merged product head `abd93c57567afbeef960a86ccf0dc204adc3691f`;
+- main `VS Code Dogfood` run `32686519533`: successful;
+- packaged VSIX executed in Extension Host before artifact publication;
+- release bot published versioned and `latest` VSIX paths at main `8b981339aa896ad76c2b1d47244911626c5f78f5`;
+- release validation required **0 model calls** for U0 itself.
 
-After merge/publish, installed U0 dogfood should answer task-level questions, not “does the sidebar look prettier?”:
-
-- can a fresh user set up memory without README/maintainer help?
-- can they tell whether memory and optional AI features are on?
-- can they see registered other-project memories without learning store IDs/paths?
-- do they naturally return to Agent chat rather than operate LLM Wiki like a database?
-- can they find technical health/recovery when needed?
-
-Do not manufacture dogfood evidence and do not reopen core infrastructure to solve an interaction problem that belongs in the adapter/product layer.
+E020 remains a deterministic safety/product-contract gate, **not a human product-quality score**.
 
 ## FAST POINTERS
 
@@ -160,7 +163,7 @@ Do not manufacture dogfood evidence and do not reopen core infrastructure to sol
 - autonomy/UX contract: `docs/12-autonomy-ux-philosophy.md`
 - VS Code-first/editor-agnostic core: `decisions/ADR-0002-vscode-first-editor-agnostic-core.md`
 - Alpha Core convergence rule: `docs/09-alpha-core-readiness-gate.md`
-- current UX implementation: PR **#217** / `agent/ux-vnext-product-shell`
+- U0 implementation/review: merged PR **#217**
 - current published release metadata: `dogfood/releases/README.md`
 - installed product guide: `dogfood/vscode/README.md`
 - natural installed evidence: #141
@@ -171,8 +174,8 @@ Do not manufacture dogfood evidence and do not reopen core infrastructure to sol
 
 ## NEXT ACTION
 
-1. Finish coherence/validation of **U0 / PR #217**; do not merge while required checks are red or while product copy contradicts the new sidebar mental model.
-2. If U0 passes deterministic + packaged Extension Host gates, review the diff specifically for authority duplication/widening, then merge/publish as 0.1.21 through the existing release workflow.
-3. Install and dogfood 0.1.21 in ordinary Agent work. Collect task-level UX evidence; do not treat E020 counts or visual polish as sufficient product evidence.
-4. Open U1 only after U0 installed use confirms the persistent product shell is useful. U1 source-admission discoverability must reuse the existing safe admission path.
+1. **Install and dogfood 0.1.21 in ordinary Agent work now.** Collect task-level UX evidence; do not treat E020 counts or visual polish as sufficient evidence.
+2. Fix U0-level interaction friction only when installed use makes it concrete. Keep those fixes in the adapter/product layer unless a genuine authority/trust failure proves otherwise.
+3. Open U1 only after U0 installed use confirms the persistent product shell is useful. U1 source-admission discoverability must reuse the existing safe admission path.
+4. Keep U2-U4 gated behind the preceding installed evidence rather than implementing the roadmap mechanically.
 5. Keep broader core/retrieval/sync/reliability work parked unless independent evidence activates it.
