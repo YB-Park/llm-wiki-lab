@@ -3,6 +3,7 @@
 const vscode = require('vscode');
 const memoryRead = require('./memory-read-service');
 const personalLibrary = require('./personal-wiki-library');
+const productActions = require('./product-actions');
 const { queryGrant } = require('./query-plane');
 const workspaceActivation = require('./workspace-activation');
 
@@ -99,7 +100,7 @@ class LlmWikiOverviewProvider {
     if (element && element.kind === 'stores') {
       return state.stores.map((store) => node(store.displayName, {
         description: 'Read only',
-        tooltip: 'Available only when this project is explicitly named in Agent chat and this workspace has the required access.',
+        tooltip: 'This project can be consulted only when you explicitly name it and this workspace has access.',
         iconPath: new vscode.ThemeIcon('folder'),
         kind: 'store',
       }));
@@ -116,23 +117,41 @@ class LlmWikiOverviewProvider {
       otherProjectIcon = new vscode.ThemeIcon('warning');
     } else if (!state.stores.length) {
       otherProjectDescription = 'None added';
-      otherProjectTooltip = 'No other project memories are registered on this machine.';
+      otherProjectTooltip = 'Add another local project so you can explicitly consult its memory read-only.';
       otherProjectIcon = new vscode.ThemeIcon('folder');
     } else if (!state.libraryAccess) {
       otherProjectDescription = `${state.stores.length} added · access off`;
-      otherProjectTooltip = 'Other project memories are registered, but this workspace is not allowed to use them.';
+      otherProjectTooltip = 'Projects are added, but this workspace is not allowed to consult them yet.';
       otherProjectIcon = new vscode.ThemeIcon('circle-slash');
     } else if (!state.queryOn) {
       otherProjectDescription = `${state.stores.length} added · AI answers off`;
-      otherProjectTooltip = 'Other project access is allowed, but AI-assisted memory answers are off. External project consultation remains unavailable.';
+      otherProjectTooltip = 'Other-project access is allowed. Turn on AI-assisted memory answers to consult an explicitly named project.';
       otherProjectIcon = new vscode.ThemeIcon('circle-slash');
     } else {
       otherProjectDescription = `${state.stores.length} added · ready`;
-      otherProjectTooltip = 'Explicitly named other project memories can be consulted read-only from Agent chat.';
+      otherProjectTooltip = 'Explicitly named other projects can be consulted read-only from Agent chat.';
       otherProjectIcon = new vscode.ThemeIcon('check');
     }
 
     return [
+      node('Ask Agent with project memory', {
+        description: 'Open chat',
+        tooltip: 'Continue normal work in Agent chat. LLM Wiki memory tools are available there.',
+        iconPath: new vscode.ThemeIcon('comment-discussion'),
+        command: { command: OPEN_CHAT_COMMAND, title: 'Open Agent Chat' },
+      }),
+      node('Remember active file', {
+        description: 'Save to project memory',
+        tooltip: 'Save the currently open local project file through the same guarded source-admission path used by Agent chat.',
+        iconPath: new vscode.ThemeIcon('save'),
+        command: { command: productActions.REMEMBER_COMMAND, title: 'Remember Active File' },
+      }),
+      node('Review saved-file changes', {
+        description: 'Resolve what changed',
+        tooltip: 'Review a newer saved revision and describe its meaning in plain language. Verified old/new evidence is shown before the final decision is recorded.',
+        iconPath: new vscode.ThemeIcon('diff'),
+        command: { command: productActions.REVIEW_CHANGES_COMMAND, title: 'Review Saved-file Changes' },
+      }),
       node('Project memory', {
         description: 'On',
         tooltip: 'This workspace is allowed to use its local project memory in Agent conversations.',
@@ -149,14 +168,14 @@ class LlmWikiOverviewProvider {
       node('AI-assisted memory answers', {
         description: state.queryOn ? 'On' : 'Off',
         tooltip: state.queryOn
-          ? 'Bounded saved memory may be sent to GitHub Copilot for read-only memory reasoning under this workspace grant. Click to change access.'
-          : 'AI-assisted memory reasoning is off. Deterministic local memory search/read can still be used by the Agent. Click to configure it.',
+          ? 'Bounded saved memory may be sent to GitHub Copilot for read-only memory reasoning. Click to change access.'
+          : 'AI-assisted memory reasoning is off. Deterministic local memory search/read can still be used. Click to configure it.',
         iconPath: statusIcon(state.queryOn),
         command: { command: CONFIGURE_ANSWERS_FROM_OVERVIEW, title: 'Configure AI-assisted Memory Answers' },
       }),
       node('Other project memories', {
         description: otherProjectDescription,
-        tooltip: `${otherProjectTooltip} Click to manage other project memories; use the disclosure arrow to inspect registered names.`,
+        tooltip: `${otherProjectTooltip} Click to manage projects; use the disclosure arrow to inspect registered names.`,
         iconPath: otherProjectIcon,
         command: { command: CONFIGURE_OTHER_PROJECTS_FROM_OVERVIEW, title: 'Manage Other Project Memories' },
         collapsibleState: state.libraryCatalogReady && state.stores.length
@@ -173,6 +192,7 @@ class LlmWikiOverviewProvider {
 }
 
 function registerProductView(context) {
+  productActions.registerProductActions(context);
   const provider = new LlmWikiOverviewProvider(context);
   const tree = vscode.window.createTreeView(VIEW_ID, { treeDataProvider: provider });
 
