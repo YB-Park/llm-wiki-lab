@@ -10,6 +10,9 @@ const VIEW_ID = 'llmWiki.overview';
 const WORKSPACE_ELIGIBLE_CONTEXT = 'llmWiki.workspaceEligible';
 const REFRESH_COMMAND = 'llmWiki.refreshOverview';
 const OPEN_CHAT_COMMAND = 'llmWiki.openAgentChat';
+const CONFIGURE_SUMMARIES_FROM_OVERVIEW = 'llmWiki.overview.configureAiSummaries';
+const CONFIGURE_ANSWERS_FROM_OVERVIEW = 'llmWiki.overview.configureAiAnswers';
+const CONFIGURE_OTHER_PROJECTS_FROM_OVERVIEW = 'llmWiki.overview.configureOtherProjects';
 
 function firstEligibleFolder() {
   const folders = vscode.workspace.workspaceFolders || [];
@@ -52,11 +55,11 @@ function node(label, options = {}) {
     description: options.description || '',
     tooltip: options.tooltip || '',
     iconPath: options.iconPath,
+    command: options.command,
     collapsibleState: options.collapsibleState === undefined
       ? vscode.TreeItemCollapsibleState.None
       : options.collapsibleState,
     kind: options.kind || 'leaf',
-    data: options.data,
   };
 }
 
@@ -81,6 +84,7 @@ class LlmWikiOverviewProvider {
     item.description = element.description;
     item.tooltip = element.tooltip || element.label;
     item.iconPath = element.iconPath;
+    item.command = element.command;
     if (element.kind === 'store') item.contextValue = 'llmWiki.otherProjectMemory';
     return item;
   }
@@ -98,7 +102,6 @@ class LlmWikiOverviewProvider {
         tooltip: 'Available only when this project is explicitly named in Agent chat and this workspace has the required access.',
         iconPath: new vscode.ThemeIcon('folder'),
         kind: 'store',
-        data: store,
       }));
     }
 
@@ -138,21 +141,24 @@ class LlmWikiOverviewProvider {
       node('AI summaries', {
         description: state.maintenanceOn ? 'On' : 'Off',
         tooltip: state.maintenanceOn
-          ? 'Optional AI summaries are enabled for explicitly saved sources.'
-          : 'Optional AI summaries are off. Project memory still works without them.',
+          ? 'Optional AI summaries are enabled for explicitly saved sources. Click to change this setting.'
+          : 'Optional AI summaries are off. Project memory still works without them. Click to change this setting.',
         iconPath: statusIcon(state.maintenanceOn),
+        command: { command: CONFIGURE_SUMMARIES_FROM_OVERVIEW, title: 'Configure AI Summaries' },
       }),
       node('AI-assisted memory answers', {
         description: state.queryOn ? 'On' : 'Off',
         tooltip: state.queryOn
-          ? 'Bounded saved memory may be sent to GitHub Copilot for read-only memory reasoning under this workspace grant.'
-          : 'AI-assisted memory reasoning is off. Deterministic local memory search/read can still be used by the Agent.',
+          ? 'Bounded saved memory may be sent to GitHub Copilot for read-only memory reasoning under this workspace grant. Click to change access.'
+          : 'AI-assisted memory reasoning is off. Deterministic local memory search/read can still be used by the Agent. Click to configure it.',
         iconPath: statusIcon(state.queryOn),
+        command: { command: CONFIGURE_ANSWERS_FROM_OVERVIEW, title: 'Configure AI-assisted Memory Answers' },
       }),
       node('Other project memories', {
         description: otherProjectDescription,
-        tooltip: otherProjectTooltip,
+        tooltip: `${otherProjectTooltip} Click to manage other project memories; use the disclosure arrow to inspect registered names.`,
         iconPath: otherProjectIcon,
+        command: { command: CONFIGURE_OTHER_PROJECTS_FROM_OVERVIEW, title: 'Manage Other Project Memories' },
         collapsibleState: state.libraryCatalogReady && state.stores.length
           ? vscode.TreeItemCollapsibleState.Collapsed
           : vscode.TreeItemCollapsibleState.None,
@@ -170,11 +176,28 @@ function registerProductView(context) {
   const provider = new LlmWikiOverviewProvider(context);
   const tree = vscode.window.createTreeView(VIEW_ID, { treeDataProvider: provider });
 
+  const runAndRefresh = async (command) => {
+    await vscode.commands.executeCommand(command);
+    provider.refresh();
+  };
+
   context.subscriptions.push(provider, tree);
   context.subscriptions.push(vscode.commands.registerCommand(REFRESH_COMMAND, () => provider.refresh()));
   context.subscriptions.push(vscode.commands.registerCommand(OPEN_CHAT_COMMAND, () => (
     vscode.commands.executeCommand('workbench.action.chat.open')
   )));
+  context.subscriptions.push(vscode.commands.registerCommand(
+    CONFIGURE_SUMMARIES_FROM_OVERVIEW,
+    () => runAndRefresh('llmWiki.configureAgentWikiMaintenance')
+  ));
+  context.subscriptions.push(vscode.commands.registerCommand(
+    CONFIGURE_ANSWERS_FROM_OVERVIEW,
+    () => runAndRefresh('llmWiki.configureQueryPlane')
+  ));
+  context.subscriptions.push(vscode.commands.registerCommand(
+    CONFIGURE_OTHER_PROJECTS_FROM_OVERVIEW,
+    () => runAndRefresh('llmWiki.configurePersonalWikiLibrary')
+  ));
 
   context.subscriptions.push(tree.onDidChangeVisibility((event) => {
     if (event.visible) provider.refresh();
