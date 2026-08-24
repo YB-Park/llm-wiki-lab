@@ -4,6 +4,7 @@ const vscode = require('vscode');
 const memoryRead = require('./memory-read-service');
 const personalLibrary = require('./personal-wiki-library');
 const productActions = require('./product-actions');
+const productQueryConfig = require('./product-query-config');
 const { queryGrant } = require('./query-plane');
 const workspaceActivation = require('./workspace-activation');
 
@@ -168,8 +169,8 @@ class LlmWikiOverviewProvider {
       node('AI-assisted memory answers', {
         description: state.queryOn ? 'On' : 'Off',
         tooltip: state.queryOn
-          ? 'Bounded saved memory may be sent to GitHub Copilot for read-only memory reasoning. Click to change access.'
-          : 'AI-assisted memory reasoning is off. Deterministic local memory search/read can still be used. Click to configure it.',
+          ? 'Bounded saved memory may be sent to GitHub Copilot for read-only memory reasoning. Click to change access or limits.'
+          : 'AI-assisted memory reasoning is off. Deterministic local memory search/read still works. Click to choose an explicit usage level.',
         iconPath: statusIcon(state.queryOn),
         command: { command: CONFIGURE_ANSWERS_FROM_OVERVIEW, title: 'Configure AI-assisted Memory Answers' },
       }),
@@ -193,6 +194,7 @@ class LlmWikiOverviewProvider {
 
 function registerProductView(context) {
   productActions.registerProductActions(context);
+  productQueryConfig.registerProductQueryConfig(context);
   const provider = new LlmWikiOverviewProvider(context);
   const tree = vscode.window.createTreeView(VIEW_ID, { treeDataProvider: provider });
 
@@ -212,7 +214,7 @@ function registerProductView(context) {
   ));
   context.subscriptions.push(vscode.commands.registerCommand(
     CONFIGURE_ANSWERS_FROM_OVERVIEW,
-    () => runAndRefresh('llmWiki.configureQueryPlane')
+    () => runAndRefresh(productQueryConfig.COMMAND)
   ));
   context.subscriptions.push(vscode.commands.registerCommand(
     CONFIGURE_OTHER_PROJECTS_FROM_OVERVIEW,
