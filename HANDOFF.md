@@ -12,7 +12,7 @@ Repository: `YB-Park/llm-wiki-lab`
 
 ### Published baseline
 
-- `main`: `8b981339aa896ad76c2b1d47244911626c5f78f5`
+- published release commit: `8b981339aa896ad76c2b1d47244911626c5f78f5`
 - validated/published dogfood: **0.1.21**
 - product merge head: `abd93c57567afbeef960a86ccf0dc204adc3691f`
 - versioned VSIX: `dogfood/releases/llm-wiki-dogfood-0.1.21.vsix`
