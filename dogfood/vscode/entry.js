@@ -12,6 +12,7 @@ const { clearPythonRuntimeCache, resolvePythonRuntime } = require('./python-runt
 const workspaceActivation = require('./workspace-activation');
 const { discoverCopilotModels } = require('./lm-discovery');
 const personalLibrary = require('./personal-wiki-library');
+const { registerProductView } = require('./product-view');
 const { queryGrant, registerQueryPlaneCommand, registerQueryPlaneTool } = require('./query-plane');
 
 const execFileAsync = promisify(execFile);
@@ -151,6 +152,7 @@ async function applyWorkspaceRuntimeAvailability(context, enabled) {
     base.setStatusVisible(enabled);
   }
   await setWorkspaceToolContext(enabled);
+  await vscode.commands.executeCommand('llmWiki.refreshOverview');
 }
 
 async function refreshWorkspaceRuntimeAvailability(context) {
@@ -546,6 +548,7 @@ async function commandBoundary(label, fn) {
 async function activate(context) {
   doctorOutput = vscode.window.createOutputChannel('LLM Wiki Doctor');
   context.subscriptions.push(doctorOutput);
+  registerProductView(context);
 
   await refreshWorkspaceRuntimeAvailability(context);
   context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders(() => {
