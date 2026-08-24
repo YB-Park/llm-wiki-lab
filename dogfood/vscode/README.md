@@ -4,7 +4,7 @@ LLM Wiki gives your coding Agent **durable project memory that you control**.
 
 The currently published dogfood release remains **0.1.20**. This branch prepares **0.1.21**, the first UX vNext product-shell slice. It does not widen memory authority, migrate the canonical store schema, change retrieval defaults, or add a new model policy. Existing 0.1.18+ `.wiki-lab` stores remain compatible.
 
-The design gate for this work is [`../../docs/14-product-ux-vnext.md`](../../docs/14-product-ux-vnext.md).
+The design gate for this work is [`../../docs/product-ux-vnext.md`](../../docs/product-ux-vnext.md).
 
 ## What changes in U0
 
@@ -277,7 +277,7 @@ Do not score U0 primarily on visual styling. Observe whether a user can:
 - find technical health details when something is wrong;
 - understand the next safe action without reading raw diagnostic output first.
 
-Broader UX work is gated behind this first installed product-shell experience. See `docs/14-product-ux-vnext.md` for the planned U1–U4 sequence.
+Broader UX work is gated behind this first installed product-shell experience. See `docs/product-ux-vnext.md` for the planned U1–U4 sequence.
 
 ## Settings
 
