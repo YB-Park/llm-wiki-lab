@@ -24,7 +24,7 @@ Repository: `YB-Park/llm-wiki-lab`
 
 Natural installed dogfood has activated a **UX/UI convergence phase**. The core is not being reopened merely because the product experience is difficult.
 
-- design gate: `docs/14-product-ux-vnext.md`
+- design gate: `docs/product-ux-vnext.md`
 - active branch: `agent/ux-vnext-product-shell`
 - active draft PR: **#217 — UX vNext U0: add native LLM Wiki product shell**
 - candidate version on the branch: **0.1.21**
@@ -101,7 +101,7 @@ Do not build every desirable surface at once. Earn each slice in installed use.
 
 ### U0 — Product shell — ACTIVE
 
-Persistent native state/orientation surface with no authority widening. See PR #217 and `docs/14-product-ux-vnext.md`.
+Persistent native state/orientation surface with no authority widening. See PR #217 and `docs/product-ux-vnext.md`.
 
 ### U1 — Safe action placement — NOT OPENED
 
@@ -156,7 +156,7 @@ Do not manufacture dogfood evidence and do not reopen core infrastructure to sol
 
 ## FAST POINTERS
 
-- UX vNext design gate: `docs/14-product-ux-vnext.md`
+- UX vNext design gate: `docs/product-ux-vnext.md`
 - autonomy/UX contract: `docs/12-autonomy-ux-philosophy.md`
 - VS Code-first/editor-agnostic core: `decisions/ADR-0002-vscode-first-editor-agnostic-core.md`
 - Alpha Core convergence rule: `docs/09-alpha-core-readiness-gate.md`
