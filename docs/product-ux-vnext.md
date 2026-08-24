@@ -32,6 +32,16 @@ This gate follows current VS Code extension UX guidance rather than inventing a 
 
 The consequence is important: UX vNext starts with native VS Code primitives. A custom React/Webview dashboard is **not** the default solution.
 
+### Adjacent memory-product patterns
+
+The goal is not to copy another product's memory semantics. Their trust models differ from ours. The useful comparison is which interaction patterns have converged around persistent AI context.
+
+- **GitHub Copilot Memory** currently separates repository-level facts from user-level preferences. Repository facts retain citations to supporting code and are revalidated against the current branch before use. This reinforces our existing position that memory should be scoped, inspectable through provenance, and checked against current authority rather than treated as timeless free text: <https://docs.github.com/en/copilot/concepts/agents/copilot-memory>
+- **Cursor Memories** are project-scoped, arise ambiently from chat, and background-generated memories require user approval before being saved. Users can manage memories from Settings. This is a useful precedent for “ambient during work, explicit at the durable boundary, manageable afterward”: <https://docs.cursor.com/en/context/memories>
+- **Windsurf Cascade Memories** are workspace-scoped and can be managed from a Customizations surface; durable/team-shared behavioral knowledge is represented separately through Rules/`AGENTS.md`. This reinforces the UX value of making scope and knowledge type legible without forcing users to understand storage implementation details: <https://docs.windsurf.com/windsurf/cascade/memories>
+
+These products do **not** justify weakening LLM Wiki's authority floor. In particular, they do not justify silent canonical promotion, cross-project ambient search, or collapsing evidence and user-authored knowledge. They do strengthen the case that a memory feature needs a lightweight persistent management/orientation surface even when conversation remains the primary loop.
+
 ## Product diagnosis
 
 The main failure pattern is not “the UI needs prettier styling.” It is a mismatch between two mental models.
