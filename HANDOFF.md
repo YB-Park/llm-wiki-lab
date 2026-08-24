@@ -27,7 +27,7 @@ The published VSIX is the exact artifact emitted after the successful `VS Code D
 
 ### Active product work
 
-The project is now in **installed UX vNext U0 dogfood**. Do not reopen the Authority Core merely because interaction quality still needs work.
+The **UX/UI convergence phase** remains active, and the project is now in **installed UX vNext U0 dogfood**. Do not reopen the Authority Core merely because interaction quality still needs work.
 
 U0 is shipped:
 
