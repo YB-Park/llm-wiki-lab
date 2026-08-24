@@ -86,6 +86,7 @@ jobs:
           node --version
           node --check dogfood/vscode/entry.js
           node --check dogfood/vscode/extension.js
+          node --check dogfood/vscode/product-view.js
           node --check dogfood/vscode/agent-tools.js
           node --check dogfood/vscode/human-knowledge.js
           node --check dogfood/vscode/git-safety.js
@@ -139,6 +140,7 @@ jobs:
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/writer_lock.py'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/human-knowledge.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/memory-read-service.js'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/product-view.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/personal-wiki-library.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/personal-wiki-library-ui.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/query-plane.js'
@@ -149,7 +151,8 @@ jobs:
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/process-errors.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python-runtime.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python-runtime-policy.js'
-          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/media/walkthrough-ai-summaries.md'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/media/llm-wiki.svg'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/media/walkthrough-chat.md'
       - name: Unpack and execute packaged VSIX in Extension Host
         working-directory: dogfood/vscode
         run: |
@@ -166,6 +169,7 @@ jobs:
           test -f dist/unpacked/extension/python/dogfood/llm_wiki/writer_lock.py
           test -f dist/unpacked/extension/human-knowledge.js
           test -f dist/unpacked/extension/memory-read-service.js
+          test -f dist/unpacked/extension/product-view.js
           test -f dist/unpacked/extension/personal-wiki-library.js
           test -f dist/unpacked/extension/personal-wiki-library-ui.js
           test -f dist/unpacked/extension/query-plane.js
@@ -176,7 +180,8 @@ jobs:
           test -f dist/unpacked/extension/process-errors.js
           test -f dist/unpacked/extension/python-runtime.js
           test -f dist/unpacked/extension/python-runtime-policy.js
-          test -f dist/unpacked/extension/media/walkthrough-ai-summaries.md
+          test -f dist/unpacked/extension/media/llm-wiki.svg
+          test -f dist/unpacked/extension/media/walkthrough-chat.md
           xvfb-run -a npm run test:packaged
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v7
