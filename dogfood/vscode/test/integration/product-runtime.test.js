@@ -32,8 +32,8 @@ async function resetAndEnable() {
   return { folder, wikiRoot };
 }
 
-suite('LLM Wiki 0.1.12 Product Surface', () => {
-  test('registers the operational command surface after explicit workspace opt-in', async () => {
+suite('LLM Wiki Product Surface', () => {
+  test('registers the operational and actionable command surface after explicit workspace opt-in', async () => {
     const extension = vscode.extensions.getExtension('llm-wiki-lab.llm-wiki-dogfood');
     assert.ok(extension, 'LLM Wiki extension was not discovered');
     await extension.activate();
@@ -47,8 +47,34 @@ suite('LLM Wiki 0.1.12 Product Surface', () => {
       'llmWiki.markChange',
       'llmWiki.markDispute',
       'llmWiki.feedback',
+      'llmWiki.rememberActiveFile',
+      'llmWiki.reviewPendingChanges',
+      'llmWiki.configureAiAnswersFriendly',
     ]) {
       assert.ok(commands.has(command), `missing product command after opt-in: ${command}`);
+    }
+  });
+
+  test('contextual remember reuses the registered guarded remember tool end to end', async () => {
+    const { folder, wikiRoot } = await resetAndEnable();
+    const sourcePath = path.join(folder.uri.fsPath, 'runtime-contextual-remember.md');
+    fs.writeFileSync(sourcePath, '# Remember me\n\nactionable-safe-admission-evidence\n', 'utf8');
+
+    try {
+      const result = await stage(
+        'remember-context-action',
+        vscode.commands.executeCommand('llmWiki.rememberActiveFile', vscode.Uri.file(sourcePath)),
+        20000
+      );
+      assert.match(String(result || ''), /LLM_WIKI_REMEMBER_RESULT/);
+      assert.match(String(result || ''), /authority=human_confirmed_source_admission|authority=existing_source_reuse/);
+      const rawRoot = path.join(wikiRoot, 'raw');
+      const admitted = fs.existsSync(rawRoot)
+        ? fs.readdirSync(rawRoot, { recursive: true }).filter((name) => String(name).endsWith('.bin'))
+        : [];
+      assert.ok(admitted.length >= 1, 'contextual remember did not create canonical raw evidence');
+    } finally {
+      fs.rmSync(sourcePath, { force: true });
     }
   });
 
