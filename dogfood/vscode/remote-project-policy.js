@@ -11,14 +11,29 @@ const FRESH_LOCAL_ENTRIES = new Set([
   'workspace-opt-in.json',
 ]);
 
+function safeLstat(target, expected) {
+  let stat;
+  try { stat = fs.lstatSync(target); } catch (_) {
+    throw new Error('remote_attach_requires_initialized_empty_local_memory');
+  }
+  if (stat.isSymbolicLink()) throw new Error('remote_attach_requires_initialized_empty_local_memory');
+  if (expected === 'file' && !stat.isFile()) throw new Error('remote_attach_requires_initialized_empty_local_memory');
+  if (expected === 'directory' && !stat.isDirectory()) throw new Error('remote_attach_requires_initialized_empty_local_memory');
+  return stat;
+}
+
 function assertFreshLocalMemory(root) {
+  safeLstat(root, 'directory');
   const config = path.join(root, 'config.json');
   const manifest = path.join(root, 'manifest.jsonl');
   const raw = path.join(root, 'raw');
-  if (!fs.statSync(config).isFile() || !fs.statSync(manifest).isFile() || !fs.statSync(raw).isDirectory()) {
-    throw new Error('remote_attach_requires_initialized_empty_local_memory');
-  }
-  if (fs.statSync(manifest).size !== 0) throw new Error('remote_attach_requires_empty_local_memory');
+  const optIn = path.join(root, 'workspace-opt-in.json');
+  safeLstat(config, 'file');
+  const manifestStat = safeLstat(manifest, 'file');
+  safeLstat(raw, 'directory');
+  safeLstat(optIn, 'file');
+
+  if (manifestStat.size !== 0) throw new Error('remote_attach_requires_empty_local_memory');
   if (fs.readdirSync(raw).length !== 0) throw new Error('remote_attach_requires_empty_local_memory');
 
   for (const name of fs.readdirSync(root)) {
@@ -35,4 +50,5 @@ module.exports = {
   FRESH_LOCAL_ENTRIES,
   assertFreshLocalMemory,
   authorityCacheKey,
+  safeLstat,
 };
