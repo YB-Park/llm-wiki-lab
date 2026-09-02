@@ -2,7 +2,7 @@
 
 Last updated: 2026-08-24 KST
 
-This file is a **living continuation checkpoint**, not project history. Keep only current state, authority boundaries, active evidence questions, and next actions. Historical rationale belongs in merged commits, PRs, ADRs, experiments, or dedicated design documents. If this file conflicts with merged code or an accepted ADR, code/ADR wins.
+This file is a **living continuation checkpoint**, not project history. Keep current state, authority boundaries, active evidence questions, and next actions only. Historical rationale belongs in merged commits, PRs, ADRs, experiments, or dedicated design documents. If this file conflicts with merged code or an accepted ADR, code/ADR wins.
 
 Before repo work: re-check `main`, open PRs, relevant current design docs, and active branches.
 
@@ -12,60 +12,58 @@ Repository: `YB-Park/llm-wiki-lab`
 
 ### Published baseline
 
-- published release commit: `8b981339aa896ad76c2b1d47244911626c5f78f5`
-- validated/published dogfood: **0.1.21**
-- product merge head: `abd93c57567afbeef960a86ccf0dc204adc3691f`
-- versioned VSIX: `dogfood/releases/llm-wiki-dogfood-0.1.21.vsix`
+- validated/published dogfood: **0.1.22**
+- product merge head: `0e727d77a070c2babdfaaad923be01c8a14c0098`
+- published release commit: `d5c4de6ecfd003acf97edd42035a0037d9a3fa4c`
+- versioned VSIX: `dogfood/releases/llm-wiki-dogfood-0.1.22.vsix`
 - stable convenience path: `dogfood/releases/llm-wiki-dogfood-latest.vsix`
-- VSIX SHA-256: `fa4d166abb6ac8331f06d729b3be2c0d91d660cf210e4cf33f2eda55d09d1fc2`
-- validated main build: GitHub Actions `32686519533`
+- VSIX bytes: `145985`
+- VSIX SHA-256: `54715451477769cfa1aad8ed85c163e6f648bd6ab612ddbb180f62efdc0f6a02`
+- validated main build: GitHub Actions `32688939217`
+- PR #220: **merged**
 - public Beta: **not declared**
 
-0.1.21 is the validated U0 product-shell release. It added persistent orientation/state but did **not** materially simplify the user's core tasks enough to re-run broad satisfaction dogfood.
+The published VSIX is the exact artifact emitted only after the successful `VS Code Dogfood` run on `main`, including unpacked packaged-VSIX Extension Host execution. The versioned 0.1.22 path is immutable under the existing release rule.
 
 ### Active product work
 
-The **UX/UI convergence phase** remains active.
+The **UX/UI convergence phase** remains active, but implementation is paused at a real installed-evidence boundary: **dogfood 0.1.22 before opening another broad UX slice**.
 
-Installed 0.1.21 evidence was decisive: the sidebar icon/overview solved product discoverability and basic state visibility, but the enabled experience was still mostly a handful of status rows pointing back to old commands. That is structural progress, not a sufficient user-experience change. Do not mistake technical dogfood readiness for satisfaction-level UX readiness.
+0.1.21 established product orientation but was visibly insufficient: an Activity Bar icon plus a few state rows did not materially simplify the user's work. That installed evidence activated the action-oriented changes now shipped in 0.1.22.
 
-Active implementation:
+0.1.22 is the first release that should be judged for task-level UX improvement rather than merely “can I find LLM Wiki?”
 
-- branch: `agent/ux-vnext-actionable`
-- draft PR: **#220 — UX vNext: make project memory actionable**
-- candidate version: **0.1.22**
-- design gate: `docs/product-ux-vnext.md`
-- merge/release gate: full `VS Code Dogfood` must pass through normal Extension Host, VSIX packaging, and unpacked packaged-VSIX Extension Host execution.
+Shipped interaction changes:
 
-0.1.22 candidate scope:
+- Overview leads with **Ask Agent with project memory**, **Remember active file**, and **Review saved-file changes**;
+- Explorer/editor context menu exposes **Remember in Project Memory**;
+- contextual Remember reuses the registered guarded `llmWiki_rememberSource` tool rather than a parallel ingest path;
+- changed remembered files can be reviewed through plain-language meanings that map to the existing canonical lineage relations;
+- Other Project Memories is project-folder-first: choose project -> detect `.wiki-lab` -> derive name -> read-only registration -> optional workspace access;
+- aliases are no longer mandatory in the primary other-project flow;
+- AI-assisted memory answers expose explicit **Light / Regular / Frequent / Custom** choices instead of unexplained bare-number setup; no preset is silently selected;
+- ordinary questions remain Agent-first;
+- no Webview/dashboard, no core schema migration, no retrieval/model/federation widening.
 
-- make the native Overview action-oriented: **Ask Agent**, **Remember active file**, **Review saved-file changes**;
-- add Explorer/editor context action **Remember in Project Memory**;
-- reuse the already-registered guarded `llmWiki_rememberSource` path instead of creating a second ingest/write path;
-- translate lineage enums into plain-language meaning choices, then reuse the existing verified/human-confirmed `llmWiki_resolveLineage` path;
-- simplify Other Project Memories to **choose project folder -> detect `.wiki-lab` -> derive name -> read-only registration -> optional workspace access**; aliases are no longer mandatory in the primary flow;
-- replace unexplained Query Reasoning numeric setup with explicit **Light / Regular / Frequent / Custom** choices while preserving the same typed numeric grant and validating it through the existing Query Plane contract;
-- keep ordinary questions in Agent Chat and keep Doctor as technical recovery/details.
-
-No custom Webview/dashboard is being added.
+Design gate: `docs/product-ux-vnext.md`.
 
 ## PRODUCT / UX TARGET
 
-Optimize for user goals and actions, not the internal authority model.
+Optimize for user goals/actions while keeping the authority model inspectable but mostly behind the adapter layer.
 
 A normal user should be able to:
 
 1. see whether project memory is ready;
-2. ask Agent normally without learning tool names;
-3. remember the file they are looking at from its natural context;
-4. understand that a changed remembered file needs judgment and describe the change's **meaning** without learning relation enum names;
+2. ask Agent normally without learning LLM Wiki tool names;
+3. remember the file they are looking at from the file/sidebar context;
+4. understand that a changed remembered file needs judgment and describe what the change **means** without learning enum names;
 5. add another project's memory by choosing the project, not an implementation directory;
 6. understand/enable optional AI behavior without inventing numeric policy from scratch;
-7. recover through a clear next action, with raw diagnostics available only when needed.
+7. recover through a clear next action, with technical diagnostics available only when needed.
 
 Default UI language should prefer `Project memory`, `Remember`, `Review saved-file changes`, `AI summaries`, `AI-assisted memory answers`, `Other project memories`, and `Needs attention`.
 
-Technical terms such as RAW/DERIVED enum labels, `current_store`, `library_store`, opaque store IDs, `scope_ref`, authority epochs, experiment tags, and calibration fields remain where actually needed: tool contracts, provenance, diagnostics, tests, and expert inspection.
+Technical terms such as RAW/DERIVED enum labels, `current_store`, `library_store`, opaque store IDs, `scope_ref`, authority epochs, experiment tags, and calibration fields remain where actually necessary: tool contracts, provenance, diagnostics, tests, and expert inspection.
 
 ## AUTHORITY FLOOR — DO NOT WEAKEN FOR UX
 
@@ -90,7 +88,7 @@ Non-negotiable current invariants:
 - Query usage reservation remains conservative; uncertain/failed attempts are not silently refunded;
 - no silent broad-RAW fallback.
 
-Do not duplicate epistemic/storage logic into the VS Code UI merely for convenience. Adapter UI may sequence or translate existing operations, but the authoritative implementation stays in the established guarded paths.
+Adapter UI may sequence or translate existing operations. Do not duplicate epistemic/storage authority into a second implementation merely for convenience.
 
 ## CURRENT PRODUCT BOUNDARY
 
@@ -107,29 +105,59 @@ Still true unless later evidence explicitly supersedes it:
 
 ## UX VNEXT STATE
 
-### U0 — Product shell — SHIPPED AS 0.1.21
+### U0 — Product shell — SHIPPED IN 0.1.21
 
-Earned: persistent native orientation/state surface, concise setup state, human-readable project names, Agent-first mental model.
+Earned but insufficient by itself. Persistent orientation/state is useful infrastructure, not the satisfaction-level UX change.
 
-Installed evidence: **necessary but insufficient**. It made LLM Wiki easier to find, but did not reduce enough task-level friction by itself.
+### U1 — Safe action placement — SHIPPED IN 0.1.22
 
-### U1 — Safe action placement — ACTIVE IN #220
+Contextual Remember is implemented through the existing guarded remember tool. Real Extension Host integration executed the command end-to-end and observed canonical raw admission before release.
 
-Contextual Remember is now allowed because the UI can invoke the existing guarded remember tool rather than implementing a weaker parallel ingest path. Release only if real Extension Host testing proves that bridge end to end.
+### U2 — Plain-language pending decision review — BOUNDED SLICE SHIPPED IN 0.1.22
 
-### U2 — Plain-language pending decision review — BOUNDED SLICE ACTIVE IN #220
+Only the meaning-selection UX is shipped. Existing relation enums, verified old/new evidence, final confirmation, immediate pre-mutation revalidation, and canonical mutation remain unchanged.
 
-Only the meaning-selection UX is active. Existing relation enums, verified old/new evidence, final confirmation, immediate pre-mutation revalidation, and canonical mutation stay unchanged.
+A broader activity/diff/revert dashboard is **not earned/opened**.
 
-A broader activity/revert dashboard is **not** opened.
+### U3 — Other-project setup simplification — SHIPPED IN 0.1.22
 
-### U3 — Other-project setup simplification — ACTIVE IN #220
+Project-folder-first registration and derived display name are shipped. Registration, workspace access, Query grant, read-only isolation, named-store-only resolution, and no-fallback rules remain distinct underneath.
 
-Project-folder-first registration and derived display name are active. Registration, workspace access, Query grant, read-only isolation, named-store-only resolution, and no-fallback rules remain separate underneath.
+### U4 — AI-assisted answer configuration — BOUNDED SLICE SHIPPED IN 0.1.22
 
-### U4 — AI-assisted answer configuration — ACTIVE IN #220
+Meaningful explicit usage presets plus Custom are shipped. No preset is silently selected. Stored authorization remains a bounded numeric current-store grant and is accepted only when it passes the existing Query Plane validator.
 
-Meaningful explicit usage presets plus Custom are active. No preset is silently selected. Stored authorization remains the same bounded numeric current-store grant and must pass the existing Query Plane validator.
+## 0.1.22 INSTALLED DOGFOOD QUESTIONS
+
+Do not ask whether the sidebar “looks better.” Observe task completion and friction.
+
+Highest-priority checks:
+
+- Can a user looking at a file discover **Remember in Project Memory** without instruction?
+- Does contextual Remember feel like one coherent confirmation, or does invoking the Language Model Tool API create redundant/generic confirmation before the product-owned source-admission confirmation? If duplicate confirmation appears in real installed use, refactor Agent Tool + UI to a shared guarded extension operation rather than weakening/removing the product confirmation.
+- After changing a remembered file, does **Review saved-file changes** make the old/new meaning decision understandable without exposing `correction/change/dispute/supersede/independent` as required vocabulary?
+- Before modifying the lineage-review UX again, add an Extension Host product-flow test that drives the Review command through a real pending decision; current release verification combines product-action static checks with the already-strong existing lineage tool/core verification.
+- Can another project be added by selecting its project root without needing to know `.wiki-lab`, store IDs, or aliases?
+- Is the distinction between “project added”, “workspace may use added projects”, and “AI-assisted answers enabled” understandable without forcing the user to learn the internal grant model?
+- Do Light / Regular / Frequent / Custom make AI-assisted memory-answer limits understandable enough, or do users still need cost/usage context?
+- Does the legacy status-bar click -> Doctor behavior still teach a diagnostic-first mental model now that the actionable Overview exists? Change it only if installed evidence confirms the inconsistency is noticeable.
+- Do users naturally return to Agent Chat for ordinary work rather than operate LLM Wiki as a separate database application?
+
+## RELEASE / VALIDATION EVIDENCE
+
+0.1.22 release gate is complete:
+
+- PR #220 final head passed VS Code Dogfood plus E004/E010/E014/E023/E026 validation;
+- contextual Remember is statically forbidden from direct CLI ingest/canonical lineage mutation and must reuse registered guarded tools;
+- normal Extension Host integration executed the contextual Remember command through the actual registered tool and verified canonical RAW admission;
+- Python 3.9 bundled-core and full Python/core regressions remained green;
+- E020 frozen 78-case contract remained unchanged except release metadata;
+- `main` product head `0e727d77a070c2babdfaaad923be01c8a14c0098` passed fresh `VS Code Dogfood` run `32688939217`;
+- that main run completed VSIX packaging and unpacked packaged-VSIX Extension Host execution before artifact publication;
+- release bot published exact versioned/latest bytes at `d5c4de6ecfd003acf97edd42035a0037d9a3fa4c`;
+- release validation itself required no model calls.
+
+E020 remains a deterministic safety/product-contract gate, **not a human product-quality score**.
 
 ## NOT EARNED / PARKED
 
@@ -146,33 +174,15 @@ Meaningful explicit usage presets plus Custom are active. No preset is silently 
 - G3 Identity / Routing: **NOT_OPENED**;
 - paid E023 semantic reruns remain paused absent explicit authorization/evidence.
 
-## VALIDATION GATE FOR 0.1.22
-
-Do not merge/publish #220 merely because the UI looks more useful.
-
-Required:
-
-- Python 3.9 bundled-core compatibility green;
-- full Python/core regressions green;
-- E020 frozen 78-case authority/product contract remains unchanged except candidate release metadata;
-- static boundary checks prove the contextual action does not implement CLI ingest/canonical relation mutation directly;
-- normal Extension Host test must execute `Remember in Project Memory` through the actual registered guarded remember operation and observe canonical raw admission;
-- F1 named-store safety, Query Plane usage/revocation, Human Knowledge integrity, lineage revalidation and other existing authority gates stay green;
-- installable VSIX must contain/load the new product adapter files;
-- unpacked packaged VSIX must pass Extension Host execution;
-- after merge, `main` must independently repeat the release gate before the release bot publishes immutable 0.1.22 bytes.
-
-E020 remains a deterministic safety/product-contract gate, **not a human product-quality score**.
-
 ## FAST POINTERS
 
-- active actionable UX: PR **#220** / `agent/ux-vnext-actionable`
+- current release metadata: `dogfood/releases/README.md`
+- action-oriented UX implementation: merged PR **#220**
+- U0 product shell: merged PR **#217**
 - UX design gate: `docs/product-ux-vnext.md`
 - autonomy/UX contract: `docs/12-autonomy-ux-philosophy.md`
 - VS Code-first/editor-agnostic core: `decisions/ADR-0002-vscode-first-editor-agnostic-core.md`
 - Alpha Core convergence rule: `docs/09-alpha-core-readiness-gate.md`
-- U0 implementation: merged PR **#217**
-- current published release metadata: `dogfood/releases/README.md`
 - installed product guide: `dogfood/vscode/README.md`
 - natural installed evidence: #141
 - cross-workspace / named-store evidence: #202
@@ -182,8 +192,8 @@ E020 remains a deterministic safety/product-contract gate, **not a human product
 
 ## NEXT ACTION
 
-1. Finish **#220 / 0.1.22** validation; fix failures without weakening the authority floor or deleting meaningful gates.
-2. Review the final diff for duplicate authority logic and accidental manifest/tool-contract widening.
-3. If PR + packaged VSIX gates are green, merge #220 and require a fresh successful `main` VS Code Dogfood run before publication.
-4. Publish 0.1.22 only through the existing immutable validated-artifact workflow, then update this handoff to the exact released build/artifact and switch the active track to installed action-oriented UX dogfood.
-5. Use installed task completion/friction—not screenshots or synthetic counts—to decide the next UX slice.
+1. **Install and dogfood 0.1.22 now**, specifically through the task flows above.
+2. Treat redundant confirmation, confusing lineage wording, other-project setup confusion, or AI-limit confusion as product-adapter evidence first; do not reopen the Authority Core by default.
+3. Add a real pending-lineage Review-command Extension Host flow test before the next change that touches that interaction.
+4. Open the next UX slice only from installed evidence; do not mechanically continue a roadmap because 0.1.22 shipped.
+5. Keep broader core/retrieval/sync/reliability work parked unless independent evidence activates it.
