@@ -218,6 +218,13 @@ def read_snapshot(
     staged = Path(tempfile.mkdtemp(prefix=f".{destination.name}.remote-stage-", dir=destination.parent))
     published = False
     try:
+        # Directories are part of the store shape even when they are empty.
+        # In particular, an initialized empty Wiki has an empty private raw/
+        # directory; a file-only stream must reconstruct that shape before the
+        # integrity gate so a brand-new remote project remains portable.
+        for name in PORTABLE_DIRS:
+            ensure_private_directory(staged / name)
+
         for row in manifest["entries"]:
             remaining = int(row["size"])
             chunks: list[bytes] = []
