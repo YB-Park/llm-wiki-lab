@@ -40,8 +40,31 @@ for (const mutate of [
   }
 }
 
+{
+  const root = freshRoot();
+  const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'llm-wiki-remote-attach-outside-'));
+  try {
+    fs.rmSync(path.join(root, 'raw'), { recursive: true, force: true });
+    fs.symlinkSync(outside, path.join(root, 'raw'), 'dir');
+    assert.throws(() => policy.assertFreshLocalMemory(root), /remote_attach_requires_initialized_empty_local_memory/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+    fs.rmSync(outside, { recursive: true, force: true });
+  }
+}
+
+{
+  const root = freshRoot();
+  try {
+    fs.rmSync(path.join(root, 'workspace-opt-in.json'));
+    assert.throws(() => policy.assertFreshLocalMemory(root), /remote_attach_requires_initialized_empty_local_memory/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+}
+
 assert.equal(policy.authorityCacheKey('wiki-host'), policy.authorityCacheKey('wiki-host'));
 assert.notEqual(policy.authorityCacheKey('wiki-host-a'), policy.authorityCacheKey('wiki-host-b'));
 assert.match(policy.authorityCacheKey('wiki-host'), /^[0-9a-f]{24}$/);
 
-console.log('REMOTE-PROJECT-POLICY PASS empty-only-attach=yes authority-cache-key=opaque');
+console.log('REMOTE-PROJECT-POLICY PASS empty-only-attach=yes symlink-failclosed=yes authority-cache-key=opaque');
