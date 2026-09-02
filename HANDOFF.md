@@ -2,9 +2,7 @@
 
 Last updated: 2026-09-02 KST
 
-This is a **living continuation checkpoint**, not project history. Keep current state, active authority boundaries, evidence questions, and next actions only. Historical rationale belongs in merged commits/PRs, ADRs, experiments, or dedicated design docs. If this file conflicts with merged code or an accepted ADR, code/ADR wins.
-
-Before repo work: re-check `main`, open PRs, #213, E026, and active branches.
+This is a **living continuation checkpoint**, not project history. Keep only current state, authority boundaries, earned evidence, blockers, and next actions. If this file conflicts with merged code or an accepted ADR, code/ADR wins.
 
 ## NOW
 
@@ -12,134 +10,116 @@ Repository: `YB-Park/llm-wiki-lab`
 
 Published baseline:
 
-- dogfood: **0.1.22**
+- dogfood release: **0.1.22**
 - product merge head: `0e727d77a070c2babdfaaad923be01c8a14c0098`
 - published release commit: `d5c4de6ecfd003acf97edd42035a0037d9a3fa4c`
-- VSIX: `dogfood/releases/llm-wiki-dogfood-0.1.22.vsix`
-- latest path: `dogfood/releases/llm-wiki-dogfood-latest.vsix`
-- SHA-256: `54715451477769cfa1aad8ed85c163e6f648bd6ab612ddbb180f62efdc0f6a02`
-- validated main build: GitHub Actions `32688939217`
-- public Beta: **not declared**
+- published VSIX SHA-256: `54715451477769cfa1aad8ed85c163e6f648bd6ab612ddbb180f62efdc0f6a02`
 
-Active branch: `agent/ssh-replication-s1`.
+Active branch: `agent/ssh-replication-s1`
 
-Active draft PR: **#222 — S1: remote-authoritative Personal Wiki over SSH**.
+Active draft PR: **#222 — S1: remote-authoritative Personal Wiki over SSH**
 
-Active milestone: **remote-capable Personal Wiki before another broad satisfaction/UX dogfood cycle**.
+Remote S1 candidate product head: `0329ee60efbf50647aa3ba25460b19ee732c0b90`
 
-The prior UX/UI convergence phase remains the product baseline, but broad UX polishing is paused except where it blocks remote setup/use/recovery. The owner treats local-only memory as a real-use suppressor.
+Candidate status: **CI PROMOTION GATE GREEN / READY FOR INSTALLED VS CODE REMOTE-SSH DOGFOOD**.
 
-## REMOTE ARCHITECTURE — CURRENT DECISION
+Candidate evidence:
 
-The previous “one authority host per project / equivalent checkout” framing is superseded.
+- real OpenSSH S1 workflow: `33614870377` — PASS
+- VS Code Dogfood/package workflow: `33614870257` — PASS
+- all PR workflows on candidate head: PASS
+- CI artifact ID: `9840583064`
+- artifact archive digest: `sha256:2d012a82c9dc824f16a468708b10e3042032b92f6cab23df46b3e6aefc366b47`
+- extracted candidate VSIX: `175623` bytes
+- extracted candidate VSIX SHA-256: `e66e947965794d8c4489cc0105556eb5a4c784a2e8a042c26fc41359625363ff`
 
-The product model is now:
+**Installed VS Code Remote-SSH support is not yet earned.** Localhost OpenSSH CI proves product transport mechanics and packaged Extension Host viability, but the exact candidate still needs one installed VS Code Remote-SSH Linux-workspace dogfood pass before PR #222 leaves draft / S1 is declared installed-ready.
 
-- one explicitly configured **Personal Wiki SSH authority location** may hold many independent project stores;
-- every local workspace is an independent project instance by default;
-- project identity is an opaque store identity, never inferred from Git repo/path/content;
-- two unrelated projects share the same Personal Wiki through read-only cross-project access;
-- two clones/checkouts of the same repository are also **different projects by default**;
-- a workspace writes only its own current project store;
-- other project stores remain named-store-only/read-only through the existing Personal Wiki Library authority model.
+Active milestone remains: **remote-capable Personal Wiki before broad UX/satisfaction dogfood resumes**.
 
-Example:
+## WHAT IS NOW IMPLEMENTED
+
+### 1. Existing-store portability — E026 S0-A
+
+**EARNED / shipped since 0.1.19.** Existing `.wiki-lab` portable authority survives root/host relocation without canonical migration; host-local workspace authorization does not travel.
+
+### 2. Workspace-host placement — S0-B mechanics
+
+The extension is explicitly a VS Code `workspace` extension. Python/core/workspace filesystem behavior is packaged and tested on Linux-host semantics.
+
+Status: **CI GREEN; installed Remote-SSH evidence still pending.**
+
+### 3. Remote-authoritative Personal Wiki — S1
+
+One user-owned SSH authority can hold many independent project stores.
+
+- project identity is an opaque `project-*` store identity;
+- Git repo/path/branch/commit/content similarity never auto-links projects;
+- current workspace writes only its exact remote current store;
+- remote writes execute through a fixed helper/operation allowlist using the existing Authority Core;
+- reads use verified local replicas;
+- SSH unavailable/unverified => last verified replica stays readable, all Project Memory writes fail closed;
+- no product cloud, Git sync, background sync, peer mesh, or offline writes.
+
+### 4. Explicit multi-PC attach
+
+`Connect Personal Wiki` now separates:
+
+- **Create New Project Memory** — new independent remote identity; and
+- **Use Existing Project Memory** — user explicitly selects one exact existing remote store.
+
+Existing-store attach:
+
+- requires freshly initialized **empty** local Project Memory;
+- is never a merge;
+- rejects unexpected portable state and symlinked authority entries;
+- permits only the normal ephemeral `.writer.lock` rendezvous file;
+- acquires the OS store writer lock before final empty-state validation;
+- verifies the incoming snapshot;
+- preserves host-local `workspace-opt-in.json`;
+- atomically activates the selected portable store;
+- publishes the host-local remote binding only after successful materialization.
+
+Real SSH CI proves:
 
 ```text
-Personal Wiki SSH authority
-├─ project-store-A  <- PC A / z
-├─ project-store-B  <- PC B / y
-└─ project-store-C  <- PC B / z clone (still separate)
+PC A -> exact remote store A
+PC B -> explicit attach to exact store A
+PC B -> remote write to store A
+PC A -> explicit refresh sees PC B write
+independent store B -> unchanged
 ```
 
-Do not infer project sameness from repository URL, branch, commit, directory name, workspace path, or content similarity.
+The same proof checks strict host-key policy, `BatchMode=yes`, CRLF/raw byte preservation, zero model calls, no same-bytes auto-linking, and no cross-store write leak.
 
-## S1 NETWORK / PLATFORM BOUNDARY
+### 5. Remote other-project federation
 
-- **SSH only**; no GitHub/Bitbucket/cloud/product server requirement.
-- private/corporate network assumptions are first-class.
-- one user-owned Personal Wiki SSH authority may serve many project stores.
-- **Linux authority/workspace hosts only for S1** unless another OS is effectively free to support.
-- VS Code desktop UI may be on another OS when Remote-SSH runs the workspace extension on a supported Linux host.
-- no peer discovery or mesh topology.
-- OpenSSH-compatible **non-interactive** access only; existing SSH config/key/agent/proxy/jump/known-hosts are used.
-- LLM Wiki does not manage passwords, keys, or interactive SSH authentication.
+A connected workspace may explicitly choose another project from the same Personal Wiki.
 
-## CONNECTED / DISCONNECTED CONTRACT
+- snapshot is verified into private host-local extension storage;
+- SSH target contributes only to a hashed host-local cache key;
+- current remote store is excluded;
+- cached project is registered through the existing E025 Personal Wiki Library;
+- registration does **not** grant access;
+- existing separate workspace `Allow Here` grant remains required;
+- external project scope remains named-store-only/read-only;
+- no ambient union search, external writes, or cross-project maintenance.
 
-For this workspace's exact current project store:
+## AUTHORITY FLOOR — DO NOT WEAKEN
 
-```text
-Connected + verified
-  read  -> refresh/check remote snapshot -> read verified local replica
-  write -> guarded operation runs on exact remote current store -> verify -> refresh replica
-
-Authority unavailable/incompatible/unverified
-  read  -> last fully verified local replica
-  write -> BLOCKED before Project Memory mutation
-```
-
-Other project memories:
-
-```text
-Connected
-  -> explicit named-store read-only access
-
-Offline
-  -> last verified cached external replica may be read if present
-  -> never writable
-```
-
-UI must make disconnected state legible as **Offline — read only** / **Local copy may be stale**.
-
-If a remote canonical write succeeds and the network fails before local replica refresh, remote state remains truth. Report **remote write succeeded; local refresh pending**, keep the last verified replica for stale-marked reads, and block further writes until authority state is re-read. Never invent rollback.
-
-## PROJECT IDENTITY / BOOTSTRAP
-
-On first connection, a workspace receives a **new opaque remote project-store ID**.
-
-For an existing local `.wiki-lab`:
-
-1. verify local integrity/S0-A portability;
-2. create a new remote project store;
-3. never search for an existing store based on Git/path/content similarity;
-4. transfer only the frozen portable payload;
-5. verify remote state;
-6. keep the local copy as the first verified read replica.
-
-A future explicit attach/migration-to-existing-store flow is outside S1 unless installed evidence requires it. There is no automatic same-repository linking.
-
-## SHARED PERSONAL WIKI / CROSS-PROJECT RULE
-
-The Personal Wiki authority can contain many independent project stores and expose them for user-controlled registration/display.
-
-Existing E025/#202 principles remain the floor:
-
-- current project store is the only writable project scope for this workspace;
-- other stores are explicit, named-store-only and read-only;
-- authorization occurs before retrieval/model exposure;
-- wrong/unknown/ambiguous scope fails closed;
+- workspace use is explicit opt-in;
+- Doctor/health = **0 model calls / 0 state changes**;
+- `RAW_MEMORY` remains immutable admitted evidence/provenance authority;
+- `HUMAN_KNOWLEDGE` remains explicit user-owned decision/belief/rationale;
+- `DERIVED_MEMORY` remains noncanonical/rebuildable;
+- source admission and lineage meaning remain human-gated;
+- authorization happens before retrieval/model exposure;
 - external reads never authorize writes;
-- no automatic all-project union search in S1;
-- no global/personal writable shared store.
+- no wrong-scope or broad-RAW fallback;
+- transport target/credentials/host identity never become canonical or model-visible;
+- current-store-only writes remain absolute.
 
-Remote catalog identity and local `libstore-*` routing identity remain separate control-plane concepts.
-
-## REMOTE WRITE BOUNDARY
-
-All persistent current-project Wiki mutations execute on the authority host against the exact current project store:
-
-- Remember/source admission;
-- Human Knowledge publication/supersession;
-- lineage resolution;
-- topic/canonical mutations;
-- derived maintenance that writes inside the current project Wiki.
-
-Use a fixed remote helper/operation allowlist over SSH. Evidence/user payload goes through stdin/framed streams, never interpolated into remote shell text. No arbitrary remote shell capability is exposed to Agent/model.
-
-## STORE / CACHE BOUNDARY
-
-Portable per-project authority state, frozen by E026 S0-A:
+Portable project payload remains frozen around:
 
 - `config.json`
 - `manifest.jsonl`
@@ -147,123 +127,65 @@ Portable per-project authority state, frozen by E026 S0-A:
 - `provenance.jsonl`
 - `topics.json`
 - `human-knowledge/`
+- `agent-state.json` as one workflow unit
+- rebuildable `agent-wiki/` / bounded telemetry when present
 
-Portable workflow state as one unit:
-
-- `agent-state.json`
-
-Portable/rebuildable only:
-
-- `agent-wiki/`
-- workload/retrieval-shadow telemetry if carried at all
-
-Host-local; never replicate as project authority:
+Host-local includes:
 
 - `workspace-opt-in.json`
-- local Personal Wiki Library catalog/store IDs
-- Query/Library grants and Query usage ledger
-- UI-selected topic/ack state
-- runtime/Python configuration
-- SSH target, credentials, keys, agent, known-hosts
-- local snapshot/cache metadata
+- Personal Wiki Library routing/grants
+- Query grants/usage ledger
+- UI/runtime/Python state
+- SSH target/config/credentials/keys/agent/known-hosts
+- remote binding/cache metadata
 - `.writer.lock`
 
-The remote authority may keep a host-local Personal Wiki catalog mapping opaque project-store IDs to display names. That catalog is routing/control-plane state, not evidence/model authority.
+## FAILURE SEMANTICS
 
-Replica refresh must materialize into a temporary location, verify full integrity + private permissions, and only then replace/activate the local replica. Corrupt/truncated/unverified transfers never replace the last good replica.
+- failure before remote canonical mutation => write did not happen;
+- remote mutation succeeded but replica refresh failed => remote remains truth; local replica is stale/read-only and further writes stay blocked until refresh succeeds;
+- truncated/corrupt/unverified snapshots never replace the last verified copy;
+- attach with non-empty/unexpected/symlinked/busy local authority fails closed;
+- no rollback fiction, merge, rebase, conflict resolution, or offline queue.
 
-## AUTHORITY FLOOR — DO NOT WEAKEN FOR REMOTE
+## STILL OUT OF SCOPE
 
-- workspace use remains explicit opt-in;
-- `Check Setup and Health` = **0 model calls / 0 state changes**;
-- `RAW_MEMORY` stays immutable admitted evidence/provenance authority;
-- `DERIVED_MEMORY` stays noncanonical/rebuildable;
-- `HUMAN_KNOWLEDGE` stays explicit user-owned project knowledge;
-- source admission and canonical lineage semantics stay human-gated;
-- changed remembered files never silently receive correction/change/dispute/supersession semantics;
-- authorization constrains external scope before retrieval/model exposure;
-- external reads remain registered, named-store-only, read-only, separately granted;
-- no wrong-scope fallback;
-- no silent broad-RAW fallback;
-- transport metadata/host identity/credentials never become Wiki evidence or model-visible context.
-
-## PARKED RESEARCH GUARDS
-
-Remote work does not reopen closed E023 persistence/identity research. Query-time reconstruction remains the default posture outside explicitly earned product slices, and paid E023 semantic reruns remain paused.
-
-- G2 Persistence: **NOT_EARNED; parked**
-- G3 Identity / Routing: **NOT_OPENED**
-
-Do not use the Personal Wiki remote catalog or opaque project-store IDs as evidence that a portable global identity/entity graph has been earned.
-
-## OUT OF SCOPE UNTIL REMOTE DOGFOOD EARNS IT
-
-- repository/path/content-based automatic project identity;
-- automatic same-repository linking across machines;
-- offline writes;
-- writable independent local replicas;
-- writing another project's store;
+- automatic same-repository/project linking;
+- repository/path/content-derived identity;
+- offline writes / writable independent replicas;
+- cross-project writes;
 - Git merge/rebase sync semantics;
-- automatic conflict resolution;
-- peer-to-peer mesh/discovery;
-- distributed writer leases across multiple authority hosts;
 - background/ambient sync;
+- peer discovery/mesh;
 - product cloud sync;
 - SSHFS/NFS/SMB live store;
-- global/personal writable shared store;
-- ambient all-project union search;
-- portable global identity/entity graph/ontology;
-- E023 G2/G3 reopening;
-- DB/WAL migration solely for remote support.
+- portable global writable memory;
+- ambient all-project search;
+- E023 G2/G3 reopening or DB/WAL migration just for remote.
 
-## RELEASE / TEST FLOOR
+## CURRENT RELEASE DECISION
 
-0.1.22 remains the regression floor:
+Do **not** merge/release PR #222 yet solely from localhost CI.
 
-- Python 3.9 bundled core + full Python/core regressions;
-- E020 78-case authority/product contract;
-- E025 named-store federation safety;
-- Query Plane usage/revocation;
-- Human Knowledge integrity;
-- lineage revalidation;
-- normal Extension Host;
-- VSIX packaging;
-- unpacked packaged-VSIX Extension Host;
-- E026 S0-A portability.
+The exact green candidate must first be exercised in an **installed VS Code Remote-SSH session whose workspace host is Linux**. The intended installed journey is:
 
-New S1 promotion tests must prove:
-
-- unrelated workspaces on different hosts create distinct remote project stores under one Personal Wiki authority;
-- same-repository checkouts also create distinct stores by default;
-- no Git/path/content identity is used for automatic linking;
-- existing 0.1.22 store bootstrap without canonical migration;
-- SSH-only portable allowlist transfer and host-local exclusion;
-- source bytes admitted remotely through the exact current-store guarded path;
-- authority -> replica identity/byte preservation;
-- external project reads remain read-only and cannot authorize writes;
-- SSH unavailable => deterministic read-only, zero Project Memory mutations;
-- post-write replica-refresh failure is recoverable and honestly reported;
-- corrupt transfer never replaces last verified replica;
-- packaged Remote-SSH/workspace-host execution is viable.
-
-## FAST POINTERS
-
-- owner issue: **#213**
-- active PR: **#222**
-- active contract: `experiments/E026-ssh-store-portability/README.md`
-- local cross-project federation: **#202** / `experiments/E025-cross-workspace-named-store-federation/`
-- Query Plane: **#204**
-- current release metadata: `dogfood/releases/README.md`
-- UX baseline: merged PR **#220** / `docs/product-ux-vnext.md`
-- Authority Core readiness: `docs/09-alpha-core-readiness-gate.md`
+1. install the candidate VSIX;
+2. open a trusted Linux workspace through VS Code Remote-SSH and confirm LLM Wiki runs as a workspace extension;
+3. Set Up Project Memory;
+4. connect to a user-owned non-interactive SSH Personal Wiki authority;
+5. create or explicitly attach one exact project store;
+6. remember/read project evidence;
+7. from a second workspace/PC, explicitly attach the same store, write, then refresh the first and observe it;
+8. verify another remote project is addable only read-only through Other Project Memories;
+9. disconnect authority and confirm stale local reads remain available while writes are blocked;
+10. reconnect/refresh and confirm recovery.
 
 ## NEXT ACTION
 
-1. Make S0-B explicit: classify/package/test LLM Wiki as a workspace-side extension on Linux Remote-SSH style hosts.
-2. Build the **SSH Personal Wiki remote helper + remote catalog + host-local connection/cache metadata**; no Git dependency for S1.
-3. Create a new opaque remote project-store identity per workspace by default; never infer sameness from repository/path/content.
-4. Route current-project writes to that exact remote store while leaving reads on verified local replicas.
-5. Expose remote-backed other project stores through existing named-store read-only federation semantics.
-6. Implement verified snapshot-stream refresh with temp materialization + integrity check + safe activation.
-7. Gate every Project Memory write on SSH/helper/authority/current-store health; disconnected state is read-only by construction.
-8. Add real SSH CI proof using Linux localhost/container SSH plus the existing full regression/package gates.
+1. Run the exact `0329ee60...` candidate VSIX in an actual installed VS Code Remote-SSH Linux workspace.
+2. Record installed evidence against #213 / E026, including workspace-host placement, create/attach, A→B→A visibility, other-project read-only federation, offline read-only, and recovery.
+3. If installed evidence passes with no semantic changes, mark E026 S0-B/S1 installed gate earned, move PR #222 out of draft, run final unchanged-code gates, merge.
+4. Bump/package the next dogfood release (expected **0.1.23**) from the merged remote-capable product and publish versioned/latest VSIX metadata.
+5. Only then resume broad real-use UX dogfood on the remote-capable build.
+
+Fast pointers: #213, #222, `experiments/E026-ssh-store-portability/README.md`, E025/#202, Query Plane #204, `docs/09-alpha-core-readiness-gate.md`.
