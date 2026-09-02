@@ -6,6 +6,7 @@ const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const humanKnowledge = require('./human-knowledge');
 const library = require('./personal-wiki-library');
+const remoteMemory = require('./remote-memory');
 const { boundedProcessFailure } = require('./process-errors');
 const { resolveAutoPythonRuntime, resolvePythonRuntime } = require('./python-runtime');
 
@@ -147,6 +148,9 @@ function isWikiInitialized(folder, storeHandle) {
 async function runPythonModule(context, folder, moduleName, args, options = {}) {
   const store = normalizeStoreHandle(folder, options.storeHandle);
   if (!store.isCurrentStore) throw new Error('external_generic_python_runner_forbidden');
+  if (remoteMemory.isConfigured(context, folder)) {
+    return remoteMemory.runCoreRead(context, folder, moduleName, args);
+  }
   const runtime = await resolvePythonRuntime(folder);
   if (!runtime) throw new Error('python_runtime_not_found');
   const core = coreRoot(context, folder);
