@@ -9,6 +9,7 @@ const FRESH_LOCAL_ENTRIES = new Set([
   'manifest.jsonl',
   'raw',
   'workspace-opt-in.json',
+  '.writer.lock',
 ]);
 
 function safeLstat(target, expected) {
@@ -28,10 +29,12 @@ function assertFreshLocalMemory(root) {
   const manifest = path.join(root, 'manifest.jsonl');
   const raw = path.join(root, 'raw');
   const optIn = path.join(root, 'workspace-opt-in.json');
+  const writerLock = path.join(root, '.writer.lock');
   safeLstat(config, 'file');
   const manifestStat = safeLstat(manifest, 'file');
   safeLstat(raw, 'directory');
   safeLstat(optIn, 'file');
+  if (fs.existsSync(writerLock)) safeLstat(writerLock, 'file');
 
   if (manifestStat.size !== 0) throw new Error('remote_attach_requires_empty_local_memory');
   if (fs.readdirSync(raw).length !== 0) throw new Error('remote_attach_requires_empty_local_memory');
