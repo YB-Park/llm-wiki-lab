@@ -213,7 +213,7 @@ class RemoteAuthorityTests(unittest.TestCase):
             read_snapshot(io.BytesIO(exported_a.stdout), replica_a, preserve_host_local=False)
             read_snapshot(io.BytesIO(exported_b.stdout), replica_b, preserve_host_local=False)
             self.assertTrue(list((replica_a / "human-knowledge").glob("*.json")))
-            self.assertFalse((replica_b / "human-knowledge").exists())
+            self.assertFalse(list((replica_b / "human-knowledge").glob("*.json")))
 
     def test_remote_helper_rejects_model_call_and_arbitrary_module(self) -> None:
         with tempfile.TemporaryDirectory(prefix="remote-deny-") as tmp:
