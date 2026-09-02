@@ -5,6 +5,7 @@ const memoryRead = require('./memory-read-service');
 const personalLibrary = require('./personal-wiki-library');
 const productActions = require('./product-actions');
 const productQueryConfig = require('./product-query-config');
+const remoteMemory = require('./remote-memory');
 const { queryGrant } = require('./query-plane');
 const workspaceActivation = require('./workspace-activation');
 
@@ -12,6 +13,8 @@ const VIEW_ID = 'llmWiki.overview';
 const WORKSPACE_ELIGIBLE_CONTEXT = 'llmWiki.workspaceEligible';
 const REFRESH_COMMAND = 'llmWiki.refreshOverview';
 const OPEN_CHAT_COMMAND = 'llmWiki.openAgentChat';
+const CONNECT_PERSONAL_WIKI_COMMAND = 'llmWiki.connectPersonalWiki';
+const REFRESH_PERSONAL_WIKI_COMMAND = 'llmWiki.refreshPersonalWiki';
 const CONFIGURE_SUMMARIES_FROM_OVERVIEW = 'llmWiki.overview.configureAiSummaries';
 const CONFIGURE_ANSWERS_FROM_OVERVIEW = 'llmWiki.overview.configureAiAnswers';
 const CONFIGURE_OTHER_PROJECTS_FROM_OVERVIEW = 'llmWiki.overview.configureOtherProjects';
@@ -37,6 +40,13 @@ function enabledState(context, folder) {
     libraryCatalogReady = false;
   }
 
+  let remote;
+  try {
+    remote = remoteMemory.status(context, folder);
+  } catch (_) {
+    remote = { configured: true, writable: false, mode: 'offline_read_only', refreshPending: false, corrupt: true };
+  }
+
   return {
     workspaceEnabled,
     maintenanceOn,
@@ -44,6 +54,7 @@ function enabledState(context, folder) {
     libraryAccess,
     libraryCatalogReady,
     stores,
+    remote,
   };
 }
 
@@ -65,6 +76,48 @@ function node(label, options = {}) {
   };
 }
 
+function remoteNode(state) {
+  const remote = state.remote;
+  if (!remote || !remote.configured) {
+    return node('Personal Wiki', {
+      description: 'Not connected',
+      tooltip: 'Connect this project memory to a user-owned Personal Wiki over your existing non-interactive SSH setup.',
+      iconPath: new vscode.ThemeIcon('remote'),
+      command: { command: CONNECT_PERSONAL_WIKI_COMMAND, title: 'Connect Personal Wiki' },
+    });
+  }
+  if (remote.corrupt) {
+    return node('Personal Wiki', {
+      description: 'Needs attention · read only',
+      tooltip: 'The host-local Personal Wiki connection record could not be validated. Project Memory writes are blocked.',
+      iconPath: new vscode.ThemeIcon('warning'),
+      command: { command: REFRESH_PERSONAL_WIKI_COMMAND, title: 'Refresh Personal Wiki' },
+    });
+  }
+  if (remote.refreshPending) {
+    return node('Personal Wiki', {
+      description: 'Refresh pending · read only',
+      tooltip: 'A remote write was committed, but the local verified copy did not refresh. Reads use the last verified copy and may be stale. Refresh before any further Project Memory write.',
+      iconPath: new vscode.ThemeIcon('warning'),
+      command: { command: REFRESH_PERSONAL_WIKI_COMMAND, title: 'Refresh Personal Wiki' },
+    });
+  }
+  if (remote.writable) {
+    return node('Personal Wiki', {
+      description: 'Connected · read/write',
+      tooltip: 'This workspace writes only its exact remote project store. Reads use the last verified local copy. Click to refresh it explicitly.',
+      iconPath: new vscode.ThemeIcon('cloud'),
+      command: { command: REFRESH_PERSONAL_WIKI_COMMAND, title: 'Refresh Personal Wiki' },
+    });
+  }
+  return node('Personal Wiki', {
+    description: 'Offline · read only',
+    tooltip: 'The remote authority is unavailable or unverified. Reads use the last verified local copy and may be stale; all Project Memory writes are blocked.',
+    iconPath: new vscode.ThemeIcon('debug-disconnect'),
+    command: { command: REFRESH_PERSONAL_WIKI_COMMAND, title: 'Refresh Personal Wiki' },
+  });
+}
+
 class LlmWikiOverviewProvider {
   constructor(context) {
     this.context = context;
@@ -78,7 +131,9 @@ class LlmWikiOverviewProvider {
   }
 
   async updateWorkspaceContext() {
-    await vscode.commands.executeCommand('setContext', WORKSPACE_ELIGIBLE_CONTEXT, Boolean(firstEligibleFolder()));
+    const folder = firstEligibleFolder();
+    await vscode.commands.executeCommand('setContext', WORKSPACE_ELIGIBLE_CONTEXT, Boolean(folder));
+    if (folder) await remoteMemory.setContexts(this.context, folder);
   }
 
   getTreeItem(element) {
@@ -142,22 +197,27 @@ class LlmWikiOverviewProvider {
         command: { command: OPEN_CHAT_COMMAND, title: 'Open Agent Chat' },
       }),
       node('Remember active file', {
-        description: 'Save to project memory',
-        tooltip: 'Save the currently open local project file through the same guarded source-admission path used by Agent chat.',
+        description: state.remote && state.remote.configured && !state.remote.writable ? 'Unavailable while read only' : 'Save to project memory',
+        tooltip: state.remote && state.remote.configured && !state.remote.writable
+          ? 'Personal Wiki is read only. Refresh the remote authority before saving anything to Project Memory.'
+          : 'Save the currently open local project file through the same guarded source-admission path used by Agent chat.',
         iconPath: new vscode.ThemeIcon('save'),
         command: { command: productActions.REMEMBER_COMMAND, title: 'Remember Active File' },
       }),
       node('Review saved-file changes', {
-        description: 'Resolve what changed',
-        tooltip: 'Review a newer saved revision and describe its meaning in plain language. Verified old/new evidence is shown before the final decision is recorded.',
+        description: state.remote && state.remote.configured && !state.remote.writable ? 'Unavailable while read only' : 'Resolve what changed',
+        tooltip: state.remote && state.remote.configured && !state.remote.writable
+          ? 'Personal Wiki is read only. Refresh the remote authority before recording a file-history decision.'
+          : 'Review a newer saved revision and describe its meaning in plain language. Verified old/new evidence is shown before the final decision is recorded.',
         iconPath: new vscode.ThemeIcon('diff'),
         command: { command: productActions.REVIEW_CHANGES_COMMAND, title: 'Review Saved-file Changes' },
       }),
       node('Project memory', {
         description: 'On',
-        tooltip: 'This workspace is allowed to use its local project memory in Agent conversations.',
+        tooltip: 'This workspace is allowed to use its project memory in Agent conversations.',
         iconPath: statusIcon(true),
       }),
+      remoteNode(state),
       node('AI summaries', {
         description: state.maintenanceOn ? 'On' : 'Off',
         tooltip: state.maintenanceOn
@@ -170,7 +230,7 @@ class LlmWikiOverviewProvider {
         description: state.queryOn ? 'On' : 'Off',
         tooltip: state.queryOn
           ? 'Bounded saved memory may be sent to GitHub Copilot for read-only memory reasoning. Click to change access or limits.'
-          : 'AI-assisted memory reasoning is off. Deterministic local memory search/read still works. Click to choose an explicit usage level.',
+          : 'AI-assisted memory reasoning is off. Deterministic memory search/read still works. Click to choose an explicit usage level.',
         iconPath: statusIcon(state.queryOn),
         command: { command: CONFIGURE_ANSWERS_FROM_OVERVIEW, title: 'Configure AI-assisted Memory Answers' },
       }),
@@ -192,6 +252,27 @@ class LlmWikiOverviewProvider {
   }
 }
 
+async function runRemoteAction(context, provider, action) {
+  const folder = firstEligibleFolder();
+  if (!folder) throw new Error('Open and trust exactly one workspace folder first.');
+  try {
+    const result = await action(folder);
+    provider.refresh();
+    return result;
+  } catch (error) {
+    provider.refresh();
+    const detail = error && error.message ? String(error.message) : String(error);
+    if (detail.startsWith('REMOTE_WRITE_COMMITTED_REFRESH_PENDING')) {
+      await vscode.window.showWarningMessage('Personal Wiki saved the remote change, but the local verified copy could not refresh. Project Memory is read only until Refresh Personal Wiki succeeds.');
+    } else if (detail.startsWith('REMOTE_OFFLINE_READ_ONLY') || detail.includes('remote_ssh_') || detail.includes('remote_process_')) {
+      await vscode.window.showWarningMessage('Personal Wiki is unavailable. The last verified local copy remains readable, but Project Memory writes are blocked.');
+    } else {
+      await vscode.window.showErrorMessage('LLM Wiki could not complete the Personal Wiki action. Use Check Setup and Health for local diagnostics.');
+    }
+    return undefined;
+  }
+}
+
 function registerProductView(context) {
   productActions.registerProductActions(context);
   productQueryConfig.registerProductQueryConfig(context);
@@ -208,6 +289,14 @@ function registerProductView(context) {
   context.subscriptions.push(vscode.commands.registerCommand(OPEN_CHAT_COMMAND, () => (
     vscode.commands.executeCommand('workbench.action.chat.open')
   )));
+  context.subscriptions.push(vscode.commands.registerCommand(
+    CONNECT_PERSONAL_WIKI_COMMAND,
+    () => runRemoteAction(context, provider, (folder) => remoteMemory.connect(context, folder))
+  ));
+  context.subscriptions.push(vscode.commands.registerCommand(
+    REFRESH_PERSONAL_WIKI_COMMAND,
+    () => runRemoteAction(context, provider, (folder) => remoteMemory.refreshReplica(context, folder))
+  ));
   context.subscriptions.push(vscode.commands.registerCommand(
     CONFIGURE_SUMMARIES_FROM_OVERVIEW,
     () => runAndRefresh('llmWiki.configureAgentWikiMaintenance')
@@ -239,8 +328,10 @@ function registerProductView(context) {
 }
 
 module.exports = {
+  CONNECT_PERSONAL_WIKI_COMMAND,
   OPEN_CHAT_COMMAND,
   REFRESH_COMMAND,
+  REFRESH_PERSONAL_WIKI_COMMAND,
   VIEW_ID,
   WORKSPACE_ELIGIBLE_CONTEXT,
   LlmWikiOverviewProvider,
