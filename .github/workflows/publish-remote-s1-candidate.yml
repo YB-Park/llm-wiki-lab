@@ -1,0 +1,99 @@
+name: Publish Remote S1 candidate VSIX
+
+on:
+  workflow_run:
+    workflows: ["VS Code Dogfood"]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: publish-remote-s1-candidate-vsix
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.head_branch == 'agent/ssh-replication-s1'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: agent/ssh-replication-s1
+          fetch-depth: 0
+
+      - name: Avoid publish-loop rebuilds
+        id: guard
+        shell: bash
+        run: |
+          subject="$(git log -1 --pretty=%s)"
+          if [ "$subject" = "Publish Remote S1 candidate VSIX" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify workflow head and download validated artifact
+        if: steps.guard.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN: ${{ github.event.workflow_run.id }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          rm -rf /tmp/llm-wiki-remote-s1-vsix
+          mkdir -p /tmp/llm-wiki-remote-s1-vsix
+          gh run download "$SOURCE_RUN" \
+            --repo "$GITHUB_REPOSITORY" \
+            --name llm-wiki-dogfood-vsix \
+            --dir /tmp/llm-wiki-remote-s1-vsix
+          test -s /tmp/llm-wiki-remote-s1-vsix/llm-wiki-dogfood.vsix
+
+      - name: Publish candidate bytes into PR branch
+        if: steps.guard.outputs.skip != 'true'
+        env:
+          SOURCE_RUN: ${{ github.event.workflow_run.id }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          src=/tmp/llm-wiki-remote-s1-vsix/llm-wiki-dogfood.vsix
+          dir=dogfood/releases/candidates/remote-s1
+          target="$dir/llm-wiki-dogfood-remote-s1-candidate.vsix"
+          mkdir -p "$dir"
+          cp "$src" "$target"
+          digest="$(sha256sum "$src" | awk '{print $1}')"
+          bytes="$(wc -c < "$src" | tr -d ' ')"
+
+          cat > "$dir/README.md" <<EOF
+          # Remote S1 install candidate
+
+          This is an **installed-dogfood candidate**, not the stable Dogfood release.
+
+          - File: \`llm-wiki-dogfood-remote-s1-candidate.vsix\`
+          - Bytes: \`${bytes}\`
+          - SHA-256: \`${digest}\`
+          - Validated VS Code Dogfood run: \`${SOURCE_RUN}\`
+          - Validated source head: \`${SOURCE_SHA}\`
+          - PR: #222
+
+          The VSIX is copied only from a successful \`VS Code Dogfood\` workflow artifact for \`agent/ssh-replication-s1\`. Stable/versioned files under \`dogfood/releases/\` remain unchanged until S1 installed Remote-SSH dogfood is earned and merged.
+
+          Install from GitHub by opening this directory on branch \`agent/ssh-replication-s1\`, downloading the VSIX, and using VS Code **Extensions -> ... -> Install from VSIX...**.
+          EOF
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$dir"
+          if git diff --cached --quiet; then
+            echo "Candidate already matches validated artifact."
+            exit 0
+          fi
+          git commit -m "Publish Remote S1 candidate VSIX"
+          git push origin HEAD:agent/ssh-replication-s1
