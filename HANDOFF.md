@@ -35,7 +35,7 @@ Candidate evidence:
 
 **Installed VS Code Remote-SSH support is not yet earned.** Localhost OpenSSH CI proves product transport mechanics and packaged Extension Host viability, but the exact candidate still needs one installed VS Code Remote-SSH Linux-workspace dogfood pass before PR #222 leaves draft / S1 is declared installed-ready.
 
-Active milestone remains: **remote-capable Personal Wiki before broad UX/satisfaction dogfood resumes**.
+Active milestone remains: **remote-capable Personal Wiki before broad UX/satisfaction dogfood resumes**. The prior **UX/UI convergence phase** remains the product baseline, but broad polishing is paused until remote installed dogfood is available.
 
 ## WHAT IS NOW IMPLEMENTED
 
@@ -147,6 +147,15 @@ Host-local includes:
 - truncated/corrupt/unverified snapshots never replace the last verified copy;
 - attach with non-empty/unexpected/symlinked/busy local authority fails closed;
 - no rollback fiction, merge, rebase, conflict resolution, or offline queue.
+
+## PARKED RESEARCH GUARDS
+
+Remote work does not reopen closed E023 persistence/identity research. Query-time reconstruction remains the default posture outside explicitly earned product slices, and **paid E023 semantic reruns remain paused**.
+
+- G2 Persistence: **NOT_EARNED; parked**
+- G3 Identity / Routing: **NOT_OPENED**
+
+Do not treat Personal Wiki routing/catalog identities as evidence that E023 global persistence or identity projections were earned.
 
 ## STILL OUT OF SCOPE
 
