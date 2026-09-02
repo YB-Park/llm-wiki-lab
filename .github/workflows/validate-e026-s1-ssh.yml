@@ -1,0 +1,161 @@
+name: Validate E026 S1 real SSH transport
+
+on:
+  pull_request:
+    paths:
+      - 'experiments/E026-ssh-store-portability/run_s1_ssh.py'
+      - 'dogfood/llm_wiki/remote_helper.py'
+      - 'dogfood/llm_wiki/remote_snapshot.py'
+      - 'dogfood/llm_wiki/replica_read_cli.py'
+      - 'dogfood/tests/test_remote_authority.py'
+      - 'dogfood/tests/test_replica_read_cli.py'
+      - 'dogfood/vscode/remote-memory.js'
+      - 'dogfood/vscode/agent-tools.js'
+      - 'dogfood/vscode/memory-read-service.js'
+      - 'dogfood/vscode/extension.js'
+      - 'dogfood/vscode/product-view.js'
+      - 'dogfood/vscode/package.json'
+      - 'dogfood/vscode/test/static.js'
+      - '.github/workflows/validate-e026-s1-ssh.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'experiments/E026-ssh-store-portability/run_s1_ssh.py'
+      - 'dogfood/llm_wiki/remote_helper.py'
+      - 'dogfood/llm_wiki/remote_snapshot.py'
+      - 'dogfood/llm_wiki/replica_read_cli.py'
+      - 'dogfood/tests/test_remote_authority.py'
+      - 'dogfood/tests/test_replica_read_cli.py'
+      - 'dogfood/vscode/remote-memory.js'
+      - 'dogfood/vscode/agent-tools.js'
+      - 'dogfood/vscode/memory-read-service.js'
+      - 'dogfood/vscode/extension.js'
+      - 'dogfood/vscode/product-view.js'
+      - 'dogfood/vscode/package.json'
+      - 'dogfood/vscode/test/static.js'
+      - '.github/workflows/validate-e026-s1-ssh.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  real-ssh-transport:
+    name: S1 real OpenSSH authority transport (zero model calls)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.9'
+
+      - name: Compile S1 transport and replica boundary
+        run: |
+          python3 --version
+          python3 -m py_compile \
+            experiments/E026-ssh-store-portability/run_s1_ssh.py \
+            dogfood/llm_wiki/remote_helper.py \
+            dogfood/llm_wiki/remote_snapshot.py \
+            dogfood/llm_wiki/replica_read_cli.py \
+            dogfood/tests/test_remote_authority.py \
+            dogfood/tests/test_replica_read_cli.py
+
+      - name: Start isolated OpenSSH server with strict client host verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v sshd >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends openssh-server
+          fi
+          sudo mkdir -p /run/sshd
+
+          mkdir -p "$HOME/.ssh" "$RUNNER_TEMP/llm-wiki-ssh"
+          chmod 700 "$HOME/.ssh" "$RUNNER_TEMP/llm-wiki-ssh"
+          ssh-keygen -q -t ed25519 -N '' -f "$RUNNER_TEMP/llm-wiki-ssh/client"
+          cat "$RUNNER_TEMP/llm-wiki-ssh/client.pub" >> "$HOME/.ssh/authorized_keys"
+          chmod 600 "$HOME/.ssh/authorized_keys"
+
+          sudo ssh-keygen -q -t ed25519 -N '' -f "$RUNNER_TEMP/llm-wiki-ssh/host_ed25519"
+          cat > "$RUNNER_TEMP/llm-wiki-ssh/sshd_config" <<EOF
+          Port 22222
+          ListenAddress 127.0.0.1
+          HostKey $RUNNER_TEMP/llm-wiki-ssh/host_ed25519
+          PidFile $RUNNER_TEMP/llm-wiki-ssh/sshd.pid
+          AuthorizedKeysFile .ssh/authorized_keys
+          PubkeyAuthentication yes
+          PasswordAuthentication no
+          KbdInteractiveAuthentication no
+          ChallengeResponseAuthentication no
+          UsePAM no
+          PermitRootLogin no
+          AllowUsers $USER
+          StrictModes yes
+          LogLevel VERBOSE
+          EOF
+          sudo /usr/sbin/sshd -f "$RUNNER_TEMP/llm-wiki-ssh/sshd_config" -E "$RUNNER_TEMP/llm-wiki-ssh/sshd.log"
+
+          for attempt in $(seq 1 20); do
+            if ssh-keyscan -p 22222 127.0.0.1 > "$RUNNER_TEMP/llm-wiki-ssh/known_hosts" 2>/dev/null; then
+              break
+            fi
+            sleep 0.25
+          done
+          test -s "$RUNNER_TEMP/llm-wiki-ssh/known_hosts"
+          chmod 600 "$RUNNER_TEMP/llm-wiki-ssh/known_hosts"
+
+          cat > "$RUNNER_TEMP/llm-wiki-ssh/config" <<EOF
+          Host llm-wiki-s1
+            HostName 127.0.0.1
+            Port 22222
+            User $USER
+            IdentityFile $RUNNER_TEMP/llm-wiki-ssh/client
+            IdentitiesOnly yes
+            UserKnownHostsFile $RUNNER_TEMP/llm-wiki-ssh/known_hosts
+            StrictHostKeyChecking yes
+            BatchMode yes
+            LogLevel ERROR
+          EOF
+          chmod 600 "$RUNNER_TEMP/llm-wiki-ssh/config"
+
+          cat "$RUNNER_TEMP/llm-wiki-ssh/config" >> "$HOME/.ssh/config"
+          chmod 600 "$HOME/.ssh/config"
+          ssh -o BatchMode=yes -T llm-wiki-s1 true
+
+      - name: Deploy product helper over SSH exactly as S1 transport does
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -T llm-wiki-s1 'rm -rf "${XDG_DATA_HOME:-$HOME/.local/share}/llm-wiki/remote-runtime/current" "${XDG_DATA_HOME:-$HOME/.local/share}/llm-wiki/remote-authority"'
+          tar -C "$GITHUB_WORKSPACE" -cf - dogfood/__init__.py dogfood/llm_wiki \
+            | ssh -T llm-wiki-s1 'set -eu; umask 077; root="${XDG_DATA_HOME:-$HOME/.local/share}/llm-wiki/remote-runtime/current"; mkdir -p "$root"; rm -rf "$root/dogfood"; tar -xf - -C "$root"'
+          ssh -T llm-wiki-s1 'set -eu; root="${XDG_DATA_HOME:-$HOME/.local/share}/llm-wiki/remote-runtime/current"; PYTHONPATH="$root" python3 -m dogfood.llm_wiki.remote_helper' \
+            <<'EOF' | tee /tmp/e026-s1-health.txt
+          {"protocol":"LLM-WIKI-REMOTE-HELPER-v1","op":"health"}
+          EOF
+          grep -q '"ok":true' /tmp/e026-s1-health.txt
+          grep -q '"protocol":"LLM-WIKI-REMOTE-HELPER-v1"' /tmp/e026-s1-health.txt
+
+      - name: Execute real SSH identity, byte, and write-isolation proof
+        env:
+          LLM_WIKI_SSH_TARGET: llm-wiki-s1
+        run: |
+          set -euo pipefail
+          python3 experiments/E026-ssh-store-portability/run_s1_ssh.py | tee /tmp/e026-s1-ssh.txt
+          grep -q '^E026 S1 real SSH transport: PASS$' /tmp/e026-s1-ssh.txt
+          grep -q '"E026_S1_REAL_SSH_TRANSPORT": "PASS"' /tmp/e026-s1-ssh.txt
+          grep -q '"model_calls": 0' /tmp/e026-s1-ssh.txt
+          grep -q '"same_bytes_auto_link": false' /tmp/e026-s1-ssh.txt
+          grep -q '"crlf_byte_preservation": true' /tmp/e026-s1-ssh.txt
+          grep -q '"cross_store_write_leak": false' /tmp/e026-s1-ssh.txt
+
+      - name: Prove verified offline replica reads are zero-write
+        run: python3 -m unittest dogfood.tests.test_replica_read_cli -v
+
+      - name: Show sshd log on failure
+        if: failure()
+        shell: bash
+        run: |
+          if [ -f "$RUNNER_TEMP/llm-wiki-ssh/sshd.log" ]; then
+            sudo tail -n 200 "$RUNNER_TEMP/llm-wiki-ssh/sshd.log" || true
+          fi
