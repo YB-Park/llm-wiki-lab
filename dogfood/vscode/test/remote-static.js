@@ -11,6 +11,8 @@ const remoteMemory = fs.readFileSync(path.join(root, 'remote-memory.js'), 'utf8'
 const remoteAttach = fs.readFileSync(path.join(root, 'remote-attach.js'), 'utf8');
 const remotePolicy = fs.readFileSync(path.join(root, 'remote-project-policy.js'), 'utf8');
 const remoteLibrary = fs.readFileSync(path.join(root, 'remote-library.js'), 'utf8');
+const snapshotTransfer = fs.readFileSync(path.join(root, 'remote-snapshot-transfer.js'), 'utf8');
+const attachImporter = fs.readFileSync(path.resolve(root, '..', 'llm_wiki', 'remote_attach_import.py'), 'utf8');
 const libraryUi = fs.readFileSync(path.join(root, 'personal-wiki-library-ui.js'), 'utf8');
 
 function must(label, condition) {
@@ -36,12 +38,24 @@ must('attach-explicit-existing-choice', remoteAttach.includes('Use Existing Proj
 must('attach-explicit-new-choice', remoteAttach.includes('Create New Project Memory'));
 must('attach-no-identity-inference', remoteAttach.includes('No repository, path, branch, file-content similarity, or folder name is used to choose project identity.'));
 must('attach-no-merge', remoteAttach.includes('This is an explicit attach, not a merge.'));
-assert.ok((remoteAttach.match(/assertFreshLocalMemory\(root\)/g) || []).length >= 2, 'REMOTE-STATIC attach-rechecks-local-empty');
+assert.ok((remoteAttach.match(/assertFreshLocalMemory\(root\)/g) || []).length >= 2, 'REMOTE-STATIC attach-fast-rechecks-local-empty');
 must('attach-exact-store-id', remoteAttach.includes("stores.find((store) => store.storeId === requestedStoreId)"));
 must('attach-only-bootstrapped-store', remoteAttach.includes('store.bootstrap_complete === true'));
-must('attach-materializes-via-verified-refresh', remoteAttach.includes('remoteMemory.refreshReplica(context, folder)'));
-must('attach-rolls-back-binding-on-failure', remoteAttach.includes('context.workspaceState.update(key, undefined)'));
+must('attach-uses-shared-snapshot-transfer', remoteAttach.includes('snapshotTransfer.fetchSnapshot'));
+must('attach-selects-writer-locked-import', remoteAttach.includes('{ attachEmpty: true }'));
+const attachTransferIndex = remoteAttach.indexOf('const snapshotId = await snapshotTransfer.fetchSnapshot');
+const bindingPublishIndex = remoteAttach.indexOf('await context.workspaceState.update(key, row)');
+must('attach-binding-after-verified-materialization', attachTransferIndex >= 0 && bindingPublishIndex > attachTransferIndex);
+mustNot('attach-no-temporary-binding-before-transfer', remoteAttach.slice(0, attachTransferIndex).includes('workspaceState.update(key'));
+mustNot('attach-no-refresh-via-published-binding', remoteAttach.includes('remoteMemory.refreshReplica(context, folder)'));
 mustNot('attach-no-repo-discovery', remoteAttach.includes('git remote') || remoteAttach.includes('repositoryUrl'));
+
+must('attach-importer-posix-only', attachImporter.includes('os.name != "posix"'));
+must('attach-importer-writer-lock', attachImporter.includes('with store_writer_lock(root):'));
+must('attach-importer-final-empty-check-under-lock', attachImporter.indexOf('with store_writer_lock(root):') < attachImporter.indexOf('assert_empty_attach_destination(root)'));
+must('attach-importer-preserves-host-local', attachImporter.includes('preserve_host_local=True'));
+must('attach-importer-integrity-gate', attachImporter.includes('audit_alpha_integrity(root).get("ok") is not True'));
+must('attach-importer-allows-lock-rendezvous-only', attachImporter.includes('LOCK_FILE'));
 
 must('fresh-policy-only-baseline-files', remotePolicy.includes("'config.json'") && remotePolicy.includes("'manifest.jsonl'") && remotePolicy.includes("'raw'") && remotePolicy.includes("'workspace-opt-in.json'"));
 must('fresh-policy-manifest-empty', remotePolicy.includes('manifestStat.size !== 0'));
@@ -50,11 +64,19 @@ must('fresh-policy-extra-portable-fails', remotePolicy.includes('!FRESH_LOCAL_EN
 must('fresh-policy-symlink-failclosed', remotePolicy.includes('stat.isSymbolicLink()'));
 must('fresh-policy-opt-in-required-local', remotePolicy.includes("safeLstat(optIn, 'file')"));
 
+must('snapshot-transfer-binary-stream', snapshotTransfer.includes('ssh.stdout.pipe(importer.stdin)'));
+must('snapshot-transfer-attach-module', snapshotTransfer.includes("'dogfood.llm_wiki.remote_attach_import'"));
+must('snapshot-transfer-cache-module', snapshotTransfer.includes("'dogfood.llm_wiki.remote_snapshot'"));
+must('snapshot-transfer-cache-replaces-hostlocal', snapshotTransfer.includes("'--replace-host-local'"));
+must('snapshot-transfer-verifies-snapshot-id', snapshotTransfer.includes('remoteMemory.SNAPSHOT_ID_RE.test'));
+
 must('remote-library-host-local-global-storage', remoteLibrary.includes('context.globalStorageUri'));
 must('remote-library-target-path-hashed', remoteLibrary.includes('remotePolicy.authorityCacheKey(target)'));
 mustNot('remote-library-no-raw-target-in-cache-path', remoteLibrary.includes("path.join(base, 'remote-library', target"));
+must('remote-library-private-parent', remoteLibrary.includes('fs.chmodSync(parent, 0o700)'));
 must('remote-library-excludes-current-store', remoteLibrary.includes('store.storeId !== binding.storeId'));
-must('remote-library-verified-snapshot-import', remoteLibrary.includes("'dogfood.llm_wiki.remote_snapshot', 'import'") && remoteLibrary.includes("'--replace-host-local'"));
+must('remote-library-uses-shared-verified-transfer', remoteLibrary.includes('snapshotTransfer.fetchSnapshot'));
+must('remote-library-not-attach-mode', remoteLibrary.includes('{ attachEmpty: false }'));
 must('remote-library-reuses-existing-federation', remoteLibrary.includes('library.registerStore(context'));
 must('remote-library-separate-workspace-grant', remoteLibrary.includes('library.setLibraryAccess(context, folder, currentRoot, true)'));
 must('remote-library-explicit-readonly-disclosure', remoteLibrary.includes('Add Read-only Project'));
@@ -65,10 +87,10 @@ must('library-ui-remote-source-explicit', libraryUi.includes('Add or refresh a p
 must('library-ui-remote-only-when-connected', libraryUi.includes("...(remoteConnected ? [{"));
 must('library-ui-remote-action-delegates', libraryUi.includes("action === 'remote-register'") && libraryUi.includes('remoteLibrary.addRemoteProject'));
 
-const sshBoundary = `${remoteMemory}\n${remoteAttach}\n${remoteLibrary}`;
+const sshBoundary = `${remoteMemory}\n${remoteAttach}\n${remoteLibrary}\n${snapshotTransfer}`;
 must('ssh-batch-mode', sshBoundary.includes('BatchMode=yes'));
 mustNot('ssh-never-disables-host-key-checking', sshBoundary.includes('StrictHostKeyChecking=no'));
 mustNot('ssh-never-null-known-hosts', sshBoundary.includes('UserKnownHostsFile=/dev/null'));
 mustNot('no-background-sync-loop', sshBoundary.includes('setInterval(') || sshBoundary.includes('setTimeout(async') || sshBoundary.includes('watchFile('));
 
-console.log('REMOTE-STATIC PASS explicit-attach=yes remote-library=verified-named-readonly offline-write=blocked extensionKind=workspace symlinkFailClosed=yes');
+console.log('REMOTE-STATIC PASS explicit-attach=yes writerLockedAttach=yes remote-library=verified-named-readonly offline-write=blocked extensionKind=workspace symlinkFailClosed=yes');
