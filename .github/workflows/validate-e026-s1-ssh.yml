@@ -73,8 +73,13 @@ jobs:
           mkdir -p "$HOME/.ssh" "$RUNNER_TEMP/llm-wiki-ssh"
           chmod 700 "$HOME/.ssh" "$RUNNER_TEMP/llm-wiki-ssh"
           ssh-keygen -q -t ed25519 -N '' -f "$RUNNER_TEMP/llm-wiki-ssh/client"
-          cat "$RUNNER_TEMP/llm-wiki-ssh/client.pub" >> "$HOME/.ssh/authorized_keys"
-          chmod 600 "$HOME/.ssh/authorized_keys"
+
+          if ! id -u llmwikici >/dev/null 2>&1; then
+            sudo useradd -m -s /bin/bash llmwikici
+          fi
+          sudo passwd -d llmwikici
+          sudo install -d -m 700 -o llmwikici -g llmwikici /home/llmwikici/.ssh
+          sudo install -m 600 -o llmwikici -g llmwikici "$RUNNER_TEMP/llm-wiki-ssh/client.pub" /home/llmwikici/.ssh/authorized_keys
 
           sudo ssh-keygen -q -t ed25519 -N '' -f "$RUNNER_TEMP/llm-wiki-ssh/host_ed25519"
           cat > "$RUNNER_TEMP/llm-wiki-ssh/sshd_config" <<EOF
@@ -89,7 +94,7 @@ jobs:
           ChallengeResponseAuthentication no
           UsePAM no
           PermitRootLogin no
-          AllowUsers $USER
+          AllowUsers llmwikici
           StrictModes yes
           LogLevel VERBOSE
           EOF
@@ -108,7 +113,7 @@ jobs:
           Host llm-wiki-s1
             HostName 127.0.0.1
             Port 22222
-            User $USER
+            User llmwikici
             IdentityFile $RUNNER_TEMP/llm-wiki-ssh/client
             IdentitiesOnly yes
             UserKnownHostsFile $RUNNER_TEMP/llm-wiki-ssh/known_hosts
