@@ -89,6 +89,32 @@ def export_store(store_id: str) -> bytes:
     return proc.stdout
 
 
+def remote_ingest(store_id: str, topic_id: str, name: str, payload: bytes) -> dict:
+    token = "__LLM_WIKI_UPLOAD_0__"
+    upload = {
+        "token": token,
+        "name": name,
+        "size": len(payload),
+        "sha256": hashlib.sha256(payload).hexdigest(),
+    }
+    row = helper_json(
+        {
+            "op": "run_core",
+            "store_id": store_id,
+            "module": "dogfood.llm_wiki.cli",
+            "args": ["ingest", token, "--topic", topic_id],
+            "uploads": [upload],
+        },
+        payload,
+    )
+    if row.get("ok") is not True:
+        raise RuntimeError(f"remote ingest failed: {row}")
+    match = re.search(r"source=(src-[0-9A-Za-z-]+)", str(row.get("stdout", "")))
+    if match is None:
+        raise RuntimeError("remote ingest returned no source identity")
+    return row
+
+
 def main() -> int:
     health = helper_json({"op": "health"})
     if health.get("ok") is not True or health.get("protocol") != HELPER_PROTOCOL or not str(health.get("platform", "")).startswith("linux"):
@@ -116,28 +142,7 @@ def main() -> int:
             raise RuntimeError("bootstrap snapshot identity mismatch")
 
         changed_bytes = "PC A 원격 전용 변경\r\ncedar quota=12\r\n".encode("utf-8")
-        token = "__LLM_WIKI_UPLOAD_0__"
-        upload = {
-            "token": token,
-            "name": "changed.md",
-            "size": len(changed_bytes),
-            "sha256": hashlib.sha256(changed_bytes).hexdigest(),
-        }
-        admitted = helper_json(
-            {
-                "op": "run_core",
-                "store_id": store_a,
-                "module": "dogfood.llm_wiki.cli",
-                "args": ["ingest", token, "--topic", topic_id],
-                "uploads": [upload],
-            },
-            changed_bytes,
-        )
-        if admitted.get("ok") is not True:
-            raise RuntimeError(f"remote ingest failed: {admitted}")
-        match = re.search(r"source=(src-[0-9A-Za-z-]+)", str(admitted.get("stdout", "")))
-        if match is None:
-            raise RuntimeError("remote ingest returned no source identity")
+        remote_ingest(store_a, topic_id, "changed.md", changed_bytes)
 
         replica_a = base / "replica-a"
         replica_b = base / "replica-b"
@@ -161,6 +166,46 @@ def main() -> int:
         if changed_bytes in raw_b:
             raise RuntimeError("A remote write leaked into B project store")
 
+        # Explicit multi-PC attach proof: PC B starts with a fresh local authority
+        # epoch, selects store A exactly, materializes its verified snapshot, and
+        # keeps its own host-local workspace opt-in. No content/repo auto-linking.
+        pc_b_attached = base / "pc-b-attached"
+        ensure_workspace(pc_b_attached)
+        pc_b_opt_in = b'{"pc":"B","fresh_authority_epoch":true}\n'
+        write_private_text(pc_b_attached / "workspace-opt-in.json", pc_b_opt_in.decode("utf-8"))
+        if (pc_b_attached / "manifest.jsonl").read_bytes() != b"":
+            raise RuntimeError("PC B attach fixture was not locally empty")
+        attached_manifest = read_snapshot(
+            io.BytesIO(export_store(store_a)),
+            pc_b_attached,
+            preserve_host_local=True,
+        )
+        if attached_manifest["snapshot_id"] != manifest_a["snapshot_id"]:
+            raise RuntimeError("PC B explicit attach did not materialize exact store A snapshot")
+        if (pc_b_attached / "workspace-opt-in.json").read_bytes() != pc_b_opt_in:
+            raise RuntimeError("PC B host-local authority epoch was replaced during attach")
+        attached_raw = [path.read_bytes() for path in (pc_b_attached / "raw").glob("*.txt")]
+        if changed_bytes not in attached_raw:
+            raise RuntimeError("PC B attached copy is missing PC A remote evidence")
+
+        pc_b_write = "PC B attach 후 원격 저장\r\ncedar quota=14\r\n".encode("utf-8")
+        remote_ingest(store_a, topic_id, "pc-b-write.md", pc_b_write)
+
+        # PC A explicitly refreshes the same exact remote store and sees PC B's
+        # write. Independent store B remains untouched.
+        pc_a_refreshed = base / "pc-a-refreshed"
+        latest_a = read_snapshot(io.BytesIO(export_store(store_a)), pc_a_refreshed, preserve_host_local=False)
+        latest_b = base / "independent-b-refreshed"
+        read_snapshot(io.BytesIO(export_store(store_b)), latest_b, preserve_host_local=False)
+        pc_a_raw = [path.read_bytes() for path in (pc_a_refreshed / "raw").glob("*.txt")]
+        independent_b_raw = [path.read_bytes() for path in (latest_b / "raw").glob("*.txt")]
+        if pc_b_write not in pc_a_raw:
+            raise RuntimeError("PC A refresh did not observe PC B write to the attached project")
+        if pc_b_write in independent_b_raw or changed_bytes in independent_b_raw:
+            raise RuntimeError("attached project writes leaked into independent store B")
+        if latest_a["snapshot_id"] == manifest_a["snapshot_id"]:
+            raise RuntimeError("PC B write did not advance exact attached project snapshot")
+
         listed = helper_json({"op": "list_stores"})
         ids = {str(row.get("store_id", "")) for row in listed.get("stores", [])}
         if store_a not in ids or store_b not in ids:
@@ -177,6 +222,10 @@ def main() -> int:
             "crlf_byte_preservation": True,
             "host_local_workspace_authority_transported": False,
             "cross_store_write_leak": False,
+            "explicit_pc_b_attach_to_exact_store": True,
+            "pc_b_host_local_authority_preserved": True,
+            "pc_b_write_visible_after_pc_a_refresh": True,
+            "independent_store_b_unchanged": True,
         }
         print("E026 S1 real SSH transport: PASS")
         print(json.dumps(result, indent=2, sort_keys=True))
