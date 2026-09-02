@@ -20,6 +20,21 @@ const TARGET_RE = /^[^\s\x00-\x1f\x7f]{1,255}$/;
 const INSTALL_COMMAND = 'set -eu; umask 077; root="${XDG_DATA_HOME:-$HOME/.local/share}/llm-wiki/remote-runtime/current"; mkdir -p "$root"; rm -rf "$root/dogfood"; tar -xf - -C "$root"';
 const HELPER_COMMAND = 'set -eu; root="${XDG_DATA_HOME:-$HOME/.local/share}/llm-wiki/remote-runtime/current"; PYTHONPATH="$root" python3 -m dogfood.llm_wiki.remote_helper';
 
+class RemoteTransportError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'RemoteTransportError';
+  }
+}
+
+class RemoteOperationError extends Error {
+  constructor(message, response = undefined) {
+    super(message);
+    this.name = 'RemoteOperationError';
+    this.response = response;
+  }
+}
+
 function configuration() {
   return vscode.workspace.getConfiguration('llmWiki');
 }
@@ -78,7 +93,7 @@ async function saveBinding(context, folder, row) {
   const normalized = validateBinding(row);
   await context.workspaceState.update(bindingKey(folder), normalized);
   await vscode.commands.executeCommand('setContext', REMOTE_CONFIGURED_CONTEXT, Boolean(normalized));
-  await vscode.commands.executeCommand('setContext', REMOTE_WRITABLE_CONTEXT, Boolean(normalized && normalized.writable));
+  await vscode.commands.executeCommand('setContext', REMOTE_WRITABLE_CONTEXT, Boolean(normalized && normalized.writable && !normalized.refreshPending));
   return normalized;
 }
 
@@ -86,7 +101,7 @@ async function setContexts(context, folder) {
   let row;
   try { row = binding(context, folder); } catch (_) { row = undefined; }
   await vscode.commands.executeCommand('setContext', REMOTE_CONFIGURED_CONTEXT, Boolean(row));
-  await vscode.commands.executeCommand('setContext', REMOTE_WRITABLE_CONTEXT, Boolean(row && row.writable));
+  await vscode.commands.executeCommand('setContext', REMOTE_WRITABLE_CONTEXT, Boolean(row && row.writable && !row.refreshPending));
 }
 
 function sshArgs(target, command) {
@@ -105,7 +120,7 @@ function processResult(child, { timeoutMs = SSH_TIMEOUT_MS, maxBuffer = MAX_CONT
       if (settled) return;
       try { child.kill('SIGKILL'); } catch (_) {}
       settled = true;
-      reject(new Error('remote_process_timeout'));
+      reject(new RemoteTransportError('remote_process_timeout'));
     }, timeoutMs);
 
     child.stdout.on('data', (chunk) => {
@@ -115,7 +130,7 @@ function processResult(child, { timeoutMs = SSH_TIMEOUT_MS, maxBuffer = MAX_CONT
         if (!settled) {
           settled = true;
           clearTimeout(timer);
-          reject(new Error('remote_process_stdout_too_large'));
+          reject(new RemoteTransportError('remote_process_stdout_too_large'));
         }
         return;
       }
@@ -129,7 +144,7 @@ function processResult(child, { timeoutMs = SSH_TIMEOUT_MS, maxBuffer = MAX_CONT
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      reject(error);
+      reject(new RemoteTransportError(`remote_process_error:${boundedProcessFailure(error && error.message ? error.message : String(error))}`));
     });
     child.on('close', (code, signal) => {
       if (settled) return;
@@ -167,8 +182,8 @@ async function deployRuntime(context, folder, target) {
     processResult(archive, { timeoutMs: 30000, maxBuffer: 1024 * 1024 }),
     processResult(ssh, { timeoutMs: 30000, maxBuffer: 1024 * 1024 }),
   ]);
-  if (archiveResult.code !== 0) throw new Error(`remote_runtime_archive_failed:${boundedProcessFailure(archiveResult.stderr.toString('utf8'))}`);
-  if (sshResult.code !== 0) throw new Error(`remote_runtime_install_failed:${boundedProcessFailure(sshResult.stderr.toString('utf8'))}`);
+  if (archiveResult.code !== 0) throw new RemoteTransportError(`remote_runtime_archive_failed:${boundedProcessFailure(archiveResult.stderr.toString('utf8'))}`);
+  if (sshResult.code !== 0) throw new RemoteTransportError(`remote_runtime_install_failed:${boundedProcessFailure(sshResult.stderr.toString('utf8'))}`);
 }
 
 async function sshJson(folder, target, request, payload = Buffer.alloc(0)) {
@@ -182,14 +197,16 @@ async function sshJson(folder, target, request, payload = Buffer.alloc(0)) {
   ssh.stdin.end();
   const result = await processResult(ssh);
   if (result.code !== 0 && !result.stdout.length) {
-    throw new Error(`remote_ssh_failed:${boundedProcessFailure(result.stderr.toString('utf8'))}`);
+    throw new RemoteTransportError(`remote_ssh_failed:${boundedProcessFailure(result.stderr.toString('utf8'))}`);
   }
   let row;
-  try { row = JSON.parse(result.stdout.toString('utf8')); } catch (_) {
-    throw new Error(`remote_helper_response_invalid:${boundedProcessFailure(result.stderr.toString('utf8'))}`);
+  try {
+    row = JSON.parse(result.stdout.toString('utf8'));
+  } catch (_) {
+    throw new RemoteTransportError(`remote_helper_response_invalid:${boundedProcessFailure(result.stderr.toString('utf8'))}`);
   }
   if (!row || row.ok !== true) {
-    throw new Error(String((row && row.error) || 'remote_helper_failed'));
+    throw new RemoteOperationError(String((row && row.error) || 'remote_helper_failed'), row);
   }
   return row;
 }
@@ -198,7 +215,7 @@ async function health(context, folder, target, { deploy = false } = {}) {
   if (deploy) await deployRuntime(context, folder, target);
   const row = await sshJson(folder, target, { op: 'health' });
   if (row.protocol !== PROTOCOL || !String(row.platform || '').startsWith('linux')) {
-    throw new Error('remote_helper_incompatible');
+    throw new RemoteOperationError('remote_helper_incompatible', row);
   }
   return row;
 }
@@ -228,11 +245,11 @@ async function bootstrapStore(context, folder, target, storeId) {
     processResult(exporter, { timeoutMs: 60000, maxBuffer: 1024 * 1024 }),
     processResult(ssh, { timeoutMs: 60000, maxBuffer: MAX_CONTROL_BUFFER }),
   ]);
-  if (exportResult.code !== 0) throw new Error(`remote_local_snapshot_export_failed:${boundedProcessFailure(exportResult.stderr.toString('utf8'))}`);
-  if (sshResult.code !== 0 && !sshResult.stdout.length) throw new Error(`remote_bootstrap_failed:${boundedProcessFailure(sshResult.stderr.toString('utf8'))}`);
+  if (exportResult.code !== 0) throw new RemoteOperationError(`remote_local_snapshot_export_failed:${boundedProcessFailure(exportResult.stderr.toString('utf8'))}`);
+  if (sshResult.code !== 0 && !sshResult.stdout.length) throw new RemoteTransportError(`remote_bootstrap_transport_failed:${boundedProcessFailure(sshResult.stderr.toString('utf8'))}`);
   let row;
-  try { row = JSON.parse(sshResult.stdout.toString('utf8')); } catch (_) { throw new Error('remote_bootstrap_response_invalid'); }
-  if (!row || row.ok !== true) throw new Error(String((row && row.error) || 'remote_bootstrap_failed'));
+  try { row = JSON.parse(sshResult.stdout.toString('utf8')); } catch (_) { throw new RemoteTransportError('remote_bootstrap_response_invalid'); }
+  if (!row || row.ok !== true) throw new RemoteOperationError(String((row && row.error) || 'remote_bootstrap_failed'), row);
   return row;
 }
 
@@ -258,12 +275,12 @@ async function refreshReplicaWithBinding(context, folder, row) {
     processResult(ssh, { timeoutMs: 60000, maxBuffer: 1024 * 1024 }),
     processResult(importer, { timeoutMs: 60000, maxBuffer: 1024 * 1024 }),
   ]);
-  if (sshResult.code !== 0) throw new Error(`remote_snapshot_fetch_failed:${boundedProcessFailure(sshResult.stderr.toString('utf8'))}`);
-  if (importResult.code !== 0) throw new Error(`remote_snapshot_verify_failed:${boundedProcessFailure(importResult.stderr.toString('utf8'))}`);
+  if (sshResult.code !== 0) throw new RemoteTransportError(`remote_snapshot_fetch_failed:${boundedProcessFailure(sshResult.stderr.toString('utf8'))}`);
+  if (importResult.code !== 0) throw new RemoteOperationError(`remote_snapshot_verify_failed:${boundedProcessFailure(importResult.stderr.toString('utf8'))}`);
   let imported;
-  try { imported = JSON.parse(importResult.stdout.toString('utf8')); } catch (_) { throw new Error('remote_snapshot_import_response_invalid'); }
+  try { imported = JSON.parse(importResult.stdout.toString('utf8')); } catch (_) { throw new RemoteOperationError('remote_snapshot_import_response_invalid'); }
   if (!imported || imported.status !== 'IMPORTED' || !/^[0-9a-f]{64}$/.test(String(imported.snapshot_id || ''))) {
-    throw new Error('remote_snapshot_import_response_invalid');
+    throw new RemoteOperationError('remote_snapshot_import_response_invalid');
   }
   return String(imported.snapshot_id);
 }
@@ -304,14 +321,12 @@ async function connect(context, folder, options = {}) {
   if (current && current.target !== target) throw new Error('remote_binding_target_change_requires_explicit_migration');
 
   await health(context, folder, target, { deploy: true });
-  if (current) {
-    return refreshReplica(context, folder);
-  }
+  if (current) return refreshReplica(context, folder);
 
   const displayName = String(options.displayName || folder.name || 'Project Memory').trim().slice(0, 120) || 'Project Memory';
   const created = await sshJson(folder, target, { op: 'create_store', display_name: displayName, bootstrap: true });
   const storeId = String(created.store && created.store.store_id || '');
-  if (!STORE_ID_RE.test(storeId)) throw new Error('remote_store_create_response_invalid');
+  if (!STORE_ID_RE.test(storeId)) throw new RemoteOperationError('remote_store_create_response_invalid', created);
   const bootstrap = await bootstrapStore(context, folder, target, storeId);
   const temporary = {
     version: 1,
@@ -387,7 +402,11 @@ async function runCoreMutation(context, folder, moduleName, args) {
   if (!current) throw new Error('remote_memory_not_connected');
   if (!isMutatingCoreInvocation(moduleName, args)) throw new Error('remote_mutation_operation_not_classified');
   if (current.refreshPending) {
-    try { await refreshReplica(context, folder); } catch (_) { throw new Error('REMOTE_OFFLINE_READ_ONLY: remote state must be re-read before another write'); }
+    try {
+      await refreshReplica(context, folder);
+    } catch (_) {
+      throw new Error('REMOTE_OFFLINE_READ_ONLY: remote state must be re-read before another write');
+    }
   }
 
   const upload = uploadPayloadForInvocation(moduleName, args);
@@ -401,12 +420,12 @@ async function runCoreMutation(context, folder, moduleName, args) {
       uploads: upload.uploads,
     }, upload.payload);
   } catch (error) {
+    if (error instanceof RemoteOperationError) throw error;
     const detail = error && error.message ? error.message : String(error);
     await markOffline(context, folder, current, detail);
     throw new Error(`REMOTE_OFFLINE_READ_ONLY: ${boundedProcessFailure(detail)}`);
   }
 
-  if (response.ok !== true) throw new Error(String(response.error || 'remote_core_failed'));
   const stdout = String(response.stdout || '');
   try {
     await refreshReplica(context, folder);
@@ -422,7 +441,11 @@ async function saveHumanKnowledge(context, folder, input) {
   const current = binding(context, folder);
   if (!current) throw new Error('remote_memory_not_connected');
   if (current.refreshPending) {
-    try { await refreshReplica(context, folder); } catch (_) { throw new Error('REMOTE_OFFLINE_READ_ONLY: remote state must be re-read before another write'); }
+    try {
+      await refreshReplica(context, folder);
+    } catch (_) {
+      throw new Error('REMOTE_OFFLINE_READ_ONLY: remote state must be re-read before another write');
+    }
   }
   let response;
   try {
@@ -436,6 +459,7 @@ async function saveHumanKnowledge(context, folder, input) {
       supersedes_knowledge_id: input.supersedesKnowledgeId,
     });
   } catch (error) {
+    if (error instanceof RemoteOperationError) throw error;
     const detail = error && error.message ? error.message : String(error);
     await markOffline(context, folder, current, detail);
     throw new Error(`REMOTE_OFFLINE_READ_ONLY: ${boundedProcessFailure(detail)}`);
@@ -478,6 +502,8 @@ module.exports = {
   PROTOCOL,
   REMOTE_CONFIGURED_CONTEXT,
   REMOTE_WRITABLE_CONTEXT,
+  RemoteOperationError,
+  RemoteTransportError,
   STORE_ID_RE,
   TARGET_RE,
   binding,
