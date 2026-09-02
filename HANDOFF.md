@@ -27,7 +27,7 @@ Active draft PR: **#222 — S1: remote-authoritative Personal Wiki over SSH**.
 
 Active milestone: **remote-capable Personal Wiki before another broad satisfaction/UX dogfood cycle**.
 
-The owner treats local-only memory as a real-use suppressor. Broad UX polishing is paused except where it blocks remote setup/use/recovery.
+The prior UX/UI convergence phase remains the product baseline, but broad UX polishing is paused except where it blocks remote setup/use/recovery. The owner treats local-only memory as a real-use suppressor.
 
 ## REMOTE ARCHITECTURE — CURRENT DECISION
 
@@ -187,6 +187,15 @@ Replica refresh must materialize into a temporary location, verify full integrit
 - no silent broad-RAW fallback;
 - transport metadata/host identity/credentials never become Wiki evidence or model-visible context.
 
+## PARKED RESEARCH GUARDS
+
+Remote work does not reopen closed E023 persistence/identity research. Query-time reconstruction remains the default posture outside explicitly earned product slices, and paid E023 semantic reruns remain paused.
+
+- G2 Persistence: **NOT_EARNED; parked**
+- G3 Identity / Routing: **NOT_OPENED**
+
+Do not use the Personal Wiki remote catalog or opaque project-store IDs as evidence that a portable global identity/entity graph has been earned.
+
 ## OUT OF SCOPE UNTIL REMOTE DOGFOOD EARNS IT
 
 - repository/path/content-based automatic project identity;
@@ -258,4 +267,3 @@ New S1 promotion tests must prove:
 6. Implement verified snapshot-stream refresh with temp materialization + integrity check + safe activation.
 7. Gate every Project Memory write on SSH/helper/authority/current-store health; disconnected state is read-only by construction.
 8. Add real SSH CI proof using Linux localhost/container SSH plus the existing full regression/package gates.
-9. Ship a remote-capable VSIX, then resume broad real-use/UX dogfood on that product.
