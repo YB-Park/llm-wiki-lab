@@ -1,10 +1,10 @@
 # Current Handoff
 
-Last updated: 2026-08-24 KST
+Last updated: 2026-09-02 KST
 
 This file is a **living continuation checkpoint**, not project history. Keep current state, authority boundaries, active evidence questions, and next actions only. Historical rationale belongs in merged commits, PRs, ADRs, experiments, or dedicated design documents. If this file conflicts with merged code or an accepted ADR, code/ADR wins.
 
-Before repo work: re-check `main`, open PRs, relevant current design docs, and active branches.
+Before repo work: re-check `main`, open PRs, #213, E026, relevant current design docs, and active branches.
 
 ## NOW
 
@@ -17,183 +17,202 @@ Repository: `YB-Park/llm-wiki-lab`
 - published release commit: `d5c4de6ecfd003acf97edd42035a0037d9a3fa4c`
 - versioned VSIX: `dogfood/releases/llm-wiki-dogfood-0.1.22.vsix`
 - stable convenience path: `dogfood/releases/llm-wiki-dogfood-latest.vsix`
-- VSIX bytes: `145985`
 - VSIX SHA-256: `54715451477769cfa1aad8ed85c163e6f648bd6ab612ddbb180f62efdc0f6a02`
 - validated main build: GitHub Actions `32688939217`
-- PR #220: **merged**
+- PR #220: merged — action-oriented UX
+- PR #221: merged — 0.1.22 living handoff
 - public Beta: **not declared**
 
-The published VSIX is the exact artifact emitted only after the successful `VS Code Dogfood` run on `main`, including unpacked packaged-VSIX Extension Host execution. The versioned 0.1.22 path is immutable under the existing release rule.
+### Active product milestone — remote-capable Personal Wiki
 
-### Active product work
+The owner explicitly changed sequencing on 2026-09-02:
 
-The **UX/UI convergence phase** remains active, but implementation is paused at a real installed-evidence boundary: **dogfood 0.1.22 before opening another broad UX slice**.
+> Local-only memory materially suppresses real-use investment. Complete a useful remote/multi-PC capability before another broad satisfaction/UX dogfood cycle.
 
-0.1.21 established product orientation but was visibly insufficient: an Activity Bar icon plus a few state rows did not materially simplify the user's work. That installed evidence activated the action-oriented changes now shipped in 0.1.22.
+Therefore **broad UX iteration is paused**. Fix only UX issues that block the remote milestone itself.
 
-0.1.22 is the first release that should be judged for task-level UX improvement rather than merely “can I find LLM Wiki?”
+The remote architecture has three separate layers; do not conflate them:
 
-Shipped interaction changes:
+1. **Local cross-project federation — E025 / #202:** already implemented as explicit named-store read-only Personal Wiki Library. Independent project stores remain authority boundaries.
+2. **Existing-store portability — E026 S0-A / #213:** **EARNED, 12/12 PASS**, shipped since 0.1.19. Existing `.wiki-lab` stores survive relocation without canonical identity/schema migration; destination authorization is fresh.
+3. **Multi-PC replication — E026 S0-B/S1 / #213:** **ACTIVE NOW**. This is the current product milestone.
 
-- Overview leads with **Ask Agent with project memory**, **Remember active file**, and **Review saved-file changes**;
-- Explorer/editor context menu exposes **Remember in Project Memory**;
-- contextual Remember reuses the registered guarded `llmWiki_rememberSource` tool rather than a parallel ingest path;
-- changed remembered files can be reviewed through plain-language meanings that map to the existing canonical lineage relations;
-- Other Project Memories is project-folder-first: choose project -> detect `.wiki-lab` -> derive name -> read-only registration -> optional workspace access;
-- aliases are no longer mandatory in the primary other-project flow;
-- AI-assisted memory answers expose explicit **Light / Regular / Frequent / Custom** choices instead of unexplained bare-number setup; no preset is silently selected;
-- ordinary questions remain Agent-first;
-- no Webview/dashboard, no core schema migration, no retrieval/model/federation widening.
+Active branch: `agent/ssh-replication-s1`.
 
-Design gate: `docs/product-ux-vnext.md`.
+Design/contract: `experiments/E026-ssh-store-portability/README.md`.
 
-## PRODUCT / UX TARGET
+## REMOTE TARGET
 
-Optimize for user goals/actions while keeping the authority model inspectable but mostly behind the adapter layer.
+The first useful remote product journey is:
 
-A normal user should be able to:
+```text
+PC A
+  existing project Wiki
+  -> Connect Sync Location (user-owned SSH)
+  -> Sync Project Memory
 
-1. see whether project memory is ready;
-2. ask Agent normally without learning LLM Wiki tool names;
-3. remember the file they are looking at from the file/sidebar context;
-4. understand that a changed remembered file needs judgment and describe what the change **means** without learning enum names;
-5. add another project's memory by choosing the project, not an implementation directory;
-6. understand/enable optional AI behavior without inventing numeric policy from scratch;
-7. recover through a clear next action, with technical diagnostics available only when needed.
+PC B
+  same/equivalent project checkout
+  -> connect same location
+  -> pull verified Wiki
+  -> explicitly Set Up Project Memory locally
+  -> normal Agent questions / Remember / lineage review
+  -> Sync Project Memory
 
-Default UI language should prefer `Project memory`, `Remember`, `Review saved-file changes`, `AI summaries`, `AI-assisted memory answers`, `Other project memories`, and `Needs attention`.
+PC A
+  -> pull fast-forward update
+  -> continue normally
+```
 
-Technical terms such as RAW/DERIVED enum labels, `current_store`, `library_store`, opaque store IDs, `scope_ref`, authority epochs, experiment tags, and calibration fields remain where actually necessary: tool contracts, provenance, diagnostics, tests, and expert inspection.
+If both PCs independently changed portable Wiki state, sync must stop safely. S1 does **not** merge or choose a winner.
 
-## AUTHORITY FLOOR — DO NOT WEAKEN FOR UX
+After replicated project stores exist locally on a host, the already-implemented Personal Wiki Library may register them for explicit read-only cross-project consultation. Do not create one global writable Wiki merely to support multi-project use.
 
-The Alpha Core remains ready under `docs/09-alpha-core-readiness-gate.md`. New core work still requires a real dogfood/trust failure or an earned evidence boundary.
+## S0-B — FAST REMOTE-HOST COMPATIBILITY GATE
+
+Treat VS Code Remote-SSH execution as engineering compatibility, not a long research program.
+
+Validate:
+
+- LLM Wiki executes on the workspace host when the workspace is remote;
+- Python runtime discovery/core commands operate on that host;
+- filesystem privacy/integrity checks refer to that host's `.wiki-lab`;
+- Agent tools, Query Plane, admission, lineage and Doctor preserve the same workspace-local authority boundary;
+- packaging works in a remote Extension Host;
+- workspace opt-in remains local to that host/workspace.
+
+VS Code's architecture expects workspace extensions that access workspace files/invoke tools to run where the workspace lives. Make placement explicit if needed; do not mistake Remote-SSH execution for sync.
+
+## S1 — USER-OWNED SSH REPLICATION
+
+Primary transport hypothesis: **Git over explicitly configured user-owned SSH**, used only as byte-preserving transport/version ancestry.
+
+Required first-slice invariants:
+
+- no GitHub/company cloud/product server dependency;
+- existing store format carried forward;
+- transport Git metadata/remote/credentials stay host-local outside canonical/model-visible Wiki state;
+- only the E026 frozen portable allowlist is transported;
+- no EOL conversion of RAW or other payload bytes;
+- verify local store before publication;
+- fetch/ancestry check before push;
+- verify pulled candidate before activation;
+- destination re-hardens private artifacts;
+- destination requires a fresh workspace authority epoch;
+- explicit sync only; no background sync yet;
+- single-writer/fast-forward only;
+- remote divergence fails closed;
+- no merge/rebase/semantic conflict resolution;
+- SSH host-key verification is never disabled.
+
+Prefer user-facing language such as `Sync Project Memory`, `Connect Sync Location`, `Up to date`, `Newer memory available`, and `Sync conflict — both PCs changed memory`. Git terminology belongs under Technical details.
+
+## AUTHORITY FLOOR — DO NOT WEAKEN FOR SYNC
 
 Non-negotiable current invariants:
 
-- workspace use is explicit opt-in; disabling/re-enabling invalidates stale Query/Library workspace grants;
+- workspace use remains explicit opt-in;
 - `Check Setup and Health` = **0 model calls / 0 state changes**;
-- `RAW_MEMORY` = immutable admitted evidence / provenance authority;
-- `DERIVED_MEMORY` = noncanonical, rebuildable navigation/synthesis aid;
-- `HUMAN_KNOWLEDGE` = explicit user-owned project decision/belief/rationale;
-- source admission, Human Knowledge authorship, and canonical lineage semantics remain human-gated;
-- dirty remembered files are never auto-saved;
-- changed remembered files never silently become correction/change/dispute/supersession;
-- lineage evidence/currentness/locator binding remains verified before confirmation and again immediately before canonical mutation;
+- `RAW_MEMORY` remains immutable admitted evidence / provenance authority;
+- `DERIVED_MEMORY` remains noncanonical/rebuildable;
+- `HUMAN_KNOWLEDGE` remains explicit user-owned project knowledge;
+- source admission and canonical lineage semantics remain human-gated;
+- changed remembered files never silently get correction/change/dispute/supersession semantics;
 - authorization constrains external scope before retrieval/model exposure;
-- external project memory remains explicitly registered, explicitly named, **read-only**, and separately granted per current workspace;
-- wrong/unknown/ambiguous/revoked/unavailable external scope fails closed with no current/other-store fallback;
-- terminal Wiki Brief refs terminate only on RAW/HUMAN_KNOWLEDGE;
-- private filesystem roots stay out of normal Agent/model output;
-- Query usage reservation remains conservative; uncertain/failed attempts are not silently refunded;
-- no silent broad-RAW fallback.
+- Personal Wiki external project reads remain explicitly registered, named-store-only, read-only and separately granted;
+- external reads never authorize writes;
+- no wrong-scope fallback;
+- no silent broad-RAW fallback;
+- transport metadata/host identity/credentials never become Wiki evidence or model-visible context.
 
-Adapter UI may sequence or translate existing operations. Do not duplicate epistemic/storage authority into a second implementation merely for convenience.
+## PORTABLE VS HOST-LOCAL STATE
 
-## CURRENT PRODUCT BOUNDARY
+Frozen by E026 S0-A unless new deterministic evidence proves otherwise.
 
-Still true unless later evidence explicitly supersedes it:
+Portable authority/project state:
 
-- trusted **single-folder** workspace only; multi-root fails closed;
-- each project keeps an independent Authority Core (`.wiki-lab` by default);
-- ordinary `wikiMemory` / `wikiConsult` remain current-store-only;
-- other-project memory is named-store-only local routing/authorization state, not a merged/global knowledge store;
-- external reads never authorize external writes, maintenance, source admission, Human Knowledge mutation, or lineage mutation;
-- exact external scope is preserved through `wikiRead` follow-through;
-- Query Plane remains read-only and exact composer model remains `gpt-5.6-luna`;
-- existing-store portability is earned; sync, Remote-runtime support, and multi-writer behavior are not.
+- `config.json`
+- `manifest.jsonl`
+- `raw/`
+- `provenance.jsonl`
+- `topics.json`
+- `human-knowledge/`
 
-## UX VNEXT STATE
+Portable workflow as one unit, never semantic-merge:
 
-### U0 — Product shell — SHIPPED IN 0.1.21
+- `agent-state.json`
 
-Earned but insufficient by itself. Persistent orientation/state is useful infrastructure, not the satisfaction-level UX change.
+Portable/rebuildable:
 
-### U1 — Safe action placement — SHIPPED IN 0.1.22
+- `agent-wiki/`
+- local workload/retrieval-shadow telemetry may be carried but is never authority
 
-Contextual Remember is implemented through the existing guarded remember tool. Real Extension Host integration executed the command end-to-end and observed canonical raw admission before release.
+Host-local; do not replicate:
 
-### U2 — Plain-language pending decision review — BOUNDED SLICE SHIPPED IN 0.1.22
+- `workspace-opt-in.json`
+- Personal Wiki Library catalog/store IDs
+- Query/Library grants
+- Query usage ledger
+- UI-selected topic/ack state
+- Python/runtime settings
+- SSH/Git remote, credentials, known-hosts, transport revision state
+- `.writer.lock`
 
-Only the meaning-selection UX is shipped. Existing relation enums, verified old/new evidence, final confirmation, immediate pre-mutation revalidation, and canonical mutation remain unchanged.
+## OUT OF SCOPE UNTIL S1 DOGFOOD EARNS IT
 
-A broader activity/diff/revert dashboard is **not earned/opened**.
+- concurrent multi-writer collaboration;
+- distributed writer locks/leases;
+- automatic conflict resolution or Git merge/rebase;
+- ambient/background sync;
+- automatic peer discovery;
+- live shared `.wiki-lab` over SSHFS/NFS/SMB;
+- product-operated cloud sync;
+- portable global writable store;
+- cross-project writes;
+- ambient all-project union search;
+- portable global identity / entity graph / ontology;
+- E023 G2/G3 reopening;
+- DB/WAL migration solely for sync.
 
-### U3 — Other-project setup simplification — SHIPPED IN 0.1.22
+## UX STATE
 
-Project-folder-first registration and derived display name are shipped. Registration, workspace access, Query grant, read-only isolation, named-store-only resolution, and no-fallback rules remain distinct underneath.
+0.1.22's U0-U4 changes remain the current baseline. They are not rolled back, but broad satisfaction dogfood is postponed until remote usefulness exists.
 
-### U4 — AI-assisted answer configuration — BOUNDED SLICE SHIPPED IN 0.1.22
+Do not spend the next cycle polishing a host-bound product unless a UX blocker prevents remote setup/sync/recovery.
 
-Meaningful explicit usage presets plus Custom are shipped. No preset is silently selected. Stored authorization remains a bounded numeric current-store grant and is accepted only when it passes the existing Query Plane validator.
+## RELEASE / VALIDATION BASELINE
 
-## 0.1.22 INSTALLED DOGFOOD QUESTIONS
+0.1.22 release gate is complete and remains the regression floor:
 
-Do not ask whether the sidebar “looks better.” Observe task completion and friction.
+- Python 3.9 bundled core;
+- full Python/core regressions;
+- E020 78-case authority/product contract;
+- E025 named-store federation safety;
+- Query Plane usage/revocation;
+- Human Knowledge integrity;
+- lineage revalidation;
+- normal Extension Host;
+- VSIX packaging;
+- unpacked packaged-VSIX Extension Host.
 
-Highest-priority checks:
-
-- Can a user looking at a file discover **Remember in Project Memory** without instruction?
-- Does contextual Remember feel like one coherent confirmation, or does invoking the Language Model Tool API create redundant/generic confirmation before the product-owned source-admission confirmation? If duplicate confirmation appears in real installed use, refactor Agent Tool + UI to a shared guarded extension operation rather than weakening/removing the product confirmation.
-- After changing a remembered file, does **Review saved-file changes** make the old/new meaning decision understandable without exposing `correction/change/dispute/supersede/independent` as required vocabulary?
-- Before modifying the lineage-review UX again, add an Extension Host product-flow test that drives the Review command through a real pending decision; current release verification combines product-action static checks with the already-strong existing lineage tool/core verification.
-- Can another project be added by selecting its project root without needing to know `.wiki-lab`, store IDs, or aliases?
-- Is the distinction between “project added”, “workspace may use added projects”, and “AI-assisted answers enabled” understandable without forcing the user to learn the internal grant model?
-- Do Light / Regular / Frequent / Custom make AI-assisted memory-answer limits understandable enough, or do users still need cost/usage context?
-- Does the legacy status-bar click -> Doctor behavior still teach a diagnostic-first mental model now that the actionable Overview exists? Change it only if installed evidence confirms the inconsistency is noticeable.
-- Do users naturally return to Agent Chat for ordinary work rather than operate LLM Wiki as a separate database application?
-
-## RELEASE / VALIDATION EVIDENCE
-
-0.1.22 release gate is complete:
-
-- PR #220 final head passed VS Code Dogfood plus E004/E010/E014/E023/E026 validation;
-- contextual Remember is statically forbidden from direct CLI ingest/canonical lineage mutation and must reuse registered guarded tools;
-- normal Extension Host integration executed the contextual Remember command through the actual registered tool and verified canonical RAW admission;
-- Python 3.9 bundled-core and full Python/core regressions remained green;
-- E020 frozen 78-case contract remained unchanged except release metadata;
-- `main` product head `0e727d77a070c2babdfaaad923be01c8a14c0098` passed fresh `VS Code Dogfood` run `32688939217`;
-- that main run completed VSIX packaging and unpacked packaged-VSIX Extension Host execution before artifact publication;
-- release bot published exact versioned/latest bytes at `d5c4de6ecfd003acf97edd42035a0037d9a3fa4c`;
-- release validation itself required no model calls.
-
-E020 remains a deterministic safety/product-contract gate, **not a human product-quality score**.
-
-## NOT EARNED / PARKED
-
-- library-wide ambient/union search;
-- sync/Git/cloud replication and automatic remote discovery;
-- validated Remote SSH / WSL / Dev Container / Codespaces product boundary;
-- multi-writer semantic merge, distributed locks, or automatic conflict resolution;
-- Personal/global writable store or cross-project writes;
-- portable global identity, automatic person/alias routing, graph/entity/ontology infrastructure;
-- vector-default retrieval or background cross-project maintenance;
-- broad activity/diff/revert dashboard without installed evidence;
-- E024 L1 iterative Librarian;
-- G2 Persistence: **NOT_EARNED; parked**;
-- G3 Identity / Routing: **NOT_OPENED**;
-- paid E023 semantic reruns remain paused absent explicit authorization/evidence.
+E026 S0-A portability must remain green throughout S1.
 
 ## FAST POINTERS
 
+- remote/replication owner issue: **#213**
+- E026 portability + active S1 contract: `experiments/E026-ssh-store-portability/README.md`
+- local cross-project federation: **#202** / `experiments/E025-cross-workspace-named-store-federation/`
 - current release metadata: `dogfood/releases/README.md`
-- action-oriented UX implementation: merged PR **#220**
-- U0 product shell: merged PR **#217**
-- UX design gate: `docs/product-ux-vnext.md`
-- autonomy/UX contract: `docs/12-autonomy-ux-philosophy.md`
-- VS Code-first/editor-agnostic core: `decisions/ADR-0002-vscode-first-editor-agnostic-core.md`
-- Alpha Core convergence rule: `docs/09-alpha-core-readiness-gate.md`
-- installed product guide: `dogfood/vscode/README.md`
-- natural installed evidence: #141
-- cross-workspace / named-store evidence: #202
-- Query Plane: #204
-- portability / future remote work: #213
-- reliability: #132
+- Query Plane: **#204**
+- action-oriented UX: merged PR **#220** / `docs/product-ux-vnext.md`
+- autonomy/UX philosophy: `docs/12-autonomy-ux-philosophy.md`
+- Authority Core readiness: `docs/09-alpha-core-readiness-gate.md`
 
 ## NEXT ACTION
 
-1. **Install and dogfood 0.1.22 now**, specifically through the task flows above.
-2. Treat redundant confirmation, confusing lineage wording, other-project setup confusion, or AI-limit confusion as product-adapter evidence first; do not reopen the Authority Core by default.
-3. Add a real pending-lineage Review-command Extension Host flow test before the next change that touches that interaction.
-4. Open the next UX slice only from installed evidence; do not mechanically continue a roadmap because 0.1.22 shipped.
-5. Keep broader core/retrieval/sync/reliability work parked unless independent evidence activates it.
+1. Implement/validate the short **S0-B workspace-host execution contract**; explicitly classify the extension as workspace-side if necessary.
+2. Implement **S1 user-owned SSH replication** with a host-local Git transport layer and frozen portable allowlist.
+3. Add deterministic transport tests: exact bytes, host-local exclusion, A -> B -> A fast-forward round trip, divergence fail-closed, permission re-hardening, existing-store carry-forward.
+4. Add a real SSH transport CI proof (localhost/container SSH is acceptable for transport mechanics; it does not replace later Windows/Linux installed evidence).
+5. Ship a remote-capable dogfood VSIX only after the full existing regression/package gates remain green.
+6. Then perform the next broad real-use/UX dogfood on the remote-capable product and let that evidence choose subsequent UX/reconciliation work.
