@@ -2,8 +2,10 @@
 
 const { spawn } = require('node:child_process');
 const vscode = require('vscode');
+const memoryRead = require('./memory-read-service');
 const remoteMemory = require('./remote-memory');
 const remotePolicy = require('./remote-project-policy');
+const snapshotTransfer = require('./remote-snapshot-transfer');
 const { boundedProcessFailure } = require('./process-errors');
 
 const BINDING_KEY_PREFIX = 'llmWiki.remoteBinding.v1';
@@ -127,7 +129,7 @@ function storeQuickPickItems(stores) {
 async function attachExisting(context, folder, options = {}) {
   if (process.platform !== 'linux') throw new Error('remote_s1_linux_workspace_host_required');
   if (remoteMemory.isConfigured(context, folder)) throw new Error('remote_memory_already_connected');
-  const root = remoteMemory.status(context, folder).configured ? undefined : require('./memory-read-service').wikiRoot(folder);
+  const root = memoryRead.wikiRoot(folder);
   remotePolicy.assertFreshLocalMemory(root);
 
   let target = String(options.target || '').trim();
@@ -169,31 +171,40 @@ async function attachExisting(context, folder, options = {}) {
   }
   if (!confirmed && context.extensionMode !== vscode.ExtensionMode.Test) return undefined;
 
-  // Re-check immediately before the first local materialization. Any local memory
-  // admitted while the picker was open makes attach fail closed rather than merge.
+  // Fast user-facing recheck, followed by the authoritative writer-locked
+  // emptiness check inside remote_attach_import immediately before activation.
   remotePolicy.assertFreshLocalMemory(root);
+  const snapshotId = await snapshotTransfer.fetchSnapshot(
+    context,
+    folder,
+    target,
+    selected.storeId,
+    root,
+    { attachEmpty: true }
+  );
 
+  // Publish the host-local binding only after the selected remote snapshot was
+  // fully verified and atomically materialized. A failed attach leaves no binding.
   const key = bindingKey(folder);
-  const temporary = {
+  const row = {
     version: 1,
     target,
     storeId: selected.storeId,
     displayName: selected.displayName,
-    snapshotId: '',
-    writable: false,
+    snapshotId,
+    writable: true,
     refreshPending: false,
     lastError: '',
     connectedAt: new Date().toISOString(),
   };
-  await context.workspaceState.update(key, temporary);
-  await remoteMemory.setContexts(context, folder);
+  await context.workspaceState.update(key, row);
   try {
-    return await remoteMemory.refreshReplica(context, folder);
+    await remoteMemory.setContexts(context, folder);
   } catch (error) {
     await context.workspaceState.update(key, undefined);
-    await remoteMemory.setContexts(context, folder);
     throw error;
   }
+  return remoteMemory.binding(context, folder);
 }
 
 async function chooseConnection(context, folder, createNew) {
