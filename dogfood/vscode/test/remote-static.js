@@ -44,9 +44,11 @@ must('attach-rolls-back-binding-on-failure', remoteAttach.includes('context.work
 mustNot('attach-no-repo-discovery', remoteAttach.includes('git remote') || remoteAttach.includes('repositoryUrl'));
 
 must('fresh-policy-only-baseline-files', remotePolicy.includes("'config.json'") && remotePolicy.includes("'manifest.jsonl'") && remotePolicy.includes("'raw'") && remotePolicy.includes("'workspace-opt-in.json'"));
-must('fresh-policy-manifest-empty', remotePolicy.includes('fs.statSync(manifest).size !== 0'));
+must('fresh-policy-manifest-empty', remotePolicy.includes('manifestStat.size !== 0'));
 must('fresh-policy-raw-empty', remotePolicy.includes('fs.readdirSync(raw).length !== 0'));
 must('fresh-policy-extra-portable-fails', remotePolicy.includes('!FRESH_LOCAL_ENTRIES.has(name)'));
+must('fresh-policy-symlink-failclosed', remotePolicy.includes('stat.isSymbolicLink()'));
+must('fresh-policy-opt-in-required-local', remotePolicy.includes("safeLstat(optIn, 'file')"));
 
 must('remote-library-host-local-global-storage', remoteLibrary.includes('context.globalStorageUri'));
 must('remote-library-target-path-hashed', remoteLibrary.includes('remotePolicy.authorityCacheKey(target)'));
@@ -69,4 +71,4 @@ mustNot('ssh-never-disables-host-key-checking', sshBoundary.includes('StrictHost
 mustNot('ssh-never-null-known-hosts', sshBoundary.includes('UserKnownHostsFile=/dev/null'));
 mustNot('no-background-sync-loop', sshBoundary.includes('setInterval(') || sshBoundary.includes('setTimeout(async') || sshBoundary.includes('watchFile('));
 
-console.log('REMOTE-STATIC PASS explicit-attach=yes remote-library=verified-named-readonly offline-write=blocked extensionKind=workspace');
+console.log('REMOTE-STATIC PASS explicit-attach=yes remote-library=verified-named-readonly offline-write=blocked extensionKind=workspace symlinkFailClosed=yes');
