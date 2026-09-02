@@ -9,6 +9,7 @@
   "engines": { "vscode": "^1.95.0" },
   "categories": ["Other"],
   "main": "./entry.js",
+  "extensionKind": ["workspace"],
   "capabilities": {
     "untrustedWorkspaces": {
       "supported": false,
@@ -20,6 +21,8 @@
     "onView:llmWiki.overview",
     "onCommand:llmWiki.enableWorkspace",
     "onCommand:llmWiki.disableWorkspace",
+    "onCommand:llmWiki.connectPersonalWiki",
+    "onCommand:llmWiki.refreshPersonalWiki",
     "onCommand:llmWiki.openAgentChat",
     "onCommand:llmWiki.refreshOverview",
     "onCommand:llmWiki.rememberActiveFile",
@@ -57,27 +60,29 @@
     "commands": [
       { "command": "llmWiki.enableWorkspace", "title": "Set Up Project Memory", "category": "LLM Wiki", "enablement": "isWorkspaceTrusted" },
       { "command": "llmWiki.disableWorkspace", "title": "Disable for This Workspace", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+      { "command": "llmWiki.connectPersonalWiki", "title": "Connect Personal Wiki", "category": "LLM Wiki", "icon": "$(remote)", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted && !llmWiki.remoteConfigured" },
+      { "command": "llmWiki.refreshPersonalWiki", "title": "Refresh Personal Wiki", "category": "LLM Wiki", "icon": "$(sync)", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted && llmWiki.remoteConfigured" },
       { "command": "llmWiki.openAgentChat", "title": "Open Agent Chat", "category": "LLM Wiki", "icon": "$(comment-discussion)" },
       { "command": "llmWiki.refreshOverview", "title": "Refresh LLM Wiki", "category": "LLM Wiki", "icon": "$(refresh)" },
-      { "command": "llmWiki.rememberActiveFile", "title": "Remember in Project Memory", "category": "LLM Wiki", "icon": "$(save)", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
-      { "command": "llmWiki.reviewPendingChanges", "title": "Review Saved-file Changes", "category": "LLM Wiki", "icon": "$(diff)", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+      { "command": "llmWiki.rememberActiveFile", "title": "Remember in Project Memory", "category": "LLM Wiki", "icon": "$(save)", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted && (!llmWiki.remoteConfigured || llmWiki.remoteWritable)" },
+      { "command": "llmWiki.reviewPendingChanges", "title": "Review Saved-file Changes", "category": "LLM Wiki", "icon": "$(diff)", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted && (!llmWiki.remoteConfigured || llmWiki.remoteWritable)" },
       { "command": "llmWiki.configureAiAnswersFriendly", "title": "Configure AI-assisted Memory Answers", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
-      { "command": "llmWiki.createTopic", "title": "Create Filing Topic", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+      { "command": "llmWiki.createTopic", "title": "Create Filing Topic", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted && (!llmWiki.remoteConfigured || llmWiki.remoteWritable)" },
       { "command": "llmWiki.selectTopic", "title": "Select Filing Topic", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
       { "command": "llmWiki.newKnowledgeNote", "title": "New Human Knowledge Draft", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
       { "command": "llmWiki.configureAgentWikiMaintenance", "title": "Configure AI Summaries", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
       { "command": "llmWiki.configureQueryPlane", "title": "Advanced: Configure AI-assisted Memory Answers", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
       { "command": "llmWiki.configurePersonalWikiLibrary", "title": "Manage Other Project Memories", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
-      { "command": "llmWiki.ingestActiveFile", "title": "Save Active File as Project Evidence", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
-      { "command": "llmWiki.ingestAuthoritativeUpdate", "title": "Save Active File as an Explicit Update", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+      { "command": "llmWiki.ingestActiveFile", "title": "Save Active File as Project Evidence", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted && (!llmWiki.remoteConfigured || llmWiki.remoteWritable)" },
+      { "command": "llmWiki.ingestAuthoritativeUpdate", "title": "Save Active File as an Explicit Update", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted && (!llmWiki.remoteConfigured || llmWiki.remoteWritable)" },
       { "command": "llmWiki.search", "title": "Search Saved Evidence", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
       { "command": "llmWiki.discoverAcrossTopics", "title": "Search Saved Evidence Across Topics", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
-      { "command": "llmWiki.markCorrection", "title": "Record a Correction", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
-      { "command": "llmWiki.markChange", "title": "Record a Change Over Time", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
-      { "command": "llmWiki.markDispute", "title": "Record an Unresolved Disagreement", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
-      { "command": "llmWiki.feedback", "title": "Record Calibration Feedback", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
-      { "command": "llmWiki.ask", "title": "Ask Luna with Saved Evidence (Read-only)", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
-      { "command": "llmWiki.calibration", "title": "Show Calibration Summary", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+      { "command": "llmWiki.markCorrection", "title": "Record a Correction", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted && (!llmWiki.remoteConfigured || llmWiki.remoteWritable)" },
+      { "command": "llmWiki.markChange", "title": "Record a Change Over Time", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted && (!llmWiki.remoteConfigured || llmWiki.remoteWritable)" },
+      { "command": "llmWiki.markDispute", "title": "Record an Unresolved Disagreement", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted && (!llmWiki.remoteConfigured || llmWiki.remoteWritable)" },
+      { "command": "llmWiki.feedback", "title": "Record Calibration Feedback", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted && (!llmWiki.remoteConfigured || llmWiki.remoteWritable)" },
+      { "command": "llmWiki.ask", "title": "Ask Luna with Saved Evidence (Read-only)", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted && !llmWiki.remoteConfigured" },
+      { "command": "llmWiki.calibration", "title": "Show Calibration Summary", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted && !llmWiki.remoteConfigured" },
       { "command": "llmWiki.doctor", "title": "Check Setup and Health", "category": "LLM Wiki", "enablement": "isWorkspaceTrusted", "icon": "$(wrench)" },
       { "command": "llmWiki.reportIssue", "title": "Report an Issue", "category": "LLM Wiki" },
       { "command": "llmWiki.experimentalDiscoverCopilotModels", "title": "Experimental: Inspect Copilot Model Metadata", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" }
@@ -108,8 +113,10 @@
       "commandPalette": [
         { "command": "llmWiki.enableWorkspace", "when": "!llmWiki.workspaceEnabled && isWorkspaceTrusted" },
         { "command": "llmWiki.disableWorkspace", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
-        { "command": "llmWiki.rememberActiveFile", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
-        { "command": "llmWiki.reviewPendingChanges", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
+        { "command": "llmWiki.connectPersonalWiki", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted && !llmWiki.remoteConfigured" },
+        { "command": "llmWiki.refreshPersonalWiki", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted && llmWiki.remoteConfigured" },
+        { "command": "llmWiki.rememberActiveFile", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted && (!llmWiki.remoteConfigured || llmWiki.remoteWritable)" },
+        { "command": "llmWiki.reviewPendingChanges", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted && (!llmWiki.remoteConfigured || llmWiki.remoteWritable)" },
         { "command": "llmWiki.configureAiAnswersFriendly", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
         { "command": "llmWiki.configureAgentWikiMaintenance", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
         { "command": "llmWiki.configureQueryPlane", "when": "false" },
@@ -134,10 +141,10 @@
         { "command": "llmWiki.experimentalDiscoverCopilotModels", "when": "false" }
       ],
       "explorer/context": [
-        { "command": "llmWiki.rememberActiveFile", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted && resourceScheme == file", "group": "llmWiki@1" }
+        { "command": "llmWiki.rememberActiveFile", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted && resourceScheme == file && (!llmWiki.remoteConfigured || llmWiki.remoteWritable)", "group": "llmWiki@1" }
       ],
       "editor/context": [
-        { "command": "llmWiki.rememberActiveFile", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted && resourceScheme == file", "group": "llmWiki@1" }
+        { "command": "llmWiki.rememberActiveFile", "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted && resourceScheme == file && (!llmWiki.remoteConfigured || llmWiki.remoteWritable)", "group": "llmWiki@1" }
       ],
       "view/title": [
         { "command": "llmWiki.openAgentChat", "when": "view == llmWiki.overview && llmWiki.workspaceEnabled", "group": "navigation@1" },
@@ -247,7 +254,7 @@
         "toolReferenceName": "rememberWikiSource",
         "icon": "$(save)",
         "tags": ["llm-wiki", "memory", "write"],
-        "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted",
+        "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted && (!llmWiki.remoteConfigured || llmWiki.remoteWritable)",
         "inputSchema": {
           "type": "object",
           "properties": {
@@ -264,7 +271,7 @@
         "toolReferenceName": "rememberHumanKnowledge",
         "icon": "$(person)",
         "tags": ["llm-wiki", "human-knowledge", "write"],
-        "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted",
+        "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted && (!llmWiki.remoteConfigured || llmWiki.remoteWritable)",
         "inputSchema": {
           "type": "object",
           "properties": {
@@ -286,7 +293,7 @@
         "toolReferenceName": "resolveWikiLineage",
         "icon": "$(git-compare)",
         "tags": ["llm-wiki", "lineage", "human-gated"],
-        "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted",
+        "when": "llmWiki.workspaceEnabled && isWorkspaceTrusted && (!llmWiki.remoteConfigured || llmWiki.remoteWritable)",
         "inputSchema": {
           "type": "object",
           "properties": {
@@ -342,7 +349,7 @@
     }
   },
   "scripts": {
-    "check": "node --check entry.js && node --check extension.js && node --check product-view.js && node --check product-actions.js && node --check product-query-config.js && node --check agent-tools.js && node --check query-plane.js && node --check query-usage-ledger.js && node --check memory-read-service.js && node --check personal-wiki-library.js && node --check personal-wiki-library-ui.js && node --check scoped-read-tool.js && node --check workspace-activation.js && node --check human-knowledge.js && node --check product-helpers.js && node --check process-errors.js && node --check python-runtime.js && node --check python-runtime-policy.js && node test/product-helpers.js && node test/workspace-activation.js && node test/personal-wiki-library.js && node test/query-usage-ledger.js && node test/process-errors.js && node test/python-runtime-policy.js && node test/static.js",
+    "check": "node --check entry.js && node --check extension.js && node --check product-view.js && node --check product-actions.js && node --check product-query-config.js && node --check agent-tools.js && node --check query-plane.js && node --check query-usage-ledger.js && node --check memory-read-service.js && node --check personal-wiki-library.js && node --check personal-wiki-library-ui.js && node --check scoped-read-tool.js && node --check workspace-activation.js && node --check human-knowledge.js && node --check product-helpers.js && node --check process-errors.js && node --check python-runtime.js && node --check python-runtime-policy.js && node --check remote-memory.js && node test/product-helpers.js && node test/workspace-activation.js && node test/personal-wiki-library.js && node test/query-usage-ledger.js && node test/process-errors.js && node test/python-runtime-policy.js && node test/static.js",
     "test:integration": "vscode-test --label runtime",
     "test:packaged": "cd test/packaged-runner && ../../node_modules/.bin/vscode-test",
     "bundle:core": "node scripts/bundle-core.js",

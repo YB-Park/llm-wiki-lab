@@ -25,6 +25,7 @@ const pythonRuntime = fs.readFileSync(path.join(root, 'python-runtime.js'), 'utf
 const pythonRuntimePolicy = fs.readFileSync(path.join(root, 'python-runtime-policy.js'), 'utf8');
 const gitSafety = fs.readFileSync(path.join(root, 'git-safety.js'), 'utf8');
 const lmDiscovery = fs.readFileSync(path.join(root, 'lm-discovery.js'), 'utf8');
+const remoteMemory = fs.readFileSync(path.join(root, 'remote-memory.js'), 'utf8');
 const bundler = fs.readFileSync(path.join(root, 'scripts', 'bundle-core.js'), 'utf8');
 
 function must(label, condition) {
@@ -36,20 +37,22 @@ function mustNot(label, condition) {
 
 const commands = new Set((manifest.contributes.commands || []).map((row) => row.command));
 for (const command of [
-  'llmWiki.enableWorkspace', 'llmWiki.disableWorkspace', 'llmWiki.openAgentChat', 'llmWiki.refreshOverview',
-  'llmWiki.rememberActiveFile', 'llmWiki.reviewPendingChanges', 'llmWiki.configureAiAnswersFriendly',
-  'llmWiki.createTopic', 'llmWiki.selectTopic', 'llmWiki.newKnowledgeNote',
+  'llmWiki.enableWorkspace', 'llmWiki.disableWorkspace', 'llmWiki.connectPersonalWiki', 'llmWiki.refreshPersonalWiki',
+  'llmWiki.openAgentChat', 'llmWiki.refreshOverview', 'llmWiki.rememberActiveFile', 'llmWiki.reviewPendingChanges',
+  'llmWiki.configureAiAnswersFriendly', 'llmWiki.createTopic', 'llmWiki.selectTopic', 'llmWiki.newKnowledgeNote',
   'llmWiki.configureAgentWikiMaintenance', 'llmWiki.configureQueryPlane', 'llmWiki.configurePersonalWikiLibrary',
   'llmWiki.ingestActiveFile', 'llmWiki.ingestAuthoritativeUpdate', 'llmWiki.search', 'llmWiki.discoverAcrossTopics',
   'llmWiki.markCorrection', 'llmWiki.markChange', 'llmWiki.markDispute', 'llmWiki.feedback', 'llmWiki.ask',
   'llmWiki.calibration', 'llmWiki.doctor', 'llmWiki.reportIssue', 'llmWiki.experimentalDiscoverCopilotModels',
 ]) must(`command:${command}`, commands.has(command));
-assert.equal(commands.size, 26, 'STATIC-BOUNDARY command-count');
+assert.equal(commands.size, 28, 'STATIC-BOUNDARY command-count');
 mustNot('internal-core-init-not-user-contributed', commands.has('llmWiki.init'));
 must('startup-activation', manifest.activationEvents.includes('onStartupFinished'));
 must('overview-view-activation', manifest.activationEvents.includes('onView:llmWiki.overview'));
 must('enable-activation', manifest.activationEvents.includes('onCommand:llmWiki.enableWorkspace'));
 must('disable-activation', manifest.activationEvents.includes('onCommand:llmWiki.disableWorkspace'));
+must('connect-remote-activation', manifest.activationEvents.includes('onCommand:llmWiki.connectPersonalWiki'));
+must('refresh-remote-activation', manifest.activationEvents.includes('onCommand:llmWiki.refreshPersonalWiki'));
 must('remember-action-activation', manifest.activationEvents.includes('onCommand:llmWiki.rememberActiveFile'));
 must('review-action-activation', manifest.activationEvents.includes('onCommand:llmWiki.reviewPendingChanges'));
 must('friendly-query-config-activation', manifest.activationEvents.includes('onCommand:llmWiki.configureAiAnswersFriendly'));
@@ -60,8 +63,8 @@ assert.equal(manifest.displayName, 'LLM Wiki', 'STATIC-BOUNDARY release-display-
 const paletteRows = manifest.contributes.menus.commandPalette || [];
 const visiblePalette = new Set(paletteRows.filter((row) => row.when !== 'false').map((row) => row.command));
 assert.deepEqual(visiblePalette, new Set([
-  'llmWiki.enableWorkspace', 'llmWiki.disableWorkspace', 'llmWiki.rememberActiveFile',
-  'llmWiki.reviewPendingChanges', 'llmWiki.configureAiAnswersFriendly',
+  'llmWiki.enableWorkspace', 'llmWiki.disableWorkspace', 'llmWiki.connectPersonalWiki', 'llmWiki.refreshPersonalWiki',
+  'llmWiki.rememberActiveFile', 'llmWiki.reviewPendingChanges', 'llmWiki.configureAiAnswersFriendly',
   'llmWiki.configureAgentWikiMaintenance', 'llmWiki.configurePersonalWikiLibrary', 'llmWiki.doctor',
 ]), 'STATIC-BOUNDARY release-command-palette');
 must('advanced-query-config-hidden', paletteRows.some((row) => row.command === 'llmWiki.configureQueryPlane' && row.when === 'false'));
@@ -73,6 +76,7 @@ assert.equal(editorContext.length, 1, 'STATIC-BOUNDARY one-editor-context-action
 assert.equal(explorerContext[0].command, 'llmWiki.rememberActiveFile', 'STATIC-BOUNDARY explorer-remember-action');
 assert.equal(editorContext[0].command, 'llmWiki.rememberActiveFile', 'STATIC-BOUNDARY editor-remember-action');
 must('context-action-workspace-gated', explorerContext[0].when.includes('llmWiki.workspaceEnabled') && explorerContext[0].when.includes('isWorkspaceTrusted') && explorerContext[0].when.includes('resourceScheme == file'));
+must('context-action-remote-write-gated', explorerContext[0].when.includes('!llmWiki.remoteConfigured || llmWiki.remoteWritable'));
 
 const viewContainers = manifest.contributes.viewsContainers && manifest.contributes.viewsContainers.activitybar || [];
 assert.equal(viewContainers.length, 1, 'STATIC-BOUNDARY ux-single-view-container');
@@ -137,8 +141,11 @@ for (const name of [
   'llmWiki_rememberSource', 'llmWiki_rememberHumanKnowledge', 'llmWiki_resolveLineage',
 ]) must(`tool:${name}`, toolNames.has(name));
 for (const name of toolNames) must(`activation:${name}`, manifest.activationEvents.includes(`onLanguageModelTool:${name}`));
+const remoteWriteTools = new Set(['llmWiki_rememberSource', 'llmWiki_rememberHumanKnowledge', 'llmWiki_resolveLineage']);
 for (const tool of tools) {
-  const expectedWhen = tool.name === 'llmWiki_readSource' ? 'false' : 'llmWiki.workspaceEnabled && isWorkspaceTrusted';
+  let expectedWhen = 'llmWiki.workspaceEnabled && isWorkspaceTrusted';
+  if (tool.name === 'llmWiki_readSource') expectedWhen = 'false';
+  if (remoteWriteTools.has(tool.name)) expectedWhen = 'llmWiki.workspaceEnabled && isWorkspaceTrusted && (!llmWiki.remoteConfigured || llmWiki.remoteWritable)';
   assert.equal(tool.when, expectedWhen, `STATIC-BOUNDARY tool-when:${tool.name}`);
   must(`user-description:${tool.name}`, typeof tool.userDescription === 'string' && tool.userDescription.trim().length > 0);
 }
@@ -165,6 +172,7 @@ assert.deepEqual(scopedReadSchema.scopeRef.properties.kind.enum, ['current_store
 assert.equal(manifest.version, '0.1.22', 'STATIC-BOUNDARY version');
 assert.equal(manifest.engines.vscode, '^1.95.0', 'STATIC-BOUNDARY vscode-engine');
 assert.equal(manifest.main, './entry.js', 'STATIC-BOUNDARY main-entry');
+assert.deepEqual(manifest.extensionKind, ['workspace'], 'STATIC-BOUNDARY remote-workspace-extension-kind');
 assert.equal(manifest.private, true, 'STATIC-BOUNDARY private-package');
 assert.equal(manifest.capabilities.untrustedWorkspaces.supported, false, 'STATIC-BOUNDARY untrusted-workspace');
 const configProps = manifest.contributes.configuration.properties;
@@ -189,6 +197,7 @@ must('check-includes-memory-read-service', manifest.scripts.check.includes('memo
 must('check-includes-personal-library', manifest.scripts.check.includes('personal-wiki-library.js'));
 must('check-includes-personal-library-ui', manifest.scripts.check.includes('personal-wiki-library-ui.js'));
 must('check-includes-scoped-read', manifest.scripts.check.includes('scoped-read-tool.js'));
+must('check-includes-remote-memory', manifest.scripts.check.includes('remote-memory.js'));
 must('check-runs-personal-library-test', manifest.scripts.check.includes('test/personal-wiki-library.js'));
 must('check-runs-process-errors-test', manifest.scripts.check.includes('test/process-errors.js'));
 must('check-runs-python-policy-test', manifest.scripts.check.includes('test/python-runtime-policy.js'));
@@ -219,12 +228,15 @@ must('status-lifecycle-sync', entry.includes('base.setStatusVisible(enabled)'));
 
 must('product-view-native-tree', productView.includes('vscode.window.createTreeView(VIEW_ID'));
 must('product-view-no-webview', !productView.includes('createWebview') && !productView.includes('Webview'));
-must('product-view-user-vocabulary', productView.includes("node('Project memory'") && productView.includes("node('AI-assisted memory answers'") && productView.includes("node('Other project memories'"));
+must('product-view-user-vocabulary', productView.includes("node('Project memory'") && productView.includes("node('Personal Wiki'") && productView.includes("node('AI-assisted memory answers'") && productView.includes("node('Other project memories'"));
 must('product-view-primary-agent-action', productView.includes("node('Ask Agent with project memory'"));
 must('product-view-remember-action', productView.includes("node('Remember active file'"));
 must('product-view-review-action', productView.includes("node('Review saved-file changes'"));
 must('product-view-registers-safe-actions', productView.includes('productActions.registerProductActions(context)'));
 must('product-view-registers-friendly-query-config', productView.includes('productQueryConfig.registerProductQueryConfig(context)'));
+must('product-view-registers-remote-connect', productView.includes('CONNECT_PERSONAL_WIKI_COMMAND') && productView.includes('remoteMemory.connect(context, folder)'));
+must('product-view-registers-remote-refresh', productView.includes('REFRESH_PERSONAL_WIKI_COMMAND') && productView.includes('remoteMemory.refreshReplica(context, folder)'));
+must('product-view-remote-readonly-language', productView.includes('Offline · read only') && productView.includes('Refresh pending · read only'));
 must('product-view-other-project-names', productView.includes('store.displayName'));
 mustNot('product-view-no-store-id-display', productView.includes('store.storeId'));
 mustNot('product-view-no-root-display', productView.includes('store.root'));
@@ -289,6 +301,8 @@ must('memory-current-store-handle', memoryRead.includes("scopeRef: { kind: 'curr
 must('memory-library-store-handle', memoryRead.includes("scopeRef: { kind: 'library_store', store_id: scopeRef.store_id }"));
 must('memory-root-only-from-store-handle', memoryRead.includes("const store = normalizeStoreHandle(folder, options.storeHandle)"));
 must('memory-preserves-hk-support', memoryRead.includes('supporting_source_ids'));
+must('memory-loads-remote-adapter', memoryRead.includes("require('./remote-memory')"));
+must('memory-remote-current-store-verified-read', memoryRead.includes('remoteMemory.runCoreRead(context, folder, moduleName, args)'));
 
 must('library-global-catalog-state', personalLibrary.includes('context.globalState.get(CATALOG_KEY)') && personalLibrary.includes('context.globalState.update(CATALOG_KEY'));
 must('library-workspace-grant-state', personalLibrary.includes('context.workspaceState.get(grantKey(folder))') && personalLibrary.includes('context.workspaceState.update(grantKey(folder)'));
@@ -317,6 +331,8 @@ must('agent-load-human-knowledge', agentTools.includes("require('./human-knowled
 must('agent-load-process-errors', agentTools.includes("require('./process-errors')"));
 must('agent-load-python-runtime', agentTools.includes("require('./python-runtime')"));
 must('agent-load-memory-read-service', agentTools.includes("require('./memory-read-service')"));
+must('agent-load-remote-memory', agentTools.includes("require('./remote-memory')"));
+must('agent-remote-core-dispatch', agentTools.includes('remoteMemory.isMutatingCoreInvocation(moduleName, args)') && agentTools.includes('remoteMemory.runCoreMutation(context, folder, moduleName, args)'));
 must('agent-shared-memory-service', agentTools.includes('memoryRead.collectMemoryRows'));
 must('agent-single-folder-failclosed', agentTools.includes('currently supports one workspace folder at a time'));
 must('register-search-tool', agentTools.includes('vscode.lm.registerTool(SEARCH_TOOL'));
@@ -327,6 +343,23 @@ must('register-lineage-tool', agentTools.includes('vscode.lm.registerTool(RESOLV
 must('same-bytes-reuse-before-confirm', agentTools.indexOf('findExactCurrentRememberedSource') < agentTools.indexOf("'Save this file to project memory?'"));
 must('same-bytes-reuse-result', agentTools.includes('raw_admission=reused_existing') && agentTools.includes('authority=existing_source_reuse'));
 must('soft-guard-pause-today', agentTools.includes('Pause AI Summaries Today') && agentTools.includes('SKIPPED_SOFT_GUARD_PAUSED'));
+
+must('remote-batch-mode-only', remoteMemory.includes("'-o', 'BatchMode=yes'"));
+must('remote-connect-timeout', remoteMemory.includes("'-o', 'ConnectTimeout=5'"));
+mustNot('remote-never-disable-hostkey-checking', remoteMemory.includes('StrictHostKeyChecking=no'));
+mustNot('remote-never-null-knownhosts', remoteMemory.includes('UserKnownHostsFile=/dev/null'));
+must('remote-fixed-helper-command', remoteMemory.includes('const HELPER_COMMAND ='));
+must('remote-opaque-store-id', remoteMemory.includes('const STORE_ID_RE = /^project-'));
+must('remote-verified-snapshot-id', remoteMemory.includes('const SNAPSHOT_ID_RE = /^[0-9a-f]{64}$/'));
+must('remote-replica-read-module', remoteMemory.includes("const REPLICA_READ_MODULE = 'dogfood.llm_wiki.replica_read_cli'"));
+must('remote-read-requires-snapshot', remoteMemory.includes('REMOTE_REPLICA_UNVERIFIED'));
+must('remote-read-runs-replica-bridge', remoteMemory.includes("'-m', REPLICA_READ_MODULE"));
+must('remote-mutation-exact-store', remoteMemory.includes("store_id: current.storeId"));
+must('remote-offline-write-block', remoteMemory.includes('REMOTE_OFFLINE_READ_ONLY'));
+must('remote-write-refresh-pending', remoteMemory.includes('REMOTE_WRITE_COMMITTED_REFRESH_PENDING'));
+must('remote-runtime-linux-boundary', remoteMemory.includes('remote_s1_linux_workspace_host_required'));
+must('legacy-extension-loads-remote', extension.includes("require('./remote-memory')"));
+must('legacy-extension-remote-no-local-fallback', extension.includes('REMOTE_LEGACY_COMMAND_UNAVAILABLE'));
 
 must('workspace-marker-format', workspaceActivation.includes("llm-wiki-workspace-opt-in-v1"));
 must('workspace-marker-separate-from-core', workspaceActivation.includes("WORKSPACE_OPT_IN_FILE = 'workspace-opt-in.json'"));
@@ -461,4 +494,4 @@ mustNot('git-safety-no-write', gitSafety.includes('writeFile'));
 must('bundle-core-source', bundler.includes("path.join(dogfoodRoot, 'llm_wiki')"));
 must('bundle-core-destination', bundler.includes("path.join(bundleRoot, 'dogfood')"));
 
-console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.22 agentToolDisposables=6 contributedTools=7 uxVNext=actionable-native-view+contextual-safe-admission+plain-language-lineage+project-folder-federation+friendly-query-limits explicitWorkspaceOptIn=yes queryPlaneL0=optin-local-grant+daily-cap+no-raw-fallback namedStoreF1=explicit-grants+pre-retrieval-scope+scoped-provenance+write-isolation relevantRegionRead=yes doctorPureDiagnostic=yes memoryV4=yes verifiedReadV3=yes durableAuthorityState=yes humanKnowledgeV1=yes maintenanceSoftGuard=yes singleFolderFailClosed=yes');
+console.log('VS-CODE-DOGFOOD-STATIC PASS version=0.1.22 agentToolDisposables=6 contributedTools=7 uxVNext=remote-authoritative-personal-wiki+verified-offline-read+actionable-native-view explicitWorkspaceOptIn=yes queryPlaneL0=optin-local-grant+daily-cap+no-raw-fallback namedStoreF1=explicit-grants+pre-retrieval-scope+scoped-provenance+write-isolation remoteS1=workspace-extension+ssh-only+opaque-store+zero-write-replica-read relevantRegionRead=yes doctorPureDiagnostic=yes memoryV4=yes verifiedReadV3=yes durableAuthorityState=yes humanKnowledgeV1=yes maintenanceSoftGuard=yes singleFolderFailClosed=yes');
