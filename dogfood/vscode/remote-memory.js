@@ -12,9 +12,11 @@ const PROTOCOL = 'LLM-WIKI-REMOTE-HELPER-v1';
 const BINDING_KEY_PREFIX = 'llmWiki.remoteBinding.v1';
 const REMOTE_CONFIGURED_CONTEXT = 'llmWiki.remoteConfigured';
 const REMOTE_WRITABLE_CONTEXT = 'llmWiki.remoteWritable';
+const REPLICA_READ_MODULE = 'dogfood.llm_wiki.replica_read_cli';
 const MAX_CONTROL_BUFFER = 16 * 1024 * 1024;
 const SSH_TIMEOUT_MS = 15000;
 const STORE_ID_RE = /^project-[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const SNAPSHOT_ID_RE = /^[0-9a-f]{64}$/;
 const TARGET_RE = /^[^\s\x00-\x1f\x7f]{1,255}$/;
 
 const INSTALL_COMMAND = 'set -eu; umask 077; root="${XDG_DATA_HOME:-$HOME/.local/share}/llm-wiki/remote-runtime/current"; mkdir -p "$root"; rm -rf "$root/dogfood"; tar -xf - -C "$root"';
@@ -163,7 +165,12 @@ function pythonEnv(core) {
 async function deployRuntime(context, folder, target) {
   if (process.platform !== 'linux') throw new Error('remote_s1_linux_workspace_host_required');
   const core = coreRoot(context, folder);
-  for (const required of ['dogfood/__init__.py', 'dogfood/llm_wiki/remote_helper.py', 'dogfood/llm_wiki/remote_snapshot.py']) {
+  for (const required of [
+    'dogfood/__init__.py',
+    'dogfood/llm_wiki/remote_helper.py',
+    'dogfood/llm_wiki/remote_snapshot.py',
+    'dogfood/llm_wiki/replica_read_cli.py',
+  ]) {
     if (!fs.existsSync(path.join(core, required))) throw new Error(`remote_runtime_missing:${required}`);
   }
 
@@ -279,7 +286,7 @@ async function refreshReplicaWithBinding(context, folder, row) {
   if (importResult.code !== 0) throw new RemoteOperationError(`remote_snapshot_verify_failed:${boundedProcessFailure(importResult.stderr.toString('utf8'))}`);
   let imported;
   try { imported = JSON.parse(importResult.stdout.toString('utf8')); } catch (_) { throw new RemoteOperationError('remote_snapshot_import_response_invalid'); }
-  if (!imported || imported.status !== 'IMPORTED' || !/^[0-9a-f]{64}$/.test(String(imported.snapshot_id || ''))) {
+  if (!imported || imported.status !== 'IMPORTED' || !SNAPSHOT_ID_RE.test(String(imported.snapshot_id || ''))) {
     throw new RemoteOperationError('remote_snapshot_import_response_invalid');
   }
   return String(imported.snapshot_id);
@@ -360,8 +367,71 @@ function mutationKind(moduleName, args) {
   return '';
 }
 
+function replicaArgsForInvocation(moduleName, args) {
+  if (!Array.isArray(args) || !args.length) return undefined;
+  const command = String(args[0]);
+  if (moduleName === 'dogfood.llm_wiki.cli') {
+    if (command === 'integrity' || command === 'discover' || command === 'history') return [...args];
+    if (command === 'search') return [...args];
+    if (command === 'topic' && args[1] === 'list') return ['topic-list', ...args.slice(2)];
+    if (command === 'source' && args[1] === 'list') return ['source-list', ...args.slice(2)];
+    if (command === 'source' && args[1] === 'status') return ['source-status', ...args.slice(2)];
+    if (command === 'source' && args[1] === 'show') return ['source-show', ...args.slice(2)];
+    return undefined;
+  }
+  if (moduleName === 'dogfood.llm_wiki.agent_state_cli') {
+    if (command === 'locator-list' || command === 'pending-list' || command === 'usage-status') return [...args];
+    return undefined;
+  }
+  if (moduleName === 'dogfood.llm_wiki.agent_memory_cli') {
+    if (command === 'read' || command === 'relevant' || command === 'compare') return [...args];
+    return undefined;
+  }
+  if (moduleName === 'dogfood.llm_wiki.agent_wiki_cli') {
+    if (command === 'search') return ['agent-wiki-search', ...args.slice(1)];
+    if (command === 'show') return ['agent-wiki-show', ...args.slice(1)];
+    return undefined;
+  }
+  return undefined;
+}
+
+function isReplicaReadInvocation(moduleName, args) {
+  return Boolean(replicaArgsForInvocation(moduleName, args));
+}
+
+// Compatibility name retained for existing Agent tool dispatch. In remote mode
+// every classified core invocation must cross this adapter: mutations go to the
+// exact remote store; reads go only to the last verified immutable replica.
 function isMutatingCoreInvocation(moduleName, args) {
-  return Boolean(mutationKind(moduleName, args));
+  return Boolean(mutationKind(moduleName, args) || replicaArgsForInvocation(moduleName, args));
+}
+
+async function runCoreRead(context, folder, moduleName, args) {
+  const current = binding(context, folder);
+  if (!current) throw new Error('remote_memory_not_connected');
+  if (!SNAPSHOT_ID_RE.test(current.snapshotId)) throw new Error('REMOTE_REPLICA_UNVERIFIED: no verified snapshot is available');
+  const replicaArgs = replicaArgsForInvocation(moduleName, args);
+  if (!replicaArgs) throw new Error('REMOTE_READ_OPERATION_NOT_CLASSIFIED');
+  const runtime = await resolvePythonRuntime(folder);
+  if (!runtime) throw new Error('python_runtime_not_found');
+  const core = coreRoot(context, folder);
+  const child = spawn(runtime.executable, [
+    '-m', REPLICA_READ_MODULE,
+    '--root', wikiRoot(folder),
+    '--expected-snapshot-id', current.snapshotId,
+    ...replicaArgs,
+  ], {
+    cwd: folder.uri.fsPath,
+    env: pythonEnv(core),
+    windowsHide: true,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  const result = await processResult(child, { timeoutMs: 30000, maxBuffer: MAX_CONTROL_BUFFER });
+  if (result.code !== 0) {
+    const detail = boundedProcessFailure(result.stderr.toString('utf8') || result.stdout.toString('utf8') || 'replica_read_failed');
+    throw new Error(`REMOTE_REPLICA_READ_FAILED: ${detail}`);
+  }
+  return result.stdout.toString('utf8');
 }
 
 function uploadPayloadForInvocation(moduleName, args) {
@@ -400,7 +470,11 @@ async function markOffline(context, folder, current, detail, refreshPending = cu
 async function runCoreMutation(context, folder, moduleName, args) {
   const current = binding(context, folder);
   if (!current) throw new Error('remote_memory_not_connected');
-  if (!isMutatingCoreInvocation(moduleName, args)) throw new Error('remote_mutation_operation_not_classified');
+  const kind = mutationKind(moduleName, args);
+  if (!kind) {
+    if (replicaArgsForInvocation(moduleName, args)) return runCoreRead(context, folder, moduleName, args);
+    throw new Error('remote_core_operation_not_classified');
+  }
   if (current.refreshPending) {
     try {
       await refreshReplica(context, folder);
@@ -502,8 +576,10 @@ module.exports = {
   PROTOCOL,
   REMOTE_CONFIGURED_CONTEXT,
   REMOTE_WRITABLE_CONTEXT,
+  REPLICA_READ_MODULE,
   RemoteOperationError,
   RemoteTransportError,
+  SNAPSHOT_ID_RE,
   STORE_ID_RE,
   TARGET_RE,
   binding,
@@ -512,10 +588,13 @@ module.exports = {
   health,
   isConfigured,
   isMutatingCoreInvocation,
+  isReplicaReadInvocation,
   listStores,
   mutationKind,
   refreshReplica,
+  replicaArgsForInvocation,
   runCoreMutation,
+  runCoreRead,
   saveHumanKnowledge,
   setContexts,
   sshArgs,
