@@ -5,6 +5,7 @@ const memoryRead = require('./memory-read-service');
 const personalLibrary = require('./personal-wiki-library');
 const productActions = require('./product-actions');
 const productQueryConfig = require('./product-query-config');
+const remoteAttach = require('./remote-attach');
 const remoteMemory = require('./remote-memory');
 const { queryGrant } = require('./query-plane');
 const workspaceActivation = require('./workspace-activation');
@@ -81,7 +82,7 @@ function remoteNode(state) {
   if (!remote || !remote.configured) {
     return node('Personal Wiki', {
       description: 'Not connected',
-      tooltip: 'Connect this project memory to a user-owned Personal Wiki over your existing non-interactive SSH setup.',
+      tooltip: 'Connect over your existing non-interactive SSH setup. You can create a new independent remote Project Memory or explicitly choose an existing Personal Wiki project to continue on this PC.',
       iconPath: new vscode.ThemeIcon('remote'),
       command: { command: CONNECT_PERSONAL_WIKI_COMMAND, title: 'Connect Personal Wiki' },
     });
@@ -266,6 +267,8 @@ async function runRemoteAction(context, provider, action) {
       await vscode.window.showWarningMessage('Personal Wiki saved the remote change, but the local verified copy could not refresh. Project Memory is read only until Refresh Personal Wiki succeeds.');
     } else if (detail.startsWith('REMOTE_OFFLINE_READ_ONLY') || detail.includes('remote_ssh_') || detail.includes('remote_process_')) {
       await vscode.window.showWarningMessage('Personal Wiki is unavailable. The last verified local copy remains readable, but Project Memory writes are blocked.');
+    } else if (detail.includes('remote_attach_requires_empty_local_memory')) {
+      await vscode.window.showWarningMessage('Use Existing Project Memory is available only before this PC has its own saved Project Memory. LLM Wiki will not merge or overwrite independent local memory.');
     } else {
       await vscode.window.showErrorMessage('LLM Wiki could not complete the Personal Wiki action. Use Check Setup and Health for local diagnostics.');
     }
@@ -291,7 +294,11 @@ function registerProductView(context) {
   )));
   context.subscriptions.push(vscode.commands.registerCommand(
     CONNECT_PERSONAL_WIKI_COMMAND,
-    () => runRemoteAction(context, provider, (folder) => remoteMemory.connect(context, folder))
+    () => runRemoteAction(context, provider, (folder) => remoteAttach.chooseConnection(
+      context,
+      folder,
+      () => remoteMemory.connect(context, folder)
+    ))
   ));
   context.subscriptions.push(vscode.commands.registerCommand(
     REFRESH_PERSONAL_WIKI_COMMAND,
