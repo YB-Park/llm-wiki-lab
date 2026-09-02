@@ -50,12 +50,15 @@ jobs:
           node scripts/bundle-core.js
           tmp="$(mktemp -d)"
           PYTHONPATH="$PWD/python" python3 -m dogfood.llm_wiki.cli --root "$tmp/wiki" init
-          PYTHONPATH="$PWD/python" python3 -c 'from dogfood.llm_wiki.writer_lock import store_writer_lock, serialized_writer; from dogfood.llm_wiki.agent_memory_cli import main as agent_memory_main; from dogfood.llm_wiki.agent_state import read_agent_state; from dogfood.llm_wiki.agent_state_cli import main as agent_state_main; from dogfood.llm_wiki.federation_read_cli import main as federation_read_main; print("PY39-BUNDLED-CORE PASS")'
+          PYTHONPATH="$PWD/python" python3 -c 'from dogfood.llm_wiki.writer_lock import store_writer_lock, serialized_writer; from dogfood.llm_wiki.agent_memory_cli import main as agent_memory_main; from dogfood.llm_wiki.agent_state import read_agent_state; from dogfood.llm_wiki.agent_state_cli import main as agent_state_main; from dogfood.llm_wiki.federation_read_cli import main as federation_read_main; from dogfood.llm_wiki.remote_helper import main as remote_helper_main; from dogfood.llm_wiki.remote_snapshot import main as remote_snapshot_main; from dogfood.llm_wiki.replica_read_cli import main as replica_read_main; print("PY39-BUNDLED-CORE PASS")'
           test -f python/dogfood/llm_wiki/writer_lock.py
           test -f python/dogfood/llm_wiki/agent_memory_cli.py
           test -f python/dogfood/llm_wiki/agent_state.py
           test -f python/dogfood/llm_wiki/agent_state_cli.py
           test -f python/dogfood/llm_wiki/federation_read_cli.py
+          test -f python/dogfood/llm_wiki/remote_helper.py
+          test -f python/dogfood/llm_wiki/remote_snapshot.py
+          test -f python/dogfood/llm_wiki/replica_read_cli.py
 
   test:
     runs-on: ubuntu-latest
@@ -100,7 +103,13 @@ jobs:
           node --check dogfood/vscode/process-errors.js
           node --check dogfood/vscode/python-runtime.js
           node --check dogfood/vscode/python-runtime-policy.js
+          node --check dogfood/vscode/remote-memory.js
+          node --check dogfood/vscode/remote-attach.js
+          node --check dogfood/vscode/remote-library.js
+          node --check dogfood/vscode/remote-project-policy.js
           node dogfood/vscode/test/static.js
+          node dogfood/vscode/test/remote-static.js
+          node dogfood/vscode/test/remote-project-policy.js
           node dogfood/vscode/test/federation-safety-static.js
           node dogfood/vscode/test/personal-wiki-library.js
           node dogfood/vscode/test/query-usage-ledger.js
@@ -126,6 +135,9 @@ jobs:
           test -f python/dogfood/llm_wiki/agent_state.py
           test -f python/dogfood/llm_wiki/agent_state_cli.py
           test -f python/dogfood/llm_wiki/federation_read_cli.py
+          test -f python/dogfood/llm_wiki/remote_helper.py
+          test -f python/dogfood/llm_wiki/remote_snapshot.py
+          test -f python/dogfood/llm_wiki/replica_read_cli.py
       - name: Package installable VSIX
         working-directory: dogfood/vscode
         run: |
@@ -138,6 +150,9 @@ jobs:
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/federation_read_cli.py'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/query_plane_cli.py'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/writer_lock.py'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/remote_helper.py'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/remote_snapshot.py'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/python/dogfood/llm_wiki/replica_read_cli.py'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/human-knowledge.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/memory-read-service.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/product-view.js'
@@ -146,6 +161,10 @@ jobs:
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/query-plane.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/query-usage-ledger.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/scoped-read-tool.js'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/remote-memory.js'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/remote-attach.js'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/remote-library.js'
+          unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/remote-project-policy.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/git-safety.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/lm-discovery.js'
           unzip -l dist/llm-wiki-dogfood.vsix | grep -q 'extension/process-errors.js'
@@ -167,6 +186,9 @@ jobs:
           test -f dist/unpacked/extension/python/dogfood/llm_wiki/federation_read_cli.py
           test -f dist/unpacked/extension/python/dogfood/llm_wiki/query_plane_cli.py
           test -f dist/unpacked/extension/python/dogfood/llm_wiki/writer_lock.py
+          test -f dist/unpacked/extension/python/dogfood/llm_wiki/remote_helper.py
+          test -f dist/unpacked/extension/python/dogfood/llm_wiki/remote_snapshot.py
+          test -f dist/unpacked/extension/python/dogfood/llm_wiki/replica_read_cli.py
           test -f dist/unpacked/extension/human-knowledge.js
           test -f dist/unpacked/extension/memory-read-service.js
           test -f dist/unpacked/extension/product-view.js
@@ -175,6 +197,10 @@ jobs:
           test -f dist/unpacked/extension/query-plane.js
           test -f dist/unpacked/extension/query-usage-ledger.js
           test -f dist/unpacked/extension/scoped-read-tool.js
+          test -f dist/unpacked/extension/remote-memory.js
+          test -f dist/unpacked/extension/remote-attach.js
+          test -f dist/unpacked/extension/remote-library.js
+          test -f dist/unpacked/extension/remote-project-policy.js
           test -f dist/unpacked/extension/git-safety.js
           test -f dist/unpacked/extension/lm-discovery.js
           test -f dist/unpacked/extension/process-errors.js
