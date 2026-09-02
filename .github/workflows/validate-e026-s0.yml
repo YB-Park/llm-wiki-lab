@@ -99,7 +99,7 @@ jobs:
           grep -q '^E026 S0-A zero-model portability: PASS$' /tmp/e026-s0.txt
           grep -q '"model_calls": 0' /tmp/e026-s0.txt
           grep -q '"E026_S0_A_EXISTING_STORE_PORTABILITY": "EARNED"' /tmp/e026-s0.txt
-          test "$(grep -c '"'"'"PASS"'"'"' /tmp/e026-s0.txt)" -ge 12
+          test "$(grep -c '"PASS"' /tmp/e026-s0.txt)" -ge 12
       - name: Affected privacy and authority regressions
         run: |
           python3 -m unittest dogfood.tests.test_private_fs_portability -v
