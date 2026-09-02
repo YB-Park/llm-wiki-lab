@@ -34,21 +34,25 @@ must('product-connection-choice', productView.includes('remoteAttach.chooseConne
 must('product-readonly-state', productView.includes('Offline · read only') && productView.includes('Refresh pending · read only'));
 must('product-no-write-while-readonly', productView.includes('Unavailable while read only'));
 
-must('attach-explicit-existing-choice', remoteAttach.includes('Use Existing Project Memory'));
-must('attach-explicit-new-choice', remoteAttach.includes('Create New Project Memory'));
-must('attach-no-identity-inference', remoteAttach.includes('No repository, path, branch, file-content similarity, or folder name is used to choose project identity.'));
-must('attach-no-merge', remoteAttach.includes('This is an explicit attach, not a merge.'));
-assert.ok((remoteAttach.match(/assertFreshLocalMemory\(root\)/g) || []).length >= 2, 'REMOTE-STATIC attach-fast-rechecks-local-empty');
-must('attach-exact-store-id', remoteAttach.includes("stores.find((store) => store.storeId === requestedStoreId)"));
+const attachStart = remoteAttach.indexOf('async function attachExisting');
+const attachEnd = remoteAttach.indexOf('async function chooseConnection', attachStart);
+must('attach-function-bounded', attachStart >= 0 && attachEnd > attachStart);
+const attachExistingBody = remoteAttach.slice(attachStart, attachEnd);
+must('attach-explicit-existing-choice', attachExistingBody.includes('Use Existing Project Memory'));
+must('attach-no-identity-inference', attachExistingBody.includes('No repository, path, branch, file-content similarity, or folder name is used to choose project identity.'));
+must('attach-no-merge', attachExistingBody.includes('This is an explicit attach, not a merge.'));
+assert.ok((attachExistingBody.match(/assertFreshLocalMemory\(root\)/g) || []).length >= 2, 'REMOTE-STATIC attach-fast-rechecks-local-empty');
+must('attach-exact-store-id', attachExistingBody.includes("stores.find((store) => store.storeId === requestedStoreId)"));
 must('attach-only-bootstrapped-store', remoteAttach.includes('store.bootstrap_complete === true'));
-must('attach-uses-shared-snapshot-transfer', remoteAttach.includes('snapshotTransfer.fetchSnapshot'));
-must('attach-selects-writer-locked-import', remoteAttach.includes('{ attachEmpty: true }'));
-const attachTransferIndex = remoteAttach.indexOf('const snapshotId = await snapshotTransfer.fetchSnapshot');
-const bindingPublishIndex = remoteAttach.indexOf('await context.workspaceState.update(key, row)');
+must('attach-uses-shared-snapshot-transfer', attachExistingBody.includes('snapshotTransfer.fetchSnapshot'));
+must('attach-selects-writer-locked-import', attachExistingBody.includes('{ attachEmpty: true }'));
+const attachTransferIndex = attachExistingBody.indexOf('const snapshotId = await snapshotTransfer.fetchSnapshot');
+const bindingPublishIndex = attachExistingBody.indexOf('await context.workspaceState.update(key, row)');
 must('attach-binding-after-verified-materialization', attachTransferIndex >= 0 && bindingPublishIndex > attachTransferIndex);
-mustNot('attach-no-temporary-binding-before-transfer', remoteAttach.slice(0, attachTransferIndex).includes('workspaceState.update(key'));
-mustNot('attach-no-refresh-via-published-binding', remoteAttach.includes('remoteMemory.refreshReplica(context, folder)'));
-mustNot('attach-no-repo-discovery', remoteAttach.includes('git remote') || remoteAttach.includes('repositoryUrl'));
+mustNot('attach-no-temporary-binding-before-transfer', attachExistingBody.slice(0, attachTransferIndex).includes('workspaceState.update(key'));
+mustNot('attach-no-refresh-via-published-binding', attachExistingBody.includes('remoteMemory.refreshReplica(context, folder)'));
+mustNot('attach-no-repo-discovery', attachExistingBody.includes('git remote') || attachExistingBody.includes('repositoryUrl'));
+must('attach-explicit-new-choice', remoteAttach.includes('Create New Project Memory'));
 
 must('attach-importer-posix-only', attachImporter.includes('os.name != "posix"'));
 must('attach-importer-writer-lock', attachImporter.includes('with store_writer_lock(root):'));
