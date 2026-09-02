@@ -17,6 +17,7 @@ if str(REPO_ROOT) not in sys.path:
 from dogfood.llm_wiki.calibration import create_topic
 from dogfood.llm_wiki.integrity import audit_alpha_integrity
 from dogfood.llm_wiki.private_fs import write_private_text
+from dogfood.llm_wiki.remote_attach_import import import_attached_snapshot
 from dogfood.llm_wiki.remote_helper import HELPER_PROTOCOL
 from dogfood.llm_wiki.remote_snapshot import read_snapshot, snapshot_manifest, write_snapshot
 from dogfood.llm_wiki.store import ensure_workspace, ingest_file
@@ -167,23 +168,24 @@ def main() -> int:
             raise RuntimeError("A remote write leaked into B project store")
 
         # Explicit multi-PC attach proof: PC B starts with a fresh local authority
-        # epoch, selects store A exactly, materializes its verified snapshot, and
-        # keeps its own host-local workspace opt-in. No content/repo auto-linking.
+        # epoch, selects store A exactly, and the same writer-locked importer used
+        # by the product materializes the verified snapshot without merging.
         pc_b_attached = base / "pc-b-attached"
         ensure_workspace(pc_b_attached)
         pc_b_opt_in = b'{"pc":"B","fresh_authority_epoch":true}\n'
         write_private_text(pc_b_attached / "workspace-opt-in.json", pc_b_opt_in.decode("utf-8"))
         if (pc_b_attached / "manifest.jsonl").read_bytes() != b"":
             raise RuntimeError("PC B attach fixture was not locally empty")
-        attached_manifest = read_snapshot(
+        attached_manifest = import_attached_snapshot(
             io.BytesIO(export_store(store_a)),
             pc_b_attached,
-            preserve_host_local=True,
         )
         if attached_manifest["snapshot_id"] != manifest_a["snapshot_id"]:
             raise RuntimeError("PC B explicit attach did not materialize exact store A snapshot")
         if (pc_b_attached / "workspace-opt-in.json").read_bytes() != pc_b_opt_in:
             raise RuntimeError("PC B host-local authority epoch was replaced during attach")
+        if (pc_b_attached / ".writer.lock").exists():
+            raise RuntimeError("ephemeral writer lock leaked into attached snapshot")
         attached_raw = [path.read_bytes() for path in (pc_b_attached / "raw").glob("*.txt")]
         if changed_bytes not in attached_raw:
             raise RuntimeError("PC B attached copy is missing PC A remote evidence")
@@ -223,6 +225,7 @@ def main() -> int:
             "host_local_workspace_authority_transported": False,
             "cross_store_write_leak": False,
             "explicit_pc_b_attach_to_exact_store": True,
+            "writer_locked_attach_importer": True,
             "pc_b_host_local_authority_preserved": True,
             "pc_b_write_visible_after_pc_a_refresh": True,
             "independent_store_b_unchanged": True,
