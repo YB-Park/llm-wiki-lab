@@ -10,11 +10,17 @@ on:
       - 'dogfood/tests/test_remote_authority.py'
       - 'dogfood/tests/test_replica_read_cli.py'
       - 'dogfood/vscode/remote-memory.js'
+      - 'dogfood/vscode/remote-attach.js'
+      - 'dogfood/vscode/remote-library.js'
+      - 'dogfood/vscode/remote-project-policy.js'
       - 'dogfood/vscode/agent-tools.js'
       - 'dogfood/vscode/memory-read-service.js'
+      - 'dogfood/vscode/personal-wiki-library-ui.js'
       - 'dogfood/vscode/extension.js'
       - 'dogfood/vscode/product-view.js'
       - 'dogfood/vscode/package.json'
+      - 'dogfood/vscode/test/remote-project-policy.js'
+      - 'dogfood/vscode/test/remote-static.js'
       - 'dogfood/vscode/test/static.js'
       - '.github/workflows/validate-e026-s1-ssh.yml'
   push:
@@ -27,11 +33,17 @@ on:
       - 'dogfood/tests/test_remote_authority.py'
       - 'dogfood/tests/test_replica_read_cli.py'
       - 'dogfood/vscode/remote-memory.js'
+      - 'dogfood/vscode/remote-attach.js'
+      - 'dogfood/vscode/remote-library.js'
+      - 'dogfood/vscode/remote-project-policy.js'
       - 'dogfood/vscode/agent-tools.js'
       - 'dogfood/vscode/memory-read-service.js'
+      - 'dogfood/vscode/personal-wiki-library-ui.js'
       - 'dogfood/vscode/extension.js'
       - 'dogfood/vscode/product-view.js'
       - 'dogfood/vscode/package.json'
+      - 'dogfood/vscode/test/remote-project-policy.js'
+      - 'dogfood/vscode/test/remote-static.js'
       - 'dogfood/vscode/test/static.js'
       - '.github/workflows/validate-e026-s1-ssh.yml'
 
@@ -59,6 +71,15 @@ jobs:
             dogfood/llm_wiki/replica_read_cli.py \
             dogfood/tests/test_remote_authority.py \
             dogfood/tests/test_replica_read_cli.py
+
+      - name: Validate VS Code remote product boundaries
+        run: |
+          node --check dogfood/vscode/remote-memory.js
+          node --check dogfood/vscode/remote-attach.js
+          node --check dogfood/vscode/remote-library.js
+          node --check dogfood/vscode/remote-project-policy.js
+          node dogfood/vscode/test/remote-project-policy.js
+          node dogfood/vscode/test/remote-static.js
 
       - name: Start isolated OpenSSH server with strict client host verification
         shell: bash
