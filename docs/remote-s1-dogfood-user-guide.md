@@ -1,91 +1,82 @@
 # LLM Wiki Remote S1 — 아주 짧은 실사용 가이드
 
-이 문서는 기능 설명서가 아니라 **실사용 dogfood용 체크리스트**다. 평소에는 VS Code Agent와 자연스럽게 대화하고, 필요한 파일만 Project Memory에 기억시키면 된다.
+이 문서는 기능 설명서가 아니라 **실사용 dogfood 체크리스트**다. 평소에는 VS Code Agent와 자연스럽게 대화하고, 필요한 파일만 Project Memory에 기억시키면 된다.
 
-## 먼저 이해할 한 가지
-
-**로컬 Project Memory와 Personal Wiki authority의 Project Memory는 자동으로 같은 것이 아니다.**
-
-예를 들어:
+## A PC를 Personal Wiki host로 쓰고, B PC에서 같이 쓰기
 
 ```text
-A PC
-- 현재 workspace의 로컬 Project Memory
-- Personal Wiki authority host 역할도 함
-
-B PC
-- A의 Personal Wiki authority에 SSH로 접속
+A PC = Personal Wiki authority + 기존 Project Memory
+B PC = client
 ```
 
-B에서 **Use Existing Project Memory**를 쓰려면, 먼저 A의 로컬 Project Memory가 Personal Wiki authority에 **Create New Project Memory로 게시**되어 있어야 한다.
+### 0. 준비
 
-현재 S1 candidate의 제한상 A가 authority host 자신이라도 게시할 때 SSH transport를 사용한다. 따라서 지금은 **A -> A self-SSH도 non-interactive로 동작해야 한다.** 이 요구는 dogfood에서 발견된 UX 개선 대상이다.
+- A와 B에 Remote S1 candidate VSIX를 설치한다.
+- 둘 다 trusted single-folder Linux workspace에서 사용한다.
+- **B -> A non-interactive SSH**가 동작해야 한다.
+  - 예: B에서 `ssh <A-alias> true`
+- B의 SSH 로그인 사용자는 A에서 Personal Wiki를 실행하는 Linux 사용자와 같아야 같은 authority catalog를 본다.
+- **A -> A self-SSH는 필요 없다.**
 
-## 0. 준비
+## 1. A에서 현재 Project Memory 게시
 
-- GitHub의 `dogfood/releases/candidates/remote-s1/llm-wiki-dogfood-remote-s1-candidate.vsix`를 설치한다.
-- 신뢰한 **single-folder Linux workspace**에서 사용한다.
-- 각 LLM Wiki workspace host에서 Personal Wiki authority로 **non-interactive SSH**가 동작해야 한다.
-  - B -> A: `ssh <A-alias> true`
-  - 현재 candidate에서 A가 authority이면서 A의 memory를 게시하려면 A -> A self-SSH도 필요.
+A의 Doctor가 `Project memory: ON`이고 local store가 정상이라면:
 
-> SSH 준비 외에 일상 사용에서 터미널 명령이 필요하면 UX 개선 후보로 기록한다.
+1. 사이드바 **Personal Wiki · Not connected**
+2. **Publish This Project Memory**
+3. **This PC**
+4. **Connected · read/write** 확인
 
-## 1. A의 기존 Project Memory를 Personal Wiki에 게시
-
-A에서 이미 **Project Memory On / Local memory store: initialized**라면:
-
-1. LLM Wiki 사이드바의 **Personal Wiki · Not connected**를 누른다.
-2. **Create New Project Memory**를 선택한다.
-3. A 자신을 가리키는 non-interactive SSH alias를 입력한다.
-4. 상태가 **Connected · read/write**가 되는지 확인한다.
-
-이 단계가 끝나야 A의 Project Memory가 Personal Wiki authority catalog에 나타난다.
+이 단계가 A의 현재 로컬 Project Memory를 Personal Wiki의 새 opaque project identity로 게시한다.
 
 ## 2. B에서 A의 Project Memory 이어쓰기
 
-B의 로컬 Project Memory는 freshly initialized / empty 상태여야 한다.
+B의 Doctor에서 다음 상태를 확인한다.
 
-1. LLM Wiki 사이드바의 **Personal Wiki · Not connected**를 누른다.
-2. **Use Existing Project Memory**를 선택한다.
-3. B -> A SSH alias를 입력한다.
-4. 목록에서 A가 1단계에서 게시한 Project Memory를 직접 고른다.
-5. **Connected · read/write** 상태를 확인한다.
+- Project memory: ON
+- Local Project Memory contents: **EMPTY · READY TO USE EXISTING PERSONAL WIKI PROJECT**
 
-같은 Git repository나 같은 파일 내용이어도 자동으로 같은 Project Memory가 되지 않는다.
+그 다음:
+
+1. 사이드바 **Personal Wiki · Not connected**
+2. **Use Existing Personal Wiki Project Memory**
+3. **SSH Host**
+4. A로 접속되는 SSH alias 입력
+5. A가 게시한 Project Memory 선택
+6. **Connected · read/write** 확인
+
+같은 Git repository/path/파일 내용이어도 자동 연결되지 않는다. 정확한 Project Memory는 사용자가 직접 선택한다.
 
 ## 3. 평소 사용
 
-- 기억시키고 싶은 파일: Explorer/Editor 우클릭 -> **Remember in Project Memory**
-- 이후에는 평소처럼 VS Code Agent에게 질문
-- 다른 PC에서 같은 Project Memory가 갱신됐다면 -> **Refresh Personal Wiki**
+- 기억시키기: 파일 우클릭 -> **Remember in Project Memory**
+- 질문하기: 평소처럼 VS Code Agent에게 질문
+- 다른 PC에서 기억이 바뀐 뒤: **Refresh Personal Wiki**
 
 ## 4. 다른 프로젝트 기억 참고
 
 **Manage Other Project Memories**에서 다른 프로젝트를 추가할 수 있다.
 
-- 다른 프로젝트는 **read-only**
+- 다른 프로젝트는 read-only
 - 현재 workspace에서 사용하려면 **Allow Here** 별도 승인
-- 다른 프로젝트에 쓰거나 모든 프로젝트를 자동 검색하지 않음
+- 다른 프로젝트에 쓰거나 전체 프로젝트를 자동 검색하지 않음
 
-## 5. 네트워크가 끊기면
+## 5. A와 연결이 끊기면
 
-상태는 **Offline · read only**가 된다.
+B는 **Offline · read only**가 된다.
 
 - 마지막 verified memory는 읽을 수 있음
-- 새 기억 저장/수정은 막힘
-- 연결 복구 후 **Refresh Personal Wiki**
+- 새 기억 저장/수정은 차단
+- A 연결 복구 후 **Refresh Personal Wiki**
 
 ## Dogfood 원칙
 
-아래 중 하나라도 생기면 **가이드를 늘리기 전에 UX 문제인지 먼저 본다**.
+아래 중 하나라도 막히면 가이드를 길게 쓰기 전에 UX 문제로 본다.
 
-- 어느 PC에서 무엇을 먼저 해야 하는지 모르겠다.
-- "Create New"가 기존 로컬 memory를 Personal Wiki에 게시한다는 뜻인지 모르겠다.
-- authority host에서 self-SSH가 왜 필요한지 모르겠다.
 - 다음에 무엇을 눌러야 할지 모르겠다.
-- Project Memory가 켜졌는지/연결됐는지 모르겠다.
-- 저장이 성공했는지 모르겠다.
+- A와 B 중 어디서 먼저 해야 하는지 모르겠다.
+- Publish / Use Existing의 차이를 모르겠다.
+- 현재 local memory가 attach 가능한 빈 상태인지 모르겠다.
 - Offline에서 무엇이 가능한지 모르겠다.
 - 내부 tool/CLI/저장 구조를 알아야 사용할 수 있다.
 
