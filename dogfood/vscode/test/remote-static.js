@@ -52,7 +52,9 @@ must('attach-binding-after-verified-materialization', attachTransferIndex >= 0 &
 mustNot('attach-no-temporary-binding-before-transfer', attachExistingBody.slice(0, attachTransferIndex).includes('workspaceState.update(key'));
 mustNot('attach-no-refresh-via-published-binding', attachExistingBody.includes('remoteMemory.refreshReplica(context, folder)'));
 mustNot('attach-no-repo-discovery', attachExistingBody.includes('git remote') || attachExistingBody.includes('repositoryUrl'));
-must('attach-explicit-new-choice', remoteAttach.includes('Create New Project Memory'));
+must('attach-explicit-publish-choice', remoteAttach.includes('Publish This Project Memory'));
+must('attach-existing-choice-clear', remoteAttach.includes('Use Existing Personal Wiki Project Memory'));
+must('attach-authority-location-choice', remoteAttach.includes("label: 'This PC'") && remoteAttach.includes("label: 'SSH Host'"));
 
 must('attach-importer-posix-only', attachImporter.includes('os.name != "posix"'));
 must('attach-importer-writer-lock', attachImporter.includes('with store_writer_lock(root):'));
@@ -68,7 +70,7 @@ must('fresh-policy-extra-portable-fails', remotePolicy.includes('!FRESH_LOCAL_EN
 must('fresh-policy-symlink-failclosed', remotePolicy.includes('stat.isSymbolicLink()'));
 must('fresh-policy-opt-in-required-local', remotePolicy.includes("safeLstat(optIn, 'file')"));
 
-must('snapshot-transfer-binary-stream', snapshotTransfer.includes('ssh.stdout.pipe(importer.stdin)'));
+must('snapshot-transfer-binary-stream', snapshotTransfer.includes('authority.stdout.pipe(importer.stdin)'));
 must('snapshot-transfer-attach-module', snapshotTransfer.includes("'dogfood.llm_wiki.remote_attach_import'"));
 must('snapshot-transfer-cache-module', snapshotTransfer.includes("'dogfood.llm_wiki.remote_snapshot'"));
 must('snapshot-transfer-cache-replaces-hostlocal', snapshotTransfer.includes("'--replace-host-local'"));
@@ -93,8 +95,13 @@ must('library-ui-remote-action-delegates', libraryUi.includes("action === 'remot
 
 const sshBoundary = `${remoteMemory}\n${remoteAttach}\n${remoteLibrary}\n${snapshotTransfer}`;
 must('ssh-batch-mode', sshBoundary.includes('BatchMode=yes'));
+must('local-authority-sentinel', remoteMemory.includes("const LOCAL_AUTHORITY_TARGET = '@local-authority'"));
+must('local-authority-direct-helper', remoteMemory.includes("['-m', 'dogfood.llm_wiki.remote_helper']"));
+must('local-authority-no-self-ssh', remoteMemory.includes("if (isLocalAuthorityTarget(target)) throw new Error('local_authority_does_not_use_ssh')"));
+must('local-authority-shared-protocol', remoteMemory.includes('authorityJson(context, folder, target'));
+must('snapshot-transfer-shared-authority-process', snapshotTransfer.includes('remoteMemory.authorityProcess(context, folder, target)'));
 mustNot('ssh-never-disables-host-key-checking', sshBoundary.includes('StrictHostKeyChecking=no'));
 mustNot('ssh-never-null-known-hosts', sshBoundary.includes('UserKnownHostsFile=/dev/null'));
 mustNot('no-background-sync-loop', sshBoundary.includes('setInterval(') || sshBoundary.includes('setTimeout(async') || sshBoundary.includes('watchFile('));
 
-console.log('REMOTE-STATIC PASS explicit-attach=yes writerLockedAttach=yes remote-library=verified-named-readonly offline-write=blocked extensionKind=workspace symlinkFailClosed=yes');
+console.log('REMOTE-STATIC PASS explicit-attach=yes local-authority-no-self-ssh=yes writerLockedAttach=yes remote-library=verified-named-readonly offline-write=blocked extensionKind=workspace symlinkFailClosed=yes');
