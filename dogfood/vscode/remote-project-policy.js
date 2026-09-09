@@ -45,6 +45,14 @@ function assertFreshLocalMemory(root) {
   return true;
 }
 
+function isFreshLocalMemory(root) {
+  try {
+    return assertFreshLocalMemory(root) === true;
+  } catch (_) {
+    return false;
+  }
+}
+
 function authorityCacheKey(target) {
   return crypto.createHash('sha256').update(String(target || ''), 'utf8').digest('hex').slice(0, 24);
 }
@@ -53,5 +61,6 @@ module.exports = {
   FRESH_LOCAL_ENTRIES,
   assertFreshLocalMemory,
   authorityCacheKey,
+  isFreshLocalMemory,
   safeLstat,
 };
