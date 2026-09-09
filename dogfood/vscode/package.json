@@ -60,7 +60,7 @@
     "commands": [
       { "command": "llmWiki.enableWorkspace", "title": "Set Up Project Memory", "category": "LLM Wiki", "enablement": "isWorkspaceTrusted" },
       { "command": "llmWiki.disableWorkspace", "title": "Disable for This Workspace", "category": "LLM Wiki", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted" },
-      { "command": "llmWiki.connectPersonalWiki", "title": "Connect Personal Wiki", "category": "LLM Wiki", "icon": "$(remote)", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted && !llmWiki.remoteConfigured" },
+      { "command": "llmWiki.connectPersonalWiki", "title": "Connect or Publish Personal Wiki", "category": "LLM Wiki", "icon": "$(remote)", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted && !llmWiki.remoteConfigured" },
       { "command": "llmWiki.refreshPersonalWiki", "title": "Refresh Personal Wiki", "category": "LLM Wiki", "icon": "$(sync)", "enablement": "llmWiki.workspaceEnabled && isWorkspaceTrusted && llmWiki.remoteConfigured" },
       { "command": "llmWiki.openAgentChat", "title": "Open Agent Chat", "category": "LLM Wiki", "icon": "$(comment-discussion)" },
       { "command": "llmWiki.refreshOverview", "title": "Refresh LLM Wiki", "category": "LLM Wiki", "icon": "$(refresh)" },
