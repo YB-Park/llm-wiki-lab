@@ -172,6 +172,44 @@ jobs:
           grep -q '"ok":true' /tmp/e026-s1-health.txt
           grep -q '"protocol":"LLM-WIKI-REMOTE-HELPER-v1"' /tmp/e026-s1-health.txt
 
+      - name: Prove local A publish is visible to SSH B without self-SSH
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_root="$RUNNER_TEMP/local-authority-source"
+          rm -rf "$source_root"
+          python3 -m dogfood.llm_wiki.cli --root "$source_root" init
+
+          runtime_root=/home/llmwikici/.local/share/llm-wiki/remote-runtime/current
+          create_json="$(
+            printf '%s\n' '{"protocol":"LLM-WIKI-REMOTE-HELPER-v1","op":"create_store","display_name":"CI local authority publish proof","bootstrap":true}' \
+              | sudo -H -u llmwikici env PYTHONPATH="$runtime_root" python3 -m dogfood.llm_wiki.remote_helper
+          )"
+          printf '%s\n' "$create_json" | tee /tmp/e026-local-authority-create.json
+          store_id="$(
+            CREATE_JSON="$create_json" python3 - <<'PY'
+          import json, os
+          row = json.loads(os.environ["CREATE_JSON"])
+          assert row["ok"] is True
+          print(row["store"]["store_id"])
+          PY
+          )"
+          test -n "$store_id"
+
+          {
+            printf '{"protocol":"LLM-WIKI-REMOTE-HELPER-v1","op":"bootstrap_store","store_id":"%s"}\n' "$store_id"
+            python3 -m dogfood.llm_wiki.remote_snapshot export --root "$source_root"
+          } | sudo -H -u llmwikici env PYTHONPATH="$runtime_root" python3 -m dogfood.llm_wiki.remote_helper \
+            | tee /tmp/e026-local-authority-bootstrap.json
+          grep -q '"ok":true' /tmp/e026-local-authority-bootstrap.json
+
+          ssh -T llm-wiki-s1 'set -eu; root="${XDG_DATA_HOME:-$HOME/.local/share}/llm-wiki/remote-runtime/current"; PYTHONPATH="$root" python3 -m dogfood.llm_wiki.remote_helper' \
+            <<'EOF' | tee /tmp/e026-local-authority-list.json
+          {"protocol":"LLM-WIKI-REMOTE-HELPER-v1","op":"list_stores"}
+          EOF
+          grep -q "$store_id" /tmp/e026-local-authority-list.json
+          echo "E026 S1 local-authority publish -> SSH visibility: PASS store_id=$store_id"
+
       - name: Execute real SSH identity, byte, attach, and write-isolation proof
         env:
           LLM_WIKI_SSH_TARGET: llm-wiki-s1
