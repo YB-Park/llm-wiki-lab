@@ -106,7 +106,7 @@ function remoteNode(state) {
   if (remote.writable) {
     return node('Personal Wiki', {
       description: 'Connected · read/write',
-      tooltip: 'This workspace writes only its exact remote project store. Reads use the last verified local copy. Click to refresh it explicitly.',
+      tooltip: 'This workspace writes only its exact Personal Wiki project store. Reads use the last verified local copy. Click to refresh it explicitly.',
       iconPath: new vscode.ThemeIcon('cloud'),
       command: { command: REFRESH_PERSONAL_WIKI_COMMAND, title: 'Refresh Personal Wiki' },
     });
@@ -265,7 +265,7 @@ async function runRemoteAction(context, provider, action) {
     const detail = error && error.message ? String(error.message) : String(error);
     if (detail.startsWith('REMOTE_WRITE_COMMITTED_REFRESH_PENDING')) {
       await vscode.window.showWarningMessage('Personal Wiki saved the remote change, but the local verified copy could not refresh. Project Memory is read only until Refresh Personal Wiki succeeds.');
-    } else if (detail.startsWith('REMOTE_OFFLINE_READ_ONLY') || detail.includes('remote_ssh_') || detail.includes('remote_process_')) {
+    } else if (detail.startsWith('REMOTE_OFFLINE_READ_ONLY') || detail.includes('remote_ssh_') || detail.includes('remote_process_') || detail.includes('local_authority_')) {
       await vscode.window.showWarningMessage('Personal Wiki is unavailable. The last verified local copy remains readable, but Project Memory writes are blocked.');
     } else if (detail.includes('remote_attach_requires_empty_local_memory')) {
       await vscode.window.showWarningMessage('Use Existing Personal Wiki Project Memory is available only while this workspace has no saved local Project Memory. LLM Wiki will not merge or overwrite independent local memory.');
