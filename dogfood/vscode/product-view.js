@@ -82,7 +82,7 @@ function remoteNode(state) {
   if (!remote || !remote.configured) {
     return node('Personal Wiki', {
       description: 'Not connected',
-      tooltip: 'Connect over your existing non-interactive SSH setup. You can create a new independent remote Project Memory or explicitly choose an existing Personal Wiki project to continue on this PC.',
+      tooltip: 'Publish this workspace’s Project Memory to a Personal Wiki on this PC or an SSH host, or explicitly continue one exact Project Memory that was already published.',
       iconPath: new vscode.ThemeIcon('remote'),
       command: { command: CONNECT_PERSONAL_WIKI_COMMAND, title: 'Connect Personal Wiki' },
     });
@@ -268,7 +268,9 @@ async function runRemoteAction(context, provider, action) {
     } else if (detail.startsWith('REMOTE_OFFLINE_READ_ONLY') || detail.includes('remote_ssh_') || detail.includes('remote_process_')) {
       await vscode.window.showWarningMessage('Personal Wiki is unavailable. The last verified local copy remains readable, but Project Memory writes are blocked.');
     } else if (detail.includes('remote_attach_requires_empty_local_memory')) {
-      await vscode.window.showWarningMessage('Use Existing Project Memory is available only before this PC has its own saved Project Memory. LLM Wiki will not merge or overwrite independent local memory.');
+      await vscode.window.showWarningMessage('Use Existing Personal Wiki Project Memory is available only while this workspace has no saved local Project Memory. LLM Wiki will not merge or overwrite independent local memory.');
+    } else if (detail.includes('remote_attach_no_existing_project_memory')) {
+      await vscode.window.showInformationMessage('This Personal Wiki has no published Project Memories yet. Publish one from the workspace that owns the memory first.');
     } else {
       await vscode.window.showErrorMessage('LLM Wiki could not complete the Personal Wiki action. Use Check Setup and Health for local diagnostics.');
     }
@@ -297,7 +299,7 @@ function registerProductView(context) {
     () => runRemoteAction(context, provider, (folder) => remoteAttach.chooseConnection(
       context,
       folder,
-      () => remoteMemory.connect(context, folder)
+      (target) => remoteMemory.connect(context, folder, { target })
     ))
   ));
   context.subscriptions.push(vscode.commands.registerCommand(
