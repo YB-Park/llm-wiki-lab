@@ -12,6 +12,7 @@ const { clearPythonRuntimeCache, resolvePythonRuntime } = require('./python-runt
 const workspaceActivation = require('./workspace-activation');
 const { discoverCopilotModels } = require('./lm-discovery');
 const personalLibrary = require('./personal-wiki-library');
+const remotePolicy = require('./remote-project-policy');
 const { registerProductView } = require('./product-view');
 const { queryGrant, registerQueryPlaneCommand, registerQueryPlaneTool } = require('./query-plane');
 
@@ -309,6 +310,10 @@ async function doctor(context) {
     libraryCatalogStatus = 'NEEDS_ATTENTION';
   }
   const storeLabel = storeInitialized ? 'INITIALIZED' : (storePresent ? 'INCOMPLETE' : 'NOT_INITIALIZED');
+  const attachReady = workspaceEnabled && storeInitialized && integrityReady && remotePolicy.isFreshLocalMemory(root);
+  const contentsLabel = !storeInitialized
+    ? 'NOT READY'
+    : (attachReady ? 'EMPTY · READY TO USE EXISTING PERSONAL WIKI PROJECT' : 'HAS LOCAL STATE');
 
   doctorOutput.clear();
   doctorOutput.appendLine('LLM Wiki — Setup & Health');
@@ -320,6 +325,7 @@ async function doctor(context) {
   doctorOutput.appendLine(`Workspace opt-in: ${workspaceEnabled ? 'ENABLED' : 'NOT_ENABLED'}`);
   doctorOutput.appendLine(`Agent tools: ${workspaceEnabled ? 'AVAILABLE' : 'HIDDEN'}`);
   doctorOutput.appendLine(`Local memory store: ${storeLabel}`);
+  doctorOutput.appendLine(`Local Project Memory contents: ${contentsLabel}`);
   doctorOutput.appendLine(`Python runtime: ${pythonReady ? `FOUND (${runtime.executable}, ${runtime.source})` : 'MISSING'}`);
   doctorOutput.appendLine(`Local data integrity: ${!storePresent ? 'NOT CHECKED' : (integrityReady ? 'PASS' : 'NEEDS ATTENTION')}`);
   doctorOutput.appendLine(`Git privacy: ${gitSafety === 'UNPROTECTED' ? 'NEEDS ATTENTION — local memory directory is not ignored by Git' : 'PASS'} (${gitSafety})`);
