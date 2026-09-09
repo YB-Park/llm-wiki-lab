@@ -7,9 +7,6 @@ const remotePolicy = require('./remote-project-policy');
 const snapshotTransfer = require('./remote-snapshot-transfer');
 
 const BINDING_KEY_PREFIX = 'llmWiki.remoteBinding.v1';
-const MAX_BUFFER = 4 * 1024 * 1024;
-const TIMEOUT_MS = 15000;
-
 function bindingKey(folder) {
   return `${BINDING_KEY_PREFIX}:${folder.uri.toString()}`;
 }
