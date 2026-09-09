@@ -18,6 +18,7 @@ const SSH_TIMEOUT_MS = 15000;
 const STORE_ID_RE = /^project-[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const SNAPSHOT_ID_RE = /^[0-9a-f]{64}$/;
 const TARGET_RE = /^[^\s\x00-\x1f\x7f]{1,255}$/;
+const LOCAL_AUTHORITY_TARGET = '@local-authority';
 
 const INSTALL_COMMAND = 'set -eu; umask 077; root="${XDG_DATA_HOME:-$HOME/.local/share}/llm-wiki/remote-runtime/current"; mkdir -p "$root"; rm -rf "$root/dogfood"; tar -xf - -C "$root"';
 const HELPER_COMMAND = 'set -eu; root="${XDG_DATA_HOME:-$HOME/.local/share}/llm-wiki/remote-runtime/current"; PYTHONPATH="$root" python3 -m dogfood.llm_wiki.remote_helper';
@@ -106,7 +107,12 @@ async function setContexts(context, folder) {
   await vscode.commands.executeCommand('setContext', REMOTE_WRITABLE_CONTEXT, Boolean(row && row.writable && !row.refreshPending));
 }
 
+function isLocalAuthorityTarget(target) {
+  return String(target || '') === LOCAL_AUTHORITY_TARGET;
+}
+
 function sshArgs(target, command) {
+  if (isLocalAuthorityTarget(target)) throw new Error('local_authority_does_not_use_ssh');
   if (!TARGET_RE.test(String(target || ''))) throw new Error('remote_ssh_target_invalid');
   return ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5', '-T', target, command];
 }
@@ -162,6 +168,48 @@ function pythonEnv(core) {
   return { ...process.env, PYTHONPATH: pythonPath };
 }
 
+async function authorityProcess(context, folder, target) {
+  if (isLocalAuthorityTarget(target)) {
+    if (process.platform !== 'linux') throw new Error('remote_s1_linux_workspace_host_required');
+    const runtime = await resolvePythonRuntime(folder);
+    if (!runtime) throw new Error('python_runtime_not_found');
+    const core = coreRoot(context, folder);
+    return spawn(runtime.executable, ['-m', 'dogfood.llm_wiki.remote_helper'], {
+      cwd: folder.uri.fsPath,
+      env: pythonEnv(core),
+      windowsHide: true,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+  }
+  return spawn('ssh', sshArgs(target, HELPER_COMMAND), {
+    cwd: folder.uri.fsPath,
+    windowsHide: true,
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
+}
+
+async function authorityJson(context, folder, target, request, payload = Buffer.alloc(0)) {
+  const child = await authorityProcess(context, folder, target);
+  child.stdin.write(`${JSON.stringify({ protocol: PROTOCOL, ...request })}\n`, 'utf8');
+  if (payload.length) child.stdin.write(payload);
+  child.stdin.end();
+  const result = await processResult(child);
+  if (result.code !== 0 && !result.stdout.length) {
+    const prefix = isLocalAuthorityTarget(target) ? 'local_authority_failed' : 'remote_ssh_failed';
+    throw new RemoteTransportError(`${prefix}:${boundedProcessFailure(result.stderr.toString('utf8'))}`);
+  }
+  let row;
+  try {
+    row = JSON.parse(result.stdout.toString('utf8'));
+  } catch (_) {
+    throw new RemoteTransportError(`remote_helper_response_invalid:${boundedProcessFailure(result.stderr.toString('utf8'))}`);
+  }
+  if (!row || row.ok !== true) {
+    throw new RemoteOperationError(String((row && row.error) || 'remote_helper_failed'), row);
+  }
+  return row;
+}
+
 async function deployRuntime(context, folder, target) {
   if (process.platform !== 'linux') throw new Error('remote_s1_linux_workspace_host_required');
   const core = coreRoot(context, folder);
@@ -173,6 +221,7 @@ async function deployRuntime(context, folder, target) {
   ]) {
     if (!fs.existsSync(path.join(core, required))) throw new Error(`remote_runtime_missing:${required}`);
   }
+  if (isLocalAuthorityTarget(target)) return;
 
   const archive = spawn('tar', ['-C', core, '-cf', '-', 'dogfood/__init__.py', 'dogfood/llm_wiki'], {
     cwd: folder.uri.fsPath,
@@ -194,6 +243,7 @@ async function deployRuntime(context, folder, target) {
 }
 
 async function sshJson(folder, target, request, payload = Buffer.alloc(0)) {
+  if (isLocalAuthorityTarget(target)) throw new Error('local_authority_requires_context');
   const ssh = spawn('ssh', sshArgs(target, HELPER_COMMAND), {
     cwd: folder.uri.fsPath,
     windowsHide: true,
@@ -203,24 +253,16 @@ async function sshJson(folder, target, request, payload = Buffer.alloc(0)) {
   if (payload.length) ssh.stdin.write(payload);
   ssh.stdin.end();
   const result = await processResult(ssh);
-  if (result.code !== 0 && !result.stdout.length) {
-    throw new RemoteTransportError(`remote_ssh_failed:${boundedProcessFailure(result.stderr.toString('utf8'))}`);
-  }
+  if (result.code !== 0 && !result.stdout.length) throw new RemoteTransportError(`remote_ssh_failed:${boundedProcessFailure(result.stderr.toString('utf8'))}`);
   let row;
-  try {
-    row = JSON.parse(result.stdout.toString('utf8'));
-  } catch (_) {
-    throw new RemoteTransportError(`remote_helper_response_invalid:${boundedProcessFailure(result.stderr.toString('utf8'))}`);
-  }
-  if (!row || row.ok !== true) {
-    throw new RemoteOperationError(String((row && row.error) || 'remote_helper_failed'), row);
-  }
+  try { row = JSON.parse(result.stdout.toString('utf8')); } catch (_) { throw new RemoteTransportError(`remote_helper_response_invalid:${boundedProcessFailure(result.stderr.toString('utf8'))}`); }
+  if (!row || row.ok !== true) throw new RemoteOperationError(String((row && row.error) || 'remote_helper_failed'), row);
   return row;
 }
 
 async function health(context, folder, target, { deploy = false } = {}) {
   if (deploy) await deployRuntime(context, folder, target);
-  const row = await sshJson(folder, target, { op: 'health' });
+  const row = await authorityJson(context, folder, target, { op: 'health' });
   if (row.protocol !== PROTOCOL || !String(row.platform || '').startsWith('linux')) {
     throw new RemoteOperationError('remote_helper_incompatible', row);
   }
@@ -241,16 +283,12 @@ async function localSnapshotExportProcess(context, folder) {
 
 async function bootstrapStore(context, folder, target, storeId) {
   const exporter = await localSnapshotExportProcess(context, folder);
-  const ssh = spawn('ssh', sshArgs(target, HELPER_COMMAND), {
-    cwd: folder.uri.fsPath,
-    windowsHide: true,
-    stdio: ['pipe', 'pipe', 'pipe'],
-  });
-  ssh.stdin.write(`${JSON.stringify({ protocol: PROTOCOL, op: 'bootstrap_store', store_id: storeId })}\n`, 'utf8');
-  exporter.stdout.pipe(ssh.stdin);
+  const authority = await authorityProcess(context, folder, target);
+  authority.stdin.write(`${JSON.stringify({ protocol: PROTOCOL, op: 'bootstrap_store', store_id: storeId })}\n`, 'utf8');
+  exporter.stdout.pipe(authority.stdin);
   const [exportResult, sshResult] = await Promise.all([
     processResult(exporter, { timeoutMs: 60000, maxBuffer: 1024 * 1024 }),
-    processResult(ssh, { timeoutMs: 60000, maxBuffer: MAX_CONTROL_BUFFER }),
+    processResult(authority, { timeoutMs: 60000, maxBuffer: MAX_CONTROL_BUFFER }),
   ]);
   if (exportResult.code !== 0) throw new RemoteOperationError(`remote_local_snapshot_export_failed:${boundedProcessFailure(exportResult.stderr.toString('utf8'))}`);
   if (sshResult.code !== 0 && !sshResult.stdout.length) throw new RemoteTransportError(`remote_bootstrap_transport_failed:${boundedProcessFailure(sshResult.stderr.toString('utf8'))}`);
@@ -264,12 +302,8 @@ async function refreshReplicaWithBinding(context, folder, row) {
   const runtime = await resolvePythonRuntime(folder);
   if (!runtime) throw new Error('python_runtime_not_found');
   const core = coreRoot(context, folder);
-  const ssh = spawn('ssh', sshArgs(row.target, HELPER_COMMAND), {
-    cwd: folder.uri.fsPath,
-    windowsHide: true,
-    stdio: ['pipe', 'pipe', 'pipe'],
-  });
-  ssh.stdin.end(`${JSON.stringify({ protocol: PROTOCOL, op: 'snapshot_export', store_id: row.storeId })}\n`, 'utf8');
+  const authority = await authorityProcess(context, folder, row.target);
+  authority.stdin.end(`${JSON.stringify({ protocol: PROTOCOL, op: 'snapshot_export', store_id: row.storeId })}\n`, 'utf8');
 
   const importer = spawn(runtime.executable, ['-m', 'dogfood.llm_wiki.remote_snapshot', 'import', '--root', wikiRoot(folder)], {
     cwd: folder.uri.fsPath,
@@ -277,9 +311,9 @@ async function refreshReplicaWithBinding(context, folder, row) {
     windowsHide: true,
     stdio: ['pipe', 'pipe', 'pipe'],
   });
-  ssh.stdout.pipe(importer.stdin);
+  authority.stdout.pipe(importer.stdin);
   const [sshResult, importResult] = await Promise.all([
-    processResult(ssh, { timeoutMs: 60000, maxBuffer: 1024 * 1024 }),
+    processResult(authority, { timeoutMs: 60000, maxBuffer: 1024 * 1024 }),
     processResult(importer, { timeoutMs: 60000, maxBuffer: 1024 * 1024 }),
   ]);
   if (sshResult.code !== 0) throw new RemoteTransportError(`remote_snapshot_fetch_failed:${boundedProcessFailure(sshResult.stderr.toString('utf8'))}`);
@@ -331,7 +365,7 @@ async function connect(context, folder, options = {}) {
   if (current) return refreshReplica(context, folder);
 
   const displayName = String(options.displayName || folder.name || 'Project Memory').trim().slice(0, 120) || 'Project Memory';
-  const created = await sshJson(folder, target, { op: 'create_store', display_name: displayName, bootstrap: true });
+  const created = await authorityJson(context, folder, target, { op: 'create_store', display_name: displayName, bootstrap: true });
   const storeId = String(created.store && created.store.store_id || '');
   if (!STORE_ID_RE.test(storeId)) throw new RemoteOperationError('remote_store_create_response_invalid', created);
   const bootstrap = await bootstrapStore(context, folder, target, storeId);
@@ -486,7 +520,7 @@ async function runCoreMutation(context, folder, moduleName, args) {
   const upload = uploadPayloadForInvocation(moduleName, args);
   let response;
   try {
-    response = await sshJson(folder, current.target, {
+    response = await authorityJson(context, folder, current.target, {
       op: 'run_core',
       store_id: current.storeId,
       module: moduleName,
@@ -523,7 +557,7 @@ async function saveHumanKnowledge(context, folder, input) {
   }
   let response;
   try {
-    response = await sshJson(folder, current.target, {
+    response = await authorityJson(context, folder, current.target, {
       op: 'save_human_knowledge',
       store_id: current.storeId,
       title: input.title,
@@ -551,7 +585,7 @@ async function saveHumanKnowledge(context, folder, input) {
 async function listStores(context, folder) {
   const current = binding(context, folder);
   if (!current) throw new Error('remote_memory_not_connected');
-  return (await sshJson(folder, current.target, { op: 'list_stores' })).stores || [];
+  return (await authorityJson(context, folder, current.target, { op: 'list_stores' })).stores || [];
 }
 
 function status(context, folder) {
@@ -573,6 +607,7 @@ function status(context, folder) {
 module.exports = {
   HELPER_COMMAND,
   INSTALL_COMMAND,
+  LOCAL_AUTHORITY_TARGET,
   PROTOCOL,
   REMOTE_CONFIGURED_CONTEXT,
   REMOTE_WRITABLE_CONTEXT,
@@ -582,11 +617,14 @@ module.exports = {
   SNAPSHOT_ID_RE,
   STORE_ID_RE,
   TARGET_RE,
+  authorityJson,
+  authorityProcess,
   binding,
   connect,
   deployRuntime,
   health,
   isConfigured,
+  isLocalAuthorityTarget,
   isMutatingCoreInvocation,
   isReplicaReadInvocation,
   listStores,
