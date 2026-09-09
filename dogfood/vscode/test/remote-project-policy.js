@@ -19,6 +19,7 @@ function freshRoot() {
   const root = freshRoot();
   try {
     assert.equal(policy.assertFreshLocalMemory(root), true);
+    assert.equal(policy.isFreshLocalMemory(root), true);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
@@ -45,6 +46,7 @@ for (const mutate of [
   try {
     mutate(root);
     assert.throws(() => policy.assertFreshLocalMemory(root), /remote_attach_requires_empty_local_memory/);
+    assert.equal(policy.isFreshLocalMemory(root), false);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
@@ -89,4 +91,4 @@ assert.equal(policy.authorityCacheKey('wiki-host'), policy.authorityCacheKey('wi
 assert.notEqual(policy.authorityCacheKey('wiki-host-a'), policy.authorityCacheKey('wiki-host-b'));
 assert.match(policy.authorityCacheKey('wiki-host'), /^[0-9a-f]{24}$/);
 
-console.log('REMOTE-PROJECT-POLICY PASS empty-only-attach=yes safe-writer-lock-retry=yes symlink-failclosed=yes authority-cache-key=opaque');
+console.log('REMOTE-PROJECT-POLICY PASS empty-only-attach=yes attach-ready-state=yes safe-writer-lock-retry=yes symlink-failclosed=yes authority-cache-key=opaque');
