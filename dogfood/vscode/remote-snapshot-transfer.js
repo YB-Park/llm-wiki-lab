@@ -79,12 +79,8 @@ async function fetchSnapshot(context, folder, target, storeId, destination, opti
   if (!runtime) throw new Error('python_runtime_not_found');
   const core = coreRoot(context, folder);
 
-  const ssh = spawn('ssh', remoteMemory.sshArgs(target, remoteMemory.HELPER_COMMAND), {
-    cwd: folder.uri.fsPath,
-    windowsHide: true,
-    stdio: ['pipe', 'pipe', 'pipe'],
-  });
-  ssh.stdin.end(`${JSON.stringify({ protocol: remoteMemory.PROTOCOL, op: 'snapshot_export', store_id: storeId })}\n`, 'utf8');
+  const authority = await remoteMemory.authorityProcess(context, folder, target);
+  authority.stdin.end(`${JSON.stringify({ protocol: remoteMemory.PROTOCOL, op: 'snapshot_export', store_id: storeId })}\n`, 'utf8');
 
   const attachEmpty = options.attachEmpty === true;
   const moduleName = attachEmpty
@@ -99,10 +95,10 @@ async function fetchSnapshot(context, folder, target, storeId, destination, opti
     windowsHide: true,
     stdio: ['pipe', 'pipe', 'pipe'],
   });
-  ssh.stdout.pipe(importer.stdin);
+  authority.stdout.pipe(importer.stdin);
 
   const [sshResult, importResult] = await Promise.all([
-    waitProcess(ssh, { captureStdout: false }),
+    waitProcess(authority, { captureStdout: false }),
     waitProcess(importer, { captureStdout: true }),
   ]);
   if (sshResult.code !== 0) {
