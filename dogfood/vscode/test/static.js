@@ -234,7 +234,8 @@ must('product-view-remember-action', productView.includes("node('Remember active
 must('product-view-review-action', productView.includes("node('Review saved-file changes'"));
 must('product-view-registers-safe-actions', productView.includes('productActions.registerProductActions(context)'));
 must('product-view-registers-friendly-query-config', productView.includes('productQueryConfig.registerProductQueryConfig(context)'));
-must('product-view-registers-remote-connect', productView.includes('CONNECT_PERSONAL_WIKI_COMMAND') && productView.includes('remoteMemory.connect(context, folder)'));
+must('product-view-registers-remote-connect', productView.includes('CONNECT_PERSONAL_WIKI_COMMAND') && productView.includes("(target) => remoteMemory.connect(context, folder, { target })"));
+must('doctor-attach-ready-state', entry.includes('Local Project Memory contents: ${contentsLabel}') && entry.includes('remotePolicy.isFreshLocalMemory(root)'));
 must('product-view-registers-remote-refresh', productView.includes('REFRESH_PERSONAL_WIKI_COMMAND') && productView.includes('remoteMemory.refreshReplica(context, folder)'));
 must('product-view-remote-readonly-language', productView.includes('Offline · read only') && productView.includes('Refresh pending · read only'));
 must('product-view-other-project-names', productView.includes('store.displayName'));
