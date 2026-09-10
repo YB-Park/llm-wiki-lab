@@ -95,13 +95,15 @@ must('library-ui-remote-source-explicit', libraryUi.includes('Add or refresh a p
 must('library-ui-remote-only-when-connected', libraryUi.includes("...(remoteConnected ? [{"));
 must('library-ui-remote-action-delegates', libraryUi.includes("action === 'remote-register'") && libraryUi.includes('remoteLibrary.addRemoteProject'));
 
+const readyStart = remoteMemory.indexOf('async function ensureAuthorityReadyForRefresh(context, folder, target)');
 const refreshStart = remoteMemory.indexOf('async function refreshReplica(context, folder)');
 const refreshEnd = remoteMemory.indexOf('async function connect(context, folder', refreshStart);
-must('refresh-function-bounded', refreshStart >= 0 && refreshEnd > refreshStart);
+must('refresh-functions-bounded', readyStart >= 0 && refreshStart > readyStart && refreshEnd > refreshStart);
+const readyBody = remoteMemory.slice(readyStart, refreshStart);
 const refreshBody = remoteMemory.slice(refreshStart, refreshEnd);
-const repairIndex = refreshBody.indexOf("health(context, folder, current.target, { deploy: true })");
-const snapshotIndex = refreshBody.indexOf('refreshReplicaWithBinding(context, folder, current)');
-must('refresh-repairs-helper-before-snapshot', repairIndex >= 0 && snapshotIndex > repairIndex);
+must('refresh-health-first', readyBody.indexOf("health(context, folder, target, { deploy: false })") >= 0);
+must('refresh-redeploys-only-after-health-failure', readyBody.indexOf("health(context, folder, target, { deploy: true })") > readyBody.indexOf("health(context, folder, target, { deploy: false })"));
+must('refresh-repairs-before-snapshot', refreshBody.indexOf('ensureAuthorityReadyForRefresh(context, folder, current.target)') >= 0 && refreshBody.indexOf('refreshReplicaWithBinding(context, folder, current)') > refreshBody.indexOf('ensureAuthorityReadyForRefresh(context, folder, current.target)'));
 must('refresh-preserves-pending-on-failure', refreshBody.includes('refreshPending: current.refreshPending'));
 must('authority-json-failure-detail', remoteMemory.includes('function authorityFailureDetail(result)') && remoteMemory.includes('row.ok === false && row.error'));
 must('remote-diagnostic-code-bounded', remoteMemory.includes('function diagnosticCode(detail)') && remoteMemory.includes('slice(0, 180)'));
