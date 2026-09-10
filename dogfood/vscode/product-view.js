@@ -96,11 +96,12 @@ function remoteNode(state) {
     });
   }
   if (remote.refreshPending) {
+    const code = remote.lastError ? remoteMemory.diagnosticCode(remote.lastError) : 'refresh_required';
     return node('Personal Wiki', {
-      description: 'Refresh pending · read only',
-      tooltip: 'A remote write was committed, but the local verified copy did not refresh. Reads use the last verified copy and may be stale. Refresh before any further Project Memory write.',
+      description: 'Refresh required · click to retry',
+      tooltip: `A Personal Wiki write succeeded, but the local verified copy did not refresh. Reads remain available and writes stay blocked. Click to repair/retry refresh. Last failure: ${code}`,
       iconPath: new vscode.ThemeIcon('warning'),
-      command: { command: REFRESH_PERSONAL_WIKI_COMMAND, title: 'Refresh Personal Wiki' },
+      command: { command: REFRESH_PERSONAL_WIKI_COMMAND, title: 'Retry Personal Wiki Refresh' },
     });
   }
   if (remote.writable) {
@@ -111,11 +112,12 @@ function remoteNode(state) {
       command: { command: REFRESH_PERSONAL_WIKI_COMMAND, title: 'Refresh Personal Wiki' },
     });
   }
+  const code = remote.lastError ? remoteMemory.diagnosticCode(remote.lastError) : 'authority_unavailable';
   return node('Personal Wiki', {
-    description: 'Offline · read only',
-    tooltip: 'The remote authority is unavailable or unverified. Reads use the last verified local copy and may be stale; all Project Memory writes are blocked.',
+    description: 'Offline · click to reconnect',
+    tooltip: `The Personal Wiki authority is unavailable or unverified. Reads use the last verified local copy and writes are blocked. Click to verify/reconnect and refresh. Last failure: ${code}`,
     iconPath: new vscode.ThemeIcon('debug-disconnect'),
-    command: { command: REFRESH_PERSONAL_WIKI_COMMAND, title: 'Refresh Personal Wiki' },
+    command: { command: REFRESH_PERSONAL_WIKI_COMMAND, title: 'Reconnect and Refresh Personal Wiki' },
   });
 }
 
@@ -253,6 +255,36 @@ class LlmWikiOverviewProvider {
   }
 }
 
+async function offerRefreshRecovery(context, provider, folder, detail, prefix) {
+  const code = remoteMemory.diagnosticCode(detail);
+  const choice = await vscode.window.showWarningMessage(
+    `${prefix} Reads remain available from the last verified copy; Project Memory writes stay blocked. Failure: ${code}`,
+    'Retry Now',
+    'Check Setup and Health'
+  );
+  if (choice === 'Check Setup and Health') {
+    await vscode.commands.executeCommand('llmWiki.doctor');
+    return undefined;
+  }
+  if (choice !== 'Retry Now') return undefined;
+  try {
+    const result = await remoteMemory.refreshReplica(context, folder);
+    provider.refresh();
+    await vscode.window.showInformationMessage('Personal Wiki recovered. The verified local copy is current and Project Memory is read/write again.');
+    return result;
+  } catch (retryError) {
+    provider.refresh();
+    const retryCode = remoteMemory.diagnosticCode(retryError && retryError.message ? retryError.message : retryError);
+    await vscode.window.showErrorMessage(
+      `Personal Wiki refresh retry failed (${retryCode}). Open Check Setup and Health for the saved diagnostic state.`,
+      'Check Setup and Health'
+    ).then(async (picked) => {
+      if (picked === 'Check Setup and Health') await vscode.commands.executeCommand('llmWiki.doctor');
+    });
+    return undefined;
+  }
+}
+
 async function runRemoteAction(context, provider, action) {
   const folder = firstEligibleFolder();
   if (!folder) throw new Error('Open and trust exactly one workspace folder first.');
@@ -264,15 +296,38 @@ async function runRemoteAction(context, provider, action) {
     provider.refresh();
     const detail = error && error.message ? String(error.message) : String(error);
     if (detail.startsWith('REMOTE_WRITE_COMMITTED_REFRESH_PENDING')) {
-      await vscode.window.showWarningMessage('Personal Wiki saved the remote change, but the local verified copy could not refresh. Project Memory is read only until Refresh Personal Wiki succeeds.');
-    } else if (detail.startsWith('REMOTE_OFFLINE_READ_ONLY') || detail.includes('remote_ssh_') || detail.includes('remote_process_') || detail.includes('local_authority_')) {
-      await vscode.window.showWarningMessage('Personal Wiki is unavailable. The last verified local copy remains readable, but Project Memory writes are blocked.');
+      return offerRefreshRecovery(
+        context,
+        provider,
+        folder,
+        detail,
+        'Personal Wiki saved the authority change, but the verified local copy could not refresh.'
+      );
+    } else if (
+      detail.startsWith('REMOTE_OFFLINE_READ_ONLY')
+      || detail.includes('remote_ssh_')
+      || detail.includes('remote_process_')
+      || detail.includes('local_authority_')
+      || detail.includes('remote_snapshot_')
+    ) {
+      return offerRefreshRecovery(
+        context,
+        provider,
+        folder,
+        detail,
+        'Personal Wiki could not verify and refresh the authority.'
+      );
     } else if (detail.includes('remote_attach_requires_empty_local_memory')) {
       await vscode.window.showWarningMessage('Use Existing Personal Wiki Project Memory is available only while this workspace has no saved local Project Memory. LLM Wiki will not merge or overwrite independent local memory.');
     } else if (detail.includes('remote_attach_no_existing_project_memory')) {
       await vscode.window.showInformationMessage('This Personal Wiki has no published Project Memories yet. Publish one from the workspace that owns the memory first.');
     } else {
-      await vscode.window.showErrorMessage('LLM Wiki could not complete the Personal Wiki action. Use Check Setup and Health for local diagnostics.');
+      const code = remoteMemory.diagnosticCode(detail);
+      const choice = await vscode.window.showErrorMessage(
+        `LLM Wiki could not complete the Personal Wiki action (${code}).`,
+        'Check Setup and Health'
+      );
+      if (choice === 'Check Setup and Health') await vscode.commands.executeCommand('llmWiki.doctor');
     }
     return undefined;
   }
