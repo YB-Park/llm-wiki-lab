@@ -345,14 +345,21 @@ async function refreshReplicaWithBinding(context, folder, row) {
   return String(imported.snapshot_id);
 }
 
+async function ensureAuthorityReadyForRefresh(context, folder, target) {
+  try {
+    return await health(context, folder, target, { deploy: false });
+  } catch (_) {
+    // Explicit user refresh is the repair boundary. Only after the existing
+    // helper fails health do we reinstall the bundled runtime and verify again.
+    return health(context, folder, target, { deploy: true });
+  }
+}
+
 async function refreshReplica(context, folder) {
   const current = binding(context, folder);
   if (!current) throw new Error('remote_memory_not_connected');
   try {
-    // Explicit refresh is also the recovery path for stale/missing helper runtimes.
-    // Local authority is a no-op deploy; SSH authority is reinstalled from this
-    // exact extension build before any snapshot is accepted.
-    await health(context, folder, current.target, { deploy: true });
+    await ensureAuthorityReadyForRefresh(context, folder, current.target);
     const snapshotId = await refreshReplicaWithBinding(context, folder, current);
     return saveBinding(context, folder, { ...current, snapshotId, writable: true, refreshPending: false, lastError: '' });
   } catch (error) {
@@ -647,6 +654,7 @@ module.exports = {
   connect,
   deployRuntime,
   health,
+  ensureAuthorityReadyForRefresh,
   isConfigured,
   isLocalAuthorityTarget,
   isMutatingCoreInvocation,
