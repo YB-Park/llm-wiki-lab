@@ -188,6 +188,25 @@ async function authorityProcess(context, folder, target) {
   });
 }
 
+function diagnosticCode(detail) {
+  const text = String(detail || '').replace(/[\r\n\t]+/g, ' ').trim();
+  const matches = text.match(/[A-Za-z][A-Za-z0-9_.-]*(?::[A-Za-z0-9_.-]+)*/g) || [];
+  const preferred = matches.find((value) => /^(REMOTE_|remote_|local_|snapshot_|python_)/.test(value));
+  return String(preferred || 'personal_wiki_unknown_failure').slice(0, 180);
+}
+
+function authorityFailureDetail(result) {
+  const stdout = result && result.stdout ? result.stdout.toString('utf8').trim() : '';
+  if (stdout) {
+    try {
+      const row = JSON.parse(stdout);
+      if (row && row.ok === false && row.error) return diagnosticCode(row.error);
+    } catch (_) {}
+  }
+  const stderr = result && result.stderr ? result.stderr.toString('utf8') : '';
+  return diagnosticCode(stderr || 'remote_authority_process_failed');
+}
+
 async function authorityJson(context, folder, target, request, payload = Buffer.alloc(0)) {
   const child = await authorityProcess(context, folder, target);
   child.stdin.write(`${JSON.stringify({ protocol: PROTOCOL, ...request })}\n`, 'utf8');
@@ -196,7 +215,7 @@ async function authorityJson(context, folder, target, request, payload = Buffer.
   const result = await processResult(child);
   if (result.code !== 0 && !result.stdout.length) {
     const prefix = isLocalAuthorityTarget(target) ? 'local_authority_failed' : 'remote_ssh_failed';
-    throw new RemoteTransportError(`${prefix}:${boundedProcessFailure(result.stderr.toString('utf8'))}`);
+    throw new RemoteTransportError(`${prefix}:${authorityFailureDetail(result)}`);
   }
   let row;
   try {
@@ -316,7 +335,7 @@ async function refreshReplicaWithBinding(context, folder, row) {
     processResult(authority, { timeoutMs: 60000, maxBuffer: 1024 * 1024 }),
     processResult(importer, { timeoutMs: 60000, maxBuffer: 1024 * 1024 }),
   ]);
-  if (sshResult.code !== 0) throw new RemoteTransportError(`remote_snapshot_fetch_failed:${boundedProcessFailure(sshResult.stderr.toString('utf8'))}`);
+  if (sshResult.code !== 0) throw new RemoteTransportError(`remote_snapshot_fetch_failed:${authorityFailureDetail(sshResult)}`);
   if (importResult.code !== 0) throw new RemoteOperationError(`remote_snapshot_verify_failed:${boundedProcessFailure(importResult.stderr.toString('utf8'))}`);
   let imported;
   try { imported = JSON.parse(importResult.stdout.toString('utf8')); } catch (_) { throw new RemoteOperationError('remote_snapshot_import_response_invalid'); }
@@ -330,6 +349,10 @@ async function refreshReplica(context, folder) {
   const current = binding(context, folder);
   if (!current) throw new Error('remote_memory_not_connected');
   try {
+    // Explicit refresh is also the recovery path for stale/missing helper runtimes.
+    // Local authority is a no-op deploy; SSH authority is reinstalled from this
+    // exact extension build before any snapshot is accepted.
+    await health(context, folder, current.target, { deploy: true });
     const snapshotId = await refreshReplicaWithBinding(context, folder, current);
     return saveBinding(context, folder, { ...current, snapshotId, writable: true, refreshPending: false, lastError: '' });
   } catch (error) {
@@ -609,6 +632,7 @@ module.exports = {
   INSTALL_COMMAND,
   LOCAL_AUTHORITY_TARGET,
   PROTOCOL,
+  diagnosticCode,
   REMOTE_CONFIGURED_CONTEXT,
   REMOTE_WRITABLE_CONTEXT,
   REPLICA_READ_MODULE,
