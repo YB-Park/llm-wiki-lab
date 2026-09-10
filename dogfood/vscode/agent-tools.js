@@ -8,6 +8,7 @@ const { promisify } = require('node:util');
 const vscode = require('vscode');
 const humanKnowledge = require('./human-knowledge');
 const memoryRead = require('./memory-read-service');
+const remoteMemory = require('./remote-memory');
 const { boundedProcessFailure } = require('./process-errors');
 const { resolvePythonRuntime } = require('./python-runtime');
 const { parseIngestReceipt, workspaceRelativePath } = require('./product-helpers');
@@ -76,6 +77,9 @@ function coreRoot(context, folder) {
 }
 
 async function runPythonModule(context, folder, moduleName, args) {
+  if (remoteMemory.isConfigured(context, folder) && remoteMemory.isMutatingCoreInvocation(moduleName, args)) {
+    return remoteMemory.runCoreMutation(context, folder, moduleName, args);
+  }
   const runtime = await resolvePythonRuntime(folder);
   if (!runtime) throw new Error('python_runtime_not_found');
   const root = coreRoot(context, folder);
@@ -430,17 +434,17 @@ async function findExactCurrentRememberedSource(context, folder, target, digest)
 
 async function rememberLocator(context, folder, sourceId, relativePath, digest) {
   if (!sourceId || !relativePath || !digest) return;
+  await runAgentStateCli(context, folder, [
+    'locator-set', sourceId,
+    '--relative-path', relativePath,
+    '--sha256', digest,
+  ]);
   const key = sourceLocatorKey(folder);
   const current = context.workspaceState.get(key, {});
   await context.workspaceState.update(key, {
     ...current,
     [sourceId]: { relativePath, sha256: digest },
   });
-  await runAgentStateCli(context, folder, [
-    'locator-set', sourceId,
-    '--relative-path', relativePath,
-    '--sha256', digest,
-  ]);
 }
 
 async function currentSameFileCandidates(context, folder, topic, target, currentDigest) {
@@ -995,13 +999,16 @@ class WikiRememberHumanKnowledgeTool {
       return new vscode.LanguageModelToolResult([new vscode.LanguageModelTextPart('LLM_WIKI_HUMAN_KNOWLEDGE_RESULT v2\nstatus=CANCELLED_BY_USER\nwrite=none')]);
     }
 
-    const record = humanKnowledge.save(wikiRoot(folder), {
+    const knowledgeInput = {
       title,
       statement,
       reasoning,
       sourceIds,
       supersedesKnowledgeId,
-    });
+    };
+    const record = remoteMemory.isConfigured(this.context, folder)
+      ? await remoteMemory.saveHumanKnowledge(this.context, folder, knowledgeInput)
+      : humanKnowledge.save(wikiRoot(folder), knowledgeInput);
     const text = [
       'LLM_WIKI_HUMAN_KNOWLEDGE_RESULT v2',
       'status=CREATED',

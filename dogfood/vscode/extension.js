@@ -5,6 +5,7 @@ const path = require('node:path');
 const { execFile } = require('node:child_process');
 const { promisify } = require('node:util');
 const vscode = require('vscode');
+const remoteMemory = require('./remote-memory');
 const { resolvePythonRuntime } = require('./python-runtime');
 const { locatorForRow, parseIngestReceipt, resolveWorkspaceRelative, sha256, workspaceRelativePath } = require('./product-helpers');
 
@@ -53,6 +54,13 @@ function wikiRoot(folder) {
 }
 
 async function runCli(context, folder, args) {
+  if (remoteMemory.isConfigured(context, folder)) {
+    if (remoteMemory.isMutatingCoreInvocation('dogfood.llm_wiki.cli', args)) {
+      return remoteMemory.runCoreMutation(context, folder, 'dogfood.llm_wiki.cli', args);
+    }
+    throw new Error('REMOTE_LEGACY_COMMAND_UNAVAILABLE: this advanced command is not available while Personal Wiki remote authority is connected');
+  }
+
   const runtime = await resolvePythonRuntime(folder);
   if (!runtime) throw new Error('python_runtime_not_found');
   const root = coreRoot(context, folder);

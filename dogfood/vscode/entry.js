@@ -12,6 +12,8 @@ const { clearPythonRuntimeCache, resolvePythonRuntime } = require('./python-runt
 const workspaceActivation = require('./workspace-activation');
 const { discoverCopilotModels } = require('./lm-discovery');
 const personalLibrary = require('./personal-wiki-library');
+const remotePolicy = require('./remote-project-policy');
+const remoteMemory = require('./remote-memory');
 const { registerProductView } = require('./product-view');
 const { queryGrant, registerQueryPlaneCommand, registerQueryPlaneTool } = require('./query-plane');
 
@@ -301,6 +303,21 @@ async function doctor(context) {
   const maintenanceGuard = Number(configuration().get('agentWikiMaintenanceMaxAiCredits', 30));
   const query = workspaceEnabled ? queryGrant(context, folder) : undefined;
   const libraryAccess = workspaceEnabled ? Boolean(personalLibrary.libraryGrant(context, folder, root)) : false;
+  let personalWikiStatus = { configured: false, writable: false, mode: 'local', refreshPending: false, lastError: '' };
+  try {
+    personalWikiStatus = remoteMemory.status(context, folder);
+  } catch (_) {
+    personalWikiStatus = { configured: true, writable: false, mode: 'offline_read_only', refreshPending: false, lastError: 'remote_binding_corrupt' };
+  }
+  const personalWikiLabel = !personalWikiStatus.configured
+    ? 'NOT CONNECTED'
+    : (personalWikiStatus.refreshPending
+      ? 'REFRESH REQUIRED · READ ONLY'
+      : (personalWikiStatus.writable ? 'CONNECTED · READ/WRITE' : 'OFFLINE · READ ONLY'));
+  const personalWikiFailure = personalWikiStatus.lastError
+    ? remoteMemory.diagnosticCode(personalWikiStatus.lastError)
+    : 'NONE';
+
   let libraryCatalogStatus = 'PASS';
   let registeredExternalStoreCount = 0;
   try {
@@ -309,6 +326,10 @@ async function doctor(context) {
     libraryCatalogStatus = 'NEEDS_ATTENTION';
   }
   const storeLabel = storeInitialized ? 'INITIALIZED' : (storePresent ? 'INCOMPLETE' : 'NOT_INITIALIZED');
+  const attachReady = workspaceEnabled && storeInitialized && integrityReady && remotePolicy.isFreshLocalMemory(root);
+  const contentsLabel = !storeInitialized
+    ? 'NOT READY'
+    : (attachReady ? 'EMPTY · READY TO USE EXISTING PERSONAL WIKI PROJECT' : 'HAS LOCAL STATE');
 
   doctorOutput.clear();
   doctorOutput.appendLine('LLM Wiki — Setup & Health');
@@ -320,6 +341,9 @@ async function doctor(context) {
   doctorOutput.appendLine(`Workspace opt-in: ${workspaceEnabled ? 'ENABLED' : 'NOT_ENABLED'}`);
   doctorOutput.appendLine(`Agent tools: ${workspaceEnabled ? 'AVAILABLE' : 'HIDDEN'}`);
   doctorOutput.appendLine(`Local memory store: ${storeLabel}`);
+  doctorOutput.appendLine(`Local Project Memory contents: ${contentsLabel}`);
+  doctorOutput.appendLine(`Personal Wiki: ${personalWikiLabel}`);
+  doctorOutput.appendLine(`Personal Wiki last failure: ${personalWikiFailure}`);
   doctorOutput.appendLine(`Python runtime: ${pythonReady ? `FOUND (${runtime.executable}, ${runtime.source})` : 'MISSING'}`);
   doctorOutput.appendLine(`Local data integrity: ${!storePresent ? 'NOT CHECKED' : (integrityReady ? 'PASS' : 'NEEDS ATTENTION')}`);
   doctorOutput.appendLine(`Git privacy: ${gitSafety === 'UNPROTECTED' ? 'NEEDS ATTENTION — local memory directory is not ignored by Git' : 'PASS'} (${gitSafety})`);
@@ -342,6 +366,10 @@ async function doctor(context) {
     doctorOutput.appendLine('Next action: add .wiki-lab/ (or your configured memory directory) to .git/info/exclude for a local-only choice, or .gitignore for the project; then run setup again.');
   } else if (!workspaceEnabled) {
     doctorOutput.appendLine('Next action: run “LLM Wiki: Set Up Project Memory” to explicitly enable this workspace.');
+  } else if (personalWikiStatus.refreshPending) {
+    doctorOutput.appendLine('Next action: click the Personal Wiki row in the LLM Wiki sidebar to repair/retry the verified refresh. Reads remain available; writes stay blocked until it succeeds.');
+  } else if (personalWikiStatus.configured && !personalWikiStatus.writable) {
+    doctorOutput.appendLine('Next action: click the Personal Wiki row in the LLM Wiki sidebar to verify/reconnect the authority and refresh the local copy.');
   } else if (libraryCatalogStatus !== 'PASS') {
     doctorOutput.appendLine('Next action: Personal Wiki Library control-plane state needs attention. Keep external project access off until the local catalog is inspected or reconfigured.');
   } else if ((maintenanceOn || query) && !copilotReady) {
@@ -383,6 +411,10 @@ async function doctor(context) {
     maintenanceGuard,
     queryReasoningOn: Boolean(query),
     queryDailyCallLimit: query ? query.dailyCallLimit : 0,
+    personalWikiConfigured: Boolean(personalWikiStatus.configured),
+    personalWikiWritable: Boolean(personalWikiStatus.writable),
+    personalWikiRefreshPending: Boolean(personalWikiStatus.refreshPending),
+    personalWikiLastFailure: personalWikiFailure,
     personalWikiLibraryAccessOn: libraryAccess,
     personalWikiLibraryCatalogStatus: libraryCatalogStatus,
     registeredExternalStoreCount: libraryCatalogStatus === 'PASS' ? registeredExternalStoreCount : -1,

@@ -5,6 +5,8 @@ const path = require('node:path');
 const vscode = require('vscode');
 const library = require('./personal-wiki-library');
 const memoryRead = require('./memory-read-service');
+const remoteLibrary = require('./remote-library');
+const remoteMemory = require('./remote-memory');
 
 const COMMAND = 'llmWiki.configurePersonalWikiLibrary';
 
@@ -124,14 +126,21 @@ async function configurePersonalWikiLibrary(context, options = {}) {
   const stores = library.registeredStores(context);
   const test = testOptions(context, options);
   let action = String(test.action || '').trim();
+  let remoteConnected = false;
+  try { remoteConnected = remoteMemory.isConfigured(context, folder); } catch (_) { remoteConnected = false; }
 
   if (!action) {
     const choice = await vscode.window.showQuickPick([
       {
-        label: '$(add) Add another project',
+        label: '$(add) Add a project from this computer',
         description: 'Choose its project folder; LLM Wiki finds the local memory automatically',
         action: 'register',
       },
+      ...(remoteConnected ? [{
+        label: '$(cloud-download) Add or refresh a project from Personal Wiki',
+        description: 'Choose one exact remote project; cache a verified read-only copy on this host',
+        action: 'remote-register',
+      }] : []),
       {
         label: grant ? '$(circle-slash) Stop using added projects here' : '$(key) Allow added projects in this workspace',
         description: grant
@@ -156,6 +165,7 @@ async function configurePersonalWikiLibrary(context, options = {}) {
   }
 
   if (action === 'register') return registerExternalStore(context, folder, test);
+  if (action === 'remote-register') return remoteLibrary.addRemoteProject(context, folder, test);
 
   if (action === 'enable') {
     const approved = context.extensionMode === vscode.ExtensionMode.Test
@@ -220,5 +230,6 @@ module.exports = {
   COMMAND,
   configurePersonalWikiLibrary,
   detectStoreFromSelection,
+  registerExternalStore,
   registerPersonalWikiLibraryCommand,
 };
