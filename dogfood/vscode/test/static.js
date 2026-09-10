@@ -236,8 +236,11 @@ must('product-view-registers-safe-actions', productView.includes('productActions
 must('product-view-registers-friendly-query-config', productView.includes('productQueryConfig.registerProductQueryConfig(context)'));
 must('product-view-registers-remote-connect', productView.includes('CONNECT_PERSONAL_WIKI_COMMAND') && productView.includes("(target) => remoteMemory.connect(context, folder, { target })"));
 must('doctor-attach-ready-state', entry.includes('Local Project Memory contents: ${contentsLabel}') && entry.includes('remotePolicy.isFreshLocalMemory(root)'));
+must('doctor-personal-wiki-state', entry.includes('Personal Wiki: ${personalWikiLabel}') && entry.includes('Personal Wiki last failure: ${personalWikiFailure}'));
+must('doctor-personal-wiki-recovery-action', entry.includes('click the Personal Wiki row in the LLM Wiki sidebar to repair/retry'));
 must('product-view-registers-remote-refresh', productView.includes('REFRESH_PERSONAL_WIKI_COMMAND') && productView.includes('remoteMemory.refreshReplica(context, folder)'));
-must('product-view-remote-readonly-language', productView.includes('Offline · read only') && productView.includes('Refresh pending · read only'));
+must('product-view-remote-readonly-language', productView.includes('Offline · click to reconnect') && productView.includes('Refresh required · click to retry'));
+must('product-view-remote-recovery-actions', productView.includes("'Retry Now'") && productView.includes("'Check Setup and Health'"));
 must('product-view-other-project-names', productView.includes('store.displayName'));
 mustNot('product-view-no-store-id-display', productView.includes('store.storeId'));
 mustNot('product-view-no-root-display', productView.includes('store.root'));
