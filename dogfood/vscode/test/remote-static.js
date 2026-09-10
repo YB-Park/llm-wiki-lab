@@ -31,7 +31,9 @@ for (const name of ['llmWiki_rememberSource', 'llmWiki_rememberHumanKnowledge', 
 }
 
 must('product-connection-choice', productView.includes('remoteAttach.chooseConnection'));
-must('product-readonly-state', productView.includes('Offline · read only') && productView.includes('Refresh pending · read only'));
+must('product-readonly-state', productView.includes('Offline · click to reconnect') && productView.includes('Refresh required · click to retry'));
+must('product-recovery-actions', productView.includes("'Retry Now'") && productView.includes("'Check Setup and Health'"));
+must('product-recovery-shows-failure-code', productView.includes('remoteMemory.diagnosticCode'));
 must('product-no-write-while-readonly', productView.includes('Unavailable while read only'));
 
 const attachStart = remoteAttach.indexOf('async function attachExisting');
@@ -93,6 +95,17 @@ must('library-ui-remote-source-explicit', libraryUi.includes('Add or refresh a p
 must('library-ui-remote-only-when-connected', libraryUi.includes("...(remoteConnected ? [{"));
 must('library-ui-remote-action-delegates', libraryUi.includes("action === 'remote-register'") && libraryUi.includes('remoteLibrary.addRemoteProject'));
 
+const refreshStart = remoteMemory.indexOf('async function refreshReplica(context, folder)');
+const refreshEnd = remoteMemory.indexOf('async function connect(context, folder', refreshStart);
+must('refresh-function-bounded', refreshStart >= 0 && refreshEnd > refreshStart);
+const refreshBody = remoteMemory.slice(refreshStart, refreshEnd);
+const repairIndex = refreshBody.indexOf("health(context, folder, current.target, { deploy: true })");
+const snapshotIndex = refreshBody.indexOf('refreshReplicaWithBinding(context, folder, current)');
+must('refresh-repairs-helper-before-snapshot', repairIndex >= 0 && snapshotIndex > repairIndex);
+must('refresh-preserves-pending-on-failure', refreshBody.includes('refreshPending: current.refreshPending'));
+must('authority-json-failure-detail', remoteMemory.includes('function authorityFailureDetail(result)') && remoteMemory.includes('row.ok === false && row.error'));
+must('remote-diagnostic-code-bounded', remoteMemory.includes('function diagnosticCode(detail)') && remoteMemory.includes('slice(0, 180)'));
+
 const sshBoundary = `${remoteMemory}\n${remoteAttach}\n${remoteLibrary}\n${snapshotTransfer}`;
 must('ssh-batch-mode', sshBoundary.includes('BatchMode=yes'));
 must('local-authority-sentinel', remoteMemory.includes("const LOCAL_AUTHORITY_TARGET = '@local-authority'"));
@@ -104,4 +117,4 @@ mustNot('ssh-never-disables-host-key-checking', sshBoundary.includes('StrictHost
 mustNot('ssh-never-null-known-hosts', sshBoundary.includes('UserKnownHostsFile=/dev/null'));
 mustNot('no-background-sync-loop', sshBoundary.includes('setInterval(') || sshBoundary.includes('setTimeout(async') || sshBoundary.includes('watchFile('));
 
-console.log('REMOTE-STATIC PASS explicit-attach=yes local-authority-no-self-ssh=yes writerLockedAttach=yes remote-library=verified-named-readonly offline-write=blocked extensionKind=workspace symlinkFailClosed=yes');
+console.log('REMOTE-STATIC PASS explicit-attach=yes local-authority-no-self-ssh=yes refreshRecovery=actionable+helper-repair+diagnostic-code writerLockedAttach=yes remote-library=verified-named-readonly offline-write=blocked extensionKind=workspace symlinkFailClosed=yes');
