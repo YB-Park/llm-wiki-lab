@@ -94,6 +94,24 @@ suite('LLM Wiki local Personal Wiki authority', () => {
       assert.ok(stores.some((store) => store.store_id === row.storeId), 'local authority list did not return published store');
       assert.equal(fs.existsSync(path.join(wikiRoot, 'workspace-opt-in.json')), true, 'local workspace opt-in was not preserved');
       assert.equal(fs.existsSync(sshCalled), false, 'local authority list invoked ssh');
+
+      const key = remoteMemory.bindingKey ? remoteMemory.bindingKey(folder) : `llmWiki.remoteBinding.v1:${folder.uri.toString()}`;
+      await context.workspaceState.update(key, {
+        ...row,
+        writable: false,
+        refreshPending: true,
+        lastError: 'remote_snapshot_fetch_failed:remote_authority_process_failed',
+      });
+      const recovered = await stage(
+        'local-authority-recover-refresh-pending',
+        remoteMemory.refreshReplica(context, folder),
+        60000
+      );
+      assert.equal(recovered.refreshPending, false, 'explicit refresh did not clear refreshPending');
+      assert.equal(recovered.writable, true, 'explicit refresh did not restore write authority');
+      assert.equal(recovered.lastError, '', 'explicit refresh did not clear the previous failure');
+      assert.equal(fs.existsSync(sshCalled), false, 'refresh-pending recovery invoked ssh for local authority');
+      assert.match(remoteMemory.diagnosticCode('remote_snapshot_fetch_failed:snapshot_source_integrity_failed'), /^remote_snapshot_fetch_failed:/);
     } finally {
       if (oldRemoteHome === undefined) delete process.env.LLM_WIKI_REMOTE_HOME;
       else process.env.LLM_WIKI_REMOTE_HOME = oldRemoteHome;
