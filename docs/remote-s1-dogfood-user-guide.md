@@ -61,13 +61,20 @@ B의 Doctor에서 다음 상태를 확인한다.
 - 현재 workspace에서 사용하려면 **Allow Here** 별도 승인
 - 다른 프로젝트에 쓰거나 전체 프로젝트를 자동 검색하지 않음
 
-## 5. A와 연결이 끊기면
+## 5. 연결/Refresh에 문제가 생기면
 
-B는 **Offline · read only**가 된다.
+사이드바가 다음처럼 보일 수 있다.
 
-- 마지막 verified memory는 읽을 수 있음
-- 새 기억 저장/수정은 차단
-- A 연결 복구 후 **Refresh Personal Wiki**
+- **Refresh required · click to retry**: authority write는 성공했지만 local verified copy 갱신이 아직 안 됨
+- **Offline · click to reconnect**: authority를 현재 확인할 수 없음
+
+이 상태에서도 마지막 verified memory는 읽을 수 있지만 새 기억 저장/수정은 차단된다.
+
+**Personal Wiki 행을 클릭**하면 LLM Wiki가 authority helper를 다시 검증하고 필요한 경우 다시 배포한 뒤 verified refresh를 재시도한다.
+
+실패하면 **Retry Now** 또는 **Check Setup and Health**가 표시된다. Doctor에서 `Personal Wiki last failure` 원인 코드를 확인할 수 있다.
+
+자동 background SSH/sync는 하지 않는다.
 
 ## Dogfood 원칙
 
