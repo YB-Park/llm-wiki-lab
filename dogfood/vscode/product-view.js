@@ -307,6 +307,8 @@ async function runRemoteAction(context, provider, action) {
       detail.startsWith('REMOTE_OFFLINE_READ_ONLY')
       || detail.includes('remote_ssh_')
       || detail.includes('remote_process_')
+      || detail.includes('remote_runtime_')
+      || detail.includes('remote_helper_')
       || detail.includes('local_authority_')
       || detail.includes('remote_snapshot_')
     ) {
